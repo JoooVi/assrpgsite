@@ -1,0 +1,63 @@
+.profile-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    text-align: center;
+    color: #333;
+  }
+  
+  .profile-info {
+    margin: 20px 0;
+  }
+  
+  .profile-info p {
+    font-size: 1.1rem;
+    color: #555;
+  }
+  
+  .profile-info strong {
+    color: #67110e;
+  }
+  
+  button {
+    padding: 10px;
+    background-color: #67110e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 20px auto;
+  }
+  
+  button:hover {
+    background-color: #67110e;
+  }
+  
+  /* Carregando */
+  .loading-spinner {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #67110e;
+  }
+  
+  /* Mensagem de erro */
+  .error-message {
+    text-align: center;
+    color: red;
+    font-size: 1.2rem;
+  }
+  
+  .error-message button {
+    margin-top: 10px;
+    background-color: #ff4d4d;
+    color: white;
+  }  

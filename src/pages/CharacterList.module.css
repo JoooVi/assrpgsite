@@ -1,0 +1,76 @@
+.characterList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.characterCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.characterCard {
+  width: 300px;
+  margin: 20px;
+  background-color: #000000; /* Fundo preto */
+  color: #ffffff; /* Texto branco */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.characterCard:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cardContent {
+  background-color: #000000; /* Fundo preto */
+  color: #ffffff; /* Texto branco */
+}
+
+.characterName {
+  text-align: center; /* Centralizar o nome do personagem */
+  font-size: 1.2rem; /* Ajustar tamanho da fonte */
+  margin-bottom: 8px; /* Reduzir espaço abaixo do nome */
+}
+
+.cardActions {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px; /* Ajustar espaçamento */
+}
+
+.deleteButton {
+  min-width: 0;
+  padding: 5px; /* Garantir que o botão não estique */
+}
+
+@media (max-width: 768px) {
+  .cardActions {
+    flex-direction: row; /* Alinhar botões lado a lado no celular */
+    justify-content: space-between;
+  }
+
+  .deleteButton {
+    width: auto;
+    margin-top: 0; /* Remover margem superior */
+  }
+}
+
+.createCharacter {
+  margin-top: 20px;
+}
+
+.errorMessage {
+  color: red;
+  margin: 20px;
+}
+
+.loadingIndicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}

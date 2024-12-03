@@ -1,0 +1,88 @@
+/* Estilo base */
+.characterSheet {
+  padding: 20px;
+  background-color: #0c0c0c; /* Fundo cinza escuro */
+  color: #fff; /* Texto branco */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.characterHeader {
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #444;
+  align-items: center;
+  max-width: 1100px;
+  width: 100%; /* Certifique-se de que o cabeçalho ocupe toda a largura disponível */
+}
+
+.characterBody {
+  display: flex;
+  justify-content: center; /* Centraliza os elementos no eixo horizontal */
+  gap: 20px;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap; /* Permite que os elementos "quebrem" de linha quando a tela for pequena */
+}
+
+.leftColumn,
+.rightColumn,
+.centerColumn {
+  background-color: #444; /* Fundo cinza escuro para o Paper */
+  padding: 20px;
+  margin: 5px;
+  flex: 1;
+  max-width: 400px; /* Certifique-se de que os elementos não fiquem muito largos */
+}
+
+.rightColumn {
+  max-width: 600px;
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 768px) {
+  .characterBody {
+    flex-direction: column; /* Muda para coluna em telas menores */
+    align-items: center; /* Alinha os elementos ao centro */
+  }
+
+  .leftColumn,
+  .rightColumn,
+  .centerColumn {
+    max-width: 100%; /* Garante que os elementos ocupem toda a largura disponível */
+  }
+
+  .characterHeader {
+    max-width: 100%; /* Garante que o cabeçalho ocupe toda a largura disponível */
+  }
+}
+
+.instinctItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.healthBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.skillItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.loadingIndicator,
+.errorMessage {
+  text-align: center;
+}

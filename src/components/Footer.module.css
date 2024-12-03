@@ -1,0 +1,72 @@
+.footerContainer {
+  background-color: #000000;
+  color: #fff;
+  text-align: left;
+  padding: 1rem 2rem; /* Reduz o padding geral */
+  margin-top: auto;
+}
+
+.footerWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.footerLinksContainer {
+  display: flex;
+  flex-wrap: wrap; /* Links se ajustam automaticamente */
+  gap: 1rem; /* Espaçamento entre colunas */
+  justify-content: flex-start; /* Alinha os links à esquerda */
+  margin-bottom: 0.5rem; /* Reduz o espaço entre os links e o divisor */
+  font-size: small;
+}
+
+.footerLinksRow {
+  display: flex;
+  flex-direction: column; /* Cada "linha" de links é uma coluna */
+  max-width: 150px; /* Limita a largura de cada coluna */
+  gap: 0.5rem; /* Reduz o espaçamento entre os links dentro da coluna */
+}
+
+.links {
+  color: #fff;
+  padding: 0.1rem 0; /* Espaçamento reduzido */
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.links:hover {
+  color: #67110e;
+}
+
+.iconLinksContainer {
+  display: flex;
+  justify-content: flex-end; /* Ícones alinhados à direita */
+  gap: 0.5rem;
+  margin-top: 0.5rem; /* Reduz o espaço entre os ícones e os links */
+}
+
+.icon {
+  width: 20px; /* Ícones menores */
+  height: 20px;
+  transition: transform 0.3s;
+}
+
+.icon:hover {
+  transform: scale(1.1);
+}
+
+.divider {
+  margin: 1rem 0; /* Reduz o espaço ao redor do divisor */
+  border-top: 1px solid #fff;
+}
+
+.footerTextContainer {
+  margin-top: 0.5rem; /* Aproxima o texto do divisor */
+}
+
+.footerText {
+  font-size: 0.8rem; /* Texto menor */
+  margin: 0.2rem 0;
+}
