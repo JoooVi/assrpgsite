@@ -11,7 +11,7 @@ body {
 
 @keyframes changeBackground {
   0% {
-    background-image: url('Backgroundd1.png');
+    background-image: url('Backgroundd.png');
   }
   33% {
     background-image: url('01_Cidades_inabitadas.jpg');
