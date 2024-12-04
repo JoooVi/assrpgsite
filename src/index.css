@@ -6,7 +6,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: black;
-  background-image: url(Backgroundd.png);
+  animation: changeBackground 15s infinite;
+}
+
+@keyframes changeBackground {
+  0% {
+    background-image: url('Backgroundd1.png');
+  }
+  33% {
+    background-image: url('01_Cidades_inabitadas.jpg');
+  }
+  66% {
+    background-image: url('O_caramelo.png');
+  }
+  100% {
+    background-image: url('05_A_igreja.jpg');
+  }
 }
 
 code {
