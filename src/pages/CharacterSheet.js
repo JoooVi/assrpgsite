@@ -726,20 +726,18 @@ const CharacterSheet = () => {
             onAssimilatedRoll={handleAssimilatedRoll}
           />
 
-          <Box mt={3}>
-            <Typography variant="h6">Saúde</Typography>
-            {character?.healthLevels?.map((points, index) => (
-              <Box key={index} className={styles.healthBar} mb={2}>
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="space-between"
-                >
-                  <Typography variant="body1">Saúde {5 - index}:</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {points} pontos
-                  </Typography>
-                </Box>
+          <Typography variant="h6" mt={3}>
+            Saúde
+          </Typography>
+          {character?.healthLevels?.map((points, index) => (
+            <Box key={index} className={styles.healthBar} mb={3}>
+              <Typography variant="body1">Saúde {5 - index}:</Typography>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={1}
+              >
                 <StyledRating
                   name={`health-${index}`}
                   value={points}
@@ -764,41 +762,40 @@ const CharacterSheet = () => {
                     alignItems: "center",
                   }}
                 />
+                <Typography variant="body2" color="textSecondary">
+                  {points} pontos
+                </Typography>
               </Box>
-            ))}
-          </Box>
+            </Box>
+          ))}
 
-          <Box mt={4}>
-            <Typography variant="h6">Determinação & Assimilação</Typography>
-            <Box
-              className={styles.ratingContainer}
-              display="flex"
-              justifyContent="space-between"
-            >
-              <Box width="48%">
-                <Typography variant="body1">Determinação</Typography>
-                <TriangleRating
-                  name="determination"
-                  value={character?.determination || 0}
-                  max={10}
-                  onChange={handleDeterminationChange}
-                  icon={<TriangleRatingIcon color="#67110e" />}
-                  emptyIcon={<TriangleRatingIcon color="gray" />}
-                  sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-                />
-              </Box>
-              <Box width="48%">
-                <Typography variant="body1">Assimilação</Typography>
-                <TriangleRating
-                  name="assimilation"
-                  value={character?.assimilation || 0}
-                  max={10}
-                  onChange={handleAssimilationChange}
-                  icon={<TriangleRatingIconDown color="#252d44" />}
-                  emptyIcon={<TriangleRatingIconDown color="gray" />}
-                  sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-                />
-              </Box>
+          <Typography variant="h6" mt={4}>
+            Determinação & Assimilação
+          </Typography>
+          <Box className={styles.ratingContainer}>
+            <Box mb={2}>
+              <Typography variant="body1">Determinação</Typography>
+              <TriangleRating
+                name="determination"
+                value={character?.determination || 0}
+                max={10}
+                onChange={handleDeterminationChange}
+                icon={<TriangleRatingIcon color="#67110e" />}
+                emptyIcon={<TriangleRatingIcon color="gray" />}
+                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
+              />
+            </Box>
+            <Box>
+              <Typography variant="body1">Assimilação</Typography>
+              <TriangleRating
+                name="assimilation"
+                value={character?.assimilation || 0}
+                max={10}
+                onChange={handleAssimilationChange}
+                icon={<TriangleRatingIconDown color="#252d44" />}
+                emptyIcon={<TriangleRatingIconDown color="gray" />}
+                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
+              />
             </Box>
           </Box>
         </Paper>
