@@ -63,6 +63,15 @@
   margin-top: 20px;
 }
 
+.noCharacters {
+  text-align: center;
+  margin-top: 20px;
+}
+.createCharacterButton {
+  margin-top: 10px;
+}
+
+
 .errorMessage {
   color: red;
   margin: 20px;

@@ -14,8 +14,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { createAvatar } from '@dicebear/core';
-import { adventurerNeutral } from '@dicebear/collection';
+import { createAvatar } from "@dicebear/core";
+import { adventurerNeutral } from "@dicebear/collection";
 
 const CharacterList = () => {
   const [characters, setCharacters] = useState([]);
@@ -30,17 +30,28 @@ const CharacterList = () => {
 
     const fetchCharacters = async () => {
       try {
-        const response = await api.get("https://assrpgsite-be-production.up.railway.app/api/characters", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setCharacters(response.data);
-        setLoading(false);
+        setLoading(true); // Garante que o estado de carregamento é ativado antes da requisição
+        setError(null); // Reseta possíveis erros anteriores
+
+        const response = await api.get(
+          "https://assrpgsite-be-production.up.railway.app/api/characters",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data && Array.isArray(response.data)) {
+          setCharacters(response.data); // Garante que characters sempre recebe uma lista
+        } else {
+          setCharacters([]); // Se a resposta não for uma lista, define characters como vazio
+        }
       } catch (error) {
         setError("Erro ao carregar a lista de personagens");
-        setLoading(false);
         console.error(error);
+      } finally {
+        setLoading(false); // Finaliza o carregamento independentemente do resultado
       }
     };
 
@@ -53,11 +64,14 @@ const CharacterList = () => {
     );
     if (confirmDelete) {
       try {
-        const response = await api.delete(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.delete(
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (response.status === 200) {
           setCharacters((prevCharacters) =>
             prevCharacters.filter((character) => character._id !== id)
@@ -89,7 +103,7 @@ const CharacterList = () => {
       <div className={styles.characterCards}>
         {characters.map((character) => {
           const avatarSvg = createAvatar(adventurerNeutral, {
-            seed: character._id
+            seed: character._id,
           }).toString();
 
           return (
@@ -98,11 +112,17 @@ const CharacterList = () => {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={`data:image/svg+xml;utf8,${encodeURIComponent(avatarSvg)}`}
+                  image={`data:image/svg+xml;utf8,${encodeURIComponent(
+                    avatarSvg
+                  )}`}
                   alt={character.name}
                 />
                 <CardContent className={styles.cardContent}>
-                  <Typography variant="h6" component="div" className={styles.characterName}>
+                  <Typography
+                    variant="h6"
+                    component="div"
+                    className={styles.characterName}
+                  >
                     {character.name}
                   </Typography>
                   <Typography variant="body2" component="p">

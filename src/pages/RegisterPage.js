@@ -10,16 +10,16 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Adicionado estado de carregamento
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Limpar mensagens de erro anteriores
-    setLoading(true); // Inicia o carregamento
+    setError(""); 
+    setLoading(true); 
     console.log("Tentativa de registro iniciada");
 
-    // Validação simples
+    
     if (!email || !password || !name) {
       setError("Por favor, preencha todos os campos.");
       setLoading(false);
@@ -27,7 +27,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await axios.post("https://assrpgsite-be-production.up.railway.app/api/register", { // URL do Railway com /api
+      const response = await axios.post("https://assrpgsite-be-production.up.railway.app/api/register", {
         name,
         email,
         password,
@@ -43,7 +43,7 @@ const RegisterPage = () => {
       console.error("Erro ao registrar usuário:", err);
       setError("Erro ao registrar usuário. Tente novamente.");
     } finally {
-      setLoading(false); // Finaliza o carregamento, independente do resultado
+      setLoading(false);
     }
   };
 
