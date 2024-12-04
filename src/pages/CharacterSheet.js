@@ -27,6 +27,7 @@ import {
   DialogContentText,
   DialogActions,
 } from "@mui/material";
+import LinearProgress from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -239,7 +240,8 @@ const CharacterSheet = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [openItemsModal, setOpenItemsModal] = useState(false);
   const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
-  const [openCharacteristicsModal, setOpenCharacteristicsModal] = useState(false);
+  const [openCharacteristicsModal, setOpenCharacteristicsModal] =
+    useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [characteristics, setCharacteristics] = useState([]);
   const [assimilations, setAssimilations] = useState([]);
@@ -277,8 +279,7 @@ const CharacterSheet = () => {
       }
     };
     fetchCharacter();
-    },
-    [id]);    
+  }, [id]);
 
   useEffect(() => {
     if (character) {
@@ -287,13 +288,20 @@ const CharacterSheet = () => {
   }, [character]);
 
   const calculateTotalWeight = () => {
-    return (character?.inventory || []).reduce((total, invItem) => {
-      if (invItem && invItem.item && invItem.item.weight) {
-        return total + invItem.item.weight;
-      }
-      return total;
-    }, 0);
-  };  
+    const inventoryWeight = (character?.inventory || []).reduce(
+      (total, invItem) => {
+        if (invItem?.item?.weight) {
+          return total + invItem.item.weight;
+        }
+        return total;
+      },
+      0
+    );
+
+    // Exemplo de modificador (buff ou debuff)
+    const weightModifier = character?.buffs?.weightReduction || 0;
+    return inventoryWeight - weightModifier;
+  };
 
   const fetchCharacteristics = async () => {
     const token = localStorage.getItem("token");
@@ -327,7 +335,7 @@ const CharacterSheet = () => {
     } catch (error) {
       console.error("Erro ao buscar assimilações:", error);
     }
-  };  
+  };
 
   const fetchInventoryItems = async () => {
     const token = localStorage.getItem("token");
@@ -345,7 +353,6 @@ const CharacterSheet = () => {
       console.error("Erro ao buscar itens do inventário:", error);
     }
   };
-  
 
   const handleInputChange = (field, value) => {
     setCharacter({ ...character, [field]: value });
@@ -431,17 +438,17 @@ const CharacterSheet = () => {
         ...updatedInventory[index],
         item: updatedItem,
         currentUses: updatedItem.currentUses || 0, // Atualize currentUses com o valor correto
-        durability: updatedItem.durability || 0,  // Garanta que a durabilidade é salva corretamente
+        durability: updatedItem.durability || 0, // Garanta que a durabilidade é salva corretamente
       };
-  
+
       const payload = {
-        inventory: updatedInventory.map(invItem => ({
+        inventory: updatedInventory.map((invItem) => ({
           item: invItem.item._id || invItem.item,
           currentUses: invItem.currentUses,
           durability: invItem.durability,
           characteristics: {
             points: invItem.item.characteristics.points,
-            details: invItem.item.characteristics.details.map(detail => ({
+            details: invItem.item.characteristics.details.map((detail) => ({
               name: detail.name,
               description: detail.description,
               cost: detail.cost,
@@ -449,9 +456,9 @@ const CharacterSheet = () => {
           },
         })),
       };
-  
+
       console.log("Payload enviado ao backend:", payload);
-  
+
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
         payload,
@@ -461,7 +468,7 @@ const CharacterSheet = () => {
           },
         }
       );
-  
+
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: updatedInventory,
@@ -471,7 +478,7 @@ const CharacterSheet = () => {
       console.error("Erro ao salvar o item:", error);
       console.log(error.response); // Verifique a resposta de erro do Axios
     }
-  };  
+  };
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -601,7 +608,7 @@ const CharacterSheet = () => {
     } catch (error) {
       console.error("Erro ao salvar o inventário do personagem:", error);
     }
-  };  
+  };
 
   useEffect(() => {
     if (character) {
@@ -636,7 +643,9 @@ const CharacterSheet = () => {
               margin="dense"
               size="small"
               sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '14px', sm: '16px' } }
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
               }}
             />
           </Grid>
@@ -650,7 +659,9 @@ const CharacterSheet = () => {
               margin="dense"
               size="small"
               sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '14px', sm: '16px' } }
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
               }}
             />
           </Grid>
@@ -664,7 +675,9 @@ const CharacterSheet = () => {
               margin="dense"
               size="small"
               sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '14px', sm: '16px' } }
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
               }}
             />
           </Grid>
@@ -678,7 +691,9 @@ const CharacterSheet = () => {
               margin="dense"
               size="small"
               sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '14px', sm: '16px' } }
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
               }}
             />
           </Grid>
@@ -692,13 +707,15 @@ const CharacterSheet = () => {
               margin="dense"
               size="small"
               sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '14px', sm: '16px' } }
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
               }}
             />
           </Grid>
         </Grid>
       </Paper>
-  
+
       <Box className={styles.characterBody}>
         <Paper elevation={3} className={styles.leftColumn}>
           <InstinctList
@@ -728,7 +745,7 @@ const CharacterSheet = () => {
                 precision={0.5}
                 icon={<FavoriteIcon fontSize="inherit" />}
                 emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
-                sx={{ fontSize: { xs: '20px', sm: '24px' } }}
+                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
               />
               <Typography>{points} pontos</Typography>
             </Box>
@@ -744,7 +761,7 @@ const CharacterSheet = () => {
                 onChange={handleDeterminationChange}
                 icon={<TriangleRatingIcon color="#67110e" />}
                 emptyIcon={<TriangleRatingIcon color="gray" />}
-                sx={{ fontSize: { xs: '20px', sm: '24px' } }}
+                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
               />
             </Box>
             <Box>
@@ -756,12 +773,12 @@ const CharacterSheet = () => {
                 onChange={handleAssimilationChange}
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
-                sx={{ fontSize: { xs: '20px', sm: '24px' } }}
+                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
               />
             </Box>
           </Box>
         </Paper>
-  
+
         <Paper elevation={3} className={styles.centerColumn}>
           <SkillList
             title="Conhecimentos"
@@ -780,7 +797,7 @@ const CharacterSheet = () => {
             onRoll={handleRoll}
           />
         </Paper>
-  
+
         <Paper elevation={3} className={styles.rightColumn}>
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
             <Typography variant="h6">Rolar Dados</Typography>
@@ -792,16 +809,16 @@ const CharacterSheet = () => {
               fullWidth
               margin="dense"
               size="small"
-              sx={{ fontSize: { xs: '14px', sm: '16px' } }}
+              sx={{ fontSize: { xs: "14px", sm: "16px" } }}
             />
             <Button
               variant="contained"
               color="primary"
               onClick={handleCustomRoll}
               sx={{
-                padding: { xs: '8px 16px', sm: '10px 20px' },
-                fontSize: { xs: '14px', sm: '16px' },
-                width: { xs: '100%', sm: 'auto' }
+                padding: { xs: "8px 16px", sm: "10px 20px" },
+                fontSize: { xs: "14px", sm: "16px" },
+                width: { xs: "100%", sm: "auto" },
               }}
             >
               Rolar Dados
@@ -822,34 +839,89 @@ const CharacterSheet = () => {
           {selectedTab === 0 && (
             <Box>
               <Typography variant="h6">Inventário</Typography>
-              <Typography variant="body2">
+
+              {/* Exibição do Peso Total com Verificação */}
+              <Typography
+                variant="body2"
+                color={
+                  calculateTotalWeight() > maxWeight ? "error" : "textPrimary"
+                }
+                sx={{
+                  fontWeight:
+                    calculateTotalWeight() > maxWeight ? "bold" : "normal",
+                }}
+              >
                 Peso Total: {calculateTotalWeight()} / {maxWeight}
               </Typography>
+
+              {/* Barra de Progresso */}
+              <LinearProgress
+                variant="determinate"
+                value={(calculateTotalWeight() / maxWeight) * 100}
+                sx={{
+                  height: 10,
+                  borderRadius: 5,
+                  mt: 1,
+                  backgroundColor: "lightgrey",
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor:
+                      calculateTotalWeight() > maxWeight ? "red" : "green",
+                  },
+                }}
+              />
+
+              {/* Alerta de Peso Excedido */}
+              {calculateTotalWeight() > maxWeight && (
+                <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                  Peso máximo excedido! Você precisa reduzir o peso.
+                </Typography>
+              )}
+
+              {/* Botão de Adicionar */}
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleOpenItemsModal}
                 sx={{
-                  padding: { xs: '8px 16px', sm: '10px 20px' },
-                  fontSize: { xs: '14px', sm: '16px' },
-                  width: { xs: '100%', sm: 'auto' }
+                  padding: { xs: "8px 16px", sm: "10px 20px" },
+                  fontSize: { xs: "14px", sm: "16px" },
+                  width: { xs: "100%", sm: "auto" },
+                  mt: 2,
                 }}
               >
                 +
               </Button>
+
+              {/* Lista de Itens */}
               <List>
                 {(character?.inventory || []).map((invItem, index) => (
                   <ListItem key={index}>
                     <ListItemText
                       primary={`${invItem.item.name} (Usos: ${invItem.currentUses})`}
-                      secondary={`Peso: ${invItem.item.weight} | Características: ${Array.isArray(invItem.item.characteristics?.details) ? invItem.item.characteristics.details.map((char) => char.name).join(", ") : ""}`}
+                      secondary={`Peso: ${
+                        invItem.item.weight
+                      } | Características: ${
+                        Array.isArray(invItem.item.characteristics?.details)
+                          ? invItem.item.characteristics.details
+                              .map((char) => char.name)
+                              .join(", ")
+                          : ""
+                      }`}
                     />
                     <Box display="flex" alignItems="center">
-                      <IconButton edge="end" onClick={() => setEditItem({ index, item: invItem.item })}>
+                      <IconButton
+                        edge="end"
+                        onClick={() =>
+                          setEditItem({ index, item: invItem.item })
+                        }
+                      >
                         <EditIcon />
                       </IconButton>
                       <Box m={1} />
-                      <IconButton edge="end" onClick={() => handleItemDelete(index)}>
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleItemDelete(index)}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </Box>
@@ -863,226 +935,234 @@ const CharacterSheet = () => {
               <Typography variant="h6">Anotações</Typography>
               <TextField
                 label="Anotações"
-                            multiline
-            rows={4}
-            variant="outlined"
-            fullWidth
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </Box>
-      )}
-      {selectedTab === 2 && (
-        <Box>
-          <Typography variant="h6">Características</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenCharacteristicsModal}
-            sx={{
-              padding: { xs: '8px 16px', sm: '10px 20px' },
-              fontSize: { xs: '14px', sm: '16px' },
-              width: { xs: '100%', sm: 'auto' }
-            }}
-          >
-            +
-          </Button>
-          <List>
-            {(character?.characteristics || []).map((item, index) => (
-              <ListItem key={index}>
-                <ListItemText
-                  primary={item.name}
-                  secondary={item.description}
-                />
-                <Box display="flex" alignItems="center">
-                  <IconButton edge="end" onClick={() => handleCharacteristicDelete(index)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      )}
-      {selectedTab === 3 && (
-        <Box>
-          <Typography variant="h6">Assimilações</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenAssimilationsModal}
-            sx={{
-              padding: { xs: '8px 16px', sm: '10px 20px' },
-              fontSize: { xs: '14px', sm: '16px' },
-              width: { xs: '100%', sm: 'auto' }
-            }}
-          >
-            +
-          </Button>
-          <List>
-            {(character?.assimilations || []).map((item, index) => (
-              <ListItem key={index}>
-                <ListItemText
-                  primary={item.name}
-                  secondary={item.description}
-                />
-                <Box display="flex" alignItems="center">
-                  <IconButton edge="end" onClick={() => handleAssimilationDelete(index)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      )}
-    </Paper>
-  </Box>
+                multiline
+                rows={4}
+                variant="outlined"
+                fullWidth
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </Box>
+          )}
+          {selectedTab === 2 && (
+            <Box>
+              <Typography variant="h6">Características</Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenCharacteristicsModal}
+                sx={{
+                  padding: { xs: "8px 16px", sm: "10px 20px" },
+                  fontSize: { xs: "14px", sm: "16px" },
+                  width: { xs: "100%", sm: "auto" },
+                }}
+              >
+                +
+              </Button>
+              <List>
+                {(character?.characteristics || []).map((item, index) => (
+                  <ListItem key={index}>
+                    <ListItemText
+                      primary={item.name}
+                      secondary={item.description}
+                    />
+                    <Box display="flex" alignItems="center">
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleCharacteristicDelete(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
+          {selectedTab === 3 && (
+            <Box>
+              <Typography variant="h6">Assimilações</Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenAssimilationsModal}
+                sx={{
+                  padding: { xs: "8px 16px", sm: "10px 20px" },
+                  fontSize: { xs: "14px", sm: "16px" },
+                  width: { xs: "100%", sm: "auto" },
+                }}
+              >
+                +
+              </Button>
+              <List>
+                {(character?.assimilations || []).map((item, index) => (
+                  <ListItem key={index}>
+                    <ListItemText
+                      primary={item.name}
+                      secondary={item.description}
+                    />
+                    <Box display="flex" alignItems="center">
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleAssimilationDelete(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
+        </Paper>
+      </Box>
 
-  <Snackbar
-    open={snackbarOpen}
-    autoHideDuration={10000}
-    onClose={handleSnackbarClose}
-    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-  >
-    <Alert
-      onClose={handleSnackbarClose}
-      severity="info"
-      sx={{
-        width: "100%",
-        backgroundColor: "#333",
-        color: "#fff",
-        borderRadius: "5px",
-      }}
-    >
-      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-        Resultado:
-      </Typography>
-      <Typography variant="subtitle1">
-        Habilidade: {rollResult?.skill || customRollResult?.formula}
-      </Typography>
-      <Typography variant="body1">Dados Rolados:</Typography>
-      {(rollResult?.roll || customRollResult?.roll)?.map((result, index) => (
-        <Typography key={index} variant="body2">
-          Dado {index + 1}: {result.result.join(", ") || "Nada"}
-        </Typography>
-      ))}
-    </Alert>
-  </Snackbar>
-
-  <ItemsModal
-    open={openItemsModal}
-    handleClose={handleCloseItemsModal}
-    title="Inventário"
-    items={inventoryItems}
-    onItemSelect={handleItemSelect}
-  />
-  <AssimilationsModal
-    open={openAssimilationsModal}
-    handleClose={handleCloseAssimilationsModal}
-    title="Assimilações"
-    items={assimilations}
-    onItemSelect={handleItemSelect}
-  />
-  <CharacteristicsModal
-    open={openCharacteristicsModal}
-    handleClose={handleCloseCharacteristicsModal}
-    title="Características"
-    items={characteristics}
-    onItemSelect={handleItemSelect}
-  />
-
-  {editItem !== null && (
-    <Dialog open={true} onClose={() => setEditItem(null)}>
-      <DialogTitle color="black">Editar Item</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Edite os detalhes do item.</DialogContentText>
-        <TextField
-          margin="dense"
-          label="Nome"
-          type="text"
-          fullWidth
-          value={editItem.item.name}
-          onChange={(e) =>
-            setEditItem({
-              ...editItem,
-              item: { ...editItem.item, name: e.target.value },
-            })
-          }
-        />
-        <TextField
-          margin="dense"
-          label="Descrição"
-          type="text"
-          fullWidth
-          value={editItem.item.description}
-          onChange={(e) =>
-            setEditItem({
-              ...editItem,
-              item: { ...editItem.item, description: e.target.value },
-            })
-          }
-        />
-        <TextField
-          margin="dense"
-          label="Peso"
-          type="number"
-          fullWidth
-          value={editItem.item.weight}
-          onChange={(e) =>
-            setEditItem({
-              ...editItem,
-              item: { ...editItem.item, weight: e.target.value },
-            })
-          }
-        />
-        <TextField
-          margin="dense"
-          label="Usos"
-          type="number"
-          fullWidth
-          value={editItem.item.durability}
-          onChange={(e) =>
-            setEditItem({
-              ...editItem,
-              item: { ...editItem.item, durability: e.target.value },
-            })
-          }
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => handleOpenCharacteristicsMenu()}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={10000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="info"
+          sx={{
+            width: "100%",
+            backgroundColor: "#333",
+            color: "#fff",
+            borderRadius: "5px",
+          }}
         >
-          Características
-        </Button>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setEditItem(null)} color="primary">
-          Cancelar
-        </Button>
-        <Button
-          onClick={() => handleItemEdit(editItem.index, editItem.item)}
-          color="primary"
-        >
-          Salvar
-        </Button>
-      </DialogActions>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            Resultado:
+          </Typography>
+          <Typography variant="subtitle1">
+            Habilidade: {rollResult?.skill || customRollResult?.formula}
+          </Typography>
+          <Typography variant="body1">Dados Rolados:</Typography>
+          {(rollResult?.roll || customRollResult?.roll)?.map(
+            (result, index) => (
+              <Typography key={index} variant="body2">
+                Dado {index + 1}: {result.result.join(", ") || "Nada"}
+              </Typography>
+            )
+          )}
+        </Alert>
+      </Snackbar>
 
-      {editItem?.showCharacteristicsMenu && (
-        <CharacteristicsMenu
-          open={editItem.showCharacteristicsMenu}
-          item={editItem.item}
-          onClose={() =>
-            setEditItem({ ...editItem, showCharacteristicsMenu: false })
-          }
-          onChange={handleCharacteristicsChange}
-        />
+      <ItemsModal
+        open={openItemsModal}
+        handleClose={handleCloseItemsModal}
+        title="Inventário"
+        items={inventoryItems}
+        onItemSelect={handleItemSelect}
+      />
+      <AssimilationsModal
+        open={openAssimilationsModal}
+        handleClose={handleCloseAssimilationsModal}
+        title="Assimilações"
+        items={assimilations}
+        onItemSelect={handleItemSelect}
+      />
+      <CharacteristicsModal
+        open={openCharacteristicsModal}
+        handleClose={handleCloseCharacteristicsModal}
+        title="Características"
+        items={characteristics}
+        onItemSelect={handleItemSelect}
+      />
+
+      {editItem !== null && (
+        <Dialog open={true} onClose={() => setEditItem(null)}>
+          <DialogTitle color="black">Editar Item</DialogTitle>
+          <DialogContent>
+            <DialogContentText>Edite os detalhes do item.</DialogContentText>
+            <TextField
+              margin="dense"
+              label="Nome"
+              type="text"
+              fullWidth
+              value={editItem.item.name}
+              onChange={(e) =>
+                setEditItem({
+                  ...editItem,
+                  item: { ...editItem.item, name: e.target.value },
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Descrição"
+              type="text"
+              fullWidth
+              value={editItem.item.description}
+              onChange={(e) =>
+                setEditItem({
+                  ...editItem,
+                  item: { ...editItem.item, description: e.target.value },
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Peso"
+              type="number"
+              fullWidth
+              value={editItem.item.weight}
+              onChange={(e) =>
+                setEditItem({
+                  ...editItem,
+                  item: { ...editItem.item, weight: e.target.value },
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Usos"
+              type="number"
+              fullWidth
+              value={editItem.item.durability}
+              onChange={(e) =>
+                setEditItem({
+                  ...editItem,
+                  item: { ...editItem.item, durability: e.target.value },
+                })
+              }
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpenCharacteristicsMenu()}
+            >
+              Características
+            </Button>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditItem(null)} color="primary">
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => handleItemEdit(editItem.index, editItem.item)}
+              color="primary"
+            >
+              Salvar
+            </Button>
+          </DialogActions>
+
+          {editItem?.showCharacteristicsMenu && (
+            <CharacteristicsMenu
+              open={editItem.showCharacteristicsMenu}
+              item={editItem.item}
+              onClose={() =>
+                setEditItem({ ...editItem, showCharacteristicsMenu: false })
+              }
+              onChange={handleCharacteristicsChange}
+            />
+          )}
+        </Dialog>
       )}
-    </Dialog>
-  )}
-</Box>
-);
-}
+    </Box>
+  );
+};
 
 export default CharacterSheet;
