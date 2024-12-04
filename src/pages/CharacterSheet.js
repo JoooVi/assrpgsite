@@ -391,6 +391,14 @@ const CharacterSheet = () => {
     setSnackbarOpen(true);
   };
 
+  const getHealthColorGradient = (points) => {
+    if (points >= 4) return "green, limegreen"; // Verde para saudável
+    if (points === 3) return "yellow, orange"; // Amarelo para leve dano
+    if (points === 2) return "orange, red"; // Laranja para mais dano
+    if (points === 1) return "red, darkred"; // Vermelho para estado crítico
+    return "black, gray"; // Preto para morte
+  };
+
   const handleCustomRoll = () => {
     setRollResult(null);
     setCustomRollResult(null);
@@ -732,36 +740,41 @@ const CharacterSheet = () => {
           {character?.healthLevels?.map((points, index) => (
             <Box key={index} className={styles.healthBar} mb={3}>
               <Typography variant="body1">Saúde {5 - index}:</Typography>
+
+              <Box
+                sx={{
+                  width: "100%", // Garante que a barra tenha 100% de largura
+                  height: "20px", // Altura da barra de saúde
+                  background: `linear-gradient(to right, ${getHealthColorGradient(
+                    points
+                  )})`, // Gradiente dinâmico
+                  borderRadius: "8px", // Borda arredondada da barra
+                }}
+              >
+                <Box
+                  sx={{
+                    width: `${
+                      (points /
+                        (Math.max(
+                          character?.instincts?.potency,
+                          character?.instincts?.resolution
+                        ) +
+                          2)) *
+                      100
+                    }%`, // Largura da barra com base nos pontos de saúde
+                    height: "100%",
+                    backgroundColor: "green", // Cor padrão da barra (verde), será modificada pelo gradiente
+                    borderRadius: "8px", // Borda arredondada interna
+                  }}
+                />
+              </Box>
+
               <Box
                 display="flex"
                 alignItems="center"
                 justifyContent="space-between"
                 mb={1}
               >
-                <StyledRating
-                  name={`health-${index}`}
-                  value={points}
-                  max={
-                    Math.max(
-                      character?.instincts?.potency,
-                      character?.instincts?.resolution
-                    ) + 2
-                  }
-                  onChange={(e, newValue) =>
-                    handleHealthChange(index, newValue)
-                  }
-                  getLabelText={(value) =>
-                    `${value} Coração${value !== 1 ? "es" : ""}`
-                  }
-                  precision={0.5}
-                  icon={<FavoriteIcon fontSize="inherit" />}
-                  emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
-                  sx={{
-                    fontSize: { xs: "20px", sm: "24px" },
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                />
                 <Typography variant="body2" color="textSecondary">
                   {points} pontos
                 </Typography>
