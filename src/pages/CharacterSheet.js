@@ -857,9 +857,9 @@ const CharacterSheet = () => {
               {/* Barra de Progresso */}
               <LinearProgress
                 variant="determinate"
-                value={(calculateTotalWeight() / maxWeight) * 100}
+                value={(calculateTotalWeight() / maxWeight) * 50}
                 sx={{
-                  height: 10,
+                  height: 15,
                   borderRadius: 5,
                   mt: 1,
                   backgroundColor: "lightgrey",
@@ -897,7 +897,7 @@ const CharacterSheet = () => {
                 {(character?.inventory || []).map((invItem, index) => (
                   <ListItem key={index}>
                     <ListItemText
-                      primary={`${invItem.item.name} (Usos: ${invItem.currentUses})`}
+                      primary={`${invItem.item.name} (Usos: ${invItem.currentdurability})`}
                       secondary={`Peso: ${
                         invItem.item.weight
                       } | Características: ${
