@@ -14,10 +14,10 @@ html {
 }
 
 .Register-container {
-  background-color: rgba(88, 87, 87, 0.658);
+  background-color: rgb(134, 134, 134);
   padding: 30px 40px;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(83, 10, 0, 0.445);
+  box-shadow: 0 4px 8px rgba(14, 13, 13, 0.445);
   width: 100%;
   max-width: 400px;
   text-align: center;
