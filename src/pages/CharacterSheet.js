@@ -260,7 +260,7 @@ const CharacterSheet = () => {
     const fetchCharacter = async () => {
       try {
         const response = await axios.get(
-          `https://assrpgsite.railway.internal/api/characters/${id}`, // URL do Railway com /api
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, // URL do Railway com /api
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -299,7 +299,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://assrpgsite.railway.internal/api/charactertraits", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/charactertraits", // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -316,7 +316,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://assrpgsite.railway.internal/api/assimilations", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/assimilations", // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -333,7 +333,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://assrpgsite.railway.internal/api/items", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/items", // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -453,7 +453,7 @@ const CharacterSheet = () => {
       console.log("Payload enviado ao backend:", payload);
   
       await axios.put(
-        `https://assrpgsite.railway.internal/api/characters/${id}/inventory`, // URL do Railway com /api
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
         payload,
         {
           headers: {
@@ -585,7 +585,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       await axios.put(
-        `https://assrpgsite.railway.internal/api/characters/${id}/inventory`, // URL do Railway com /api
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
         {
           inventory: character?.inventory,
           characteristics: character?.characteristics,

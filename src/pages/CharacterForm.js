@@ -506,7 +506,7 @@ export default function CharacterForm(props) {
     console.log("Submitting Character:", character);
     try {
       const response = await axios.post(
-        "https://assrpgsite.railway.internal/api/characters", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/characters", // URL do Railway com /api
         character,
         {
           headers: {
