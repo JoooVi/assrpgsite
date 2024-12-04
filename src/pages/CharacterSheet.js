@@ -359,9 +359,17 @@ const CharacterSheet = () => {
   };
 
   const handleHealthChange = (index, value) => {
-    const updatedHealthLevels = [...character?.healthLevels];
-    updatedHealthLevels[index] = value;
-    setCharacter({ ...character, healthLevels: updatedHealthLevels });
+    if (!character) return; // Verifica se o personagem existe
+
+    // Atualiza os valores de saúde (healthLevels)
+    const updatedHealthLevels = [...character.healthLevels];
+    updatedHealthLevels[index] = value; // Altera o valor da saúde para o índice correto
+
+    // Atualiza o estado do personagem
+    setCharacter((prevCharacter) => ({
+      ...prevCharacter, // Mantém os valores anteriores
+      healthLevels: updatedHealthLevels, // Atualiza o healthLevels com o novo valor
+    }));
   };
 
   const handleInstinctChange = (skill, instinct) => {
@@ -391,12 +399,18 @@ const CharacterSheet = () => {
     setSnackbarOpen(true);
   };
 
-  const getHealthColorGradient = (points) => {
-    if (points >= 4) return "green, limegreen"; // Verde para saudável
-    if (points === 3) return "yellow, orange"; // Amarelo para leve dano
-    if (points === 2) return "orange, red"; // Laranja para mais dano
-    if (points === 1) return "red, darkred"; // Vermelho para estado crítico
-    return "black, gray"; // Preto para morte
+  const getHealthSegmentColor = (healthLevel) => {
+    if (healthLevel === 0) return "red"; // Morto
+    if (healthLevel === 1) return "darkorange"; // Quase morto
+    if (healthLevel === 2) return "orange"; // Saúde 2
+    if (healthLevel === 3) return "yellow"; // Saúde 3
+    if (healthLevel === 4) return "green"; // Saúde 4
+    return "green"; // Saudável (Saúde 5)
+  };
+
+  const getHealthLevelValue = (level) => {
+    const healthLevel = character?.healthLevels[level];
+    return healthLevel || 0;
   };
 
   const handleCustomRoll = () => {
@@ -737,6 +751,7 @@ const CharacterSheet = () => {
           <Typography variant="h6" mt={3}>
             Saúde
           </Typography>
+
           {character?.healthLevels?.map((points, index) => (
             <Box key={index} className={styles.healthBar} mb={3}>
               <Typography variant="body1">Saúde {5 - index}:</Typography>
@@ -831,7 +846,6 @@ const CharacterSheet = () => {
             onRoll={handleRoll}
           />
         </Paper>
-
         <Paper elevation={3} className={styles.rightColumn}>
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
             <Typography variant="h6">Rolar Dados</Typography>
