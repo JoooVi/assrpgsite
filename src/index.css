@@ -9,21 +9,32 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
-  animation: changeBackground 15s infinite;
+  animation: changeBackground 15s infinite, fadeInBackground 15s infinite; /* Animação com transição suave */
 }
 
+/* Animação para alternar as imagens de fundo */
 @keyframes changeBackground {
   0% {
     background-image: url('Backgroundd.png');
   }
   33% {
-    background-image: url('01_Cidades_inabitadas.jpg');
+    background-image: url('O_caramelo.png');
   }
   66% {
-    background-image: url('O_caramelo.png');
+    background-image: url('01_Cidades_inabitadas.jpg');
   }
   100% {
     background-image: url('05_A_igreja.jpg');
+  }
+}
+
+/* Animação para a transição suave (fade) entre as imagens */
+@keyframes fadeInBackground {
+  0%, 100% {
+    opacity: 1; /* Imagem visível */
+  }
+  50% {
+    opacity: 0; /* Imagem invisível para a transição suave */
   }
 }
 
