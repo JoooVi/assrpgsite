@@ -30,7 +30,7 @@ const CharacterList = () => {
 
     const fetchCharacters = async () => {
       try {
-        const response = await api.get("https://assrpgsite-be-production.up.railway.app/characters", {
+        const response = await api.get("https://assrpgsite-be-production.up.railway.app/api/characters", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -53,7 +53,7 @@ const CharacterList = () => {
     );
     if (confirmDelete) {
       try {
-        const response = await api.delete(`"https://assrpgsite-be-production.up.railway.app/characters/${id}`, {
+        const response = await api.delete(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
