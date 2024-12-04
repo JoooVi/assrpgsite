@@ -725,56 +725,80 @@ const CharacterSheet = () => {
             handleInstinctChange={handleInstinctChange}
             onAssimilatedRoll={handleAssimilatedRoll}
           />
-          <Typography variant="h6">Saúde</Typography>
-          {character?.healthLevels?.map((points, index) => (
-            <Box key={index} className={styles.healthBar}>
-              <Typography>Saúde {5 - index}:</Typography>
-              <StyledRating
-                name={`health-${index}`}
-                value={points}
-                max={
-                  Math.max(
-                    character?.instincts?.potency,
-                    character?.instincts?.resolution
-                  ) + 2
-                }
-                onChange={(e, newValue) => handleHealthChange(index, newValue)}
-                getLabelText={(value) =>
-                  `${value} Coração${value !== 1 ? "es" : ""}`
-                }
-                precision={0.5}
-                icon={<FavoriteIcon fontSize="inherit" />}
-                emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
-              <Typography>{points} pontos</Typography>
-            </Box>
-          ))}
-          <Typography variant="h6">Determinação & Assimilação</Typography>
-          <Box className={styles.ratingContainer}>
-            <Box>
-              <Typography>Determinação</Typography>
-              <TriangleRating
-                name="determination"
-                value={character?.determination || 0}
-                max={10}
-                onChange={handleDeterminationChange}
-                icon={<TriangleRatingIcon color="#67110e" />}
-                emptyIcon={<TriangleRatingIcon color="gray" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
-            </Box>
-            <Box>
-              <Typography>Assimilação</Typography>
-              <TriangleRating
-                name="assimilation"
-                value={character?.assimilation || 0}
-                max={10}
-                onChange={handleAssimilationChange}
-                icon={<TriangleRatingIconDown color="#252d44" />}
-                emptyIcon={<TriangleRatingIconDown color="gray" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
+
+          <Box mt={3}>
+            <Typography variant="h6">Saúde</Typography>
+            {character?.healthLevels?.map((points, index) => (
+              <Box key={index} className={styles.healthBar} mb={2}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Typography variant="body1">Saúde {5 - index}:</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {points} pontos
+                  </Typography>
+                </Box>
+                <StyledRating
+                  name={`health-${index}`}
+                  value={points}
+                  max={
+                    Math.max(
+                      character?.instincts?.potency,
+                      character?.instincts?.resolution
+                    ) + 2
+                  }
+                  onChange={(e, newValue) =>
+                    handleHealthChange(index, newValue)
+                  }
+                  getLabelText={(value) =>
+                    `${value} Coração${value !== 1 ? "es" : ""}`
+                  }
+                  precision={0.5}
+                  icon={<FavoriteIcon fontSize="inherit" />}
+                  emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
+                  sx={{
+                    fontSize: { xs: "20px", sm: "24px" },
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                />
+              </Box>
+            ))}
+          </Box>
+
+          <Box mt={4}>
+            <Typography variant="h6">Determinação & Assimilação</Typography>
+            <Box
+              className={styles.ratingContainer}
+              display="flex"
+              justifyContent="space-between"
+            >
+              <Box width="48%">
+                <Typography variant="body1">Determinação</Typography>
+                <TriangleRating
+                  name="determination"
+                  value={character?.determination || 0}
+                  max={10}
+                  onChange={handleDeterminationChange}
+                  icon={<TriangleRatingIcon color="#67110e" />}
+                  emptyIcon={<TriangleRatingIcon color="gray" />}
+                  sx={{ fontSize: { xs: "20px", sm: "24px" } }}
+                />
+              </Box>
+              <Box width="48%">
+                <Typography variant="body1">Assimilação</Typography>
+                <TriangleRating
+                  name="assimilation"
+                  value={character?.assimilation || 0}
+                  max={10}
+                  onChange={handleAssimilationChange}
+                  icon={<TriangleRatingIconDown color="#252d44" />}
+                  emptyIcon={<TriangleRatingIconDown color="gray" />}
+                  sx={{ fontSize: { xs: "20px", sm: "24px" } }}
+                />
+              </Box>
             </Box>
           </Box>
         </Paper>
@@ -897,7 +921,7 @@ const CharacterSheet = () => {
                 {(character?.inventory || []).map((invItem, index) => (
                   <ListItem key={index}>
                     <ListItemText
-                      primary={`${invItem.item.name} (Usos: ${invItem.currentdurability})`}
+                      primary={`${invItem.item.name} (Usos: ${invItem.durability})`}
                       secondary={`Peso: ${
                         invItem.item.weight
                       } | Características: ${
