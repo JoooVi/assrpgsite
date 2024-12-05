@@ -13,7 +13,7 @@ body {
 }
 
 /* Animação para alternar as imagens de fundo */
-@keyframes fadeBackground {
+@keyframes changeBackground {
   0% {
     opacity: 1;
     background-image: url('Backgroundd.png');
