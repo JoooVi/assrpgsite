@@ -839,11 +839,11 @@ const CharacterSheet = () => {
                   getLabelText={(value) =>
                     `${value} Coração${value !== 1 ? "es" : ""}`
                   }
-                  precision={0.5}
+                  precision={1}
                   icon={<FavoriteIcon fontSize="inherit" />}
                   emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
                   sx={{
-                    fontSize: { xs: "20px", sm: "24px" },
+                    fontSize: { xs: "40px", sm: "44px" },
                     display: "flex",
                     alignItems: "center",
                   }}
