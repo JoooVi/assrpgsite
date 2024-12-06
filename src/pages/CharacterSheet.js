@@ -212,7 +212,7 @@ const InstinctList = ({
   onAssimilatedRoll,
 }) => (
   <Box>
-    <Typography variant="h6">{title}:</Typography>
+    <Typography variant="h6">{title}</Typography>
     {Object.entries(instincts).map(([key, value]) => (
       <Grid
         container
@@ -231,7 +231,7 @@ const InstinctList = ({
         {/* Select do Instinto */}
         <Grid item xs={12} sm={4}>
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Instinto</InputLabel>
+            <InputLabel>Assimilado</InputLabel>
             <Select
               label="Assimilado"
               value={selectedInstinct[key] || ""}
