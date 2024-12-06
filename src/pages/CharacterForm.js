@@ -44,10 +44,11 @@ const translateKey = (key) => {
     Artistic: "Artística",
     Sports: "Esportes",
     Tools: "Ferramentas",
-    Crafts: "Artesanato",
+    Crafts: "Oficio",
     Weapons: "Armas",
     Vehicles: "Veículos",
     Infiltration: "Infiltração",
+
     // Adicione outras traduções conforme necessário
   };
   return translations[key] || key;
