@@ -69,7 +69,6 @@ const translateKey = (key) => {
     Weapons: "Armas",
     Vehicles: "Veiculos",
     Infiltration: "infiltração",
-    Oficio: "Oficio"
   };
   return translations[key] || key;
 };
@@ -155,20 +154,27 @@ const SkillList = ({
   <Box>
     <Typography variant="h6">{title}:</Typography>
     {Object.entries(skills).map(([key, value]) => (
-      <Box key={key} className={styles.skillItem} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Typography sx={{ mr: 2 }}>
+      <Box
+        key={key}
+        className={styles.skillItem}
+        sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 2 }}
+      >
+        <Typography variant="body1">
           {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
         </Typography>
-        <FormControl variant="outlined" margin="dense" size="small" sx={{ mr: 2 }}>
+        <FormControl variant="outlined" margin="dense" size="small" fullWidth>
           <InputLabel>Instinto</InputLabel>
           <Select
             label="Instinto"
             value={selectedInstinct[key] || ""}
             onChange={(e) => handleInstinctChange(key, e.target.value)}
+            fullWidth
           >
             {Object.keys(instincts).map((instinctKey) => (
               <MenuItem key={instinctKey} value={instinctKey}>
-                {translateKey(instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1))}
+                {translateKey(
+                  instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                )}
               </MenuItem>
             ))}
           </Select>
@@ -177,6 +183,49 @@ const SkillList = ({
           variant="contained"
           color="primary"
           onClick={() => onRoll(key, selectedInstinct[key])}
+          sx={{ mt: 1 }}
+        >
+          Rolar
+        </Button>
+      </Box>
+    ))}
+  </Box>
+);
+
+const InstinctList = ({
+  title,
+  instincts,
+  selectedInstinct,
+  handleInstinctChange,
+  onAssimilatedRoll,
+}) => (
+  <Box>
+    <Typography variant="h6">{title}:</Typography>
+    {Object.entries(instincts).map(([key, value]) => (
+      <Box key={key} className={styles.skillItem}>
+        <Typography>
+          {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+        </Typography>
+        <FormControl variant="outlined" margin="dense" size="small">
+          <InputLabel>Instinto</InputLabel>
+          <Select
+            label="Instinto"
+            value={selectedInstinct[key] || ""}
+            onChange={(e) => handleInstinctChange(key, e.target.value)}
+          >
+            {Object.keys(instincts).map((instinctKey) => (
+              <MenuItem key={instinctKey} value={instinctKey}>
+                {translateKey(
+                  instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                )}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
         >
           Rolar
         </Button>
