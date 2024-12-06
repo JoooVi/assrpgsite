@@ -912,113 +912,151 @@ const CharacterSheet = () => {
             onChange={handleTabChange}
             indicatorColor="primary"
             textColor="primary"
-            variant="fullWidth"
+            variant="scrollable" // Permite rolagem em telas menores
+            scrollButtons="auto" // Exibe botões de navegação quando necessário
           >
-            <Tab label="Inventário" />
-            <Tab label="Anotações" />
-            <Tab label="Características" />
-            <Tab label="Assimilações" />
-          </Tabs>
-          {selectedTab === 0 && (
-            <Box>
-            <Typography variant="h6">Inventário</Typography>
-          
-            {/* Exibição do Peso Total com Verificação */}
-            <Typography
-              variant="body2"
-              color={calculateTotalWeight() > maxWeight ? "error" : "textPrimary"}
+            <Tab
+              label="Inventário"
               sx={{
-                fontWeight: calculateTotalWeight() > maxWeight ? "bold" : "normal",
-              }}
-            >
-              Peso Total: {calculateTotalWeight()} / {maxWeight}
-            </Typography>
-          
-            {/* Barra de Progresso */}
-            <LinearProgress
-              variant="determinate"
-              value={(calculateTotalWeight() / maxWeight) * 50}
-              sx={{
-                height: 15,
-                borderRadius: 5,
-                mt: 1,
-                backgroundColor: "lightgrey",
-                "& .MuiLinearProgress-bar": {
-                  backgroundColor:
-                    calculateTotalWeight() > maxWeight ? "red" : "green",
-                },
+                whiteSpace: "normal", // Permite quebra de linha
+                textAlign: "center", // Centraliza o texto
+                fontSize: { xs: "12px", sm: "14px" }, // Ajusta o tamanho do texto responsivamente
               }}
             />
-          
-            {/* Alerta de Peso Excedido */}
-            {calculateTotalWeight() > maxWeight && (
-              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                Peso máximo excedido! Você precisa reduzir o peso.
-              </Typography>
-            )}
-          
-            {/* Botão de Adicionar */}
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleOpenItemsModal}
+            <Tab
+              label="Anotações"
               sx={{
-                padding: { xs: "8px 16px", sm: "10px 20px" },
-                fontSize: { xs: "14px", sm: "16px" },
-                width: { xs: "100%", sm: "auto" },
-                mt: 2,
+                whiteSpace: "normal",
+                textAlign: "center",
+                fontSize: { xs: "12px", sm: "14px" },
               }}
-            >
-              +
-            </Button>
-          
-            {/* Lista de Itens */}
-            <List>
-              {(character?.inventory || []).map((invItem, index) => (
-                <ListItem key={index} sx={{ display: "flex", alignItems: "center" }}>
-                  <ListItemText
-                    primary={`${invItem.item.name} (Usos: ${invItem.durability})`}
-                    secondary={`Peso: ${
-                      invItem.item.weight
-                    } | Características: ${
-                      Array.isArray(invItem.item.characteristics?.details)
-                        ? invItem.item.characteristics.details
-                            .map((char) => char.name)
-                            .join(", ")
-                        : ""
-                    }`}
-                    sx={{
-                      flex: 1,
-                      minWidth: 0,
-                    }}
-                  />
-                  {/* Botões de Editar e Excluir */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+            />
+            <Tab
+              label="Características"
+              sx={{
+                whiteSpace: "normal",
+                textAlign: "center",
+                fontSize: { xs: "12px", sm: "14px" },
+              }}
+            />
+            <Tab
+              label="Assimilações"
+              sx={{
+                whiteSpace: "normal",
+                textAlign: "center",
+                fontSize: { xs: "12px", sm: "14px" },
+              }}
+            />
+          </Tabs>
+
+          {selectedTab === 0 && (
+            <Box>
+              <Typography variant="h6">Inventário</Typography>
+
+              {/* Exibição do Peso Total com Verificação */}
+              <Typography
+                variant="body2"
+                color={
+                  calculateTotalWeight() > maxWeight ? "error" : "textPrimary"
+                }
+                sx={{
+                  fontWeight:
+                    calculateTotalWeight() > maxWeight ? "bold" : "normal",
+                }}
+              >
+                Peso Total: {calculateTotalWeight()} / {maxWeight}
+              </Typography>
+
+              {/* Barra de Progresso */}
+              <LinearProgress
+                variant="determinate"
+                value={(calculateTotalWeight() / maxWeight) * 50}
+                sx={{
+                  height: 15,
+                  borderRadius: 5,
+                  mt: 1,
+                  backgroundColor: "lightgrey",
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor:
+                      calculateTotalWeight() > maxWeight ? "red" : "green",
+                  },
+                }}
+              />
+
+              {/* Alerta de Peso Excedido */}
+              {calculateTotalWeight() > maxWeight && (
+                <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                  Peso máximo excedido! Você precisa reduzir o peso.
+                </Typography>
+              )}
+
+              {/* Botão de Adicionar */}
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenItemsModal}
+                sx={{
+                  padding: { xs: "8px 16px", sm: "10px 20px" },
+                  fontSize: { xs: "14px", sm: "16px" },
+                  width: { xs: "100%", sm: "auto" },
+                  mt: 2,
+                }}
+              >
+                +
+              </Button>
+
+              {/* Lista de Itens */}
+              <List>
+                {(character?.inventory || []).map((invItem, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{ display: "flex", alignItems: "center" }}
                   >
-                    <IconButton
-                      edge="end"
-                      onClick={() => setEditItem({ index, item: invItem.item })}
-                      sx={{ mb: { xs: 1, sm: 0 }, mr: { sm: 1 } }}
+                    <ListItemText
+                      primary={`${invItem.item.name} (Usos: ${invItem.durability})`}
+                      secondary={`Peso: ${
+                        invItem.item.weight
+                      } | Características: ${
+                        Array.isArray(invItem.item.characteristics?.details)
+                          ? invItem.item.characteristics.details
+                              .map((char) => char.name)
+                              .join(", ")
+                          : ""
+                      }`}
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                    />
+                    {/* Botões de Editar e Excluir */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleItemDelete(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          </Box>          
+                      <IconButton
+                        edge="end"
+                        onClick={() =>
+                          setEditItem({ index, item: invItem.item })
+                        }
+                        sx={{ mb: { xs: 1, sm: 0 }, mr: { sm: 1 } }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        onClick={() => handleItemDelete(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
           )}
           {selectedTab === 1 && (
             <Box>
