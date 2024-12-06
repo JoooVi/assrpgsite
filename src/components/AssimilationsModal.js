@@ -142,7 +142,15 @@ const AssimilationsModal = ({
                   mt: 1,
                 }}
               >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <AccordionSummary
+                  expandIcon={
+                    <ExpandMoreIcon
+                      sx={{
+                        color: "white", // Define a cor do ícone como branca
+                      }}
+                    />
+                  }
+                >
                   <Box
                     sx={{
                       display: "flex",
@@ -163,6 +171,7 @@ const AssimilationsModal = ({
                     </Button>
                   </Box>
                 </AccordionSummary>
+
                 <AccordionDetails>
                   <Typography variant="body2">
                     <strong>Descrição:</strong> {item.description}
