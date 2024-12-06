@@ -40,6 +40,7 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
+import { makeStyles } from '@material-ui/core/styles';
 
 const translateKey = (key) => {
   const translations = {
@@ -143,6 +144,18 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
+const useStyles = makeStyles((theme) => ({
+  button: {
+    [theme.breakpoints.down('sm')]: {
+      width: '100%', // Largura total em telas menores
+      marginTop: theme.spacing(1), // Espaçamento superior em telas menores
+    },
+    [theme.breakpoints.up('md')]: {
+      width: 'auto', // Largura automática em telas maiores
+    },
+  },
+}));
+
 const SkillList = ({
   title,
   skills,
@@ -150,47 +163,52 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-}) => (
-  <Box>
-    <Typography variant="h6">{title}:</Typography>
-    {Object.entries(skills).map(([key, value]) => (
-      <Grid container key={key} spacing={2} alignItems="center" className={styles.skillItem}>
-        <Grid item xs={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
-        <Grid item xs={4}>
-          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Instinto</InputLabel>
-            <Select
-              label="Instinto"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
+}) => {
+  const classes = useStyles();
+
+  return (
+    <Box>
+      <Typography variant="h6">{title}:</Typography>
+      {Object.entries(skills).map(([key, value]) => (
+        <Grid container key={key} spacing={2} alignItems="center" className={styles.skillItem}>
+          <Grid item xs={4}>
+            <Typography>
+              {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+            </Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+              <InputLabel>Instinto</InputLabel>
+              <Select
+                label="Instinto"
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {translateKey(
+                      instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onRoll(key, selectedInstinct[key])}
+              className={classes.button} // Aplica o estilo personalizado
             >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              Rolar
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={4}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => onRoll(key, selectedInstinct[key])}
-          >
-            Rolar
-          </Button>
-        </Grid>
-      </Grid>
-    ))}
-  </Box>
-);
+      ))}
+    </Box>
+  );
+};
 
 
 const InstinctList = ({
