@@ -137,7 +137,15 @@ const ItemsModal = ({ open, handleClose, title, items, onItemSelect }) => {
                   mt: 1,
                 }}
               >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <AccordionSummary
+                  expandIcon={
+                    <ExpandMoreIcon
+                      sx={{
+                        color: "white", // Define a cor do ícone como branca
+                      }}
+                    />
+                  }
+                >
                   <Box
                     sx={{
                       display: "flex",
@@ -158,6 +166,7 @@ const ItemsModal = ({ open, handleClose, title, items, onItemSelect }) => {
                     </Button>
                   </Box>
                 </AccordionSummary>
+
                 <AccordionDetails>
                   <Typography variant="body2">
                     <strong>Tipo:</strong> {item.type}
