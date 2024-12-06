@@ -154,7 +154,13 @@ const SkillList = ({
   <Box>
     <Typography variant="h6">{title}:</Typography>
     {Object.entries(skills).map(([key, value]) => (
-      <Grid container key={key} spacing={2} alignItems="center" className={styles.skillItem}>
+      <Grid
+        container
+        key={key}
+        spacing={2}
+        alignItems="center"
+        className={styles.skillItem}
+      >
         {/* Nome da habilidade */}
         <Grid item xs={12} sm={4}>
           <Typography>
@@ -208,7 +214,13 @@ const InstinctList = ({
   <Box>
     <Typography variant="h6">{title}:</Typography>
     {Object.entries(instincts).map(([key, value]) => (
-      <Grid container key={key} spacing={2} alignItems="center" className={styles.skillItem}>
+      <Grid
+        container
+        key={key}
+        spacing={2}
+        alignItems="center"
+        className={styles.skillItem}
+      >
         {/* Nome do Instinto */}
         <Grid item xs={12} sm={4}>
           <Typography>
@@ -849,7 +861,7 @@ const CharacterSheet = () => {
                   }}
                 />
                 <Typography variant="body2" color="textSecondary">
-                  {points} pontos
+                  {points === 0 ? "0 pontos" : `${points} pontos`}
                 </Typography>
               </Box>
             </Box>
