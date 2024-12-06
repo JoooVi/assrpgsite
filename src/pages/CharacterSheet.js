@@ -40,7 +40,6 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
-import { makeStyles } from '@material-ui/core/styles';
 
 const translateKey = (key) => {
   const translations = {
