@@ -862,15 +862,24 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
 
-        <SkillList
-    title="Conhecimentos & Práticas"
-    skills={{ ...character?.knowledge, ...character?.practices }} // Combina as duas listas
-    instincts={character?.instincts || {}}
-    selectedInstinct={selectedInstinct}
-    handleInstinctChange={handleInstinctChange}
-    onRoll={handleRoll}
-  />
-</Paper>
+        <Paper elevation={3} className={styles.centerColumn}>
+          <SkillList
+            title="Conhecimentos"
+            skills={character?.knowledge || {}}
+            instincts={character?.instincts || {}}
+            selectedInstinct={selectedInstinct}
+            handleInstinctChange={handleInstinctChange}
+            onRoll={handleRoll}
+          />
+          <SkillList
+            title="Práticas"
+            skills={character?.practices || {}}
+            instincts={character?.instincts || {}}
+            selectedInstinct={selectedInstinct}
+            handleInstinctChange={handleInstinctChange}
+            onRoll={handleRoll}
+          />
+        </Paper>
 
         <Paper elevation={3} className={styles.rightColumn}>
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
