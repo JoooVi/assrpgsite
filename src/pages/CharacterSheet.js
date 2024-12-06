@@ -154,16 +154,21 @@ const SkillList = ({
   <Box>
     <Typography variant="h6">{title}:</Typography>
     {Object.entries(skills).map(([key, value]) => (
-      <Box key={key} className={styles.skillItem}>
-        <Typography>
+      <Box
+        key={key}
+        className={styles.skillItem}
+        sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 2 }}
+      >
+        <Typography variant="body1">
           {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
         </Typography>
-        <FormControl variant="outlined" margin="dense" size="small">
+        <FormControl variant="outlined" margin="dense" size="small" fullWidth>
           <InputLabel>Instinto</InputLabel>
           <Select
             label="Instinto"
             value={selectedInstinct[key] || ""}
             onChange={(e) => handleInstinctChange(key, e.target.value)}
+            fullWidth
           >
             {Object.keys(instincts).map((instinctKey) => (
               <MenuItem key={instinctKey} value={instinctKey}>
@@ -178,6 +183,7 @@ const SkillList = ({
           variant="contained"
           color="primary"
           onClick={() => onRoll(key, selectedInstinct[key])}
+          sx={{ mt: 1 }}
         >
           Rolar
         </Button>
@@ -864,16 +870,8 @@ const CharacterSheet = () => {
 
         <Paper elevation={3} className={styles.centerColumn}>
           <SkillList
-            title="Conhecimentos"
-            skills={character?.knowledge || {}}
-            instincts={character?.instincts || {}}
-            selectedInstinct={selectedInstinct}
-            handleInstinctChange={handleInstinctChange}
-            onRoll={handleRoll}
-          />
-          <SkillList
-            title="Práticas"
-            skills={character?.practices || {}}
+            title="Conhecimentos & Práticas"
+            skills={{ ...character?.knowledge, ...character?.practices }} // Combina as duas listas
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
