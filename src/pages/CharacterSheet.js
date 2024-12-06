@@ -198,7 +198,6 @@ const SkillList = ({
   </Box>
 );
 
-
 const InstinctList = ({
   title,
   instincts,
@@ -209,34 +208,46 @@ const InstinctList = ({
   <Box>
     <Typography variant="h6">{title}:</Typography>
     {Object.entries(instincts).map(([key, value]) => (
-      <Box key={key} className={styles.skillItem}>
-        <Typography>
-          {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-        </Typography>
-        <FormControl variant="outlined" margin="dense" size="small">
-          <InputLabel>Instinto</InputLabel>
-          <Select
-            label="Instinto"
-            value={selectedInstinct[key] || ""}
-            onChange={(e) => handleInstinctChange(key, e.target.value)}
+      <Grid container key={key} spacing={2} alignItems="center" className={styles.skillItem}>
+        {/* Nome do Instinto */}
+        <Grid item xs={12} sm={4}>
+          <Typography>
+            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+          </Typography>
+        </Grid>
+
+        {/* Select do Instinto */}
+        <Grid item xs={12} sm={4}>
+          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+            <InputLabel>Instinto</InputLabel>
+            <Select
+              label="Instinto"
+              value={selectedInstinct[key] || ""}
+              onChange={(e) => handleInstinctChange(key, e.target.value)}
+            >
+              {Object.keys(instincts).map((instinctKey) => (
+                <MenuItem key={instinctKey} value={instinctKey}>
+                  {translateKey(
+                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                  )}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* Botão para rolar */}
+        <Grid item xs={12} sm={4}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
+            fullWidth
           >
-            {Object.keys(instincts).map((instinctKey) => (
-              <MenuItem key={instinctKey} value={instinctKey}>
-                {translateKey(
-                  instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                )}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-        >
-          Rolar
-        </Button>
-      </Box>
+            Rolar
+          </Button>
+        </Grid>
+      </Grid>
     ))}
   </Box>
 );
