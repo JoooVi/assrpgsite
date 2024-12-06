@@ -392,13 +392,12 @@ const CharacterSheet = () => {
   };
 
   const getHealthColorGradient = (points) => {
-  if (points >= 4) return 'green, limegreen'; // Verde para saudável
-  if (points === 3) return 'yellow, orange'; // Amarelo para leve dano
-  if (points === 2) return 'orange, red'; // Laranja para mais dano
-  if (points === 1) return 'red, darkred'; // Vermelho para estado crítico
-  return 'black, gray'; // Preto para morte
-};
-
+    if (points >= 4) return "green, limegreen"; // Verde para saudável
+    if (points === 3) return "yellow, orange"; // Amarelo para leve dano
+    if (points === 2) return "orange, red"; // Laranja para mais dano
+    if (points === 1) return "red, darkred"; // Vermelho para estado crítico
+    return "black, gray"; // Preto para morte
+  };
 
   const handleCustomRoll = () => {
     setRollResult(null);
@@ -711,6 +710,61 @@ const CharacterSheet = () => {
               label="Propósito 2"
               value={character?.purpose2 || ""}
               onChange={(e) => handleInputChange("purpose2", e.target.value)}
+              variant="outlined"
+              fullWidth
+              margin="dense"
+              size="small"
+              sx={{
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
+              }}
+            />
+          </Grid>
+          {/* Novo campo: Propósito Relacional 1 */}
+          <Grid item xs={12} sm={6} md={4} lg={2}>
+            <TextField
+              label="Propósito Relacional 1"
+              value={character?.relationalPurpose1 || ""}
+              onChange={(e) =>
+                handleInputChange("relationalPurpose1", e.target.value)
+              }
+              variant="outlined"
+              fullWidth
+              margin="dense"
+              size="small"
+              sx={{
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
+              }}
+            />
+          </Grid>
+          {/* Novo campo: Propósito Relacional 2 */}
+          <Grid item xs={12} sm={6} md={4} lg={2}>
+            <TextField
+              label="Propósito Relacional 2"
+              value={character?.relationalPurpose2 || ""}
+              onChange={(e) =>
+                handleInputChange("relationalPurpose2", e.target.value)
+              }
+              variant="outlined"
+              fullWidth
+              margin="dense"
+              size="small"
+              sx={{
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
+              }}
+            />
+          </Grid>
+          {/* Novo campo: Ocupação */}
+          <Grid item xs={12} sm={6} md={4} lg={2}>
+            <TextField
+              label="Ocupação"
+              value={character?.occupation || ""}
+              onChange={(e) => handleInputChange("occupation", e.target.value)}
               variant="outlined"
               fullWidth
               margin="dense"
