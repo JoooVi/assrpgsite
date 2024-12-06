@@ -155,49 +155,32 @@ const SkillList = ({
   <Box>
     <Typography variant="h6">{title}:</Typography>
     {Object.entries(skills).map(([key, value]) => (
-      <Grid container key={key} alignItems="center" spacing={2} sx={{ mb: 2 }}>
-        {/* Nome da habilidade */}
-        <Grid item xs={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
-
-        {/* Select do Instinto */}
-        <Grid item xs={3}>
-          <FormControl variant="outlined" fullWidth margin="dense" size="small">
-            <InputLabel>Instinto</InputLabel>
-            <Select
-              label="Instinto"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
-            >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1))}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        {/* Exibindo o número escolhido (instinto selecionado) */}
-        <Grid item xs={2}>
-          <Typography>{selectedInstinct[key] || "Nenhum instinto"}</Typography>
-        </Grid>
-
-        {/* Botão Rolar */}
-        <Grid item xs={3}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={() => onRoll(key, selectedInstinct[key])}
+      <Box key={key} className={styles.skillItem} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Typography sx={{ mr: 2 }}>
+          {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+        </Typography>
+        <FormControl variant="outlined" margin="dense" size="small" sx={{ mr: 2 }}>
+          <InputLabel>Instinto</InputLabel>
+          <Select
+            label="Instinto"
+            value={selectedInstinct[key] || ""}
+            onChange={(e) => handleInstinctChange(key, e.target.value)}
           >
-            Rolar
-          </Button>
-        </Grid>
-      </Grid>
+            {Object.keys(instincts).map((instinctKey) => (
+              <MenuItem key={instinctKey} value={instinctKey}>
+                {translateKey(instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1))}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => onRoll(key, selectedInstinct[key])}
+        >
+          Rolar
+        </Button>
+      </Box>
     ))}
   </Box>
 );
