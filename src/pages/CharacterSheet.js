@@ -1176,7 +1176,10 @@ const CharacterSheet = () => {
             Resultado:
           </Typography>
           <Typography variant="subtitle1">
-            Habilidade: {rollResult?.skill || customRollResult?.formula}
+            Habilidade:{" "}
+            {translate(rollResult?.skill) ||
+              rollResult?.skill ||
+              customRollResult?.formula}
           </Typography>
           <Typography variant="body1">Dados Rolados:</Typography>
           {(rollResult?.roll || customRollResult?.roll)?.map(
