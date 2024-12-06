@@ -221,7 +221,7 @@ const InstinctList = ({
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
             <InputLabel>Instinto</InputLabel>
             <Select
-              label="Instinto"
+              label="Assimilado"
               value={selectedInstinct[key] || ""}
               onChange={(e) => handleInstinctChange(key, e.target.value)}
             >
