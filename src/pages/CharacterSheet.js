@@ -641,7 +641,8 @@ const CharacterSheet = () => {
     <Box className={styles.characterSheet}>
       <Paper elevation={3} className={styles.characterHeader}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          {/* Primeira Linha */}
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Nome"
               value={character?.name || ""}
@@ -657,7 +658,7 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Geração"
               value={character?.generation || ""}
@@ -673,7 +674,7 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Evento"
               value={character?.event || ""}
@@ -689,7 +690,25 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
+            <TextField
+              label="Ocupação"
+              value={character?.occupation || ""}
+              onChange={(e) => handleInputChange("occupation", e.target.value)}
+              variant="outlined"
+              fullWidth
+              margin="dense"
+              size="small"
+              sx={{
+                "& .MuiInputBase-root": {
+                  fontSize: { xs: "14px", sm: "16px" },
+                },
+              }}
+            />
+          </Grid>
+
+          {/* Segunda Linha */}
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Propósito 1"
               value={character?.purpose1 || ""}
@@ -705,7 +724,7 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Propósito 2"
               value={character?.purpose2 || ""}
@@ -721,8 +740,7 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          {/* Novo campo: Propósito Relacional 1 */}
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Propósito Relacional 1"
               value={character?.relationalPurpose1 || ""}
@@ -740,8 +758,7 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          {/* Novo campo: Propósito Relacional 2 */}
-          <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Propósito Relacional 2"
               value={character?.relationalPurpose2 || ""}
@@ -759,26 +776,8 @@ const CharacterSheet = () => {
               }}
             />
           </Grid>
-          {/* Novo campo: Ocupação */}
-          <Grid item xs={12} sm={6} md={4} lg={2}>
-            <TextField
-              label="Ocupação"
-              value={character?.occupation || ""}
-              onChange={(e) => handleInputChange("occupation", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
         </Grid>
       </Paper>
-
       <Box className={styles.characterBody}>
         <Paper elevation={3} className={styles.leftColumn}>
           <InstinctList
