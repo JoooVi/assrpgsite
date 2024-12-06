@@ -865,50 +865,70 @@ const CharacterSheet = () => {
         <Paper
           elevation={3}
           className={styles.centerColumn}
-          sx={{ padding: 2 }}
+          sx={{ padding: 2, gap: 2 }}
         >
-          <Typography variant="h6" align="center" gutterBottom>
-            Conhecimentos e Práticas
-          </Typography>
-
-          {/* Select para escolher o Instinto */}
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel id="instinct-select-label">Instinto</InputLabel>
-            <Select
-              labelId="instinct-select-label"
-              value={selectedInstinct}
-              onChange={handleInstinctChange}
-              variant="outlined"
-              sx={{
-                backgroundColor: "white",
-                borderRadius: "4px",
-                boxShadow: "0 0 5px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              {Object.keys(character?.instincts || {}).map((instinct) => (
-                <MenuItem key={instinct} value={instinct}>
-                  {instinct}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Exibição dos Conhecimentos e Práticas juntos */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ marginBottom: 2 }}>
             <SkillList
               title="Conhecimentos"
               skills={character?.knowledge || {}}
               instincts={character?.instincts || {}}
               selectedInstinct={selectedInstinct}
+              handleInstinctChange={handleInstinctChange}
               onRoll={handleRoll}
             />
+            {/* Select para Conhecimentos */}
+            <FormControl fullWidth sx={{ marginTop: 1 }}>
+              <InputLabel id="knowledge-select-label">Instinto</InputLabel>
+              <Select
+                labelId="knowledge-select-label"
+                value={selectedInstinct}
+                onChange={handleInstinctChange}
+                variant="outlined"
+                sx={{
+                  backgroundColor: "white",
+                  borderRadius: "4px",
+                  boxShadow: "0 0 5px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                {Object.keys(character?.instincts || {}).map((instinct) => (
+                  <MenuItem key={instinct} value={instinct}>
+                    {instinct}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box>
             <SkillList
               title="Práticas"
               skills={character?.practices || {}}
               instincts={character?.instincts || {}}
               selectedInstinct={selectedInstinct}
+              handleInstinctChange={handleInstinctChange}
               onRoll={handleRoll}
             />
+            {/* Select para Práticas */}
+            <FormControl fullWidth sx={{ marginTop: 1 }}>
+              <InputLabel id="practices-select-label">Instinto</InputLabel>
+              <Select
+                labelId="practices-select-label"
+                value={selectedInstinct}
+                onChange={handleInstinctChange}
+                variant="outlined"
+                sx={{
+                  backgroundColor: "white",
+                  borderRadius: "4px",
+                  boxShadow: "0 0 5px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                {Object.keys(character?.instincts || {}).map((instinct) => (
+                  <MenuItem key={instinct} value={instinct}>
+                    {instinct}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Paper>
 
