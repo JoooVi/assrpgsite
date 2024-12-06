@@ -864,16 +864,8 @@ const CharacterSheet = () => {
 
         <Paper elevation={3} className={styles.centerColumn}>
           <SkillList
-            title="Conhecimentos"
-            skills={character?.knowledge || {}}
-            instincts={character?.instincts || {}}
-            selectedInstinct={selectedInstinct}
-            handleInstinctChange={handleInstinctChange}
-            onRoll={handleRoll}
-          />
-          <SkillList
-            title="Práticas"
-            skills={character?.practices || {}}
+            title="Conhecimentos & Práticas"
+            skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
