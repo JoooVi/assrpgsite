@@ -1177,7 +1177,7 @@ const CharacterSheet = () => {
           </Typography>
           <Typography variant="subtitle1">
             Habilidade:{" "}
-            {translate(rollResult?.skill) ||
+            {translateKey(rollResult?.skill) ||
               rollResult?.skill ||
               customRollResult?.formula}
           </Typography>
