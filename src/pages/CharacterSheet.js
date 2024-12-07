@@ -607,16 +607,19 @@ const CharacterSheet = () => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
-      
-      const lostPoints = prevCharacter.determination - newValue;
-  
-      if (lostPoints >= prevCharacter.determination) {
-        const lostRounds = Math.floor(lostPoints / prevCharacter.determination);
-        updatedAssimilation = Math.min(prevCharacter.assimilation + lostRounds, 10); // Limitar Assimilação até 10
-        updatedDetermination = prevCharacter.determination - lostPoints % prevCharacter.determination;
-        message = "Você perdeu pontos de Determinação suficientes para cair uma casa!";
+
+      // Se os pontos de determinação caem para zero ou abaixo, ajustar a assimilação
+      while (updatedDetermination <= 0 && updatedAssimilation < 10) {
+        updatedAssimilation += 1;
+        updatedDetermination += updatedAssimilation; // Ajusta a determinação conforme a assimilação sobe
+        message =
+          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
-  
+
+      // Limitar os valores de determinação e assimilação
+      updatedDetermination = Math.max(updatedDetermination, 0);
+      updatedAssimilation = Math.min(updatedAssimilation, 10);
+
       return {
         ...prevCharacter,
         determination: updatedDetermination,
@@ -625,7 +628,6 @@ const CharacterSheet = () => {
       };
     });
   };
-  
 
   const handleOpenItemsModal = () => {
     fetchInventoryItems();
@@ -930,6 +932,7 @@ const CharacterSheet = () => {
             Determinação & Assimilação
           </Typography>
           <Box className={styles.ratingContainer}>
+            {/* Determinação */}
             <Box mb={2}>
               <Typography variant="body1">Determinação</Typography>
               <TriangleRating
@@ -943,6 +946,7 @@ const CharacterSheet = () => {
               />
             </Box>
 
+            {/* Assimilação */}
             <Box>
               <Typography variant="body1">Assimilação</Typography>
               <TriangleRating
@@ -955,6 +959,7 @@ const CharacterSheet = () => {
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
               />
 
+              {/* Mensagem de aviso caso Determinação tenha caído para zero */}
               {character?.message && (
                 <Typography variant="body2" color="error" mt={2}>
                   {character.message}
