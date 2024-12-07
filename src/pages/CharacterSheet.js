@@ -990,22 +990,40 @@ const CharacterSheet = () => {
             indicatorColor="primary"
             textColor="primary"
             variant="fullWidth"
+            sx={{
+              // Ajusta a largura das abas para telas menores
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" }, // Coloca as abas em coluna em telas pequenas
+              justifyContent: "center", // Centraliza o conteúdo das abas
+            }}
           >
             <Tab
               label="Inventário"
-              sx={{ fontSize: { xs: "10px", sm: "14px" } }} // Reduz texto em telas pequenas
+              sx={{
+                fontSize: { xs: "10px", sm: "14px" }, // Reduz texto em telas pequenas
+                padding: { xs: "8px", sm: "12px" }, // Ajusta o padding em telas pequenas
+              }}
             />
             <Tab
               label="Anotações"
-              sx={{ fontSize: { xs: "10px", sm: "14px" } }}
+              sx={{
+                fontSize: { xs: "10px", sm: "14px" },
+                padding: { xs: "8px", sm: "12px" },
+              }}
             />
             <Tab
               label="Características"
-              sx={{ fontSize: { xs: "10px", sm: "14px" } }}
+              sx={{
+                fontSize: { xs: "10px", sm: "14px" },
+                padding: { xs: "8px", sm: "12px" },
+              }}
             />
             <Tab
               label="Assimilações"
-              sx={{ fontSize: { xs: "10px", sm: "14px" } }}
+              sx={{
+                fontSize: { xs: "10px", sm: "14px" },
+                padding: { xs: "8px", sm: "12px" },
+              }}
             />
           </Tabs>
 
