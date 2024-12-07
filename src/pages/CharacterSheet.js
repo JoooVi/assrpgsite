@@ -603,44 +603,29 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    // Determinar a quantidade de pontos de Determinação perdidos
-    const lostPoints = character.determination - newValue;
-
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
-
-      // Se a Determinação for 0 ou menos, a Assimilação sobe uma casa
-      if (updatedDetermination <= 0) {
-        updatedAssimilation = Math.min(
-          prevCharacter?.assimilation + lostPoints,
-          10
-        ); // Limitar Assimilação até 10
-        updatedDetermination = 9 - lostPoints; // Ajusta a Determinação, se necessário, para refletir a queda (exemplo de 9 para 8)
-        message =
-          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
+      
+      const lostPoints = prevCharacter.determination - newValue;
+  
+      if (lostPoints >= prevCharacter.determination) {
+        const lostRounds = Math.floor(lostPoints / prevCharacter.determination);
+        updatedAssimilation = Math.min(prevCharacter.assimilation + lostRounds, 10); // Limitar Assimilação até 10
+        updatedDetermination = prevCharacter.determination - lostPoints % prevCharacter.determination;
+        message = "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
-
-      // Se a Assimilação for modificada para um valor menor, ajustar a Determinação
-      if (updatedAssimilation < prevCharacter?.assimilation) {
-        const gainAssimilationPoints =
-          prevCharacter?.assimilation - updatedAssimilation;
-        updatedDetermination = Math.min(
-          updatedDetermination + gainAssimilationPoints,
-          10
-        ); // Limitar Determinação até 10
-        message = "Você perdeu pontos de Assimilação!";
-      }
-
+  
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
-        message: message, // Mostrar a mensagem após a perda de pontos de Determinação
+        message: message,
       };
     });
   };
+  
 
   const handleOpenItemsModal = () => {
     fetchInventoryItems();
@@ -945,7 +930,6 @@ const CharacterSheet = () => {
             Determinação & Assimilação
           </Typography>
           <Box className={styles.ratingContainer}>
-            {/* Determinação */}
             <Box mb={2}>
               <Typography variant="body1">Determinação</Typography>
               <TriangleRating
@@ -959,7 +943,6 @@ const CharacterSheet = () => {
               />
             </Box>
 
-            {/* Assimilação */}
             <Box>
               <Typography variant="body1">Assimilação</Typography>
               <TriangleRating
@@ -972,7 +955,6 @@ const CharacterSheet = () => {
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
               />
 
-              {/* Mensagem de aviso caso Determinação tenha caído para zero */}
               {character?.message && (
                 <Typography variant="body2" color="error" mt={2}>
                   {character.message}
