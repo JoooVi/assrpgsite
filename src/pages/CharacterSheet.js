@@ -40,6 +40,7 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
+import ResponsiveTabs from "../components/ResponsiveTabs";
 
 const translateKey = (key) => {
   const translations = {
