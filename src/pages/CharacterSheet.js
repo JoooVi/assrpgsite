@@ -95,30 +95,57 @@ const dados = {
   d6: {
     1: [],
     2: [],
-    3: ["../assets/coruja_1.png"],
-    4: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
-    5: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
-    6: ["../assets/joaninha_1.png"],
+    3: ["../assets/Coruja_1.png"],
+    4: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
+    5: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
+    6: ["../assets/Joaninha_1.png"],
   },
   d10: {
     1: [],
     2: [],
-    3: ["../assets/coruja_1.png"],
-    4: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
-    5: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
-    6: ["../assets/joaninha_1.png"],
-    7: ["../assets/joaninha_1.png", "../assets/joaninha_1.png"],
-    8: ["../assets/joaninha_1.png", "../assets/cervo_1.png"],
+    3: ["../assets/Coruja_1.png"],
+    4: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
+    5: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
+    6: ["../assets/Joaninha_1.png"],
+    7: ["../assets/Joaninha_1.png", "../assets/Joaninha_1.png"],
+    8: ["../assets/Joaninha_1.png", "../assets/Cervo_1.png"],
     9: [
-      "../assets/joaninha_1.png",
-      "../assets/cervo_1.png",
-      "../assets/coruja_1.png",
+      "../assets/Joaninha_1.png",
+      "../assets/Cervo_1.png",
+      "../assets/Coruja_1.png",
     ],
     10: [
-      "../assets/joaninha_1.png",
-      "../assets/joaninha_1.png",
-      "../assets/coruja_1.png",
+      "../assets/Joaninha_1.png",
+      "../assets/Joaninha_1.png",
+      "../assets/Coruja_1.png",
     ],
+  },
+  d12: {
+    1: [],
+    2: [],
+    3: ["../assets/Coruja_1.png"],
+    4: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
+    5: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
+    6: ["../assets/Joaninha_1.png"],
+    7: ["../assets/Joaninha_1.png", "../assets/Joaninha_1.png"],
+    8: ["../assets/Joaninha_1.png", "../assets/Cervo_1.png"],
+    9: [
+      "../assets/Joaninha_1.png",
+      "../assets/Cervo_1.png",
+      "../assets/Coruja_1.png",
+    ],
+    10: [
+      "../assets/Joaninha_1.png",
+      "../assets/Joaninha_1.png",
+      "../assets/Coruja_1.png",
+    ],
+    11: [
+      "../assets/Joaninha_1.png",
+      "../assets/../assets/Cervo_1.png_1.png",
+      "../assets/../assets/Cervo_1.png_1.png",
+      "../assets/Coruja_1.png",
+    ],
+    12: ["../assets/Coruja_1.png", "../assets/Coruja_1.png"],
   },
 };
 
@@ -129,9 +156,17 @@ const rollCustomDice = (formula) => {
 
   while ((match = regex.exec(formula)) !== null) {
     const [_, count, sides] = match;
+
+    // Valida se o dado existe
+    if (!dados[`d${sides}`]) {
+      console.warn(`Dado d${sides} não definido.`);
+      continue;
+    }
+
     for (let i = 0; i < parseInt(count); i++) {
       const face = Math.floor(Math.random() * parseInt(sides)) + 1;
-      results.push({ face, result: dados[`d${sides}`][face] });
+      const result = dados[`d${sides}`][face] || [];
+      results.push({ face, result });
     }
   }
   return results;
@@ -403,20 +438,29 @@ const CharacterSheet = () => {
     setCustomRollResult(null);
 
     if (!selectedInstinct) {
+      console.warn("Instinto não selecionado!");
       return;
     }
 
-    const diceCountInstinct = character?.instincts[selectedInstinct] || 0;
+    const diceCountInstinct = character?.instincts?.[selectedInstinct] || 0;
     const diceCountSkill =
-      (character?.knowledge[skill] || 0) + (character?.practices[skill] || 0);
-    const rollInstinct = Array.from({ length: diceCountInstinct }, () => {
-      const face = Math.floor(Math.random() * 6) + 1; // d6
-      return { face, result: dados.d6[face] };
-    });
-    const rollSkill = Array.from({ length: diceCountSkill }, () => {
-      const face = Math.floor(Math.random() * 10) + 1;
-      return { face, result: dados.d10[face] };
-    });
+      (character?.knowledge?.[skill] || 0) +
+      (character?.practices?.[skill] || 0);
+
+    if (diceCountInstinct === 0 && diceCountSkill === 0) {
+      console.warn("Nenhum dado disponível para rolagem!");
+      return;
+    }
+
+    const rollDice = (count, sides) =>
+      Array.from({ length: count }, () => {
+        const face = Math.floor(Math.random() * sides) + 1;
+        return { face, result: dados[`d${sides}`][face] || [] };
+      });
+
+    const rollInstinct = rollDice(diceCountInstinct, 6);
+    const rollSkill = rollDice(diceCountSkill, 10);
+
     setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
     setSnackbarOpen(true);
   };
@@ -1169,31 +1213,26 @@ const CharacterSheet = () => {
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             Resultado:
           </Typography>
+          <Typography variant="subtitle1">
+            Habilidade:{" "}
+            {translateKey(rollResult?.skill) ||
+              rollResult?.skill ||
+              customRollResult?.formula ||
+              "Nenhuma"}
+          </Typography>
           <Typography variant="body1">Dados Rolados:</Typography>
-          {(rollResult?.roll || customRollResult?.roll)?.map(
-            (result, index) => (
-              <Box key={index} display="flex" alignItems="center">
-                <Typography variant="body2" sx={{ mr: 1 }}>
-                  Dado {index + 1}:
+          {(rollResult?.roll || customRollResult?.roll)?.length > 0 ? (
+            (rollResult?.roll || customRollResult?.roll)?.map(
+              (result, index) => (
+                <Typography key={index} variant="body2">
+                  Dado {index + 1}: {result.result.join(", ") || "Nada"}
                 </Typography>
-                {result.result.length > 0 ? (
-                  result.result.map((image, imgIndex) => (
-                    <img
-                      key={imgIndex}
-                      src={image}
-                      alt={`Face ${imgIndex}`}
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        marginRight: "5px",
-                      }}
-                    />
-                  ))
-                ) : (
-                  <Typography variant="body2">Nada</Typography>
-                )}
-              </Box>
+              )
             )
+          ) : (
+            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+              Nenhum dado rolado.
+            </Typography>
           )}
         </Alert>
       </Snackbar>
