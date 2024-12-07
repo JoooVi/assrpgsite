@@ -1224,9 +1224,23 @@ const CharacterSheet = () => {
           {(rollResult?.roll || customRollResult?.roll)?.length > 0 ? (
             (rollResult?.roll || customRollResult?.roll)?.map(
               (result, index) => (
-                <Typography key={index} variant="body2">
-                  Dado {index + 1}: {result.result.join(", ") || "Nada"}
-                </Typography>
+                <div key={index}>
+                  <Typography variant="body2">
+                    Dado {index + 1}: {result.result.length > 0 ? "" : "Nada"}
+                  </Typography>
+                  {result.result.map((imgSrc, i) => (
+                    <img
+                      key={i}
+                      src={imgSrc}
+                      alt={`Resultado ${i + 1}`}
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        margin: "5px",
+                      }}
+                    />
+                  ))}
+                </div>
               )
             )
           ) : (
