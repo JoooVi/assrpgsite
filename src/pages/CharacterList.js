@@ -97,10 +97,10 @@ const CharacterList = () => {
   if (characters.length === 0) {
     return (
       <div className={styles.noCharacters}>
-        <Typography variant="h6" component="div">
+        <Typography variant="h6" component="div" className={styles.noCharactersText}>
           Vejo que você não tem nenhum personagem.
         </Typography>
-        <Typography variant="body1" component="div" sx={{ marginBottom: "20px" }}>
+        <Typography variant="body1" component="div" sx={{ marginBottom: "20px" }} className={styles.noCharactersText}>
           Gostaria de criar um personagem novo?
         </Typography>
         <Button

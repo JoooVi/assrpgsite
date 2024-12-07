@@ -63,10 +63,21 @@
   margin-top: 20px;
 }
 
-.noCharacters {
+.noCharactersText {
+  color: white;
   text-align: center;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
+
+.noCharacters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #2d2d2d; /* Cor de fundo opcional */
+}
+
 .createCharacterButton {
   margin-top: 10px;
 }
