@@ -611,32 +611,31 @@ const CharacterSheet = () => {
       let updatedAssimilation = prevCharacter?.assimilation || 1; // Inicializa Assimilação com 1
       let message = null;
   
-      // Calcula a quantidade de pontos de Determinação perdidos e adiciona à Assimilação
+      // Verifica se a Determinação foi reduzida
       if (lostPoints > 0) {
-        updatedAssimilation = Math.min(
-          prevCharacter?.assimilation + lostPoints,
-          9
-        ); // Limita Assimilação até 9
+        // Quando toda a Determinação for consumida, adiciona 1 ponto à Assimilação
+        if (lostPoints === prevCharacter?.determination) {
+          updatedAssimilation = Math.min(
+            prevCharacter?.assimilation + 1,
+            9
+          ); // Limita Assimilação até 9
+          message = "Você perdeu pontos de Determinação suficientes para cair uma casa!";
+        }
       }
   
-      // Ajusta Determinação para não ir abaixo de 1
+      // Garantir que a Determinação não caia abaixo de 1
       if (updatedDetermination <= 1) {
         updatedDetermination = 1;
-      }
-  
-      // Mensagem quando a Assimilação sobe de nível
-      if (lostPoints > 0 && prevCharacter?.assimilation < updatedAssimilation) {
-        message = "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
   
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
-        message: message,  // Exibe mensagem
+        message: message, // Mensagem para quando a Assimilação subir
       };
     });
-  };  
+  };    
 
   const handleOpenItemsModal = () => {
     fetchInventoryItems();
