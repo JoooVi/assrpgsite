@@ -580,41 +580,47 @@ const CharacterSheet = () => {
     }
     setSnackbarOpen(false);
   };
-
-  const handleCharacteristicDelete = (index) => {
+  
+  const handleDeterminationChange = (event, newValue) => {
+    // Calculando a diferença de pontos perdidos de Determinação
+    const lostPoints = character?.determination - newValue;
+  
+    // Atualizando a Determinação e Assimilação com base na quantidade perdida
     setCharacter((prevCharacter) => {
-      const newCharacteristics = [...(prevCharacter?.characteristics || [])];
-      newCharacteristics.splice(index, 1);
-      return { ...prevCharacter, characteristics: newCharacteristics };
+      let updatedDetermination = newValue;
+      let updatedAssimilation = prevCharacter?.assimilation || 0;
+  
+      // Calculando quantos pontos de Assimilação devem ser aumentados
+      if (lostPoints > 0) {
+        // Para cada ponto de Determinação perdido, a Assimilação aumenta 1 ponto
+        updatedAssimilation = Math.min(
+          prevCharacter?.assimilation + lostPoints,
+          10
+        );
+      }
+  
+      // Ajustando a quantidade de Assimilação de acordo com a lógica do "cabo de guerra"
+      if (updatedDetermination <= 0) {
+        updatedAssimilation = Math.min(10, prevCharacter?.assimilation + 10);
+      }
+  
+      // Se a Assimilação ultrapassar 10, ela não deve ser maior que 10
+      updatedAssimilation = Math.min(updatedAssimilation, 10);
+  
+      return {
+        ...prevCharacter,
+        determination: updatedDetermination,
+        assimilation: updatedAssimilation,
+      };
     });
   };
-
-  const handleAssimilationDelete = (index) => {
-    setCharacter((prevCharacter) => {
-      const newAssimilations = [...(prevCharacter?.assimilations || [])];
-      newAssimilations.splice(index, 1);
-      return { ...prevCharacter, assimilations: newAssimilations };
-    });
-  };
+  
+  const handleAssimilationChange = (event, newValue) => {
+    // A Assimilação deve ser controlada pela Determinação, então não há necessidade de alterar a Assimilação aqui
+  };  
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
-  };
-
-  const handleDeterminationChange = (event, newValue) => {
-    setCharacter({
-      ...character,
-      determination: newValue,
-      assimilation: 10 - newValue,
-    });
-  };
-
-  const handleAssimilationChange = (event, newValue) => {
-    setCharacter({
-      ...character,
-      assimilation: newValue,
-      determination: 10 - newValue,
-    });
   };
 
   const handleOpenItemsModal = () => {
@@ -939,7 +945,7 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                onChange={handleAssimilationChange}
+                onChange={handleAssimilationChange} // Não faz nada, pois é controlado pela Determinação
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
