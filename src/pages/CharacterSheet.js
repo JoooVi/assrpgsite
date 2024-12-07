@@ -40,6 +40,7 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import ResponsiveTabs from "../components/ResponsiveTabs";
 
 const translateKey = (key) => {
@@ -947,7 +948,7 @@ const CharacterSheet = () => {
                 name="determination"
                 value={character?.determination || 0}
                 max={10}
-                onChange={handleDeterminationChange}
+                onChange={handleDeterminationChange} // Chama a função para alterar a Determinação
                 icon={<TriangleRatingIcon color="#67110e" />}
                 emptyIcon={<TriangleRatingIcon color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
@@ -961,7 +962,7 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                onChange={() => {}}
+                onChange={() => {}} // Não faz nada, pois a Assimilação não pode ser alterada diretamente
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
