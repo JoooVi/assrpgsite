@@ -610,15 +610,18 @@ const CharacterSheet = () => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
 
-      // Se houver perda de Determinação, a Assimilação aumentará
-      if (lostPoints > 0) {
+      // A Assimilação só aumenta quando a Determinação chegar a zero
+      if (updatedDetermination === 0) {
         updatedAssimilation = Math.min(
           prevCharacter?.assimilation + lostPoints,
           10 // Limite de Assimilação
         );
+
+        // Quando a Determinação chega a zero, atualiza os valores
+        updatedDetermination = 10 - lostPoints; // Atualiza a Determinação para o número correto
       }
 
-      // Se Determinação chegar a zero, podemos exibir uma mensagem
+      // Se Determinação chegar a zero, podemos exibir a mensagem
       const message =
         updatedDetermination <= 0
           ? "Você perdeu pontos de Determinação suficientes para cair uma casa!"
