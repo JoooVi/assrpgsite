@@ -602,38 +602,36 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    // Calculando a quantidade de pontos perdidos de Determinação
-    const lostPoints = character?.determination - newValue;
+    // Verificando a quantidade de Determinação perdida
+    const lostPoints = character.determination - newValue;
 
     // Atualizando os pontos de Determinação e Assimilação
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
 
-      // Se a Determinação foi reduzida (perda de pontos), a Assimilação aumenta
+      // Se houver perda de Determinação, a Assimilação aumentará
       if (lostPoints > 0) {
         updatedAssimilation = Math.min(
           prevCharacter?.assimilation + lostPoints,
-          10 // A Assimilação não pode ultrapassar 10
+          10 // Limite de Assimilação
         );
       }
 
-      // Caso a Determinação chegue a 0, a Assimilação deve aumentar automaticamente
-      if (updatedDetermination <= 0) {
-        updatedAssimilation = Math.min(10, prevCharacter?.assimilation + 10);
-      }
+      // Se Determinação chegar a zero, podemos exibir uma mensagem
+      const message =
+        updatedDetermination <= 0
+          ? "Você perdeu pontos de Determinação suficientes para cair uma casa!"
+          : null;
 
+      // Atualizando os valores
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
+        message: message, // Aqui você adiciona a mensagem, por exemplo
       };
     });
-  };
-
-  const handleAssimilationChange = (event, newValue) => {
-    // A Assimilação é controlada pela Determinação, então a mudança da Assimilação
-    // deve ser refletida automaticamente sem precisar de alterações aqui
   };
 
   const handleOpenItemsModal = () => {
@@ -946,7 +944,7 @@ const CharacterSheet = () => {
                 name="determination"
                 value={character?.determination || 0}
                 max={10}
-                onChange={handleDeterminationChange} // Controla a Determinação e a Assimilação
+                onChange={handleDeterminationChange}
                 icon={<TriangleRatingIcon color="#67110e" />}
                 emptyIcon={<TriangleRatingIcon color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
@@ -958,11 +956,17 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                // Remover o onChange aqui, pois ele é controlado pela Determinação
+                onChange={() => {}}
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
               />
+              {/* Mensagem de aviso caso Determinação tenha caído para zero */}
+              {character?.message && (
+                <Typography variant="body2" color="error" mt={2}>
+                  {character.message}
+                </Typography>
+              )}
             </Box>
           </Box>
         </Paper>
