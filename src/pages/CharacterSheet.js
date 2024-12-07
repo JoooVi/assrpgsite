@@ -603,7 +603,7 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    // Calcula a quantidade de pontos de Determinação perdidos
+    // Determinar a quantidade de pontos de Determinação perdidos
     const lostPoints = character.determination - newValue;
 
     setCharacter((prevCharacter) => {
@@ -611,29 +611,22 @@ const CharacterSheet = () => {
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
 
-      // Se a Determinação chegar a zero, adicionar pontos à Assimilação
+      // Se a Determinação cair para zero ou abaixo, adicionar pontos à Assimilação
       if (updatedDetermination <= 0) {
-        // Atualizar Assimilação baseado nos pontos perdidos de Determinação
         updatedAssimilation = Math.min(
           prevCharacter?.assimilation + lostPoints,
-          10
-        ); // Limita Assimilação até 10
-        updatedDetermination = 10 - lostPoints; // Ajusta Determinação corretamente (exemplo de 9 para 8)
+          9
+        ); // Limitar Assimilação até 9
+        updatedDetermination = 9 - lostPoints; // Ajustar Determinação para refletir a queda, ex: de 9 para 8 ou 7
         message =
           "Você perdeu pontos de Determinação suficientes para cair uma casa!";
-      }
-
-      // Se a Determinação não for zero, não faz nada
-      if (updatedDetermination > 0) {
-        updatedAssimilation = prevCharacter?.assimilation || 0;
-        message = null;
       }
 
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
-        message: message,
+        message: message, // Mostrar a mensagem após a perda de pontos de Determinação
       };
     });
   };
