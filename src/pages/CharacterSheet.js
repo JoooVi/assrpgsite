@@ -1216,11 +1216,10 @@ const CharacterSheet = () => {
           severity="info"
           sx={{
             width: "400px", // Ajuste da largura para 400px ou o valor que você achar melhor
-            maxWidth: "100%", // Garantir que o alert ocupe no máximo a largura da tela
+            maxWidth: "100%", // Garantir que o alert ocupe toda a largura disponível
             backgroundColor: "#333",
             color: "#fff",
             borderRadius: "5px",
-            padding: "10px", // Adiciona um padding extra ao redor do conteúdo
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -1234,43 +1233,34 @@ const CharacterSheet = () => {
               "Nenhuma"}
           </Typography>
           <Typography variant="body1">Dados Rolados:</Typography>
-          {(rollResult?.roll || customRollResult?.roll)?.length > 0 ? (
-            (rollResult?.roll || customRollResult?.roll)?.map(
-              (result, index) => (
-                <div key={index}>
-                  <Typography variant="body2">
-                    Dado {index + 1}: {result.result.length > 0 ? "" : "Nada"}
-                  </Typography>
-                  {result.result.length > 0 ? (
-                    result.result.map((imgSrc, i) => (
-                      <img
-                        key={i}
-                        src={imgSrc}
-                        alt={`Resultado ${i + 1}`}
-                        onError={(e) => {
-                          e.target.onerror = null; // Evita loop de erro
-                          e.target.src = "/path/to/default-image.png"; // Imagem padrão
-                        }}
-                        style={{
-                          width: "40px", // Reduzido o tamanho da imagem para 40px
-                          height: "40px", // Reduzido o tamanho da imagem para 40px
-                          margin: "5px", // Margem para espaçamento entre as imagens
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-                      Nenhum dado rolado.
+          {(rollResult?.roll || customRollResult?.roll)?.length > 0
+            ? (rollResult?.roll || customRollResult?.roll)?.map(
+                (result, index) => (
+                  <div key={index}>
+                    <Typography variant="body2">
+                      Dado {index + 1}: {result.result.length > 0 ? "" : ""}
                     </Typography>
-                  )}
-                </div>
+                    {result.result.length > 0 &&
+                      result.result.map((imgSrc, i) => (
+                        <img
+                          key={i}
+                          src={imgSrc}
+                          alt={`Resultado ${i + 1}`}
+                          onError={(e) => {
+                            e.target.onerror = null; // Evita loop de erro
+                            e.target.src = "/path/to/default-image.png"; // Imagem padrão
+                          }}
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            margin: "5px",
+                          }}
+                        />
+                      ))}
+                  </div>
+                )
               )
-            )
-          ) : (
-            <Typography variant="body2" sx={{ fontStyle: "italic" }}>
-              Nenhum dado rolado.
-            </Typography>
-          )}
+            : null}
         </Alert>
       </Snackbar>
 
