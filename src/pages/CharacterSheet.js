@@ -1238,7 +1238,7 @@ const CharacterSheet = () => {
                 (result, index) => (
                   <div key={index}>
                     <Typography variant="body2">
-                      Dado {index + 1}: {result.result.length > 0 ? "" : ""}
+                      Dado {index + 1}: {result.result.length > 0 ? "" : "Nada"}
                     </Typography>
                     {result.result.length > 0 &&
                       result.result.map((imgSrc, i) => (
