@@ -605,34 +605,30 @@ const CharacterSheet = () => {
     // Verificando a quantidade de Determinação perdida
     const lostPoints = character.determination - newValue;
 
-    // Atualizando os pontos de Determinação e Assimilação
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
+      let message = null;
 
-      // A Assimilação só aumenta quando a Determinação chegar a zero
+      // Se a Determinação atingir zero, ajustamos os valores
       if (updatedDetermination === 0) {
         updatedAssimilation = Math.min(
           prevCharacter?.assimilation + lostPoints,
           10 // Limite de Assimilação
         );
 
-        // Quando a Determinação chega a zero, atualiza os valores
-        updatedDetermination = 10 - lostPoints; // Atualiza a Determinação para o número correto
+        // Quando a Determinação chega a zero, atualizamos a Determinação para o valor correto
+        updatedDetermination = 10 - lostPoints; // Ajustando para o número correto
+        message =
+          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
-
-      // Se Determinação chegar a zero, podemos exibir a mensagem
-      const message =
-        updatedDetermination <= 0
-          ? "Você perdeu pontos de Determinação suficientes para cair uma casa!"
-          : null;
 
       // Atualizando os valores
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
-        message: message, // Aqui você adiciona a mensagem, por exemplo
+        message: message, // Aqui você adiciona a mensagem
       };
     });
   };
@@ -936,7 +932,6 @@ const CharacterSheet = () => {
               </Box>
             </Box>
           ))}
-
           <Typography variant="h6" mt={4}>
             Determinação & Assimilação
           </Typography>
