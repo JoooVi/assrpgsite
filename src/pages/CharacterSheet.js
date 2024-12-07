@@ -602,33 +602,29 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    // Verificando a quantidade de Determinação perdida
-    const lostPoints = character.determination - newValue;
+    const lostPoints = character.determination - newValue; // Ponto perdido de Determinação
 
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
 
-      // Se a Determinação atingir zero, ajustamos os valores
-      if (updatedDetermination === 0) {
+      // Se a Determinação chegar a zero, ajustar a Assimilação e Determinação
+      if (updatedDetermination <= 0) {
         updatedAssimilation = Math.min(
           prevCharacter?.assimilation + lostPoints,
-          10 // Limite de Assimilação
-        );
-
-        // Quando a Determinação chega a zero, atualizamos a Determinação para o valor correto
-        updatedDetermination = 10 - lostPoints; // Ajustando para o número correto
+          10
+        ); // Limite de Assimilação
+        updatedDetermination = 10 - lostPoints; // Ajustar a Determinação após a perda de pontos
         message =
           "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
 
-      // Atualizando os valores
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
-        message: message, // Aqui você adiciona a mensagem
+        message: message, // Adicionando a mensagem
       };
     });
   };
@@ -936,36 +932,74 @@ const CharacterSheet = () => {
             Determinação & Assimilação
           </Typography>
           <Box className={styles.ratingContainer}>
+            {/* Controles para Determinação */}
             <Box mb={2}>
               <Typography variant="body1">Determinação</Typography>
-              <TriangleRating
-                name="determination"
-                value={character?.determination || 0}
-                max={10}
-                onChange={handleDeterminationChange}
-                icon={<TriangleRatingIcon color="#67110e" />}
-                emptyIcon={<TriangleRatingIcon color="gray" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
-            </Box>
-            <Box>
-              <Typography variant="body1">Assimilação</Typography>
-              <TriangleRating
-                name="assimilation"
-                value={character?.assimilation || 0}
-                max={10}
-                onChange={() => {}}
-                icon={<TriangleRatingIconDown color="#252d44" />}
-                emptyIcon={<TriangleRatingIconDown color="gray" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
-              {/* Mensagem de aviso caso Determinação tenha caído para zero */}
-              {character?.message && (
-                <Typography variant="body2" color="error" mt={2}>
-                  {character.message}
+              <Box display="flex" alignItems="center">
+                <IconButton
+                  onClick={() =>
+                    handleDeterminationChange(
+                      null,
+                      Math.max(character.determination - 1, 0)
+                    )
+                  }
+                >
+                  <ArrowDownwardIcon />
+                </IconButton>
+                <Typography variant="body1">
+                  {character?.determination}
                 </Typography>
-              )}
+                <IconButton
+                  onClick={() =>
+                    handleDeterminationChange(
+                      null,
+                      Math.min(character.determination + 1, 10)
+                    )
+                  }
+                >
+                  <ArrowUpwardIcon />
+                </IconButton>
+              </Box>
             </Box>
+
+            {/* Controles para Assimilação */}
+            <Box mb={2}>
+              <Typography variant="body1">Assimilação</Typography>
+              <Box display="flex" alignItems="center">
+                <IconButton
+                  onClick={() =>
+                    handleDeterminationChange(
+                      null,
+                      Math.max(character.determination - 1, 0)
+                    )
+                  }
+                  disabled
+                >
+                  <ArrowDownwardIcon />
+                </IconButton>
+                <Typography variant="body1">
+                  {character?.assimilation}
+                </Typography>
+                <IconButton
+                  onClick={() =>
+                    handleDeterminationChange(
+                      null,
+                      Math.min(character.determination + 1, 10)
+                    )
+                  }
+                  disabled
+                >
+                  <ArrowUpwardIcon />
+                </IconButton>
+              </Box>
+            </Box>
+
+            {/* Mensagem de alerta */}
+            {character?.message && (
+              <Typography variant="body2" color="error" mt={2}>
+                {character.message}
+              </Typography>
+            )}
           </Box>
         </Paper>
 
