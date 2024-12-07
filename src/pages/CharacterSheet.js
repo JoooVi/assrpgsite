@@ -580,16 +580,16 @@ const CharacterSheet = () => {
     }
     setSnackbarOpen(false);
   };
-  
+
   const handleDeterminationChange = (event, newValue) => {
     // Calculando a diferença de pontos perdidos de Determinação
     const lostPoints = character?.determination - newValue;
-  
+
     // Atualizando a Determinação e Assimilação com base na quantidade perdida
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
-  
+
       // Calculando quantos pontos de Assimilação devem ser aumentados
       if (lostPoints > 0) {
         // Para cada ponto de Determinação perdido, a Assimilação aumenta 1 ponto
@@ -598,15 +598,15 @@ const CharacterSheet = () => {
           10
         );
       }
-  
+
       // Ajustando a quantidade de Assimilação de acordo com a lógica do "cabo de guerra"
       if (updatedDetermination <= 0) {
         updatedAssimilation = Math.min(10, prevCharacter?.assimilation + 10);
       }
-  
+
       // Se a Assimilação ultrapassar 10, ela não deve ser maior que 10
       updatedAssimilation = Math.min(updatedAssimilation, 10);
-  
+
       return {
         ...prevCharacter,
         determination: updatedDetermination,
@@ -614,10 +614,10 @@ const CharacterSheet = () => {
       };
     });
   };
-  
+
   const handleAssimilationChange = (event, newValue) => {
     // A Assimilação deve ser controlada pela Determinação, então não há necessidade de alterar a Assimilação aqui
-  };  
+  };
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
@@ -933,7 +933,7 @@ const CharacterSheet = () => {
                 name="determination"
                 value={character?.determination || 0}
                 max={10}
-                onChange={handleDeterminationChange}
+                onChange={handleDeterminationChange} // Isso vai disparar a lógica
                 icon={<TriangleRatingIcon color="#67110e" />}
                 emptyIcon={<TriangleRatingIcon color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
@@ -945,7 +945,7 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                onChange={handleAssimilationChange} // Não faz nada, pois é controlado pela Determinação
+                onChange={handleAssimilationChange} // Esta função não precisa fazer nada por enquanto
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
