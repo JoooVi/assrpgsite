@@ -95,57 +95,63 @@ const dados = {
   d6: {
     1: [],
     2: [],
-    3: ["../assets/Coruja_1.png"],
-    4: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
-    5: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
-    6: ["../assets/Joaninha_1.png"],
+    3: [require("../assets/Coruja_1.png")],
+    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    6: [require("../assets/Joaninha_1.png")],
   },
   d10: {
     1: [],
     2: [],
-    3: ["../assets/Coruja_1.png"],
-    4: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
-    5: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
-    6: ["../assets/Joaninha_1.png"],
-    7: ["../assets/Joaninha_1.png", "../assets/Joaninha_1.png"],
-    8: ["../assets/Joaninha_1.png", "../assets/Cervo_1.png"],
+    3: [require("../assets/Coruja_1.png")],
+    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    6: [require("../assets/Joaninha_1.png")],
+    7: [
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+    ],
+    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
     9: [
-      "../assets/Joaninha_1.png",
-      "../assets/Cervo_1.png",
-      "../assets/Coruja_1.png",
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Cervo_1.png"),
+      require("../assets/Coruja_1.png"),
     ],
     10: [
-      "../assets/Joaninha_1.png",
-      "../assets/Joaninha_1.png",
-      "../assets/Coruja_1.png",
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
     ],
   },
   d12: {
     1: [],
     2: [],
-    3: ["../assets/Coruja_1.png"],
-    4: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
-    5: ["../assets/Coruja_1.png", "../assets/Cervo_1.png"],
-    6: ["../assets/Joaninha_1.png"],
-    7: ["../assets/Joaninha_1.png", "../assets/Joaninha_1.png"],
-    8: ["../assets/Joaninha_1.png", "../assets/Cervo_1.png"],
+    3: [require("../assets/Coruja_1.png")],
+    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    6: [require("../assets/Joaninha_1.png")],
+    7: [
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+    ],
+    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
     9: [
-      "../assets/Joaninha_1.png",
-      "../assets/Cervo_1.png",
-      "../assets/Coruja_1.png",
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Cervo_1.png"),
+      require("../assets/Coruja_1.png"),
     ],
     10: [
-      "../assets/Joaninha_1.png",
-      "../assets/Joaninha_1.png",
-      "../assets/Coruja_1.png",
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
     ],
     11: [
-      "../assets/Joaninha_1.png",
-      "../assets/../assets/Cervo_1.png_1.png",
-      "../assets/../assets/Cervo_1.png_1.png",
-      "../assets/Coruja_1.png",
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Cervo_1.png"),
+      require("../assets/Cervo_1.png"),
+      require("../assets/Coruja_1.png"),
     ],
-    12: ["../assets/Coruja_1.png", "../assets/Coruja_1.png"],
+    12: [require("../assets/Coruja_1.png"), require("../assets/Coruja_1.png")],
   },
 };
 
@@ -154,21 +160,26 @@ const rollCustomDice = (formula) => {
   let match;
   const results = [];
 
+  // Processa cada lançamento de dados
   while ((match = regex.exec(formula)) !== null) {
     const [_, count, sides] = match;
+    const countInt = parseInt(count); // Converte para inteiro uma vez
+    const sidesInt = parseInt(sides); // Converte para inteiro uma vez
 
     // Valida se o dado existe
-    if (!dados[`d${sides}`]) {
-      console.warn(`Dado d${sides} não definido.`);
+    if (!dados[`d${sidesInt}`]) {
+      console.warn(`Dado d${sidesInt} não definido.`);
       continue;
     }
 
-    for (let i = 0; i < parseInt(count); i++) {
-      const face = Math.floor(Math.random() * parseInt(sides)) + 1;
-      const result = dados[`d${sides}`][face] || [];
+    // Lança os dados conforme o número de contagens
+    for (let i = 0; i < countInt; i++) {
+      const face = Math.floor(Math.random() * sidesInt) + 1; // Gera uma face aleatória
+      const result = dados[`d${sidesInt}`][face] || []; // Obtém o resultado da face
       results.push({ face, result });
     }
   }
+
   return results;
 };
 
@@ -1228,18 +1239,28 @@ const CharacterSheet = () => {
                   <Typography variant="body2">
                     Dado {index + 1}: {result.result.length > 0 ? "" : "Nada"}
                   </Typography>
-                  {result.result.map((imgSrc, i) => (
-                    <img
-                      key={i}
-                      src={imgSrc}
-                      alt={`Resultado ${i + 1}`}
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        margin: "5px",
-                      }}
-                    />
-                  ))}
+                  {result.result.length > 0 ? (
+                    result.result.map((imgSrc, i) => (
+                      <img
+                        key={i}
+                        src={imgSrc}
+                        alt={`Resultado ${i + 1}`}
+                        onError={(e) => {
+                          e.target.onerror = null; // Evita loop de erro
+                          e.target.src = "/path/to/default-image.png"; // Imagem padrão
+                        }}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          margin: "5px",
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+                      Nenhum dado rolado.
+                    </Typography>
+                  )}
                 </div>
               )
             )
