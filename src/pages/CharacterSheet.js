@@ -95,36 +95,30 @@ const dados = {
   d6: {
     1: [],
     2: [],
-    3: ["coruja"],
-    4: ["coruja", "cervo"],
-    5: ["coruja", "cervo"],
-    6: ["joaninha"],
+    3: ["../assets/coruja_1.png"],
+    4: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
+    5: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
+    6: ["../assets/joaninha_1.png"],
   },
   d10: {
     1: [],
     2: [],
-    3: ["coruja"],
-    4: ["coruja", "cervo"],
-    5: ["coruja", "cervo"],
-    6: ["joaninha"],
-    7: ["joaninha", "joaninha"],
-    8: ["joaninha", "cervo"],
-    9: ["joaninha", "cervo", "coruja"],
-    10: ["joaninha", "joaninha", "coruja"],
-  },
-  d12: {
-    1: [],
-    2: [],
-    3: ["coruja"],
-    4: ["coruja", "cervo"],
-    5: ["coruja", "cervo"],
-    6: ["joaninha"],
-    7: ["joaninha", "joaninha"],
-    8: ["joaninha", "cervo"],
-    9: ["joaninha", "cervo", "coruja"],
-    10: ["joaninha", "joaninha", "coruja"],
-    11: ["joaninha", "cervo", "cervo", "coruja"],
-    12: ["coruja", "coruja"],
+    3: ["../assets/coruja_1.png"],
+    4: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
+    5: ["../assets/coruja_1.png", "../assets/cervo_1.png"],
+    6: ["../assets/joaninha_1.png"],
+    7: ["../assets/joaninha_1.png", "../assets/joaninha_1.png"],
+    8: ["../assets/joaninha_1.png", "../assets/cervo_1.png"],
+    9: [
+      "../assets/joaninha_1.png",
+      "../assets/cervo_1.png",
+      "../assets/coruja_1.png",
+    ],
+    10: [
+      "../assets/joaninha_1.png",
+      "../assets/joaninha_1.png",
+      "../assets/coruja_1.png",
+    ],
   },
 };
 
@@ -1175,18 +1169,30 @@ const CharacterSheet = () => {
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             Resultado:
           </Typography>
-          <Typography variant="subtitle1">
-            Habilidade:{" "}
-            {translateKey(rollResult?.skill) ||
-              rollResult?.skill ||
-              customRollResult?.formula}
-          </Typography>
           <Typography variant="body1">Dados Rolados:</Typography>
           {(rollResult?.roll || customRollResult?.roll)?.map(
             (result, index) => (
-              <Typography key={index} variant="body2">
-                Dado {index + 1}: {result.result.join(", ") || "Nada"}
-              </Typography>
+              <Box key={index} display="flex" alignItems="center">
+                <Typography variant="body2" sx={{ mr: 1 }}>
+                  Dado {index + 1}:
+                </Typography>
+                {result.result.length > 0 ? (
+                  result.result.map((image, imgIndex) => (
+                    <img
+                      key={imgIndex}
+                      src={image}
+                      alt={`Face ${imgIndex}`}
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        marginRight: "5px",
+                      }}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2">Nada</Typography>
+                )}
+              </Box>
             )
           )}
         </Alert>
