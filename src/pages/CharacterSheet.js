@@ -603,39 +603,44 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    // Calcular a quantidade de pontos perdidos de Determinação
+    // Determinar a quantidade de pontos de Determinação perdidos
     const lostPoints = character.determination - newValue;
-  
+
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
-      let updatedAssimilation = prevCharacter?.assimilation || 1; // Inicializa Assimilação com 1
+      let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
-  
-      // Verifica se a Determinação foi reduzida
-      if (lostPoints > 0) {
-        // Quando toda a Determinação for consumida, adiciona 1 ponto à Assimilação
-        if (lostPoints === prevCharacter?.determination) {
-          updatedAssimilation = Math.min(
-            prevCharacter?.assimilation + 1,
-            9
-          ); // Limita Assimilação até 9
-          message = "Você perdeu pontos de Determinação suficientes para cair uma casa!";
-        }
+
+      // Se a Determinação for 0 ou menos, a Assimilação sobe uma casa
+      if (updatedDetermination <= 0) {
+        updatedAssimilation = Math.min(
+          prevCharacter?.assimilation + lostPoints,
+          10
+        ); // Limitar Assimilação até 10
+        updatedDetermination = 9 - lostPoints; // Ajusta a Determinação, se necessário, para refletir a queda (exemplo de 9 para 8)
+        message =
+          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
-  
-      // Garantir que a Determinação não caia abaixo de 1
-      if (updatedDetermination <= 1) {
-        updatedDetermination = 1;
+
+      // Se a Assimilação for modificada para um valor menor, ajustar a Determinação
+      if (updatedAssimilation < prevCharacter?.assimilation) {
+        const gainAssimilationPoints =
+          prevCharacter?.assimilation - updatedAssimilation;
+        updatedDetermination = Math.min(
+          updatedDetermination + gainAssimilationPoints,
+          10
+        ); // Limitar Determinação até 10
+        message = "Você perdeu pontos de Assimilação!";
       }
-  
+
       return {
         ...prevCharacter,
         determination: updatedDetermination,
         assimilation: updatedAssimilation,
-        message: message, // Mensagem para quando a Assimilação subir
+        message: message, // Mostrar a mensagem após a perda de pontos de Determinação
       };
     });
-  };    
+  };
 
   const handleOpenItemsModal = () => {
     fetchInventoryItems();
@@ -961,7 +966,7 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                onChange={() => {}} // Não faz nada, pois a Assimilação não pode ser alterada diretamente
+                onChange={handleDeterminationChange} // Chama a mesma função para alterar Assimilação e Determinação
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
