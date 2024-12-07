@@ -30,8 +30,8 @@ const CharacterList = () => {
 
     const fetchCharacters = async () => {
       try {
-        setLoading(true); // Garante que o estado de carregamento é ativado antes da requisição
-        setError(null); // Reseta possíveis erros anteriores
+        setLoading(true);
+        setError(null);
 
         const response = await api.get(
           "https://assrpgsite-be-production.up.railway.app/api/characters",
@@ -43,15 +43,15 @@ const CharacterList = () => {
         );
 
         if (response.data && Array.isArray(response.data)) {
-          setCharacters(response.data); // Garante que characters sempre recebe uma lista
+          setCharacters(response.data);
         } else {
-          setCharacters([]); // Se a resposta não for uma lista, define characters como vazio
+          setCharacters([]);
         }
       } catch (error) {
         setError("Erro ao carregar a lista de personagens");
         console.error(error);
       } finally {
-        setLoading(false); // Finaliza o carregamento independentemente do resultado
+        setLoading(false);
       }
     };
 
@@ -93,8 +93,26 @@ const CharacterList = () => {
     );
   }
 
-  if (error) {
-    return <div className={styles.errorMessage}>{error}</div>;
+  // Exibe uma mensagem caso o usuário não tenha personagens
+  if (characters.length === 0) {
+    return (
+      <div className={styles.noCharacters}>
+        <Typography variant="h6" component="div">
+          Vejo que você não tem nenhum personagem.
+        </Typography>
+        <Typography variant="body1" component="div" sx={{ marginBottom: "20px" }}>
+          Gostaria de criar um personagem novo?
+        </Typography>
+        <Button
+          component={Link}
+          to="/create"
+          variant="contained"
+          color="primary"
+        >
+          Criar Novo Personagem
+        </Button>
+      </div>
+    );
   }
 
   return (
