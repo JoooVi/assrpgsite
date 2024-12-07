@@ -1215,10 +1215,12 @@ const CharacterSheet = () => {
           onClose={handleSnackbarClose}
           severity="info"
           sx={{
-            width: "100%",
+            width: "400px", // Ajuste da largura para 400px ou o valor que você achar melhor
+            maxWidth: "100%", // Garantir que o alert ocupe no máximo a largura da tela
             backgroundColor: "#333",
             color: "#fff",
             borderRadius: "5px",
+            padding: "10px", // Adiciona um padding extra ao redor do conteúdo
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -1250,9 +1252,9 @@ const CharacterSheet = () => {
                           e.target.src = "/path/to/default-image.png"; // Imagem padrão
                         }}
                         style={{
-                          width: "50px",
-                          height: "50px",
-                          margin: "5px",
+                          width: "40px", // Reduzido o tamanho da imagem para 40px
+                          height: "40px", // Reduzido o tamanho da imagem para 40px
+                          margin: "5px", // Margem para espaçamento entre as imagens
                         }}
                       />
                     ))
