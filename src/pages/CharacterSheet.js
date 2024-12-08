@@ -258,7 +258,6 @@ const SkillList = ({
                 marginRight: "8px", // Distância entre o ícone e o texto
               }}
             />
-            Rolar
           </Button>
         </Grid>
       </Grid>
