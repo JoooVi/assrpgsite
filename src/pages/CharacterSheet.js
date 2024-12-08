@@ -222,9 +222,11 @@ const SkillList = ({
               value={selectedInstinct[key] || ""}
               onChange={(e) => handleInstinctChange(key, e.target.value)}
             >
-              {Object.keys(selectedInstinct).map((instinctKey) => (
+              {Object.keys(instincts).map((instinctKey) => (
                 <MenuItem key={instinctKey} value={instinctKey}>
-                  {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
+                  {translateKey(
+                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                  )}
                 </MenuItem>
               ))}
             </Select>
@@ -254,7 +256,6 @@ const SkillList = ({
     ))}
   </Box>
 );
-
 
 const InstinctList = ({
   title,
