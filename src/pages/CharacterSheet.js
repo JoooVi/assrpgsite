@@ -300,11 +300,11 @@ const InstinctList = ({
           </FormControl>
         </Grid>
 
-        {/* Botão para rolar */}
+        {/* Botão para rolar sem background */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="contained"
-            color="primary"
+            variant="outlined"  // Usando 'outlined' para não ter fundo
+            color="default"  // Cor padrão sem fundo
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0,  // Remove o padding do botão
@@ -313,9 +313,11 @@ const InstinctList = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              border: 'none',  // Remove a borda do botão
+              backgroundColor: 'transparent',  // Remove o fundo do botão
             }}
           >
-            <MeuIcone2 width="60px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="80px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
