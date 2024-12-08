@@ -198,6 +198,7 @@ const SkillList = ({
   onRoll,
 }) => (
   <Box>
+    <Typography variant="h6">{title}</Typography>
     {Object.entries(skills).map(([key, value]) => (
       <Grid
         container
@@ -247,7 +248,7 @@ const SkillList = ({
               backgroundColor: 'transparent', // Remove o fundo do botão
             }}
           >
-            <MeuIcone width="100px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone width="100px" height="40px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
@@ -315,7 +316,7 @@ const InstinctList = ({
               backgroundColor: 'transparent',  // Remove o fundo do botão
             }}
           >
-            <MeuIcone2 width="100px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="100px" height="40px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
