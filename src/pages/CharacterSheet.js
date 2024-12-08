@@ -234,8 +234,7 @@ const SkillList = ({
         {/* Botão para rolar com o SVG como única imagem */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined"  // Usando 'outlined' para não ter fundo
-            color="default"  // Cor padrão sem fundo
+            variant="outlined"
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0, // Remove o padding do botão
@@ -303,8 +302,7 @@ const InstinctList = ({
         {/* Botão para rolar sem background */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined"  // Usando 'outlined' para não ter fundo
-            color="default"  // Cor padrão sem fundo
+            variant="outlined"
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0,  // Remove o padding do botão
