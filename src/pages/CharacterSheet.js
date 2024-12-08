@@ -300,22 +300,15 @@ const InstinctList = ({
           </FormControl>
         </Grid>
 
-        {/* Botão com a imagem SVG */}
+        {/* Botão para rolar */}
         <Grid item xs={12} sm={4}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-            sx={{
-              padding: 0,  // Remove o padding do botão
-              minWidth: 'auto',  // Remove a largura mínima
-              height: '40px',  // Define uma altura fixa para o botão
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            fullWidth
           >
-            <MeuIcone2 width="25px" height="25px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            Rolar
           </Button>
         </Grid>
       </Grid>
