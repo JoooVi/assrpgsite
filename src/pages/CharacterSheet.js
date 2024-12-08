@@ -255,7 +255,6 @@ const SkillList = ({
               style={{
                 width: "24px", // Tamanho do SVG
                 height: "24px",
-                marginRight: "8px", // Distância entre o ícone e o texto
               }}
             />
           </Button>
