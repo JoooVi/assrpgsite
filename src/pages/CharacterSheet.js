@@ -196,7 +196,7 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-  title,  // Recebe o título como prop
+  title, // Recebe o título como prop
 }) => (
   <Box>
     {/* Título do componente */}
@@ -220,13 +220,21 @@ const SkillList = ({
         </Grid>
 
         {/* Select do Instinto */}
-        <Grid item xs={14} sm={4}>
+        <Grid item xs={12} sm={4}>
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
             <InputLabel>Instinto</InputLabel>
             <Select
               label="Instinto"
               value={selectedInstinct[key] || ""}
               onChange={(e) => handleInstinctChange(key, e.target.value)}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    maxHeight: 224, // Para garantir que o menu não fique grande demais
+                    width: "auto",
+                  },
+                },
+              }}
             >
               {Object.keys(selectedInstinct).map((instinctKey) => (
                 <MenuItem key={instinctKey} value={instinctKey}>
@@ -238,22 +246,23 @@ const SkillList = ({
         </Grid>
 
         {/* Botão para rolar com o SVG como única imagem */}
-        <Grid item xs={14} sm={4}>
+        <Grid item xs={12} sm={4}>
           <Button
             variant="outlined"
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0, // Remove o padding do botão
               minWidth: 0, // Remove a largura mínima
-              height: '40px', // Define uma altura fixa para o botão
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none', // Remove a borda do botão
-              backgroundColor: 'transparent', // Remove o fundo do botão
+              height: "40px", // Define uma altura fixa para o botão
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none", // Remove a borda do botão
+              backgroundColor: "transparent", // Remove o fundo do botão
             }}
           >
-            <MeuIcone width="90px" height="40px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone width="90px" height="40px" />{" "}
+            {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
@@ -286,7 +295,7 @@ const InstinctList = ({
         </Grid>
 
         {/* Select do Instinto */}
-        <Grid item xs={14} sm={4}>
+        <Grid item xs={12} sm={4}>
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
             <InputLabel>Assimilado</InputLabel>
             <Select
@@ -311,17 +320,18 @@ const InstinctList = ({
             variant="outlined"
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
             sx={{
-              padding: 0,  // Remove o padding do botão
-              minWidth: 'auto',  // Remove a largura mínima
-              height: '40px',  // Define uma altura fixa para o botão
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',  // Remove a borda do botão
-              backgroundColor: 'transparent',  // Remove o fundo do botão
+              padding: 0, // Remove o padding do botão
+              minWidth: "auto", // Remove a largura mínima
+              height: "40px", // Define uma altura fixa para o botão
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none", // Remove a borda do botão
+              backgroundColor: "transparent", // Remove o fundo do botão
             }}
           >
-            <MeuIcone2 width="90px" height="40px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="90px" height="40px" />{" "}
+            {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
