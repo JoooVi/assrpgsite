@@ -41,7 +41,7 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
-import { ReactComponent as MeuIcone } from '../assets/d10.svg';
+import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
 
 const translateKey = (key) => {
@@ -206,34 +206,7 @@ const SkillList = ({
         alignItems="center"
         className={styles.skillItem}
       >
-        {/* Nome da habilidade */}
-        <Grid item xs={12} sm={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
-
-        {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
-          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Instinto</InputLabel>
-            <Select
-              label="Instinto"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
-            >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        {/* Botão com a imagem SVG */}
+        {/* Botão para rolar com o SVG como única imagem */}
         <Grid item xs={12} sm={4}>
           <Button
             variant="contained"
@@ -241,14 +214,14 @@ const SkillList = ({
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0,  // Remove o padding do botão
-              minWidth: 'auto',  // Remove a largura mínima
-              height: '40px',  // Define uma altura fixa para o botão
+              minWidth: 0,  // Remove a largura mínima
+              height: 'auto',  // Ajusta a altura automaticamente com base no SVG
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <MeuIcone width="25px" height="25px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="50%" height="50%" /> {/* A imagem SVG como conteúdo do botão */}
           </Button>
         </Grid>
       </Grid>
