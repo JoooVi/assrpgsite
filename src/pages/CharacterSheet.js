@@ -41,8 +41,8 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
-import { ReactComponent as MeuIcone } from '../assets/d10-svgrepo-com.svg';
-import { ReactComponent as MeuIcone2 } from '../assets/d12-svgrepo-com.svg';
+import { ReactComponent as MeuIcone } from '../assets/d10.svg';
+import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
 
 const translateKey = (key) => {
   const translations = {
@@ -192,15 +192,12 @@ const rollCustomDice = (formula) => {
 };
 
 const SkillList = ({
-  title,
   skills,
-  instincts,
   selectedInstinct,
   handleInstinctChange,
   onRoll,
 }) => (
   <Box>
-    <Typography variant="h6">{title}:</Typography>
     {Object.entries(skills).map(([key, value]) => (
       <Grid
         container
@@ -209,42 +206,22 @@ const SkillList = ({
         alignItems="center"
         className={styles.skillItem}
       >
-        {/* Nome da habilidade */}
-        <Grid item xs={12} sm={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
-
-        {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
-          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Instinto</InputLabel>
-            <Select
-              label="Instinto"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
-            >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        {/* Botão para rolar */}
+        {/* Botão para rolar com o SVG como única imagem */}
         <Grid item xs={12} sm={4}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => onRoll(key, selectedInstinct[key])}
-            fullWidth
+            sx={{
+              padding: 0,  // Remove o padding do botão
+              minWidth: 0,  // Remove a largura mínima
+              height: 'auto',  // Ajusta a altura automaticamente com base no SVG
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            Rolar
+            <MeuIcone2 width="100%" height="100%" /> {/* A imagem SVG como conteúdo do botão */}
           </Button>
         </Grid>
       </Grid>
