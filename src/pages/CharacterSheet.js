@@ -200,7 +200,7 @@ const SkillList = ({
   onRoll,
 }) => (
   <Box>
-    <Typography variant="h6">{title}:</Typography>
+    <Typography variant="h6">{title}</Typography>
     {Object.entries(skills).map(([key, value]) => (
       <Grid
         container
@@ -378,7 +378,7 @@ const CharacterSheet = () => {
     const fetchCharacter = async () => {
       try {
         const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, // URL do Railway com /api
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -759,6 +759,13 @@ const CharacterSheet = () => {
     }
   };
 
+  const generationMap = {
+    "Pre Collapse": "Pré colapso",
+    Collapse: "Colapso",
+    "Post Collapse": "Pós colapso",
+    Current: "Atual",
+  };
+
   useEffect(() => {
     if (character) {
       saveCharacterInventory();
@@ -802,7 +809,7 @@ const CharacterSheet = () => {
           <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Geração"
-              value={character?.generation || ""}
+              value={generationMap[character?.generation] || ""}
               onChange={(e) => handleInputChange("generation", e.target.value)}
               variant="outlined"
               fullWidth
