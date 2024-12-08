@@ -279,9 +279,16 @@ const InstinctList = ({
             variant="contained"
             color="primary"
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-            fullWidth
+            sx={{
+              padding: 0,  // Remove o padding do botão
+              minWidth: 'auto',  // Remove a largura mínima
+              height: '40px',  // Define uma altura fixa para o botão
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            Rolar
+            <MeuIcone width="25px" height="25px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
