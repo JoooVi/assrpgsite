@@ -272,7 +272,9 @@ const InstinctList = ({
   onAssimilatedRoll,
 }) => (
   <Box>
-    <Typography variant="h6">{title}</Typography>
+    <Typography variant="h6" sx={{ marginBottom: 2 }}>
+      {title}
+    </Typography>
     {Object.entries(instincts).map(([key, value]) => (
       <Grid
         container
@@ -296,6 +298,14 @@ const InstinctList = ({
               label="Assimilado"
               value={selectedInstinct[key] || ""}
               onChange={(e) => handleInstinctChange(key, e.target.value)}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    maxHeight: 224, // Para garantir que o menu não fique grande demais
+                    width: "auto",
+                  },
+                },
+              }}
             >
               {Object.keys(instincts).map((instinctKey) => (
                 <MenuItem key={instinctKey} value={instinctKey}>
@@ -308,24 +318,25 @@ const InstinctList = ({
           </FormControl>
         </Grid>
 
-        {/* Botão para rolar sem background */}
+        {/* Botão para rolar */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined"  // Usando 'outlined' para não ter fundo
-            color="default"  // Cor padrão sem fundo
+            variant="outlined" // Usando 'outlined' para não ter fundo
+            color="default" // Cor padrão sem fundo
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
             sx={{
-              padding: 0,  // Remove o padding do botão
-              minWidth: 'auto',  // Remove a largura mínima
-              height: '40px',  // Define uma altura fixa para o botão
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',  // Remove a borda do botão
-              backgroundColor: 'transparent',  // Remove o fundo do botão
+              padding: 0, // Remove o padding do botão
+              minWidth: 0, // Remove a largura mínima
+              height: "40px", // Define uma altura fixa para o botão
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none", // Remove a borda do botão
+              backgroundColor: "transparent", // Remove o fundo do botão
             }}
           >
-            <MeuIcone2 width="80px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="90px" height="40px" />{" "}
+            {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
