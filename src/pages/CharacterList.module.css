@@ -75,7 +75,8 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #2d2d2d; /* Cor de fundo opcional */
+  background-color: #2d2d2d;
+  max-width: 500px; /* Cor de fundo opcional */
 }
 
 .createCharacterButton {
