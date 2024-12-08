@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Collapse,
 } from "@mui/material";
 import LinearProgress from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
@@ -40,8 +41,8 @@ import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
-import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
-import ResponsiveTabs from "../components/ResponsiveTabs";
+import { ReactComponent as MeuIcone } from '../assets/d10-svgrepo-com.svg';
+import { ReactComponent as MeuIcone2 } from '../assets/d12-svgrepo-com.svg';
 
 const translateKey = (key) => {
   const translations = {
@@ -49,6 +50,10 @@ const translateKey = (key) => {
     Agility: "Agilidade",
     Perception: "Percepção",
     Strength: "Força",
+    current: "Atual",
+    collapse: "Colapso",
+    preCollapse: "pré-Colapso",
+    postCollapse: "Pós-Colapso",
     Intelligence: "Inteligência",
     Potency: "Potencia",
     Influence: "Influência",
@@ -72,6 +77,7 @@ const translateKey = (key) => {
     Vehicles: "Veiculos",
     Infiltration: "infiltração",
   };
+
   return translations[key] || key;
 };
 
