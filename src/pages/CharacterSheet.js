@@ -191,13 +191,18 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
+import { ReactComponent as MeuIcone } from "../assets/d10.svg";
+
 const SkillList = ({
+  title,
   skills,
+  instincts,
   selectedInstinct,
   handleInstinctChange,
   onRoll,
 }) => (
   <Box>
+    <Typography variant="h6">{title}:</Typography>
     {Object.entries(skills).map(([key, value]) => (
       <Grid
         container
@@ -209,7 +214,7 @@ const SkillList = ({
         {/* Nome da habilidade */}
         <Grid item xs={12} sm={4}>
           <Typography>
-            {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
           </Typography>
         </Grid>
 
@@ -233,23 +238,29 @@ const SkillList = ({
           </FormControl>
         </Grid>
 
-        {/* Botão para rolar com o SVG como única imagem */}
+        {/* Botão para rolar */}
         <Grid item xs={12} sm={4}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => onRoll(key, selectedInstinct[key])}
+            fullWidth
             sx={{
-              padding: 0, // Remove o padding do botão
-              minWidth: 0, // Remove a largura mínima
-              height: 'auto', // Ajusta a altura automaticamente com base no SVG
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 'auto', // Ajusta a largura do botão com base no conteúdo
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "40px",
             }}
           >
-            <MeuIcone width="80px" height="30px" /> {/* Define o tamanho do SVG */}
+            {/* Usando o MeuIcone SVG dentro do botão */}
+            <MeuIcone
+              style={{
+                width: "24px", // Tamanho do SVG
+                height: "24px",
+                marginRight: "8px", // Distância entre o ícone e o texto
+              }}
+            />
+            Rolar
           </Button>
         </Grid>
       </Grid>
