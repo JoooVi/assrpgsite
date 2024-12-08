@@ -220,7 +220,7 @@ const SkillList = ({
         </Grid>
 
         {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={14} sm={4}>
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
             <InputLabel>Instinto</InputLabel>
             <Select
@@ -238,7 +238,7 @@ const SkillList = ({
         </Grid>
 
         {/* Botão para rolar com o SVG como única imagem */}
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={14} sm={4}>
           <Button
             variant="outlined"
             onClick={() => onRoll(key, selectedInstinct[key])}
@@ -286,7 +286,7 @@ const InstinctList = ({
         </Grid>
 
         {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={14} sm={4}>
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
             <InputLabel>Assimilado</InputLabel>
             <Select
