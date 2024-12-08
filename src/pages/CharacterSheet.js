@@ -213,15 +213,16 @@ const SkillList = ({
             color="primary"
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
-              padding: 0,  // Remove o padding do botão
-              minWidth: 0,  // Remove a largura mínima
-              height: 'auto',  // Ajusta a altura automaticamente com base no SVG
+              padding: 0, // Remove o padding do botão
+              minWidth: 0, // Remove a largura mínima
+              height: 'auto', // Ajusta a altura automaticamente com base no SVG
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              width: 'auto', // Ajusta a largura do botão com base no conteúdo
             }}
           >
-            <MeuIcone2 width="50%" height="50%" /> {/* A imagem SVG como conteúdo do botão */}
+            <MeuIcone width="60px" height="30px" /> {/* Define o tamanho do SVG */}
           </Button>
         </Grid>
       </Grid>
@@ -288,7 +289,7 @@ const InstinctList = ({
               justifyContent: 'center',
             }}
           >
-            <MeuIcone width="25px" height="25px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="60px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
