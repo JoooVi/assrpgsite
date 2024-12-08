@@ -206,6 +206,31 @@ const SkillList = ({
         alignItems="center"
         className={styles.skillItem}
       >
+        {/* Nome da habilidade */}
+        <Grid item xs={12} sm={4}>
+          <Typography>
+            {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+          </Typography>
+        </Grid>
+
+        {/* Select do Instinto */}
+        <Grid item xs={12} sm={4}>
+          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+            <InputLabel>Instinto</InputLabel>
+            <Select
+              label="Instinto"
+              value={selectedInstinct[key] || ""}
+              onChange={(e) => handleInstinctChange(key, e.target.value)}
+            >
+              {Object.keys(selectedInstinct).map((instinctKey) => (
+                <MenuItem key={instinctKey} value={instinctKey}>
+                  {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
         {/* Botão para rolar com o SVG como única imagem */}
         <Grid item xs={12} sm={4}>
           <Button
@@ -222,13 +247,14 @@ const SkillList = ({
               width: 'auto', // Ajusta a largura do botão com base no conteúdo
             }}
           >
-            <MeuIcone width="60px" height="30px" /> {/* Define o tamanho do SVG */}
+            <MeuIcone width="80px" height="30px" /> {/* Define o tamanho do SVG */}
           </Button>
         </Grid>
       </Grid>
     ))}
   </Box>
 );
+
 
 const InstinctList = ({
   title,
