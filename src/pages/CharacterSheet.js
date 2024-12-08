@@ -196,14 +196,8 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-  title, // Recebe o título como prop
 }) => (
   <Box>
-    {/* Título do componente */}
-    <Typography variant="h6" sx={{ marginBottom: 2 }}>
-      {title}
-    </Typography>
-
     {Object.entries(skills).map(([key, value]) => (
       <Grid
         container
@@ -227,14 +221,6 @@ const SkillList = ({
               label="Instinto"
               value={selectedInstinct[key] || ""}
               onChange={(e) => handleInstinctChange(key, e.target.value)}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 224, // Para garantir que o menu não fique grande demais
-                    width: "auto",
-                  },
-                },
-              }}
             >
               {Object.keys(selectedInstinct).map((instinctKey) => (
                 <MenuItem key={instinctKey} value={instinctKey}>
@@ -248,21 +234,21 @@ const SkillList = ({
         {/* Botão para rolar com o SVG como única imagem */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined"
+            variant="outlined"  // Usando 'outlined' para não ter fundo
+            color="default"  // Cor padrão sem fundo
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0, // Remove o padding do botão
               minWidth: 0, // Remove a largura mínima
-              height: "40px", // Define uma altura fixa para o botão
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none", // Remove a borda do botão
-              backgroundColor: "transparent", // Remove o fundo do botão
+              height: '40px', // Define uma altura fixa para o botão
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none', // Remove a borda do botão
+              backgroundColor: 'transparent', // Remove o fundo do botão
             }}
           >
-            <MeuIcone width="90px" height="40px" />{" "}
-            {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone width="80px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
@@ -317,21 +303,21 @@ const InstinctList = ({
         {/* Botão para rolar sem background */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined"
+            variant="outlined"  // Usando 'outlined' para não ter fundo
+            color="default"  // Cor padrão sem fundo
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
             sx={{
-              padding: 0, // Remove o padding do botão
-              minWidth: "auto", // Remove a largura mínima
-              height: "40px", // Define uma altura fixa para o botão
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none", // Remove a borda do botão
-              backgroundColor: "transparent", // Remove o fundo do botão
+              padding: 0,  // Remove o padding do botão
+              minWidth: 'auto',  // Remove a largura mínima
+              height: '40px',  // Define uma altura fixa para o botão
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none',  // Remove a borda do botão
+              backgroundColor: 'transparent',  // Remove o fundo do botão
             }}
           >
-            <MeuIcone2 width="90px" height="40px" />{" "}
-            {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="80px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
