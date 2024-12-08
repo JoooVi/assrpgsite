@@ -608,17 +608,19 @@ const CharacterSheet = () => {
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
 
-      // Se os pontos de determinação caem para zero ou abaixo, ajustar a assimilação
-      while (updatedDetermination <= 0 && updatedAssimilation < 10) {
+      // Se Determinação atingir zero, Assimilação sobe e Determinação é ajustada
+      if (updatedDetermination <= 0 && updatedAssimilation < 9) {
         updatedAssimilation += 1;
-        updatedDetermination += updatedAssimilation; // Ajusta a determinação conforme a assimilação sobe
+        updatedDetermination = 10 - updatedAssimilation; // Redefine a Determinação
         message =
           "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
 
-      // Limitar os valores de determinação e assimilação
-      updatedDetermination = Math.max(updatedDetermination, 0);
-      updatedAssimilation = Math.min(updatedAssimilation, 10);
+      // Permitir ajuste para trás se o usuário remover pontos de Assimilação
+      if (updatedDetermination > 10 - updatedAssimilation) {
+        updatedAssimilation = Math.max(updatedAssimilation - 1, 0);
+        updatedDetermination = newValue;
+      }
 
       return {
         ...prevCharacter,
