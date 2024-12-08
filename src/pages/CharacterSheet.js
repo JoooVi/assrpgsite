@@ -191,8 +191,6 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-import { ReactComponent as MeuIcone } from "../assets/d10.svg";
-
 const SkillList = ({
   title,
   skills,
