@@ -206,7 +206,34 @@ const SkillList = ({
         alignItems="center"
         className={styles.skillItem}
       >
-        {/* Botão para rolar com o SVG como única imagem */}
+        {/* Nome da habilidade */}
+        <Grid item xs={12} sm={4}>
+          <Typography>
+            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+          </Typography>
+        </Grid>
+
+        {/* Select do Instinto */}
+        <Grid item xs={12} sm={4}>
+          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+            <InputLabel>Instinto</InputLabel>
+            <Select
+              label="Instinto"
+              value={selectedInstinct[key] || ""}
+              onChange={(e) => handleInstinctChange(key, e.target.value)}
+            >
+              {Object.keys(instincts).map((instinctKey) => (
+                <MenuItem key={instinctKey} value={instinctKey}>
+                  {translateKey(
+                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                  )}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* Botão com a imagem SVG */}
         <Grid item xs={12} sm={4}>
           <Button
             variant="contained"
@@ -214,14 +241,14 @@ const SkillList = ({
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0,  // Remove o padding do botão
-              minWidth: 0,  // Remove a largura mínima
-              height: 'auto',  // Ajusta a altura automaticamente com base no SVG
+              minWidth: 'auto',  // Remove a largura mínima
+              height: '40px',  // Define uma altura fixa para o botão
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <MeuIcone2 width="100%" height="100%" /> {/* A imagem SVG como conteúdo do botão */}
+            <MeuIcone width="25px" height="25px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
@@ -273,15 +300,22 @@ const InstinctList = ({
           </FormControl>
         </Grid>
 
-        {/* Botão para rolar */}
+        {/* Botão com a imagem SVG */}
         <Grid item xs={12} sm={4}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-            fullWidth
+            sx={{
+              padding: 0,  // Remove o padding do botão
+              minWidth: 'auto',  // Remove a largura mínima
+              height: '40px',  // Define uma altura fixa para o botão
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            Rolar
+            <MeuIcone2 width="25px" height="25px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
           </Button>
         </Grid>
       </Grid>
