@@ -234,27 +234,27 @@ const SkillList = ({
         {/* Botão para rolar com o SVG como única imagem */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined"  // Usando 'outlined' para não ter fundo
-            color="default"  // Cor padrão sem fundo
+            variant="contained"
+            color="primary"
             onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
               padding: 0, // Remove o padding do botão
               minWidth: 0, // Remove a largura mínima
-              height: '40px', // Define uma altura fixa para o botão
+              height: 'auto', // Ajusta a altura automaticamente com base no SVG
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: 'none', // Remove a borda do botão
-              backgroundColor: 'transparent', // Remove o fundo do botão
+              width: 'auto', // Ajusta a largura do botão com base no conteúdo
             }}
           >
-            <MeuIcone width="80px" height="30px" />  {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone width="80px" height="30px" /> {/* Define o tamanho do SVG */}
           </Button>
         </Grid>
       </Grid>
     ))}
   </Box>
 );
+
 
 const InstinctList = ({
   title,
