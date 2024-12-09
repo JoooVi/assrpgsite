@@ -237,7 +237,6 @@ const SkillList = ({
     setEditMode(!editMode);
   };
 
-  // Função para atualizar os valores editados
   const handleEditedValueChange = (skillKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
@@ -247,9 +246,8 @@ const SkillList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{title}</Typography>
+      <Typography variant="h6">{translateKey(title)}</Typography>
 
-      {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
@@ -261,7 +259,6 @@ const SkillList = ({
 
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
-          {/* Nome da habilidade (clicável) */}
           <Grid item xs={4} sm={3}>
             <Typography
               onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
@@ -271,21 +268,20 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
-              {key.charAt(0).toUpperCase() + key.slice(1)}:
+              {translateKey(key).charAt(0).toUpperCase() + translateKey(key).slice(1)}:
             </Typography>
           </Grid>
 
-          {/* Número da habilidade (editável quando em modo de edição) */}
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
+                value={editedValues[key] || value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" }, // Alinha o número ao centro
+                  style: { textAlign: "center" },
                 }}
               />
             ) : (
@@ -293,31 +289,29 @@ const SkillList = ({
             )}
           </Grid>
 
-          {/* Select do Instinto */}
           <Grid item xs={4} sm={3}>
             <FormControl
               variant="outlined"
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
+              sx={{ minWidth: 100 }}
             >
-              <InputLabel>Instinto</InputLabel>
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
-                label="Instinto"
+                label={translateKey("Instincts")}
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
+                    {translateKey(instinctKey).charAt(0).toUpperCase() + translateKey(instinctKey).slice(1)}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
-          {/* Botão para rolar */}
           <Grid item xs={4} sm={2}>
             <Button
               variant="contained"
@@ -332,11 +326,10 @@ const SkillList = ({
         </Grid>
       ))}
 
-      {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+            translateKey(selectedSkill).charAt(0).toUpperCase() + translateKey(selectedSkill).slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
