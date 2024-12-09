@@ -475,7 +475,7 @@ const InstinctList = ({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts }, // Envia os instintos como parte do objeto character
         {
           headers: {
