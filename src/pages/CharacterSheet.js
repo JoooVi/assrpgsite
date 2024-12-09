@@ -254,14 +254,14 @@ const SkillList = ({
       <Typography variant="h6">{title}</Typography>
 
       {/* Botão para ativar/desativar o modo de edição */}
+
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        fullWidth
-        sx={{ marginBottom: "16px" }}
+        sx={{ padding: "8px", minWidth: "unset" }} // Ajusta o tamanho
       >
-        {editMode ? "Salvar alterações" : "Editar todas as habilidades"}
+        <EditIcon /> {/* Ícone de lápis */}
       </Button>
 
       {Object.entries(skills).map(([key, value]) => (
@@ -273,7 +273,7 @@ const SkillList = ({
               sx={{
                 cursor: "pointer",
                 color: "text.primary", // Cor mais neutra (pode ser personalizada)
-                '&:hover': { color: 'primary.main' }, // Muda a cor ao passar o mouse
+                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}:
@@ -290,7 +290,7 @@ const SkillList = ({
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" } // Alinha o número ao centro
+                  style: { textAlign: "center" }, // Alinha o número ao centro
                 }}
               />
             ) : (
@@ -300,7 +300,12 @@ const SkillList = ({
 
           {/* Select do Instinto */}
           <Grid item xs={3} sm={3}>
-            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+            >
               <InputLabel>Instinto</InputLabel>
               <Select
                 label="Instinto"
@@ -333,7 +338,8 @@ const SkillList = ({
       {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -1103,7 +1109,10 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
 
-        <Paper elevation={3}>
+        <Paper
+          elevation={3}
+          sx={{ padding: "16px", maxWidth: "800px", margin: "0 auto" }}
+        >
           <SkillList
             title="Conhecimentos & Práticas"
             skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
