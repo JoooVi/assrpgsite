@@ -198,6 +198,7 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
+  handleSkillChange, // Função para manipular a mudança de valor do número
 }) => {
   const [open, setOpen] = useState(false); // Estado para o modal
   const [selectedSkill, setSelectedSkill] = useState(null); // Habilidade selecionada para exibição
@@ -231,29 +232,41 @@ const SkillList = ({
     <Box>
       <Typography variant="h6">{title}</Typography>
       {Object.entries(skills).map(([key, value]) => (
-        <Grid
-          container
-          key={key}
-          spacing={2}
-          alignItems="center"
-        >
-          {/* Nome da habilidade (clicável) */}
+        <Grid container key={key} spacing={2} alignItems="center">
+          {/* Nome da habilidade (fixo) */}
           <Grid item xs={12} sm={4}>
             <Typography
-              onClick={() => handleSkillClick(key)}  // Ao clicar na habilidade, abre o modal
+              onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
               sx={{
                 cursor: "pointer",
-                color: "text.primary", // Cor mais neutra (pode ser personalizada)
-                '&:hover': { color: 'primary.main' }, // Muda a cor ao passar o mouse
+                color: "text.primary", // Cor mais neutra
+                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
-              {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+              {key.charAt(0).toUpperCase() + key.slice(1)}:
             </Typography>
+          </Grid>
+
+          {/* Número da habilidade (editável) */}
+          <Grid item xs={12} sm={4}>
+            <TextField
+              value={value}
+              onChange={(e) => handleSkillChange(key, e.target.value)} // Função para alterar o valor da habilidade
+              variant="outlined"
+              size="small"
+              fullWidth
+              type="number" // Garantindo que seja um número
+            />
           </Grid>
 
           {/* Select do Instinto */}
           <Grid item xs={12} sm={4}>
-            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+            >
               <InputLabel>Instinto</InputLabel>
               <Select
                 label="Instinto"
@@ -297,7 +310,8 @@ const SkillList = ({
       {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -1075,6 +1089,7 @@ const CharacterSheet = () => {
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
+            handleSkillChange={handleSkillChange} // Passando a função de mudança do número
           />
         </Paper>
 
