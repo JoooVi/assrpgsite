@@ -236,7 +236,7 @@ const SkillList = ({
     setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+      await axios.put(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         { knowledge: updatedSkills.knowledge, practices: updatedSkills.practices },
         {
           headers: {
@@ -466,7 +466,7 @@ const InstinctList = ({
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts }, // Envia os instintos como parte do objeto character
         {
           headers: {
