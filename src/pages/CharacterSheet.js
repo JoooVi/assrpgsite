@@ -298,13 +298,13 @@ const SkillList = ({
           </Grid>
 
           {/* Select do Instinto */}
-          <Grid item xs={9} sm={5}>
+          <Grid item xs={4} sm={3}>
             <FormControl
               variant="outlined"
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 80 }}
+              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
             >
               <InputLabel>Instinto</InputLabel>
               <Select
