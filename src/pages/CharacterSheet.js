@@ -222,6 +222,7 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   handleSkillChange,
+  id
 }) => {
   console.log("ID do Personagem no SkillList:", id);
 
