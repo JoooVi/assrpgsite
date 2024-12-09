@@ -256,7 +256,6 @@ const SkillList = ({
     }
   };
 
-  // Função para alternar o modo de edição e salvar os dados
   const toggleEditMode = () => {
     if (editMode) {
       // Organiza os dados em "knowledge" e "practices"
