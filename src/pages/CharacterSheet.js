@@ -253,90 +253,93 @@ const SkillList = ({
     <Box>
       <Typography variant="h6">{title}</Typography>
 
-      {/* Botão para ativar/desativar o modo de edição (Ícone de lápis) */}
-      <IconButton
-        color="primary"
+      {/* Botão para ativar/desativar o modo de edição */}
+
+      <Button
+        variant="contained"
+        color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        sx={{ marginBottom: "16px" }}
+        sx={{ padding: "4px", minWidth: "unset" }} // Ajusta o tamanho
       >
-        <EditIcon />
-      </IconButton>
+        <EditIcon /> {/* Ícone de lápis */}
+      </Button>
 
-      {/* Papel contendo as habilidades */}
-      <Paper sx={{ padding: "16px", marginBottom: "16px" }}>
-        {Object.entries(skills).map(([key, value]) => (
-          <Grid container key={key} spacing={2} alignItems="center">
-            {/* Nome da habilidade (clicável) */}
-            <Grid item xs={12} sm={3}>
-              <Typography
-                onClick={() => handleSkillClick(key)}  // Ao clicar na habilidade, abre o modal
-                sx={{
-                  cursor: "pointer",
-                  color: "text.primary", // Cor mais neutra (pode ser personalizada)
-                  '&:hover': { color: 'primary.main' }, // Muda a cor ao passar o mouse
-                }}
-              >
-                {key.charAt(0).toUpperCase() + key.slice(1)}:
-              </Typography>
-            </Grid>
-
-            {/* Número da habilidade (editável quando em modo de edição) */}
-            <Grid item xs={12} sm={3}>
-              {editMode ? (
-                <TextField
-                  value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
-                  onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                  size="small"
-                  variant="outlined"
-                  fullWidth
-                  inputProps={{
-                    style: {
-                      fontSize: '1rem', // Tamanho pequeno para unidades
-                    }
-                  }}
-                />
-              ) : (
-                <Typography>{value}</Typography>
-              )}
-            </Grid>
-
-            {/* Select do Instinto */}
-            <Grid item xs={12} sm={3}>
-              <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-                <InputLabel>Instinto</InputLabel>
-                <Select
-                  label="Instinto"
-                  value={selectedInstinct[key] || ""}
-                  onChange={(e) => handleInstinctChange(key, e.target.value)}
-                >
-                  {Object.keys(instincts).map((instinctKey) => (
-                    <MenuItem key={instinctKey} value={instinctKey}>
-                      {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Botão para rolar */}
-            <Grid item xs={12} sm={3}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => onRoll(key, selectedInstinct[key])}
-                fullWidth
-              >
-                Rolar
-              </Button>
-            </Grid>
+      {Object.entries(skills).map(([key, value]) => (
+        <Grid container key={key} spacing={2} alignItems="center">
+          {/* Nome da habilidade (clicável) */}
+          <Grid item xs={12} sm={3}>
+            <Typography
+              onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
+              sx={{
+                cursor: "pointer",
+                color: "text.primary", // Cor mais neutra (pode ser personalizada)
+                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
+              }}
+            >
+              {key.charAt(0).toUpperCase() + key.slice(1)}:
+            </Typography>
           </Grid>
-        ))}
-      </Paper>
+
+          {/* Número da habilidade (editável quando em modo de edição) */}
+          <Grid item xs={12} sm={2}>
+            {editMode ? (
+              <TextField
+                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
+                onChange={(e) => handleEditedValueChange(key, e.target.value)}
+                size="small"
+                variant="outlined"
+                fullWidth
+                inputProps={{
+                  style: { textAlign: "center" }, // Alinha o número ao centro
+                }}
+              />
+            ) : (
+              <Typography>{value}</Typography>
+            )}
+          </Grid>
+
+          {/* Select do Instinto */}
+          <Grid item xs={12} sm={3}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+            >
+              <InputLabel>Instinto</InputLabel>
+              <Select
+                label="Instinto"
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Botão para rolar */}
+          <Grid item xs={12} sm={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onRoll(key, selectedInstinct[key])}
+              fullWidth
+            >
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
+            </Button>
+          </Grid>
+        </Grid>
+      ))}
 
       {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
