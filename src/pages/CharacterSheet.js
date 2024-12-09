@@ -325,8 +325,8 @@ const SkillList = ({
               onClick={() => onRoll(key, selectedInstinct[key])}
               fullWidth
               sx={{
-                marginLeft: "16px", // Adicionando um espaçamento à esquerda do botão de rolar
-                marginTop: "8px", // Ajustando o espaço superior para garantir que não grude em outros elementos
+                marginLeft: "24px", // Aumentando o espaçamento à esquerda
+                marginTop: "16px", // Aumentando o espaçamento superior
               }}
             >
               <MeuIcone style={{ width: "24px", height: "24px" }} />
