@@ -236,8 +236,12 @@ const SkillList = ({
     setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        { knowledge: updatedSkills.knowledge, practices: updatedSkills.practices },
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+        {
+          knowledge: updatedSkills.knowledge,
+          practices: updatedSkills.practices,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -436,7 +440,7 @@ const InstinctList = ({
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
-  id // Assumindo que o id do personagem é passado como uma propriedade
+  id, // Assumindo que o id do personagem é passado como uma propriedade
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
@@ -577,7 +581,7 @@ const InstinctList = ({
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
-                                {Object.keys(instincts).map((instinctKey) => (
+                {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
                     {instinctKey} {/* Nome do instinto */}
                   </MenuItem>
@@ -1295,8 +1299,8 @@ const CharacterSheet = () => {
             </Box>
           </Box>
         </Paper>
-
         <Paper elevation={3} className={styles.centerColumn}>
+          {console.log("Character:", character)}{" "}
           <SkillList
             title="Conhecimentos & Práticas"
             skills={{ ...character?.knowledge, ...character?.practices }}
@@ -1304,10 +1308,9 @@ const CharacterSheet = () => {
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
-            id={character?.id} // Passando o ID do personagem
+            id={character?._id} // Certifique-se de que o ID está sendo passado corretamente
           />
         </Paper>
-
         <Paper elevation={3} className={styles.rightColumn}>
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
             <Typography variant="h6">Rolar Dados</Typography>
