@@ -77,8 +77,10 @@
   height: 100vh;
   background-color: #2d2d2d;
   max-width: 900px;
-  justify-items: center;
+  margin: 0 auto; /* Centraliza horizontalmente */
+  text-align: center; /* Centraliza o texto dentro do elemento */
 }
+
 
 .createCharacterButton {
   margin-top: 10px;

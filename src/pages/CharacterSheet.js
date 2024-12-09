@@ -222,9 +222,8 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   handleSkillChange,
-  id, // Assumindo que o id do personagem é passado como uma propriedade
 }) => {
-  console.log("ID do Personagem no SkillList:", id); // Verificação do ID
+  console.log("ID do Personagem no SkillList:", id);
 
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
@@ -247,7 +246,10 @@ const SkillList = ({
       );
       console.log("Dados salvos com sucesso:");
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
+      console.error(
+        "Erro ao salvar os dados:",
+        error.response?.data || error.message
+      );
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
@@ -314,7 +316,8 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -411,7 +414,8 @@ const SkillList = ({
       ))}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -1257,11 +1261,12 @@ const CharacterSheet = () => {
         <Paper elevation={3} className={styles.centerColumn}>
           <SkillList
             title="Conhecimentos & Práticas"
-            skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
+            skills={{ ...character?.knowledge, ...character?.practices }}
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
+            id={character?.id} // Passando o ID do personagem
           />
         </Paper>
 
