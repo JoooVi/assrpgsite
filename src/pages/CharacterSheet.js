@@ -224,16 +224,14 @@ const SkillList = ({
   handleSkillChange,
   id,
 }) => {
-  console.log("ID do Personagem no SkillList:", id);
-
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
+  const [loading, setLoading] = useState(false); 
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true); // Inicia o carregamento
+    setLoading(true); 
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -250,22 +248,22 @@ const SkillList = ({
       );
       console.log("Dados salvos com sucesso:", response.data);
 
-      // Atualize o estado local com os novos valores
-      setEditedValues({});
+      // Atualizar estado global e local
       handleSkillChange("knowledge", updatedSkills.knowledge);
       handleSkillChange("practices", updatedSkills.practices);
+      setEditedValues({});
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
         error.response?.data || error.message
       );
     } finally {
-      setLoading(false); // Finaliza o carregamento
+      setLoading(false); 
     }
   };
 
   const toggleEditMode = () => {
-    if (editMode) {
+    if (editMode && id) {
       const updatedSkills = {
         knowledge: {},
         practices: {},
@@ -289,24 +287,14 @@ const SkillList = ({
       ];
 
       Object.keys(editedValues).forEach((skillKey) => {
-        if (skills[skillKey] !== undefined) {
-          if (knowledgeKeys.includes(skillKey)) {
-            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
-          } else if (practiceKeys.includes(skillKey)) {
-            updatedSkills.practices[skillKey] = editedValues[skillKey];
-          }
+        if (knowledgeKeys.includes(skillKey)) {
+          updatedSkills.knowledge[skillKey] = editedValues[skillKey];
+        } else if (practiceKeys.includes(skillKey)) {
+          updatedSkills.practices[skillKey] = editedValues[skillKey];
         }
       });
 
-      if (id) {
-        saveSkillsToBackend(updatedSkills);
-
-        Object.keys(editedValues).forEach((skillKey) => {
-          handleSkillChange(skillKey, editedValues[skillKey]);
-        });
-      } else {
-        console.error("ID do personagem está indefinido");
-      }
+      saveSkillsToBackend(updatedSkills);
     }
     setEditMode(!editMode);
   };
@@ -325,8 +313,7 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -353,6 +340,7 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
+
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
@@ -365,6 +353,200 @@ const SkillList = ({
               }}
             >
               {key}:
+            </Typography>
+          </Grid>
+
+          <Grid item xs={4} sm={2}>
+            {editMode ? (
+              <TextField
+                value={editedValues[key] || value}
+                onChange={(e) =>
+                  handleEditedValueChange(key, e.target.value)
+                }
+                size="small"
+                variant="outlined"
+                fullWidth
+                inputProps={{
+                  style: { textAlign: "center" },
+                }}
+              />
+            ) : (
+              <Typography>{value}</Typography>
+            )}
+          </Grid>
+
+          <Grid item xs={4} sm={3}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+              sx={{ minWidth: 100 }}
+            >
+              <InputLabel>Instintos</InputLabel>
+              <Select
+                label="Instintos"
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {instinctKey}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={4} sm={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onRoll(key, selectedInstinct[key])}
+              fullWidth
+              sx={{ marginLeft: "28px" }}
+            >
+              <EditIcon style={{ width: "24px", height: "24px" }} />
+            </Button>
+          </Grid>
+        </Grid>
+      ))}
+
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>{getSkillDescription(selectedSkill)}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+const InstinctList = ({
+  title,
+  instincts,
+  selectedInstinct,
+  handleInstinctChange,
+  onAssimilatedRoll,
+  id,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedValues, setEditedValues] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const handleInstinctClick = (instinctKey) => {
+    setSelectedInstinctKey(instinctKey);
+    setOpen(true);
+  };
+
+  const getInstinctDescription = (key) => {
+    const descriptions = {
+      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
+      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
+      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
+      potency: "Força física e resistência para superar obstáculos.",
+      influence: "Habilidade de convencer ou manipular outros.",
+      resolution: "Capacidade de persistir diante de dificuldades.",
+    };
+    return descriptions[key] || "Descrição não disponível.";
+  };
+
+  const saveInstinctsToBackend = async (updatedInstincts) => {
+    setLoading(true);
+
+    // Atualização otimista
+    const prevInstincts = { ...instincts };
+    handleInstinctChange({ ...instincts, ...updatedInstincts });
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
+        { instincts: updatedInstincts },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao salvar os instintos:",
+        error.response?.data || error.message
+      );
+      // Reverte atualização otimista em caso de erro
+      handleInstinctChange(prevInstincts);
+    } finally {
+      setLoading(false);
+      setEditedValues({});
+      setEditMode(false);
+    }
+  };
+
+  const toggleEditMode = () => {
+    if (editMode) {
+      const updatedInstincts = {};
+
+      Object.keys(editedValues).forEach((instinctKey) => {
+        if (instincts[instinctKey] !== undefined) {
+          updatedInstincts[instinctKey] = parseInt(
+            editedValues[instinctKey],
+            10
+          );
+        }
+      });
+
+      if (id) {
+        saveInstinctsToBackend(updatedInstincts);
+      } else {
+        console.error("ID do personagem está indefinido");
+      }
+    } else {
+      setEditMode(true);
+    }
+  };
+
+  const handleEditedValueChange = (instinctKey, value) => {
+    setEditedValues((prev) => ({
+      ...prev,
+      [instinctKey]: value,
+    }));
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6">{title}</Typography>
+      <Button
+        variant="contained"
+        color={editMode ? "secondary" : "primary"}
+        onClick={toggleEditMode}
+        sx={{ padding: "4px", minWidth: "unset" }}
+      >
+        <EditIcon />
+      </Button>
+
+      {Object.entries(instincts).map(([key, value]) => (
+        <Grid container key={key} spacing={3} alignItems="center">
+          <Grid item xs={4} sm={3}>
+            <Typography
+              onClick={() => handleInstinctClick(key)}
+              sx={{
+                cursor: "pointer",
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
+              }}
+            >
+              {key}
             </Typography>
           </Grid>
 
@@ -412,196 +594,6 @@ const SkillList = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={() => onRoll(key, selectedInstinct[key])}
-              fullWidth
-              sx={{ marginLeft: "28px" }}
-            >
-              <MeuIcone style={{ width: "24px", height: "24px" }} />
-            </Button>
-          </Grid>
-        </Grid>
-      ))}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>
-          {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>{getSkillDescription(selectedSkill)}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
-            Fechar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
-
-const InstinctList = ({
-  title,
-  instincts,
-  selectedInstinct,
-  handleInstinctChange,
-  onAssimilatedRoll,
-  id, // Assumindo que o id do personagem é passado como uma propriedade
-}) => {
-  const [open, setOpen] = useState(false);
-  const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
-
-  const handleInstinctClick = (instinctKey) => {
-    setSelectedInstinctKey(instinctKey);
-    setOpen(true);
-  };
-
-  const getInstinctDescription = (key) => {
-    const descriptions = {
-      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
-      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
-      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
-      potency: "Força física e resistência para superar obstáculos.",
-      influence: "Habilidade de convencer ou manipular outros.",
-      resolution: "Capacidade de persistir diante de dificuldades.",
-    };
-    return descriptions[key] || "Descrição não disponível.";
-  };
-
-  const saveInstinctsToBackend = async (updatedInstincts) => {
-    setLoading(true); // Inicia o carregamento
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
-        { instincts: updatedInstincts }, // Envia os instintos como parte do objeto character
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Instintos salvos com sucesso:", response.data);
-
-      // Atualize o estado local com os novos valores
-      setEditedValues({});
-      Object.keys(updatedInstincts).forEach((key) => {
-        handleInstinctChange(key, updatedInstincts[key]);
-      });
-    } catch (error) {
-      console.error(
-        "Erro ao salvar os instintos:",
-        error.response?.data || error.message
-      );
-    } finally {
-      setLoading(false); // Finaliza o carregamento
-    }
-  };
-
-  const toggleEditMode = () => {
-    if (editMode) {
-      const updatedInstincts = {};
-
-      Object.keys(editedValues).forEach((instinctKey) => {
-        if (instincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = editedValues[instinctKey];
-        }
-      });
-
-      if (id) {
-        saveInstinctsToBackend(updatedInstincts);
-      } else {
-        console.error("ID do personagem está indefinido");
-      }
-    }
-    setEditMode(!editMode);
-  };
-
-  // Função para atualizar os valores editados
-  const handleEditedValueChange = (instinctKey, value) => {
-    setEditedValues((prev) => ({
-      ...prev,
-      [instinctKey]: value,
-    }));
-  };
-
-  return (
-    <Box>
-      <Typography variant="h6">{title}</Typography> {/* Traduzindo o título */}
-      {/* Botão para ativar/desativar o modo de edição */}
-      <Button
-        variant="contained"
-        color={editMode ? "secondary" : "primary"}
-        onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
-      >
-        <EditIcon /> {/* Ícone de lápis */}
-      </Button>
-      {Object.entries(instincts).map(([key, value]) => (
-        <Grid container key={key} spacing={3} alignItems="center">
-          {/* Nome do Instinto (clicável) */}
-          <Grid item xs={4} sm={3}>
-            <Typography
-              onClick={() => handleInstinctClick(key)} // Ao clicar no instinto, abre o modal
-              sx={{
-                cursor: "pointer",
-                color: "text.primary", // Cor mais neutra (pode ser personalizada)
-                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
-              }}
-            >
-              {key} {/* Nome do instinto */}
-            </Typography>
-          </Grid>
-
-          {/* Número do Instinto (editável quando em modo de edição) */}
-          <Grid item xs={4} sm={2}>
-            {editMode ? (
-              <TextField
-                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
-                onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                size="small"
-                variant="outlined"
-                fullWidth
-                inputProps={{
-                  style: { textAlign: "center" }, // Alinha o número ao centro
-                }}
-              />
-            ) : (
-              <Typography>{value}</Typography>
-            )}
-          </Grid>
-
-          {/* Select do Instinto */}
-          <Grid item xs={4} sm={3}>
-            <FormControl
-              variant="outlined"
-              margin="dense"
-              size="small"
-              fullWidth
-              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
-            >
-              <InputLabel>Instintos</InputLabel> {/* Traduzindo o rótulo */}
-              <Select
-                label="Instintos" // Traduzindo o rótulo
-                value={selectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChange(key, e.target.value)}
-              >
-                {Object.keys(instincts).map((instinctKey) => (
-                  <MenuItem key={instinctKey} value={instinctKey}>
-                    {instinctKey} {/* Nome do instinto */}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Botão para rolar */}
-          <Grid item xs={4} sm={2}>
-            <Button
-              variant="contained"
-              color="primary"
               onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
               fullWidth
               sx={{ marginLeft: "28px" }}
@@ -611,13 +603,12 @@ const InstinctList = ({
           </Grid>
         </Grid>
       ))}
-      {/* Modal de Descrição do Instinto */}
+
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedInstinctKey &&
             selectedInstinctKey.charAt(0).toUpperCase() +
-              selectedInstinctKey.slice(1)}{" "}
-          {/* Traduzindo o título do modal */}
+              selectedInstinctKey.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
