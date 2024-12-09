@@ -214,6 +214,13 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
+const handleSkillChange = (type, updatedSkills) => {
+  setCharacter((prev) => ({
+    ...prev,
+    [type]: updatedSkills,
+  }));
+};
+
 const SkillList = ({
   title,
   skills,
@@ -228,10 +235,10 @@ const SkillList = ({
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true); 
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -258,7 +265,7 @@ const SkillList = ({
         error.response?.data || error.message
       );
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
@@ -313,7 +320,8 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -360,9 +368,7 @@ const SkillList = ({
             {editMode ? (
               <TextField
                 value={editedValues[key] || value}
-                onChange={(e) =>
-                  handleEditedValueChange(key, e.target.value)
-                }
+                onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
@@ -463,14 +469,14 @@ const InstinctList = ({
 
   const saveInstinctsToBackend = async (updatedInstincts) => {
     setLoading(true);
-
-    // Atualização otimista
+  
+    // Atualização otimista (local)
     const prevInstincts = { ...instincts };
     handleInstinctChange({ ...instincts, ...updatedInstincts });
-
+  
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
+      const response = await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
         {
@@ -479,42 +485,51 @@ const InstinctList = ({
           },
         }
       );
+  
+      // Após a resposta do backend, atualize o estado com os dados salvos
+      handleInstinctChange({ ...response.data.character.instincts });
+  
     } catch (error) {
       console.error(
         "Erro ao salvar os instintos:",
         error.response?.data || error.message
       );
-      // Reverte atualização otimista em caso de erro
+      // Reverte a atualização otimista em caso de erro
       handleInstinctChange(prevInstincts);
     } finally {
       setLoading(false);
-      setEditedValues({});
-      setEditMode(false);
+      setEditedValues({}); // Limpa os valores editados
+      setEditMode(false); // Desativa o modo de edição
     }
-  };
+  };  
 
   const toggleEditMode = () => {
     if (editMode) {
       const updatedInstincts = {};
-
-      Object.keys(editedValues).forEach((instinctKey) => {
-        if (instincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = parseInt(
-            editedValues[instinctKey],
-            10
-          );
+  
+      Object.entries(editedValues).forEach(([key, value]) => {
+        if (instincts[key] !== undefined && !isNaN(value)) {
+          updatedInstincts[key] = parseInt(value, 10);
         }
       });
-
+  
       if (id) {
-        saveInstinctsToBackend(updatedInstincts);
+        saveInstinctsToBackend(updatedInstincts); // Salva no backend
       } else {
-        console.error("ID do personagem está indefinido");
+        console.error("ID do personagem não definido.");
       }
+  
+      // Após a atualização no backend, atualiza o estado local com os novos valores
+      handleInstinctChange({ ...instincts, ...updatedInstincts });
+  
     } else {
-      setEditMode(true);
+      setEditedValues(instincts); // Sincroniza o estado local antes de editar
     }
+  
+    setEditMode(!editMode); // Alterna o modo de edição
   };
+  
+  
 
   const handleEditedValueChange = (instinctKey, value) => {
     setEditedValues((prev) => ({
@@ -1301,13 +1316,17 @@ const CharacterSheet = () => {
         <Paper elevation={3} className={styles.centerColumn}>
           {console.log("Character:", character)}{" "}
           <SkillList
-            title="Conhecimentos & Práticas"
-            skills={{ ...character?.knowledge, ...character?.practices }}
-            instincts={character?.instincts || {}}
+            title="Habilidades"
+            skills={{
+              ...character.knowledge,
+              ...character.practices,
+            }}
+            instincts={character.instincts}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
-            id={character?._id} // Certifique-se de que o ID está sendo passado corretamente
+            handleSkillChange={handleSkillChange} // Certifique-se de passar corretamente
+            id={character._id}
           />
         </Paper>
         <Paper elevation={3} className={styles.rightColumn}>
