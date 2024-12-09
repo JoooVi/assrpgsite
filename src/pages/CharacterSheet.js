@@ -426,7 +426,7 @@ const InstinctList = ({
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
+        sx={{ padding: "4px", minWidth: "unset", marginBottom: 2 }}
       >
         <EditIcon /> {/* Ícone de edição */}
       </Button>
@@ -438,9 +438,10 @@ const InstinctList = ({
           spacing={2}
           alignItems="center"
           className={styles.skillItem}
+          sx={{ marginBottom: 2 }}
         >
           {/* Nome do Instinto */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <Typography
               sx={{
                 cursor: "pointer",
@@ -456,7 +457,7 @@ const InstinctList = ({
           </Grid>
 
           {/* Número do Instinto (editável quando em modo de edição) */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={2}>
             {editMode ? (
               <TextField
                 value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
@@ -474,7 +475,7 @@ const InstinctList = ({
           </Grid>
 
           {/* Select do Instinto */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <FormControl variant="outlined" margin="dense" size="small" fullWidth>
               <InputLabel>Assimilado</InputLabel>
               <Select
@@ -502,7 +503,7 @@ const InstinctList = ({
           </Grid>
 
           {/* Botão para rolar */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={3}>
             <Button
               variant="outlined"
               color="default"
