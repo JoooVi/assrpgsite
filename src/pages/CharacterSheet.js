@@ -191,24 +191,6 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  TextField,
-  Button,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit'; // Ícone de lápis
-
 const SkillList = ({
   title,
   skills,
