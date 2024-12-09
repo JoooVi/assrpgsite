@@ -234,25 +234,28 @@ const SkillList = ({
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
-      const token = localStorage.getItem('token'); // Obtém o token do armazenamento local
-      const response = await fetch(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`, {
-        method: 'PUT', // Mudando para PUT, pois estamos atualizando um recurso existente
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Inclui o token no cabeçalho da solicitação
-        },
-        body: JSON.stringify(updatedSkills), // Envia as habilidades alteradas
-      });
+      const token = localStorage.getItem("token"); // Obtém o token do armazenamento local
+      const response = await fetch(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+        {
+          method: "PUT", // Mudando para PUT, pois estamos atualizando um recurso existente
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Inclui o token no cabeçalho da solicitação
+          },
+          body: JSON.stringify(updatedSkills), // Envia as habilidades alteradas
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Dados salvos com sucesso:', data);
+        console.log("Dados salvos com sucesso:", data);
       } else {
-        console.error('Erro ao salvar os dados:', data);
+        console.error("Erro ao salvar os dados:", data);
       }
     } catch (error) {
-      console.error('Erro de rede ou requisição:', error);
+      console.error("Erro de rede ou requisição:", error);
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
@@ -267,11 +270,12 @@ const SkillList = ({
         practices: {},
       };
 
+      // Insira uma verificação para garantir que 'skills' tem as categorias esperadas
       Object.keys(editedValues).forEach((skillKey) => {
         if (skills[skillKey] !== undefined) {
-          if (skills[skillKey].category === 'knowledge') {
+          if (Object.keys(character.knowledge).includes(skillKey)) {
             updatedSkills.knowledge[skillKey] = editedValues[skillKey];
-          } else if (skills[skillKey].category === 'practices') {
+          } else if (Object.keys(character.practices).includes(skillKey)) {
             updatedSkills.practices[skillKey] = editedValues[skillKey];
           }
         }
@@ -307,7 +311,8 @@ const SkillList = ({
   // Função para obter a descrição da habilidade
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -411,7 +416,8 @@ const SkillList = ({
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)} {/* Nome da habilidade */}
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}{" "}
+          {/* Nome da habilidade */}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -485,7 +491,6 @@ const InstinctList = ({
       >
         <EditIcon /> {/* Ícone de lápis */}
       </Button>
-
       {Object.entries(instincts).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           {/* Nome do Instinto (clicável) */}
@@ -559,7 +564,6 @@ const InstinctList = ({
           </Grid>
         </Grid>
       ))}
-
       {/* Modal de Descrição do Instinto */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
@@ -1258,12 +1262,14 @@ const CharacterSheet = () => {
 
         <Paper elevation={3} className={styles.centerColumn}>
           <SkillList
-            title="Conhecimentos & Práticas"
-            skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
-            instincts={character?.instincts || {}}
-            selectedInstinct={selectedInstinct}
+            title="Skills"
+            skills={character.skills}
+            instincts={character.instincts}
+            selectedInstinct={character.selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
+            handleSkillChange={handleSkillChange}
+            id={character._id} // Certifique-se de que o ID está sendo passado corretamente aqui
           />
         </Paper>
 
