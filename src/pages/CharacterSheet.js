@@ -1102,7 +1102,6 @@ const CharacterSheet = () => {
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
-            handleSkillChange={handleSkillChange} // Passando a função handleSkillChange como prop
           />
         </Paper>
 
