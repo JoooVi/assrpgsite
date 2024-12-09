@@ -224,6 +224,8 @@ const SkillList = ({
   handleSkillChange,
   id, // Assumindo que o id do personagem é passado como uma propriedade
 }) => {
+  console.log("ID do Personagem no SkillList:", id); // Verificação do ID
+
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -233,24 +235,19 @@ const SkillList = ({
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
-      const token = localStorage.getItem("token"); // Obtém o token do armazenamento local
-      const response = await axios.put(
+      const token = localStorage.getItem("token");
+      await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         updatedSkills,
         {
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Inclui o token no cabeçalho da solicitação
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      console.log("Dados salvos com sucesso:", response.data);
+      console.log("Dados salvos com sucesso:");
     } catch (error) {
-      console.error(
-        "Erro ao salvar os dados:",
-        error.response?.data || error.message
-      );
+      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
@@ -258,7 +255,6 @@ const SkillList = ({
 
   const toggleEditMode = () => {
     if (editMode) {
-      // Organiza os dados em "knowledge" e "practices"
       const updatedSkills = {
         knowledge: {},
         practices: {},
@@ -291,12 +287,9 @@ const SkillList = ({
         }
       });
 
-      // Verifique o ID do personagem antes de enviar
       if (id) {
-        // Enviar os dados atualizados para o backend
         saveSkillsToBackend(updatedSkills);
 
-        // Atualizar os dados no componente (se necessário)
         Object.keys(editedValues).forEach((skillKey) => {
           handleSkillChange(skillKey, editedValues[skillKey]);
         });
@@ -304,12 +297,9 @@ const SkillList = ({
         console.error("ID do personagem está indefinido");
       }
     }
-
-    // Alterna o modo de edição
     setEditMode(!editMode);
   };
 
-  // Função para lidar com as mudanças nos valores das habilidades
   const handleEditedValueChange = (skillKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
@@ -317,17 +307,14 @@ const SkillList = ({
     }));
   };
 
-  // Função para abrir a descrição da habilidade
   const handleSkillClick = (skillKey) => {
     setSelectedSkill(skillKey);
     setOpen(true);
   };
 
-  // Função para obter a descrição da habilidade
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -346,42 +333,39 @@ const SkillList = ({
   return (
     <Box>
       <Typography variant="h6">{title}</Typography>
-      {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
         sx={{ padding: "4px", minWidth: "unset" }}
       >
-        <EditIcon /> {/* Ícone de lápis */}
+        <EditIcon />
       </Button>
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
-          {/* Nome da habilidade (clicável) */}
           <Grid item xs={4} sm={3}>
             <Typography
-              onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
+              onClick={() => handleSkillClick(key)}
               sx={{
                 cursor: "pointer",
-                color: "text.primary", // Cor mais neutra (pode ser personalizada)
-                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
               }}
             >
-              {key}: {/* Nome da habilidade */}
+              {key}:
             </Typography>
           </Grid>
 
-          {/* Número da habilidade (editável quando em modo de edição) */}
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
+                value={editedValues[key] || value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" }, // Alinha o número ao centro
+                  style: { textAlign: "center" },
                 }}
               />
             ) : (
@@ -389,14 +373,13 @@ const SkillList = ({
             )}
           </Grid>
 
-          {/* Select do Instinto */}
           <Grid item xs={4} sm={3}>
             <FormControl
               variant="outlined"
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
+              sx={{ minWidth: 100 }}
             >
               <InputLabel>Instintos</InputLabel>
               <Select
@@ -406,14 +389,13 @@ const SkillList = ({
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {instinctKey} {/* Nome do instinto */}
+                    {instinctKey}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
-          {/* Botão para rolar */}
           <Grid item xs={4} sm={2}>
             <Button
               variant="contained"
@@ -427,12 +409,9 @@ const SkillList = ({
           </Grid>
         </Grid>
       ))}
-      {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}{" "}
-          {/* Nome da habilidade */}
+          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
