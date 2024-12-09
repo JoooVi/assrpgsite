@@ -474,8 +474,8 @@ const InstinctList = ({
     setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
+      const response = await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
         { instincts: updatedInstincts }, // Envia os instintos como parte do objeto character
         {
           headers: {
@@ -483,7 +483,13 @@ const InstinctList = ({
           },
         }
       );
-      console.log("Instintos salvos com sucesso:");
+      console.log("Instintos salvos com sucesso:", response.data);
+
+      // Atualize o estado local com os novos valores
+      setEditedValues({});
+      Object.keys(updatedInstincts).forEach((key) => {
+        handleInstinctChange(key, updatedInstincts[key]);
+      });
     } catch (error) {
       console.error(
         "Erro ao salvar os instintos:",
@@ -506,10 +512,6 @@ const InstinctList = ({
 
       if (id) {
         saveInstinctsToBackend(updatedInstincts);
-
-        Object.keys(editedValues).forEach((instinctKey) => {
-          handleInstinctChange(instinctKey, editedValues[instinctKey]);
-        });
       } else {
         console.error("ID do personagem está indefinido");
       }
