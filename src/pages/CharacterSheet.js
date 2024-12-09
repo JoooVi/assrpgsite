@@ -191,13 +191,6 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-const handleSkillChange = (skillKey, value) => {
-  setSkills((prevSkills) => ({
-    ...prevSkills,
-    [skillKey]: value,
-  }));
-};
-
 const SkillList = ({
   title,
   skills,
@@ -205,10 +198,12 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-  handleSkillChange, // Função para manipular a mudança de valor do número
+  handleSkillChange, // Passando a função para atualizar as habilidades
 }) => {
   const [open, setOpen] = useState(false); // Estado para o modal
   const [selectedSkill, setSelectedSkill] = useState(null); // Habilidade selecionada para exibição
+  const [editMode, setEditMode] = useState(null); // Estado para controlar se a habilidade está em modo de edição
+  const [editedValue, setEditedValue] = useState(""); // Estado para o novo valor da habilidade
 
   // Função que será chamada ao clicar no nome da habilidade para abrir o modal
   const handleSkillClick = (skillKey) => {
@@ -235,19 +230,32 @@ const SkillList = ({
     return descriptions[key] || "Descrição não disponível."; // Retorna a descrição ou uma mensagem padrão
   };
 
+  // Função para ativar o modo de edição de uma habilidade
+  const handleEditClick = (skillKey) => {
+    if (editMode === skillKey) {
+      // Se a habilidade já estiver em modo de edição, salva o valor
+      handleSkillChange(skillKey, editedValue);
+      setEditMode(null);
+    } else {
+      // Caso contrário, entra em modo de edição
+      setEditedValue(skills[skillKey]); // Carrega o valor atual no input
+      setEditMode(skillKey);
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h6">{title}</Typography>
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={2} alignItems="center">
-          {/* Nome da habilidade (fixo) */}
+          {/* Nome da habilidade (clicável) */}
           <Grid item xs={12} sm={4}>
             <Typography
-              onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
+              onClick={() => handleSkillClick(key)}  // Ao clicar na habilidade, abre o modal
               sx={{
                 cursor: "pointer",
-                color: "text.primary", // Cor mais neutra
-                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
+                color: "text.primary", // Cor mais neutra (pode ser personalizada)
+                '&:hover': { color: 'primary.main' }, // Muda a cor ao passar o mouse
               }}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}:
@@ -256,24 +264,34 @@ const SkillList = ({
 
           {/* Número da habilidade (editável) */}
           <Grid item xs={12} sm={4}>
-            <TextField
-              value={value}
-              onChange={(e) => handleSkillChange(key, e.target.value)} // Função para alterar o valor da habilidade
-              variant="outlined"
-              size="small"
+            {editMode === key ? (
+              <TextField
+                value={editedValue}
+                onChange={(e) => setEditedValue(e.target.value)}
+                size="small"
+                variant="outlined"
+                fullWidth
+              />
+            ) : (
+              <Typography>{value}</Typography>
+            )}
+          </Grid>
+
+          {/* Botão de edição */}
+          <Grid item xs={12} sm={4}>
+            <Button
+              variant="contained"
+              color={editMode === key ? "secondary" : "primary"}
+              onClick={() => handleEditClick(key)} // Aciona a edição ou salva o valor
               fullWidth
-              type="number" // Garantindo que seja um número
-            />
+            >
+              {editMode === key ? "Salvar" : "Editar"}
+            </Button>
           </Grid>
 
           {/* Select do Instinto */}
           <Grid item xs={12} sm={4}>
-            <FormControl
-              variant="outlined"
-              margin="dense"
-              size="small"
-              fullWidth
-            >
+            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
               <InputLabel>Instinto</InputLabel>
               <Select
                 label="Instinto"
@@ -296,19 +314,8 @@ const SkillList = ({
               color="primary"
               onClick={() => onRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "40px",
-              }}
             >
-              <MeuIcone
-                style={{
-                  width: "24px",
-                  height: "24px",
-                }}
-              />
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
@@ -317,8 +324,7 @@ const SkillList = ({
       {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -1091,7 +1097,7 @@ const CharacterSheet = () => {
         <Paper elevation={3}>
           <SkillList
             title="Conhecimentos & Práticas"
-            skills={skills} // Passando o estado skills para o SkillList
+            skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
