@@ -234,19 +234,20 @@ const SkillList = ({
   };
 
   const getSkillDescription = (key) => {
+    console.log("Chave passada para a descrição:", key); // Log para depuração
     const descriptions = {
-      agrario: "Conhecimento relacionado à agricultura e manejo de plantações.",
-      biologico: "Estudos sobre ecossistemas, fauna e flora.",
-      exato: "Compreensão matemática e cálculos avançados.",
-      medicina: "Práticas médicas e tratamentos de saúde.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      biological: "Estudos sobre ecossistemas, fauna e flora.",
+      exact: "Compreensão matemática e cálculos avançados.",
+      medicine: "Práticas médicas e tratamentos de saúde.",
       social: "Habilidades de interação e negociação.",
-      artistico: "Capacidade de criação artística e expressão visual.",
-      esportivas: "Habilidades atléticas e esportivas.",
-      ferramentas: "Capacidade de manuseio de ferramentas diversas.",
-      oficios: "Conhecimento sobre vários tipos de ofícios.",
-      armas: "Habilidade no uso de armas de combate.",
-      veiculos: "Conhecimento e manuseio de veículos diversos.",
-      infiltracao: "Habilidade em infiltração e furtividade.",
+      artistic: "Capacidade de criação artística e expressão visual.",
+      sports: "Habilidades atléticas e esportivas.",
+      tools: "Capacidade de manuseio de ferramentas diversas.",
+      crafts: "Conhecimento sobre vários tipos de ofícios.",
+      weapons: "Habilidade no uso de armas de combate.",
+      vehicles: "Conhecimento e manuseio de veículos diversos.",
+      infiltration: "Habilidade em infiltração e furtividade.",
     };
     return descriptions[key] || "Descrição não disponível.";
   };
@@ -270,8 +271,8 @@ const SkillList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography> {/* Traduzindo o título */}
-
+      <Typography variant="h6">{translateKey(title)}</Typography>{" "}
+      {/* Traduzindo o título */}
       {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
@@ -281,7 +282,6 @@ const SkillList = ({
       >
         <EditIcon /> {/* Ícone de lápis */}
       </Button>
-
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           {/* Nome da habilidade (clicável) */}
@@ -325,9 +325,10 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
             >
-              <InputLabel>{translateKey('Instincts')}</InputLabel> {/* Traduzindo o rótulo */}
+              <InputLabel>{translateKey("Instincts")}</InputLabel>{" "}
+              {/* Traduzindo o rótulo */}
               <Select
-                label={translateKey('Instincts')} // Traduzindo o rótulo
+                label={translateKey("Instincts")} // Traduzindo o rótulo
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
@@ -347,19 +348,20 @@ const SkillList = ({
               color="primary"
               onClick={() => onRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{ marginLeft: "28px"}}
+              sx={{ marginLeft: "28px" }}
             >
               <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
       ))}
-
       {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            translateKey(selectedSkill).charAt(0).toUpperCase() + translateKey(selectedSkill).slice(1)} {/* Traduzindo o título do modal */}
+            translateKey(selectedSkill).charAt(0).toUpperCase() +
+              translateKey(selectedSkill).slice(1)}{" "}
+          {/* Traduzindo o título do modal */}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
