@@ -266,10 +266,10 @@ const SkillList = ({
         knowledge: {},
         practices: {},
       };
-
+  
       const knowledgeKeys = ["agrarian", "biological", "exact", "medicine", "social", "artistic"];
       const practiceKeys = ["sports", "tools", "crafts", "weapons", "vehicles", "infiltration"];
-
+  
       Object.keys(editedValues).forEach((skillKey) => {
         if (skills[skillKey] !== undefined) {
           if (knowledgeKeys.includes(skillKey)) {
@@ -279,19 +279,24 @@ const SkillList = ({
           }
         }
       });
-
-      // Enviar os dados atualizados para o backend
-      saveSkillsToBackend(updatedSkills);
-
-      // Atualizar os dados no componente (se necessário)
-      Object.keys(editedValues).forEach((skillKey) => {
-        handleSkillChange(skillKey, editedValues[skillKey]);
-      });
+  
+      // Verifique o ID do personagem antes de enviar
+      if (id) {
+        // Enviar os dados atualizados para o backend
+        saveSkillsToBackend(updatedSkills);
+  
+        // Atualizar os dados no componente (se necessário)
+        Object.keys(editedValues).forEach((skillKey) => {
+          handleSkillChange(skillKey, editedValues[skillKey]);
+        });
+      } else {
+        console.error('ID do personagem está indefinido');
+      }
     }
-
+  
     // Alterna o modo de edição
     setEditMode(!editMode);
-  };
+  };  
 
   // Função para lidar com as mudanças nos valores das habilidades
   const handleEditedValueChange = (skillKey, value) => {
