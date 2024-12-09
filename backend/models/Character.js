@@ -54,6 +54,7 @@ const characterSchema = new mongoose.Schema(
       vehicles: { type: Number, default: 0 },
       infiltration: { type: Number, default: 0 },
     },
+    
     assimilation: { type: Number, default: 0 },
     determination: { type: Number, default: 0 },
     userId: {
