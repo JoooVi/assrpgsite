@@ -230,29 +230,27 @@ const SkillList = ({
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false); // Estado para controle de carregamento
 
-  // Função para salvar as habilidades no backend
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
-      const token = localStorage.getItem('token'); // Obtém o token do armazenamento local
-      const response = await fetch(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`, {
-        method: 'PUT', // Mudando para PUT, pois estamos atualizando um recurso existente
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Inclui o token no cabeçalho da solicitação
-        },
-        body: JSON.stringify(updatedSkills), // Envia as habilidades alteradas
-      });
+      const token = localStorage.getItem("token"); // Obtém o token do armazenamento local
+      const response = await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+        updatedSkills,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Inclui o token no cabeçalho da solicitação
+          },
+        }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('Dados salvos com sucesso:', data);
-      } else {
-        console.error('Erro ao salvar os dados:', data);
-      }
+      console.log("Dados salvos com sucesso:", response.data);
     } catch (error) {
-      console.error('Erro de rede ou requisição:', error);
+      console.error(
+        "Erro ao salvar os dados:",
+        error.response?.data || error.message
+      );
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
@@ -266,10 +264,24 @@ const SkillList = ({
         knowledge: {},
         practices: {},
       };
-  
-      const knowledgeKeys = ["agrarian", "biological", "exact", "medicine", "social", "artistic"];
-      const practiceKeys = ["sports", "tools", "crafts", "weapons", "vehicles", "infiltration"];
-  
+
+      const knowledgeKeys = [
+        "agrarian",
+        "biological",
+        "exact",
+        "medicine",
+        "social",
+        "artistic",
+      ];
+      const practiceKeys = [
+        "sports",
+        "tools",
+        "crafts",
+        "weapons",
+        "vehicles",
+        "infiltration",
+      ];
+
       Object.keys(editedValues).forEach((skillKey) => {
         if (skills[skillKey] !== undefined) {
           if (knowledgeKeys.includes(skillKey)) {
@@ -279,24 +291,24 @@ const SkillList = ({
           }
         }
       });
-  
+
       // Verifique o ID do personagem antes de enviar
       if (id) {
         // Enviar os dados atualizados para o backend
         saveSkillsToBackend(updatedSkills);
-  
+
         // Atualizar os dados no componente (se necessário)
         Object.keys(editedValues).forEach((skillKey) => {
           handleSkillChange(skillKey, editedValues[skillKey]);
         });
       } else {
-        console.error('ID do personagem está indefinido');
+        console.error("ID do personagem está indefinido");
       }
     }
-  
+
     // Alterna o modo de edição
     setEditMode(!editMode);
-  };  
+  };
 
   // Função para lidar com as mudanças nos valores das habilidades
   const handleEditedValueChange = (skillKey, value) => {
@@ -315,7 +327,8 @@ const SkillList = ({
   // Função para obter a descrição da habilidade
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -419,7 +432,8 @@ const SkillList = ({
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)} {/* Nome da habilidade */}
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}{" "}
+          {/* Nome da habilidade */}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -493,7 +507,6 @@ const InstinctList = ({
       >
         <EditIcon /> {/* Ícone de lápis */}
       </Button>
-
       {Object.entries(instincts).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           {/* Nome do Instinto (clicável) */}
@@ -567,7 +580,6 @@ const InstinctList = ({
           </Grid>
         </Grid>
       ))}
-
       {/* Modal de Descrição do Instinto */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
