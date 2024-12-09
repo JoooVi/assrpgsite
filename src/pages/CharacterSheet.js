@@ -222,19 +222,72 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   handleSkillChange,
+  id, // Assumindo que o id do personagem é passado como uma propriedade
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
+  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
 
+  // Função para salvar as habilidades no backend
+  const saveSkillsToBackend = async (updatedSkills) => {
+    setLoading(true); // Inicia o carregamento
+    try {
+      const response = await fetch(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, {
+        method: 'PUT', // Mudando para PUT, pois estamos atualizando um recurso existente
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ skills: updatedSkills }), // Envia apenas as habilidades alteradas
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('Dados salvos com sucesso:', data);
+      } else {
+        console.error('Erro ao salvar os dados:', data);
+      }
+    } catch (error) {
+      console.error('Erro de rede ou requisição:', error);
+    } finally {
+      setLoading(false); // Finaliza o carregamento
+    }
+  };
+
+  // Função para alternar o modo de edição e salvar os dados
+  const toggleEditMode = () => {
+    if (editMode) {
+      // Enviar os dados atualizados para o backend
+      saveSkillsToBackend(editedValues);
+
+      // Atualizar os dados no componente (se necessário)
+      Object.keys(editedValues).forEach((skillKey) => {
+        handleSkillChange(skillKey, editedValues[skillKey]);
+      });
+    }
+
+    // Alterna o modo de edição
+    setEditMode(!editMode);
+  };
+
+  // Função para lidar com as mudanças nos valores das habilidades
+  const handleEditedValueChange = (skillKey, value) => {
+    setEditedValues((prev) => ({
+      ...prev,
+      [skillKey]: value,
+    }));
+  };
+
+  // Função para abrir a descrição da habilidade
   const handleSkillClick = (skillKey) => {
     setSelectedSkill(skillKey);
     setOpen(true);
   };
 
+  // Função para obter a descrição da habilidade
   const getSkillDescription = (key) => {
-    console.log("Chave passada para a descrição:", key); // Log para depuração
     const descriptions = {
       agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
@@ -252,27 +305,9 @@ const SkillList = ({
     return descriptions[key] || "Descrição não disponível.";
   };
 
-  const toggleEditMode = () => {
-    if (editMode) {
-      Object.keys(editedValues).forEach((skillKey) => {
-        handleSkillChange(skillKey, editedValues[skillKey]);
-      });
-    }
-    setEditMode(!editMode);
-  };
-
-  // Função para atualizar os valores editados
-  const handleEditedValueChange = (skillKey, value) => {
-    setEditedValues((prev) => ({
-      ...prev,
-      [skillKey]: value,
-    }));
-  };
-
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography>{" "}
-      {/* Traduzindo o título */}
+      <Typography variant="h6">{title}</Typography>
       {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
@@ -294,7 +329,7 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
-              {translateKey(key)}: {/* Traduzindo o nome da habilidade */}
+              {key}: {/* Nome da habilidade */}
             </Typography>
           </Grid>
 
@@ -325,16 +360,15 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>{" "}
-              {/* Traduzindo o rótulo */}
+              <InputLabel>Instintos</InputLabel>
               <Select
-                label={translateKey("Instincts")} // Traduzindo o rótulo
+                label="Instintos"
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)} {/* Traduzindo os instintos */}
+                    {instinctKey} {/* Nome do instinto */}
                   </MenuItem>
                 ))}
               </Select>
@@ -359,9 +393,7 @@ const SkillList = ({
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            translateKey(selectedSkill).charAt(0).toUpperCase() +
-              translateKey(selectedSkill).slice(1)}{" "}
-          {/* Traduzindo o título do modal */}
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)} {/* Nome da habilidade */}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
