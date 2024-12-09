@@ -214,14 +214,6 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-const handleSkillChange = (type, updatedSkills) => {
-  setCharacter((prev) => ({
-    ...prev,
-    [type]: updatedSkills,
-  }));
-};
-
-
 const SkillList = ({
   title,
   skills,
@@ -232,14 +224,16 @@ const SkillList = ({
   handleSkillChange,
   id,
 }) => {
+  console.log("ID do Personagem no SkillList:", id);
+
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true); 
+    setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -256,22 +250,22 @@ const SkillList = ({
       );
       console.log("Dados salvos com sucesso:", response.data);
 
-      // Atualizar estado global e local
+      // Atualize o estado local com os novos valores
+      setEditedValues({});
       handleSkillChange("knowledge", updatedSkills.knowledge);
       handleSkillChange("practices", updatedSkills.practices);
-      setEditedValues({});
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
         error.response?.data || error.message
       );
     } finally {
-      setLoading(false); 
+      setLoading(false); // Finaliza o carregamento
     }
   };
 
   const toggleEditMode = () => {
-    if (editMode && id) {
+    if (editMode) {
       const updatedSkills = {
         knowledge: {},
         practices: {},
@@ -295,14 +289,24 @@ const SkillList = ({
       ];
 
       Object.keys(editedValues).forEach((skillKey) => {
-        if (knowledgeKeys.includes(skillKey)) {
-          updatedSkills.knowledge[skillKey] = editedValues[skillKey];
-        } else if (practiceKeys.includes(skillKey)) {
-          updatedSkills.practices[skillKey] = editedValues[skillKey];
+        if (skills[skillKey] !== undefined) {
+          if (knowledgeKeys.includes(skillKey)) {
+            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
+          } else if (practiceKeys.includes(skillKey)) {
+            updatedSkills.practices[skillKey] = editedValues[skillKey];
+          }
         }
       });
 
-      saveSkillsToBackend(updatedSkills);
+      if (id) {
+        saveSkillsToBackend(updatedSkills);
+
+        Object.keys(editedValues).forEach((skillKey) => {
+          handleSkillChange(skillKey, editedValues[skillKey]);
+        });
+      } else {
+        console.error("ID do personagem está indefinido");
+      }
     }
     setEditMode(!editMode);
   };
@@ -321,7 +325,8 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -348,7 +353,6 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
-
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
@@ -368,9 +372,7 @@ const SkillList = ({
             {editMode ? (
               <TextField
                 value={editedValues[key] || value}
-                onChange={(e) =>
-                  handleEditedValueChange(key, e.target.value)
-                }
+                onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
@@ -414,12 +416,11 @@ const SkillList = ({
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
-              <EditIcon style={{ width: "24px", height: "24px" }} />
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
       ))}
-
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
