@@ -304,7 +304,7 @@ const SkillList = ({
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: 100 }}
             >
               <InputLabel>Instinto</InputLabel>
               <Select
