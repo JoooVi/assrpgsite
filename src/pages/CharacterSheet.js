@@ -237,7 +237,7 @@ const SkillList = ({
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
         updatedSkills,
         {
           headers: {
