@@ -198,12 +198,12 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-  handleSkillChange, // Passando a função para atualizar as habilidades
+  handleSkillChange,
 }) => {
   const [open, setOpen] = useState(false); // Estado para o modal
   const [selectedSkill, setSelectedSkill] = useState(null); // Habilidade selecionada para exibição
-  const [editMode, setEditMode] = useState(null); // Estado para controlar se a habilidade está em modo de edição
-  const [editedValue, setEditedValue] = useState(""); // Estado para o novo valor da habilidade
+  const [editMode, setEditMode] = useState(false); // Estado para controlar se as habilidades estão em modo de edição
+  const [editedValues, setEditedValues] = useState({}); // Estado para armazenar os valores das habilidades durante a edição
 
   // Função que será chamada ao clicar no nome da habilidade para abrir o modal
   const handleSkillClick = (skillKey) => {
@@ -230,22 +230,40 @@ const SkillList = ({
     return descriptions[key] || "Descrição não disponível."; // Retorna a descrição ou uma mensagem padrão
   };
 
-  // Função para ativar o modo de edição de uma habilidade
-  const handleEditClick = (skillKey) => {
-    if (editMode === skillKey) {
-      // Se a habilidade já estiver em modo de edição, salva o valor
-      handleSkillChange(skillKey, editedValue);
-      setEditMode(null);
-    } else {
-      // Caso contrário, entra em modo de edição
-      setEditedValue(skills[skillKey]); // Carrega o valor atual no input
-      setEditMode(skillKey);
+  // Função para ativar o modo de edição de todas as habilidades
+  const toggleEditMode = () => {
+    if (editMode) {
+      // Quando desativa o modo de edição, salva todas as mudanças
+      Object.keys(editedValues).forEach((skillKey) => {
+        handleSkillChange(skillKey, editedValues[skillKey]);
+      });
     }
+    setEditMode(!editMode); // Alterna entre editar e visualizar
+  };
+
+  // Função para atualizar os valores editados
+  const handleEditedValueChange = (skillKey, value) => {
+    setEditedValues((prev) => ({
+      ...prev,
+      [skillKey]: value,
+    }));
   };
 
   return (
     <Box>
       <Typography variant="h6">{title}</Typography>
+
+      {/* Botão para ativar/desativar o modo de edição */}
+      <Button
+        variant="contained"
+        color={editMode ? "secondary" : "primary"}
+        onClick={toggleEditMode}
+        fullWidth
+        sx={{ marginBottom: "16px" }}
+      >
+        {editMode ? "Salvar alterações" : "Editar todas as habilidades"}
+      </Button>
+
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={2} alignItems="center">
           {/* Nome da habilidade (clicável) */}
@@ -262,12 +280,12 @@ const SkillList = ({
             </Typography>
           </Grid>
 
-          {/* Número da habilidade (editável) */}
+          {/* Número da habilidade (editável quando em modo de edição) */}
           <Grid item xs={12} sm={4}>
-            {editMode === key ? (
+            {editMode ? (
               <TextField
-                value={editedValue}
-                onChange={(e) => setEditedValue(e.target.value)}
+                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
+                onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
@@ -275,18 +293,6 @@ const SkillList = ({
             ) : (
               <Typography>{value}</Typography>
             )}
-          </Grid>
-
-          {/* Botão de edição */}
-          <Grid item xs={12} sm={4}>
-            <Button
-              variant="contained"
-              color={editMode === key ? "secondary" : "primary"}
-              onClick={() => handleEditClick(key)} // Aciona a edição ou salva o valor
-              fullWidth
-            >
-              {editMode === key ? "Salvar" : "Editar"}
-            </Button>
           </Grid>
 
           {/* Select do Instinto */}
@@ -338,6 +344,7 @@ const SkillList = ({
     </Box>
   );
 };
+
 
 const InstinctList = ({
   title,
