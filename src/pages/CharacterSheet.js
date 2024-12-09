@@ -200,18 +200,16 @@ const SkillList = ({
   onRoll,
   handleSkillChange,
 }) => {
-  const [open, setOpen] = useState(false); // Estado para o modal
-  const [selectedSkill, setSelectedSkill] = useState(null); // Habilidade selecionada para exibição
-  const [editMode, setEditMode] = useState(false); // Estado para controlar se as habilidades estão em modo de edição
-  const [editedValues, setEditedValues] = useState({}); // Estado para armazenar os valores das habilidades durante a edição
+  const [open, setOpen] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedValues, setEditedValues] = useState({});
 
-  // Função que será chamada ao clicar no nome da habilidade para abrir o modal
   const handleSkillClick = (skillKey) => {
-    setSelectedSkill(skillKey); // Define a habilidade que foi clicada
-    setOpen(true); // Abre o modal
+    setSelectedSkill(skillKey);
+    setOpen(true);
   };
 
-  // Função para obter a descrição da habilidade
   const getSkillDescription = (key) => {
     const descriptions = {
       agrario: "Conhecimento relacionado à agricultura e manejo de plantações.",
@@ -227,18 +225,16 @@ const SkillList = ({
       veiculos: "Conhecimento e manuseio de veículos diversos.",
       infiltracao: "Habilidade em infiltração e furtividade.",
     };
-    return descriptions[key] || "Descrição não disponível."; // Retorna a descrição ou uma mensagem padrão
+    return descriptions[key] || "Descrição não disponível.";
   };
 
-  // Função para ativar o modo de edição de todas as habilidades
   const toggleEditMode = () => {
     if (editMode) {
-      // Quando desativa o modo de edição, salva todas as mudanças
       Object.keys(editedValues).forEach((skillKey) => {
         handleSkillChange(skillKey, editedValues[skillKey]);
       });
     }
-    setEditMode(!editMode); // Alterna entre editar e visualizar
+    setEditMode(!editMode);
   };
 
   // Função para atualizar os valores editados
@@ -328,7 +324,7 @@ const SkillList = ({
               color="primary"
               onClick={() => onRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{ marginTop: "8px" }} // Adicionando um espaçamento superior
+              sx={{ marginTop: "8px", marginLeft: "16px" }} // Adicionando um espaçamento superior
             >
               <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
@@ -1110,8 +1106,7 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
 
-        <Paper elevation={3} className={styles.centerColumn}
-        >
+        <Paper elevation={3} className={styles.centerColumn}>
           <SkillList
             title="Conhecimentos & Práticas"
             skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
