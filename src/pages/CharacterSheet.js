@@ -383,12 +383,30 @@ const InstinctList = ({
   handleInstinctChange,
   onAssimilatedRoll,
 }) => {
+  const [open, setOpen] = useState(false);
+  const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
 
+  const handleInstinctClick = (instinctKey) => {
+    setSelectedInstinctKey(instinctKey);
+    setOpen(true);
+  };
+
+  const getInstinctDescription = (key) => {
+    const descriptions = {
+      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
+      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
+      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
+      potency: "Força física e resistência para superar obstáculos.",
+      influence: "Habilidade de convencer ou manipular outros.",
+      resolution: "Capacidade de persistir diante de dificuldades.",
+    };
+    return descriptions[key] || "Descrição não disponível.";
+  };
+
   const toggleEditMode = () => {
     if (editMode) {
-      // Atualize os valores editados
       Object.keys(editedValues).forEach((instinctKey) => {
         handleInstinctChange(instinctKey, editedValues[instinctKey]);
       });
@@ -396,6 +414,7 @@ const InstinctList = ({
     setEditMode(!editMode);
   };
 
+  // Função para atualizar os valores editados
   const handleEditedValueChange = (instinctKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
@@ -403,61 +422,38 @@ const InstinctList = ({
     }));
   };
 
-  const getInstinctDescription = (key) => {
-    const descriptions = {
-      reação: "Habilidade de reagir rapidamente a mudanças no ambiente.",
-      percepção: "Sensibilidade aos detalhes e mudanças no ambiente.",
-      sagacidade: "Capacidade de tomar decisões rápidas e eficazes.",
-      potência: "Força física e resistência para superar obstáculos.",
-      influência: "Habilidade de convencer ou manipular outros.",
-      resolução: "Capacidade de persistir diante de dificuldades.",
-    };
-    return descriptions[key] || "Descrição não disponível.";
-  };
-
   return (
     <Box>
-      <Typography variant="h6" sx={{ marginBottom: 2 }}>
-        {title}
-      </Typography>
-
+      <Typography variant="h6">{translateKey(title)}</Typography>{" "}
+      {/* Traduzindo o título */}
       {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset", marginBottom: 2 }}
+        sx={{ padding: "4px", minWidth: "unset" }}
       >
-        <EditIcon /> {/* Ícone de edição */}
+        <EditIcon /> {/* Ícone de lápis */}
       </Button>
 
       {Object.entries(instincts).map(([key, value]) => (
-        <Grid
-          container
-          key={key}
-          spacing={2}
-          alignItems="center"
-          className={styles.skillItem}
-          sx={{ marginBottom: 2 }}
-        >
-          {/* Nome do Instinto */}
-          <Grid item xs={12} sm={3}>
+        <Grid container key={key} spacing={3} alignItems="center">
+          {/* Nome do Instinto (clicável) */}
+          <Grid item xs={4} sm={3}>
             <Typography
+              onClick={() => handleInstinctClick(key)} // Ao clicar no instinto, abre o modal
               sx={{
                 cursor: "pointer",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
-              }}
-              onClick={() => {
-                alert(getInstinctDescription(key)); // Exibe a descrição do instinto
+                color: "text.primary", // Cor mais neutra (pode ser personalizada)
+                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
-              {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {/* Traduzindo o nome */}
+              {translateKey(key)}: {/* Traduzindo o nome do instinto */}
             </Typography>
           </Grid>
 
           {/* Número do Instinto (editável quando em modo de edição) */}
-          <Grid item xs={12} sm={2}>
+          <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
                 value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
@@ -475,27 +471,24 @@ const InstinctList = ({
           </Grid>
 
           {/* Select do Instinto */}
-          <Grid item xs={12} sm={3}>
-            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-              <InputLabel>Assimilado</InputLabel>
+          <Grid item xs={4} sm={3}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
+            >
+              <InputLabel>{translateKey("Instincts")}</InputLabel>{" "}
+              {/* Traduzindo o rótulo */}
               <Select
-                label="Assimilado"
+                label={translateKey("Instincts")} // Traduzindo o rótulo
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
-                MenuProps={{
-                  PaperProps: {
-                    style: {
-                      maxHeight: 224,
-                      width: "auto",
-                    },
-                  },
-                }}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(
-                      instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                    )}
+                    {translateKey(instinctKey)} {/* Traduzindo os instintos */}
                   </MenuItem>
                 ))}
               </Select>
@@ -503,27 +496,37 @@ const InstinctList = ({
           </Grid>
 
           {/* Botão para rolar */}
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={4} sm={2}>
             <Button
-              variant="outlined"
-              color="default"
+              variant="contained"
+              color="primary"
               onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-              sx={{
-                padding: 0,
-                minWidth: 0,
-                height: "40px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "none",
-                backgroundColor: "transparent",
-              }}
+              fullWidth
+              sx={{ marginLeft: "28px" }}
             >
-              <MeuIcone2 width="90px" height="40px" />
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
       ))}
+
+      {/* Modal de Descrição do Instinto */}
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>
+          {selectedInstinctKey &&
+            translateKey(selectedInstinctKey).charAt(0).toUpperCase() +
+              translateKey(selectedInstinctKey).slice(1)}{" "}
+          {/* Traduzindo o título do modal */}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
