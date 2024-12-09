@@ -191,6 +191,13 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
+const handleSkillChange = (skillKey, value) => {
+  setSkills((prevSkills) => ({
+    ...prevSkills,
+    [skillKey]: value,
+  }));
+};
+
 const SkillList = ({
   title,
   skills,
@@ -1081,15 +1088,15 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
 
-        <Paper elevation={3} className={styles.centerColumn}>
+        <Paper elevation={3}>
           <SkillList
             title="Conhecimentos & Práticas"
-            skills={{ ...character?.knowledge, ...character?.practices }} // Combinando os conhecimentos e práticas
+            skills={skills} // Passando o estado skills para o SkillList
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
-            handleSkillChange={handleSkillChange} // Passando a função de mudança do número
+            handleSkillChange={handleSkillChange} // Passando a função handleSkillChange como prop
           />
         </Paper>
 
