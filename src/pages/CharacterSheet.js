@@ -198,71 +198,118 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-}) => (
-  <Box>
-    <Typography variant="h6">{title}</Typography>
-    {Object.entries(skills).map(([key, value]) => (
-      <Grid
-        container
-        key={key}
-        spacing={2}
-        alignItems="center"
-        className={styles.skillItem}
-      >
-        {/* Nome da habilidade */}
-        <Grid item xs={12} sm={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
+  skillDescriptions, // Descrições das habilidades
+}) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentSkill, setCurrentSkill] = useState("");
 
-        {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
-          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Instinto</InputLabel>
-            <Select
-              label="Instinto"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
-            >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+  // Abrir Popover
+  const handleSkillClick = (event, skillName) => {
+    setAnchorEl(event.currentTarget);
+    setCurrentSkill(skillName);
+  };
 
-        {/* Botão para rolar */}
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => onRoll(key, selectedInstinct[key])}
-            fullWidth
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "40px",
-            }}
-          >
-            {/* Usando o MeuIcone SVG dentro do botão */}
-            <MeuIcone
-              style={{
-                width: "24px", // Tamanho do SVG
-                height: "24px",
+  // Fechar Popover
+  const handleClose = () => {
+    setAnchorEl(null);
+    setCurrentSkill("");
+  };
+
+  const open = Boolean(anchorEl);
+
+  return (
+    <Box>
+      <Typography variant="h6">{title}</Typography>
+      {Object.entries(skills).map(([key, value]) => (
+        <Grid
+          container
+          key={key}
+          spacing={2}
+          alignItems="center"
+          className="skillItem"
+        >
+          {/* Nome da habilidade clicável */}
+          <Grid item xs={12} sm={4}>
+            <Typography
+              onClick={(e) => handleSkillClick(e, key)}
+              sx={{
+                cursor: "pointer",
+                color: "primary.main",
+                textDecoration: "underline",
               }}
-            />
-          </Button>
+            >
+              {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+            </Typography>
+          </Grid>
+
+          {/* Select do Instinto */}
+          <Grid item xs={12} sm={4}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+            >
+              <InputLabel>Instinto</InputLabel>
+              <Select
+                label="Instinto"
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {translateKey(
+                      instinctKey.charAt(0).toUpperCase() +
+                        instinctKey.slice(1)
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Botão para rolar */}
+          <Grid item xs={12} sm={4}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onRoll(key, selectedInstinct[key])}
+              fullWidth
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "40px",
+              }}
+            >
+              Rolar
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
-    ))}
-  </Box>
-);
+      ))}
+
+      {/* Popover para Descrição */}
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+      >
+        <Box sx={{ p: 2, maxWidth: 300 }}>
+          <Typography variant="h6">
+            {translateKey(currentSkill.charAt(0).toUpperCase() + currentSkill.slice(1))}
+          </Typography>
+          <Typography>
+            {skillDescriptions[currentSkill] || "Sem descrição disponível."}
+          </Typography>
+        </Box>
+      </Popover>
+    </Box>
+  );
+};
 
 const InstinctList = ({
   title,
