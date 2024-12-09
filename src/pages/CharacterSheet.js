@@ -191,153 +191,67 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-const SkillList = ({
-  title,
-  skills,
-  instincts,
-  selectedInstinct,
-  handleInstinctChange,
-  onRoll,
-  skillDescriptions, // Descrições das habilidades
-}) => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [currentSkill, setCurrentSkill] = useState("");
-
-  // Abrir Popover
-  const handleSkillClick = (event, skillName) => {
-    setAnchorEl(event.currentTarget);
-    setCurrentSkill(skillName);
-  };
-
-  // Fechar Popover
-  const handleClose = () => {
-    setAnchorEl(null);
-    setCurrentSkill("");
-  };
-
-  const open = Boolean(anchorEl);
-
-  return (
-    <Box>
-      <Typography variant="h6">{title}</Typography>
-      {Object.entries(skills).map(([key, value]) => (
-        <Grid
-          container
-          key={key}
-          spacing={2}
-          alignItems="center"
-          className="skillItem"
-        >
-          {/* Nome da habilidade clicável */}
-          <Grid item xs={12} sm={4}>
-            <Typography
-              onClick={(e) => handleSkillClick(e, key)}
-              sx={{
-                cursor: "pointer",
-                color: "primary.main",
-                textDecoration: "underline",
-              }}
-            >
-              {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-            </Typography>
-          </Grid>
-
-          {/* Select do Instinto */}
-          <Grid item xs={12} sm={4}>
-            <FormControl
-              variant="outlined"
-              margin="dense"
-              size="small"
-              fullWidth
-            >
-              <InputLabel>Instinto</InputLabel>
-              <Select
-                label="Instinto"
-                value={selectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChange(key, e.target.value)}
-              >
-                {Object.keys(instincts).map((instinctKey) => (
-                  <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(
-                      instinctKey.charAt(0).toUpperCase() +
-                        instinctKey.slice(1)
-                    )}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Botão para rolar */}
-          <Grid item xs={12} sm={4}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => onRoll(key, selectedInstinct[key])}
-              fullWidth
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "40px",
-              }}
-            >
-              Rolar
-            </Button>
-          </Grid>
-        </Grid>
-      ))}
-
-      {/* Popover para Descrição */}
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
-        }}
-      >
-        <Box sx={{ p: 2, maxWidth: 300 }}>
-          <Typography variant="h6">
-            {translateKey(currentSkill.charAt(0).toUpperCase() + currentSkill.slice(1))}
-          </Typography>
-          <Typography>
-            {skillDescriptions[currentSkill] || "Sem descrição disponível."}
-          </Typography>
-        </Box>
-      </Popover>
-    </Box>
-  );
-};
-
-const InstinctList = ({
-  title,
-  instincts,
-  selectedInstinct,
-  handleInstinctChange,
-  onAssimilatedRoll,
-}) => (
+const SkillList = () => (
   <Box>
-    <Typography variant="h6" sx={{ marginBottom: 2 }}>
-      {title}
-    </Typography>
+    <Typography variant="h6">Habilidades</Typography>
+    {Object.entries(skills).map(([key, value]) => (
+      <Grid container key={key} spacing={2} alignItems="center">
+        <Grid item xs={12} sm={4}>
+          <Typography
+            onClick={(e) => handleStatClick(e, key)}
+            sx={{
+              cursor: "pointer",
+              textDecoration: "underline",
+              "&:hover": { color: "primary.main" },
+            }}
+          >
+            {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+            <InputLabel>Instinto</InputLabel>
+            <Select
+              label="Instinto"
+              value={selectedInstinct[key] || ""}
+              onChange={(e) => handleInstinctChange(key, e.target.value)}
+            >
+              {Object.keys(instincts).map((instinctKey) => (
+                <MenuItem key={instinctKey} value={instinctKey}>
+                  {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => onRoll(key, selectedInstinct[key])}
+            fullWidth
+          >
+            <MeuIcone width="24px" height="24px" />
+          </Button>
+        </Grid>
+      </Grid>
+    ))}
+  </Box>
+);
+
+const InstinctList = () => (
+  <Box>
+    <Typography variant="h6">Instintos</Typography>
     {Object.entries(instincts).map(([key, value]) => (
-      <Grid
-        container
-        key={key}
-        spacing={2}
-        alignItems="center"
-        className={styles.skillItem}
-      >
-        {/* Nome do Instinto */}
+      <Grid container key={key} spacing={2} alignItems="center">
         <Grid item xs={12} sm={4}>
           <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
+            {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
           </Typography>
         </Grid>
 
-        {/* Select do Instinto */}
         <Grid item xs={12} sm={4}>
           <FormControl variant="outlined" margin="dense" size="small" fullWidth>
             <InputLabel>Assimilado</InputLabel>
@@ -345,45 +259,27 @@ const InstinctList = ({
               label="Assimilado"
               value={selectedInstinct[key] || ""}
               onChange={(e) => handleInstinctChange(key, e.target.value)}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 224, // Para garantir que o menu não fique grande demais
-                    width: "auto",
-                  },
-                },
-              }}
             >
               {Object.keys(instincts).map((instinctKey) => (
                 <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
+                  {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Grid>
 
-        {/* Botão para rolar */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined" // Usando 'outlined' para não ter fundo
-            color="default" // Cor padrão sem fundo
-            onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
+            variant="outlined"
+            onClick={() => onRoll(key, selectedInstinct[key])}
             sx={{
-              padding: 0, // Remove o padding do botão
-              minWidth: 0, // Remove a largura mínima
-              height: "40px", // Define uma altura fixa para o botão
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none", // Remove a borda do botão
-              backgroundColor: "transparent", // Remove o fundo do botão
+              minWidth: 0,
+              height: "40px",
+              backgroundColor: "transparent",
             }}
           >
-            <MeuIcone2 width="90px" height="40px" />{" "}
-            {/* Ajusta o tamanho do SVG dentro do botão */}
+            <MeuIcone2 width="90px" height="40px" />
           </Button>
         </Grid>
       </Grid>
@@ -666,6 +562,13 @@ const CharacterSheet = () => {
     }
     setSnackbarOpen(false);
   };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+    setCurrentStat("");
+  };
+
+  const isPopoverOpen = Boolean(anchorEl);
 
   const handleCharacteristicDelete = (index) => {
     setCharacter((prevCharacter) => {
@@ -1076,6 +979,22 @@ const CharacterSheet = () => {
             onRoll={handleRoll}
           />
         </Paper>
+
+        <Box>
+          <SkillList />
+          <InstinctList />
+          <Popover
+            open={isPopoverOpen}
+            anchorEl={anchorEl}
+            onClose={handlePopoverClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "left",
+            }}
+          >
+            <Typography sx={{ p: 2 }}>{currentStat} selecionado!</Typography>
+          </Popover>
+        </Box>
 
         <Paper elevation={3} className={styles.rightColumn}>
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
