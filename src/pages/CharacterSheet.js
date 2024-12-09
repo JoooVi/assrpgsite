@@ -263,11 +263,10 @@ const SkillList = ({
         <EditIcon /> {/* Ícone de lápis */}
       </Button>
 
-      {/* Mapear as habilidades */}
       {Object.entries(skills).map(([key, value]) => (
-        <Grid container key={key} spacing={2} alignItems="center">
+        <Grid container key={key} spacing={3} alignItems="center">
           {/* Nome da habilidade (clicável) */}
-          <Grid item xs={3}>
+          <Grid item xs={4} sm={3}>
             <Typography
               onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
               sx={{
@@ -281,7 +280,7 @@ const SkillList = ({
           </Grid>
 
           {/* Número da habilidade (editável quando em modo de edição) */}
-          <Grid item xs={2}>
+          <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
                 value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
@@ -299,8 +298,14 @@ const SkillList = ({
           </Grid>
 
           {/* Select do Instinto */}
-          <Grid item xs={3}>
-            <FormControl variant="outlined" size="small" fullWidth>
+          <Grid item xs={12} sm={5}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+              sx={{ minWidth: 150 }}
+            >
               <InputLabel>Instinto</InputLabel>
               <Select
                 label="Instinto"
@@ -317,7 +322,7 @@ const SkillList = ({
           </Grid>
 
           {/* Botão para rolar */}
-          <Grid item xs={2}>
+          <Grid item xs={4} sm={2}>
             <Button
               variant="contained"
               color="primary"
