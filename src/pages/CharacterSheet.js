@@ -198,71 +198,119 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-}) => (
-  <Box>
-    <Typography variant="h6">{title}</Typography>
-    {Object.entries(skills).map(([key, value]) => (
-      <Grid
-        container
-        key={key}
-        spacing={2}
-        alignItems="center"
-        className={styles.skillItem}
-      >
-        {/* Nome da habilidade */}
-        <Grid item xs={12} sm={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
+}) => {
+  const [open, setOpen] = useState(false); // Estado para o modal
+  const [selectedSkill, setSelectedSkill] = useState(null); // Habilidade selecionada para exibição
 
-        {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
-          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Instinto</InputLabel>
-            <Select
-              label="Instinto"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
-            >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+  // Função que será chamada ao clicar no nome da habilidade para abrir o modal
+  const handleSkillClick = (skillKey) => {
+    setSelectedSkill(skillKey); // Define a habilidade que foi clicada
+    setOpen(true); // Abre o modal
+  };
 
-        {/* Botão para rolar */}
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => onRoll(key, selectedInstinct[key])}
-            fullWidth
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "40px",
-            }}
-          >
-            {/* Usando o MeuIcone SVG dentro do botão */}
-            <MeuIcone
-              style={{
-                width: "24px", // Tamanho do SVG
-                height: "24px",
+  // Função para obter a descrição da habilidade
+  const getSkillDescription = (key) => {
+    const descriptions = {
+      agrario: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      biologico: "Estudos sobre ecossistemas, fauna e flora.",
+      exato: "Compreensão matemática e cálculos avançados.",
+      medicina: "Práticas médicas e tratamentos de saúde.",
+      social: "Habilidades de interação e negociação.",
+      artistico: "Capacidade de criação artística e expressão visual.",
+      esportivas: "Habilidades atléticas e esportivas.",
+      ferramentas: "Capacidade de manuseio de ferramentas diversas.",
+      oficios: "Conhecimento sobre vários tipos de ofícios.",
+      armas: "Habilidade no uso de armas de combate.",
+      veiculos: "Conhecimento e manuseio de veículos diversos.",
+      infiltracao: "Habilidade em infiltração e furtividade.",
+    };
+    return descriptions[key] || "Descrição não disponível."; // Retorna a descrição ou uma mensagem padrão
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6">{title}</Typography>
+      {Object.entries(skills).map(([key, value]) => (
+        <Grid
+          container
+          key={key}
+          spacing={2}
+          alignItems="center"
+        >
+          {/* Nome da habilidade (clicável) */}
+          <Grid item xs={12} sm={4}>
+            <Typography
+              onClick={() => handleSkillClick(key)}  // Ao clicar na habilidade, abre o modal
+              sx={{
+                cursor: "pointer",
+                textDecoration: "underline",
+                color: "primary.main",
               }}
-            />
-          </Button>
+            >
+              {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
+            </Typography>
+          </Grid>
+
+          {/* Select do Instinto */}
+          <Grid item xs={12} sm={4}>
+            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+              <InputLabel>Instinto</InputLabel>
+              <Select
+                label="Instinto"
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Botão para rolar */}
+          <Grid item xs={12} sm={4}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onRoll(key, selectedInstinct[key])}
+              fullWidth
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "40px",
+              }}
+            >
+              <MeuIcone
+                style={{
+                  width: "24px",
+                  height: "24px",
+                }}
+              />
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
-    ))}
-  </Box>
-);
+      ))}
+
+      {/* Modal de Descrição da Habilidade */}
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>
+          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>{getSkillDescription(selectedSkill)}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
 
 const InstinctList = ({
   title,
@@ -301,7 +349,7 @@ const InstinctList = ({
               MenuProps={{
                 PaperProps: {
                   style: {
-                    maxHeight: 224, // Para garantir que o menu não fique grande demais
+                    maxHeight: 224,
                     width: "auto",
                   },
                 },
@@ -321,18 +369,18 @@ const InstinctList = ({
         {/* Botão para rolar */}
         <Grid item xs={12} sm={4}>
           <Button
-            variant="outlined" // Usando 'outlined' para não ter fundo
-            color="default" // Cor padrão sem fundo
+            variant="outlined"
+            color="default"
             onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
             sx={{
-              padding: 0, // Remove o padding do botão
-              minWidth: 0, // Remove a largura mínima
-              height: "40px", // Define uma altura fixa para o botão
+              padding: 0,
+              minWidth: 0,
+              height: "40px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              border: "none", // Remove a borda do botão
-              backgroundColor: "transparent", // Remove o fundo do botão
+              border: "none",
+              backgroundColor: "transparent",
             }}
           >
             <MeuIcone2 width="90px" height="40px" />{" "}
@@ -1305,8 +1353,8 @@ const CharacterSheet = () => {
           onClose={handleSnackbarClose}
           severity="info"
           sx={{
-            width: "400px", // Ajuste da largura para 400px ou o valor que você achar melhor
-            maxWidth: "100%", // Garantir que o alert ocupe toda a largura disponível
+            width: "400px",
+            maxWidth: "100%",
             backgroundColor: "#333",
             color: "#fff",
             borderRadius: "5px",
@@ -1337,8 +1385,8 @@ const CharacterSheet = () => {
                           src={imgSrc}
                           alt={`Resultado ${i + 1}`}
                           onError={(e) => {
-                            e.target.onerror = null; // Evita loop de erro
-                            e.target.src = "/path/to/default-image.png"; // Imagem padrão
+                            e.target.onerror = null;
+                            e.target.src = "/path/to/default-image.png";
                           }}
                           style={{
                             width: "50px",
