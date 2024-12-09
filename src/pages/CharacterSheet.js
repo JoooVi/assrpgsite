@@ -281,7 +281,7 @@ const SkillList = ({
           </Grid>
 
           {/* Número da habilidade (editável quando em modo de edição) */}
-          <Grid item xs={12} sm={2}>
+          <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
                 value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
@@ -299,7 +299,7 @@ const SkillList = ({
           </Grid>
 
           {/* Select do Instinto */}
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={4}>
             <FormControl
               variant="outlined"
               margin="dense"
@@ -322,7 +322,7 @@ const SkillList = ({
           </Grid>
 
           {/* Botão para rolar */}
-          <Grid item xs={12} sm={2}>
+          <Grid item xs={12} sm={4}>
             <Button
               variant="contained"
               color="primary"
