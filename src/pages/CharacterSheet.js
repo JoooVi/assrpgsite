@@ -326,7 +326,7 @@ const SkillList = ({
               fullWidth
               sx={{
                 marginLeft: "24px", // Aumentando o espaçamento à esquerda
-                marginTop: "16px", // Aumentando o espaçamento superior
+                marginTop: "5px", // Aumentando o espaçamento superior
               }}
             >
               <MeuIcone style={{ width: "24px", height: "24px" }} />
