@@ -1109,9 +1109,7 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
 
-        <Paper
-          elevation={3}
-          sx={{ padding: "16px", maxWidth: "800px", margin: "0 auto" }}
+        <Paper elevation={3} className={styles.centerColumn}
         >
           <SkillList
             title="Conhecimentos & Práticas"
