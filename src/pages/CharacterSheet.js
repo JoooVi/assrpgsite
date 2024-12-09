@@ -236,8 +236,8 @@ const SkillList = ({
     setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+      const response = await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
         {
           knowledge: updatedSkills.knowledge,
           practices: updatedSkills.practices,
@@ -248,7 +248,12 @@ const SkillList = ({
           },
         }
       );
-      console.log("Dados salvos com sucesso:");
+      console.log("Dados salvos com sucesso:", response.data);
+
+      // Atualize o estado local com os novos valores
+      setEditedValues({});
+      handleSkillChange("knowledge", updatedSkills.knowledge);
+      handleSkillChange("practices", updatedSkills.practices);
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
@@ -1215,6 +1220,7 @@ const CharacterSheet = () => {
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onAssimilatedRoll={handleAssimilatedRoll}
+            id={character?._id}
           />
 
           <Typography variant="h6" mt={3}>
