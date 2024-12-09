@@ -234,10 +234,12 @@ const SkillList = ({
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
+      const token = localStorage.getItem('token'); // Obtém o token do armazenamento local
       const response = await fetch(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`, {
         method: 'PUT', // Mudando para PUT, pois estamos atualizando um recurso existente
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Inclui o token no cabeçalho da solicitação
         },
         body: JSON.stringify(updatedSkills), // Envia as habilidades alteradas
       });
