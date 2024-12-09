@@ -469,14 +469,14 @@ const InstinctList = ({
 
   const saveInstinctsToBackend = async (updatedInstincts) => {
     setLoading(true);
-  
-    // Atualização otimista (local)
+
+    // Atualização otimista
     const prevInstincts = { ...instincts };
     handleInstinctChange({ ...instincts, ...updatedInstincts });
-  
+
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
+      await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
         {
@@ -485,24 +485,19 @@ const InstinctList = ({
           },
         }
       );
-  
-      // Atualizar o estado de "character" após sucesso
-      setCharacter({ ...character, instincts: response.data.character.instincts });
-  
     } catch (error) {
       console.error(
         "Erro ao salvar os instintos:",
         error.response?.data || error.message
       );
-      // Reverte a atualização otimista em caso de erro
+      // Reverte atualização otimista em caso de erro
       handleInstinctChange(prevInstincts);
     } finally {
       setLoading(false);
-      setEditedValues({}); // Limpa os valores editados
-      setEditMode(false); // Desativa o modo de edição
+      setEditedValues({});
+      setEditMode(false);
     }
   };
-    
 
   const toggleEditMode = () => {
     if (editMode) {
@@ -515,21 +510,16 @@ const InstinctList = ({
       });
   
       if (id) {
-        saveInstinctsToBackend(updatedInstincts); // Salva no backend
+        saveInstinctsToBackend(updatedInstincts);
       } else {
         console.error("ID do personagem não definido.");
+        handleInstinctChange({ ...instincts, ...updatedInstincts });
       }
-  
-      // Após a atualização no backend, atualiza o estado local com os novos valores
-      handleInstinctChange({ ...instincts, ...updatedInstincts });
-  
     } else {
       setEditedValues(instincts); // Sincroniza o estado local antes de editar
     }
-  
     setEditMode(!editMode); // Alterna o modo de edição
   };
-  
   
 
   const handleEditedValueChange = (instinctKey, value) => {
