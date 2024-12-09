@@ -50,7 +50,7 @@ const translateKey = (key) => {
     Agility: "Agilidade",
     agility: "Agilidade",
     Perception: "Percepção",
-    perception: "percepção",
+    perception: "Percepção",
     Strength: "Força",
     strength: "Força",
     Current: "Atual",
@@ -235,18 +235,18 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      Agrario: "Conhecimento relacionado à agricultura e manejo de plantações.",
-      Biologico: "Estudos sobre ecossistemas, fauna e flora.",
-      Exato: "Compreensão matemática e cálculos avançados.",
-      Medicina: "Práticas médicas e tratamentos de saúde.",
-      Social: "Habilidades de interação e negociação.",
-      Artistico: "Capacidade de criação artística e expressão visual.",
-      Esportivas: "Habilidades atléticas e esportivas.",
-      Ferramentas: "Capacidade de manuseio de ferramentas diversas.",
-      Oficios: "Conhecimento sobre vários tipos de ofícios.",
-      Armas: "Habilidade no uso de armas de combate.",
-      Veiculos: "Conhecimento e manuseio de veículos diversos.",
-      Infiltracao: "Habilidade em infiltração e furtividade.",
+      agrario: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      biologico: "Estudos sobre ecossistemas, fauna e flora.",
+      exato: "Compreensão matemática e cálculos avançados.",
+      medicina: "Práticas médicas e tratamentos de saúde.",
+      social: "Habilidades de interação e negociação.",
+      artistico: "Capacidade de criação artística e expressão visual.",
+      esportivas: "Habilidades atléticas e esportivas.",
+      ferramentas: "Capacidade de manuseio de ferramentas diversas.",
+      oficios: "Conhecimento sobre vários tipos de ofícios.",
+      armas: "Habilidade no uso de armas de combate.",
+      veiculos: "Conhecimento e manuseio de veículos diversos.",
+      infiltracao: "Habilidade em infiltração e furtividade.",
     };
     return descriptions[key] || "Descrição não disponível.";
   };
