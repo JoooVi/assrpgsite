@@ -243,8 +243,8 @@ const SkillList = ({
               onClick={() => handleSkillClick(key)}  // Ao clicar na habilidade, abre o modal
               sx={{
                 cursor: "pointer",
-                textDecoration: "underline",
-                color: "primary.main",
+                color: "text.primary", // Cor mais neutra (pode ser personalizada)
+                '&:hover': { color: 'primary.main' }, // Muda a cor ao passar o mouse
               }}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}: {value}
