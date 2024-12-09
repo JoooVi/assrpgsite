@@ -486,8 +486,8 @@ const InstinctList = ({
         }
       );
   
-      // Após a resposta do backend, atualize o estado com os dados salvos
-      handleInstinctChange({ ...response.data.character.instincts });
+      // Atualizar o estado de "character" após sucesso
+      setCharacter({ ...character, instincts: response.data.character.instincts });
   
     } catch (error) {
       console.error(
@@ -501,7 +501,8 @@ const InstinctList = ({
       setEditedValues({}); // Limpa os valores editados
       setEditMode(false); // Desativa o modo de edição
     }
-  };  
+  };
+    
 
   const toggleEditMode = () => {
     if (editMode) {
