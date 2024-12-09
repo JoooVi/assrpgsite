@@ -324,8 +324,7 @@ const SkillList = ({
               color="primary"
               onClick={() => onRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{
-                marginLeft: "28px"}}
+              sx={{ marginLeft: "28px"}}
             >
               <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
