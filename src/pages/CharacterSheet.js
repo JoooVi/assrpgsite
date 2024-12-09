@@ -237,6 +237,7 @@ const SkillList = ({
     setEditMode(!editMode);
   };
 
+  // Função para atualizar os valores editados
   const handleEditedValueChange = (skillKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
@@ -246,8 +247,9 @@ const SkillList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography>
+      <Typography variant="h6">{translateKey(title)}</Typography> {/* Traduzindo o título */}
 
+      {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
@@ -259,6 +261,7 @@ const SkillList = ({
 
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
+          {/* Nome da habilidade (clicável) */}
           <Grid item xs={4} sm={3}>
             <Typography
               onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
@@ -268,20 +271,21 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
-              {translateKey(key).charAt(0).toUpperCase() + translateKey(key).slice(1)}:
+              {translateKey(key)}: {/* Traduzindo o nome da habilidade */}
             </Typography>
           </Grid>
 
+          {/* Número da habilidade (editável quando em modo de edição) */}
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] || value}
+                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" },
+                  style: { textAlign: "center" }, // Alinha o número ao centro
                 }}
               />
             ) : (
@@ -289,29 +293,31 @@ const SkillList = ({
             )}
           </Grid>
 
+          {/* Select do Instinto */}
           <Grid item xs={4} sm={3}>
             <FormControl
               variant="outlined"
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 100 }}
+              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>
+              <InputLabel>{translateKey('Instincts')}</InputLabel> {/* Traduzindo o rótulo */}
               <Select
-                label={translateKey("Instincts")}
+                label={translateKey('Instincts')} // Traduzindo o rótulo
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey).charAt(0).toUpperCase() + translateKey(instinctKey).slice(1)}
+                    {translateKey(instinctKey)} {/* Traduzindo os instintos */}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
+          {/* Botão para rolar */}
           <Grid item xs={4} sm={2}>
             <Button
               variant="contained"
@@ -326,10 +332,11 @@ const SkillList = ({
         </Grid>
       ))}
 
+      {/* Modal de Descrição da Habilidade */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            translateKey(selectedSkill).charAt(0).toUpperCase() + translateKey(selectedSkill).slice(1)}
+            translateKey(selectedSkill).charAt(0).toUpperCase() + translateKey(selectedSkill).slice(1)} {/* Traduzindo o título do modal */}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
@@ -343,6 +350,7 @@ const SkillList = ({
     </Box>
   );
 };
+
 
 const InstinctList = ({
   title,
