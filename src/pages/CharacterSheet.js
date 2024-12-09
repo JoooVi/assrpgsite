@@ -382,79 +382,150 @@ const InstinctList = ({
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
-}) => (
-  <Box>
-    <Typography variant="h6" sx={{ marginBottom: 2 }}>
-      {title}
-    </Typography>
-    {Object.entries(instincts).map(([key, value]) => (
-      <Grid
-        container
-        key={key}
-        spacing={2}
-        alignItems="center"
-        className={styles.skillItem}
-      >
-        {/* Nome do Instinto */}
-        <Grid item xs={12} sm={4}>
-          <Typography>
-            {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {value}
-          </Typography>
-        </Grid>
+}) => {
+  const [editMode, setEditMode] = useState(false);
+  const [editedValues, setEditedValues] = useState({});
 
-        {/* Select do Instinto */}
-        <Grid item xs={12} sm={4}>
-          <FormControl variant="outlined" margin="dense" size="small" fullWidth>
-            <InputLabel>Assimilado</InputLabel>
-            <Select
-              label="Assimilado"
-              value={selectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChange(key, e.target.value)}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 224,
-                    width: "auto",
-                  },
-                },
+  const toggleEditMode = () => {
+    if (editMode) {
+      // Atualize os valores editados
+      Object.keys(editedValues).forEach((instinctKey) => {
+        handleInstinctChange(instinctKey, editedValues[instinctKey]);
+      });
+    }
+    setEditMode(!editMode);
+  };
+
+  const handleEditedValueChange = (instinctKey, value) => {
+    setEditedValues((prev) => ({
+      ...prev,
+      [instinctKey]: value,
+    }));
+  };
+
+  const getInstinctDescription = (key) => {
+    const descriptions = {
+      reação: "Habilidade de reagir rapidamente a mudanças no ambiente.",
+      percepção: "Sensibilidade aos detalhes e mudanças no ambiente.",
+      sagacidade: "Capacidade de tomar decisões rápidas e eficazes.",
+      potência: "Força física e resistência para superar obstáculos.",
+      influência: "Habilidade de convencer ou manipular outros.",
+      resolução: "Capacidade de persistir diante de dificuldades.",
+    };
+    return descriptions[key] || "Descrição não disponível.";
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
+        {title}
+      </Typography>
+
+      {/* Botão para ativar/desativar o modo de edição */}
+      <Button
+        variant="contained"
+        color={editMode ? "secondary" : "primary"}
+        onClick={toggleEditMode}
+        sx={{ padding: "4px", minWidth: "unset" }}
+      >
+        <EditIcon /> {/* Ícone de edição */}
+      </Button>
+
+      {Object.entries(instincts).map(([key, value]) => (
+        <Grid
+          container
+          key={key}
+          spacing={2}
+          alignItems="center"
+          className={styles.skillItem}
+        >
+          {/* Nome do Instinto */}
+          <Grid item xs={12} sm={4}>
+            <Typography
+              sx={{
+                cursor: "pointer",
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
+              }}
+              onClick={() => {
+                alert(getInstinctDescription(key)); // Exibe a descrição do instinto
               }}
             >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {translateKey(
-                    instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
-                  )}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+              {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}: {/* Traduzindo o nome */}
+            </Typography>
+          </Grid>
 
-        {/* Botão para rolar */}
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="outlined"
-            color="default"
-            onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-            sx={{
-              padding: 0,
-              minWidth: 0,
-              height: "40px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none",
-              backgroundColor: "transparent",
-            }}
-          >
-            <MeuIcone2 width="90px" height="40px" />{" "}
-            {/* Ajusta o tamanho do SVG dentro do botão */}
-          </Button>
+          {/* Número do Instinto (editável quando em modo de edição) */}
+          <Grid item xs={12} sm={4}>
+            {editMode ? (
+              <TextField
+                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
+                onChange={(e) => handleEditedValueChange(key, e.target.value)}
+                size="small"
+                variant="outlined"
+                fullWidth
+                inputProps={{
+                  style: { textAlign: "center" }, // Alinha o número ao centro
+                }}
+              />
+            ) : (
+              <Typography>{value}</Typography>
+            )}
+          </Grid>
+
+          {/* Select do Instinto */}
+          <Grid item xs={12} sm={4}>
+            <FormControl variant="outlined" margin="dense" size="small" fullWidth>
+              <InputLabel>Assimilado</InputLabel>
+              <Select
+                label="Assimilado"
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 224,
+                      width: "auto",
+                    },
+                  },
+                }}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {translateKey(
+                      instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Botão para rolar */}
+          <Grid item xs={12} sm={4}>
+            <Button
+              variant="outlined"
+              color="default"
+              onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
+              sx={{
+                padding: 0,
+                minWidth: 0,
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "none",
+                backgroundColor: "transparent",
+              }}
+            >
+              <MeuIcone2 width="90px" height="40px" />
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
-    ))}
-  </Box>
-);
+      ))}
+    </Box>
+  );
+};
 
 const CharacterSheet = () => {
   const { id } = useParams();
