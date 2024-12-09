@@ -222,7 +222,7 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   handleSkillChange,
-  id
+  id,
 }) => {
   console.log("ID do Personagem no SkillList:", id);
 
@@ -236,9 +236,8 @@ const SkillList = ({
     setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-        updatedSkills,
+      await axios.put(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        { knowledge: updatedSkills.knowledge, practices: updatedSkills.practices },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -437,11 +436,13 @@ const InstinctList = ({
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
+  id // Assumindo que o id do personagem é passado como uma propriedade
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
+  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
 
   const handleInstinctClick = (instinctKey) => {
     setSelectedInstinctKey(instinctKey);
@@ -460,11 +461,49 @@ const InstinctList = ({
     return descriptions[key] || "Descrição não disponível.";
   };
 
+  const saveInstinctsToBackend = async (updatedInstincts) => {
+    setLoading(true); // Inicia o carregamento
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        { instincts: updatedInstincts }, // Envia os instintos como parte do objeto character
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Instintos salvos com sucesso:");
+    } catch (error) {
+      console.error(
+        "Erro ao salvar os instintos:",
+        error.response?.data || error.message
+      );
+    } finally {
+      setLoading(false); // Finaliza o carregamento
+    }
+  };
+
   const toggleEditMode = () => {
     if (editMode) {
+      const updatedInstincts = {};
+
       Object.keys(editedValues).forEach((instinctKey) => {
-        handleInstinctChange(instinctKey, editedValues[instinctKey]);
+        if (instincts[instinctKey] !== undefined) {
+          updatedInstincts[instinctKey] = editedValues[instinctKey];
+        }
       });
+
+      if (id) {
+        saveInstinctsToBackend(updatedInstincts);
+
+        Object.keys(editedValues).forEach((instinctKey) => {
+          handleInstinctChange(instinctKey, editedValues[instinctKey]);
+        });
+      } else {
+        console.error("ID do personagem está indefinido");
+      }
     }
     setEditMode(!editMode);
   };
@@ -479,8 +518,7 @@ const InstinctList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography>{" "}
-      {/* Traduzindo o título */}
+      <Typography variant="h6">{title}</Typography> {/* Traduzindo o título */}
       {/* Botão para ativar/desativar o modo de edição */}
       <Button
         variant="contained"
@@ -502,7 +540,7 @@ const InstinctList = ({
                 "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
               }}
             >
-              {translateKey(key)}: {/* Traduzindo o nome do instinto */}
+              {key} {/* Nome do instinto */}
             </Typography>
           </Grid>
 
@@ -533,16 +571,15 @@ const InstinctList = ({
               fullWidth
               sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>{" "}
-              {/* Traduzindo o rótulo */}
+              <InputLabel>Instintos</InputLabel> {/* Traduzindo o rótulo */}
               <Select
-                label={translateKey("Instincts")} // Traduzindo o rótulo
+                label="Instintos" // Traduzindo o rótulo
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
-                {Object.keys(instincts).map((instinctKey) => (
+                                {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)} {/* Traduzindo os instintos */}
+                    {instinctKey} {/* Nome do instinto */}
                   </MenuItem>
                 ))}
               </Select>
@@ -567,8 +604,8 @@ const InstinctList = ({
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedInstinctKey &&
-            translateKey(selectedInstinctKey).charAt(0).toUpperCase() +
-              translateKey(selectedInstinctKey).slice(1)}{" "}
+            selectedInstinctKey.charAt(0).toUpperCase() +
+              selectedInstinctKey.slice(1)}{" "}
           {/* Traduzindo o título do modal */}
         </DialogTitle>
         <DialogContent>
