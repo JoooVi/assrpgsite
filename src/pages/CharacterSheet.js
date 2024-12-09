@@ -234,12 +234,12 @@ const SkillList = ({
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
-      const response = await fetch(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, {
+      const response = await fetch(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`, {
         method: 'PUT', // Mudando para PUT, pois estamos atualizando um recurso existente
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ skills: updatedSkills }), // Envia apenas as habilidades alteradas
+        body: JSON.stringify(updatedSkills), // Envia as habilidades alteradas
       });
 
       const data = await response.json();
@@ -259,8 +259,24 @@ const SkillList = ({
   // Função para alternar o modo de edição e salvar os dados
   const toggleEditMode = () => {
     if (editMode) {
+      // Organiza os dados em "knowledge" e "practices"
+      const updatedSkills = {
+        knowledge: {},
+        practices: {},
+      };
+
+      Object.keys(editedValues).forEach((skillKey) => {
+        if (skills[skillKey] !== undefined) {
+          if (skills[skillKey].category === 'knowledge') {
+            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
+          } else if (skills[skillKey].category === 'practices') {
+            updatedSkills.practices[skillKey] = editedValues[skillKey];
+          }
+        }
+      });
+
       // Enviar os dados atualizados para o backend
-      saveSkillsToBackend(editedValues);
+      saveSkillsToBackend(updatedSkills);
 
       // Atualizar os dados no componente (se necessário)
       Object.keys(editedValues).forEach((skillKey) => {
