@@ -191,6 +191,24 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Grid,
+  TextField,
+  Button,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit'; // Ícone de lápis
+
 const SkillList = ({
   title,
   skills,
@@ -254,20 +272,20 @@ const SkillList = ({
       <Typography variant="h6">{title}</Typography>
 
       {/* Botão para ativar/desativar o modo de edição */}
-
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }} // Ajusta o tamanho
+        sx={{ padding: "4px", minWidth: "unset" }}
       >
         <EditIcon /> {/* Ícone de lápis */}
       </Button>
 
+      {/* Mapear as habilidades */}
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={2} alignItems="center">
           {/* Nome da habilidade (clicável) */}
-          <Grid item xs={4} sm={3}>
+          <Grid item xs={3}>
             <Typography
               onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
               sx={{
@@ -281,7 +299,7 @@ const SkillList = ({
           </Grid>
 
           {/* Número da habilidade (editável quando em modo de edição) */}
-          <Grid item xs={4} sm={2}>
+          <Grid item xs={2}>
             {editMode ? (
               <TextField
                 value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
@@ -299,13 +317,8 @@ const SkillList = ({
           </Grid>
 
           {/* Select do Instinto */}
-          <Grid item xs={12} sm={4}>
-            <FormControl
-              variant="outlined"
-              margin="dense"
-              size="small"
-              fullWidth
-            >
+          <Grid item xs={3}>
+            <FormControl variant="outlined" size="small" fullWidth>
               <InputLabel>Instinto</InputLabel>
               <Select
                 label="Instinto"
@@ -322,7 +335,7 @@ const SkillList = ({
           </Grid>
 
           {/* Botão para rolar */}
-          <Grid item xs={4} sm={4}>
+          <Grid item xs={2}>
             <Button
               variant="contained"
               color="primary"
