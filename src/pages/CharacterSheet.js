@@ -267,7 +267,7 @@ const SkillList = ({
       {Object.entries(skills).map(([key, value]) => (
         <Grid container key={key} spacing={2} alignItems="center">
           {/* Nome da habilidade (clicável) */}
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={4} sm={3}>
             <Typography
               onClick={() => handleSkillClick(key)} // Ao clicar na habilidade, abre o modal
               sx={{
@@ -322,7 +322,7 @@ const SkillList = ({
           </Grid>
 
           {/* Botão para rolar */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={4} sm={4}>
             <Button
               variant="contained"
               color="primary"
