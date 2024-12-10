@@ -229,7 +229,8 @@ const SkillList = ({
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
-  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
+  const [localSelectedInstinct, setLocalSelectedInstinct] =
+    useState(selectedInstinct);
 
   useEffect(() => {
     setLocalSkills(skills);
@@ -263,7 +264,10 @@ const SkillList = ({
       });
       setEditedValues({});
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
+      console.error(
+        "Erro ao salvar os dados:",
+        error.response?.data || error.message
+      );
     } finally {
       setLoading(false);
     }
@@ -326,7 +330,8 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -427,7 +432,9 @@ const SkillList = ({
               <Select
                 label="Instintos"
                 value={localSelectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
+                onChange={(e) =>
+                  handleInstinctChangeUpdated(key, e.target.value)
+                }
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
@@ -990,6 +997,28 @@ const CharacterSheet = () => {
     });
   };
 
+  const handleAssimilationChange = (event, newValue) => {
+    setCharacter((prevCharacter) => {
+      let updatedAssimilation = newValue;
+      let updatedDetermination = prevCharacter?.determination || 10;
+      let message = null;
+
+      // Garantir que não gaste mais pontos de assimilação do que possui
+      if (updatedAssimilation > prevCharacter.assimilation) {
+        message =
+          "Você não pode gastar mais pontos de assimilação do que possui!";
+        updatedAssimilation = prevCharacter.assimilation;
+      }
+
+      return {
+        ...prevCharacter,
+        assimilation: updatedAssimilation,
+        determination: updatedDetermination,
+        message: message,
+      };
+    });
+  };
+
   const handleOpenItemsModal = () => {
     fetchInventoryItems();
     setOpenItemsModal(true);
@@ -1322,7 +1351,7 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                onChange={handleDeterminationChange} // Chama a mesma função para alterar Assimilação e Determinação
+                onChange={handleAssimilationChange} // Chama a função correta para alterar Assimilação
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
