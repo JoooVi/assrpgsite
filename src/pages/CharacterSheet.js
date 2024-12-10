@@ -230,10 +230,10 @@ const SkillList = ({
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
+  const [loading, setLoading] = useState(false); 
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true); // Inicia o carregamento
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -250,7 +250,6 @@ const SkillList = ({
       );
       console.log("Dados salvos com sucesso:", response.data);
 
-      // Atualize o estado local com os novos valores
       setEditedValues({});
       handleSkillChange("knowledge", updatedSkills.knowledge);
       handleSkillChange("practices", updatedSkills.practices);
@@ -260,7 +259,7 @@ const SkillList = ({
         error.response?.data || error.message
       );
     } finally {
-      setLoading(false); // Finaliza o carregamento
+      setLoading(false);
     }
   };
 
