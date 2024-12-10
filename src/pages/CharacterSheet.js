@@ -1086,7 +1086,7 @@ const CharacterSheet = () => {
     });
   };
 
-  const saveCharacter = async (updatedCharacter, token) => {
+  const saveCharacter = async (id, updatedCharacter, token) => {
     try {
         const response = await axios.put(
             `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
@@ -1103,7 +1103,6 @@ const CharacterSheet = () => {
         console.error("Erro ao salvar personagem:", error);
     }
 };
-
 
   const saveCharacterInventory = async () => {
     const token = localStorage.getItem("token");
