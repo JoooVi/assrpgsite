@@ -236,28 +236,11 @@ const SkillList = ({
     setLocalSkills(skills);
   }, [skills]);
 
-  const fetchSkillsFromBackend = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setLocalSkills(response.data.skills);
-    } catch (error) {
-      console.error("Erro ao buscar os dados:", error.response?.data || error.message);
-    }
-  };
-
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
+      const response = await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         {
           knowledge: updatedSkills.knowledge,
@@ -269,8 +252,8 @@ const SkillList = ({
           },
         }
       );
-      console.log("Dados salvos com sucesso");
-      await fetchSkillsFromBackend(); // Isso vai buscar as habilidades atualizadas do backend
+      console.log("Resposta do backend ao salvar habilidades:", response.data);
+      await fetchSkillsFromBackend(); // Buscar habilidades atualizadas do backend
       setEditedValues({});
     } catch (error) {
       console.error("Erro ao salvar os dados:", error.response?.data || error.message);
@@ -278,6 +261,24 @@ const SkillList = ({
       setLoading(false);
     }
   };
+  
+  const fetchSkillsFromBackend = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Dados recebidos do backend:", response.data);
+      setLocalSkills(response.data.skills);
+    } catch (error) {
+      console.error("Erro ao buscar os dados:", error.response?.data || error.message);
+    }
+  };  
 
   const toggleEditMode = () => {
     if (editMode) {
