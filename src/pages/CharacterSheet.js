@@ -242,14 +242,6 @@ const SkillList = ({
 
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
-    if (
-      Object.keys(updatedSkills.knowledge).length === 0 &&
-      Object.keys(updatedSkills.practices).length === 0
-    ) {
-      console.error("Nenhum dado foi editado.");
-      setLoading(false);
-      return;
-    }
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -269,14 +261,8 @@ const SkillList = ({
       console.log("Dados salvos com sucesso:", response.data);
       setLocalSkills({
         ...localSkills,
-        knowledge: {
-          ...localSkills.knowledge,
-          ...updatedSkills.knowledge,
-        },
-        practices: {
-          ...localSkills.practices,
-          ...updatedSkills.practices,
-        },
+        ...updatedSkills.knowledge,
+        ...updatedSkills.practices,
       });
       setEditedValues({});
     } catch (error) {
