@@ -270,7 +270,7 @@ const SkillList = ({
         }
       );
       console.log("Dados salvos com sucesso");
-      await fetchSkillsFromBackend();
+      await fetchSkillsFromBackend(); // Buscar habilidades atualizadas do backend após salvar
       setEditedValues({});
     } catch (error) {
       console.error(
@@ -373,6 +373,10 @@ const SkillList = ({
     return translations[key] || key;
   };
 
+  const handleRoll = (key) => {
+    onRoll(key, selectedInstinct[key], localSkills[key]);
+  };
+
   return (
     <Box>
       <Typography variant="h6">{title}</Typography>
@@ -443,7 +447,7 @@ const SkillList = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={() => onRoll(key, selectedInstinct[key], localSkills[key])}
+              onClick={() => handleRoll(key)}
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
