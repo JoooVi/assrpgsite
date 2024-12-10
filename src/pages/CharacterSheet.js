@@ -232,6 +232,10 @@ const SkillList = ({
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false); 
 
+  useEffect(() => {
+    setLocalSkills(skills);
+  }, [skills]);
+
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
     try {
