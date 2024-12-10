@@ -232,6 +232,10 @@ const SkillList = ({
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setLocalSkills(skills);
+  }, [skills]);
+
   const fetchSkillsFromBackend = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -249,12 +253,6 @@ const SkillList = ({
     }
   };
 
-  useEffect(() => {
-    if (skills !== localSkills) { // Evita sobrescrever se skills não mudou
-      setLocalSkills(skills); // Isso faz a atualização inicial apenas quando necessário
-    }
-  }, [skills]);
-  
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
     try {
@@ -273,13 +271,14 @@ const SkillList = ({
       );
       console.log("Dados salvos com sucesso");
       await fetchSkillsFromBackend(); // Isso vai buscar as habilidades atualizadas do backend
+      setEditedValues({});
     } catch (error) {
       console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const toggleEditMode = () => {
     if (editMode) {
       const updatedSkills = {
@@ -305,7 +304,7 @@ const SkillList = ({
       ];
 
       Object.keys(editedValues).forEach((skillKey) => {
-        if (skills[skillKey] !== undefined) {
+        if (localSkills[skillKey] !== undefined) {
           if (knowledgeKeys.includes(skillKey)) {
             updatedSkills.knowledge[skillKey] = editedValues[skillKey];
           } else if (practiceKeys.includes(skillKey)) {
