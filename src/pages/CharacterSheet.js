@@ -223,8 +223,6 @@ const SkillList = ({
   onRoll,
   id,
 }) => {
-  console.log("ID do Personagem no SkillList:", id);
-
   const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
@@ -252,8 +250,12 @@ const SkillList = ({
           },
         }
       );
-      console.log("Resposta do backend ao salvar habilidades:", response.data);
-      await fetchSkillsFromBackend(); // Buscar habilidades atualizadas do backend
+      console.log("Dados salvos com sucesso:", response.data);
+      setLocalSkills({
+        ...localSkills,
+        ...updatedSkills.knowledge,
+        ...updatedSkills.practices,
+      });
       setEditedValues({});
     } catch (error) {
       console.error("Erro ao salvar os dados:", error.response?.data || error.message);
@@ -261,24 +263,6 @@ const SkillList = ({
       setLoading(false);
     }
   };
-  
-  const fetchSkillsFromBackend = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Dados recebidos do backend:", response.data);
-      setLocalSkills(response.data.skills);
-    } catch (error) {
-      console.error("Erro ao buscar os dados:", error.response?.data || error.message);
-    }
-  };  
 
   const toggleEditMode = () => {
     if (editMode) {
