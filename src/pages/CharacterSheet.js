@@ -221,11 +221,9 @@ const SkillList = ({
   selectedInstinct,
   handleInstinctChange,
   onRoll,
-  handleSkillChange,
   id,
 }) => {
-  console.log("ID do Personagem no SkillList:", id);
-
+  const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -245,10 +243,17 @@ const SkillList = ({
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
+          }
         }
       );
+
       console.log("Dados salvos com sucesso");
+      setLocalSkills({
+        ...localSkills,
+        ...updatedSkills.knowledge,
+        ...updatedSkills.practices,
+      });
+      setEditedValues({});
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
@@ -257,11 +262,6 @@ const SkillList = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const updateLocalSkills = (updatedSkills) => {
-    handleSkillChange("knowledge", updatedSkills.knowledge);
-    handleSkillChange("practices", updatedSkills.practices);
   };
 
   const toggleEditMode = async () => {
@@ -300,8 +300,6 @@ const SkillList = ({
 
       if (id) {
         await saveSkillsToBackend(updatedSkills);
-        updateLocalSkills(updatedSkills); // Atualiza o estado local.
-        setEditedValues({});
       } else {
         console.error("ID do personagem está indefinido");
       }
@@ -323,8 +321,7 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -351,7 +348,7 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
-      {Object.entries(skills).map(([key, value]) => (
+      {Object.entries(localSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
             <Typography
@@ -362,7 +359,7 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)}:
+              {key.charAt(0).toUpperCase() + key.slice(1)}:
             </Typography>
           </Grid>
 
@@ -399,7 +396,7 @@ const SkillList = ({
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)}
+                    {instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)}
                   </MenuItem>
                 ))}
               </Select>
@@ -414,34 +411,13 @@ const SkillList = ({
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
-              <MeuIcone style={{ width: "24px", height: "24px" }} />
+              Rolar
             </Button>
           </Grid>
         </Grid>
       ))}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>
-          {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>{getSkillDescription(selectedSkill)}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
-            Fechar
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
-};
-
-const handleSkillChange = (skillType, updatedSkills) => {
-  setCharacter((prev) => ({
-    ...prev,
-    [skillType]: updatedSkills,
-  }));
 };
 
 const InstinctList = ({
@@ -1319,9 +1295,8 @@ const CharacterSheet = () => {
             skills={{ ...character?.knowledge, ...character?.practices }}
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
-            handleSkillChange={handleSkillChange} // Adicionado aqui
             onRoll={handleRoll}
-            id={character?._id} // Certifique-se de que o ID está correto
+            id={character?._id}
           />
         </Paper>
         <Paper elevation={3} className={styles.rightColumn}>
