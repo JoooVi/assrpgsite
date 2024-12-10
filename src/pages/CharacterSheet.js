@@ -232,31 +232,42 @@ const SkillList = ({
   const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
 
   useEffect(() => {
-  setLocalSkills(skills);
-}, [skills]); // add skills as dependency
+    setLocalSkills(skills);
+  }, [skills]);
 
-useEffect(() => {
-  setLocalSelectedInstinct(selectedInstinct);
-}, [selectedInstinct]); // add selectedInstinct as dependency
+  useEffect(() => {
+    setLocalSelectedInstinct(selectedInstinct);
+  }, [selectedInstinct]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    // ...
+    setLoading(true);
     try {
-        // ...
-        setLocalSkills({
-            ...localSkills,
-            ...updatedSkills.knowledge,
-            ...updatedSkills.practices,
-        });
-        // Fetch dos dados atualizados
-        const response = await axios.get(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`);
-        setLocalSkills(response.data);
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+        {
+          knowledge: updatedSkills.knowledge,
+          practices: updatedSkills.practices,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Dados salvos com sucesso:", response.data);
+      setLocalSkills({
+        ...localSkills,
+        ...updatedSkills.knowledge,
+        ...updatedSkills.practices,
+      });
+      setEditedValues({});
     } catch (error) {
-        // ...
+      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
-        // ...
+      setLoading(false);
     }
-};
+  };
 
   const toggleEditMode = () => {
     if (editMode) {
