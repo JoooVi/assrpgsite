@@ -437,6 +437,13 @@ const SkillList = ({
   );
 };
 
+const handleSkillChange = (skillType, updatedSkills) => {
+  setCharacter((prev) => ({
+    ...prev,
+    [skillType]: updatedSkills,
+  }));
+};
+
 const InstinctList = ({
   title,
   instincts,
