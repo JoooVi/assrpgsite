@@ -222,6 +222,7 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   id,
+  updateSkills, // Recebe a função de atualização
 }) => {
   const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
@@ -235,10 +236,6 @@ const SkillList = ({
   useEffect(() => {
     setLocalSkills(skills);
   }, [skills]);
-
-  useEffect(() => {
-    setLocalSelectedInstinct(selectedInstinct);
-  }, [selectedInstinct]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
@@ -256,14 +253,15 @@ const SkillList = ({
           },
         }
       );
-      console.log("Antes do PUT:", localSkills);
-      console.log("Objeto a ser enviado:", updatedSkills);
       console.log("Dados salvos com sucesso:", response.data);
-      setLocalSkills({
+
+      // Atualiza o estado no componente pai
+      updateSkills({
         ...localSkills,
         ...updatedSkills.knowledge,
         ...updatedSkills.practices,
       });
+
       setEditedValues({});
     } catch (error) {
       console.error(
@@ -1143,6 +1141,15 @@ const CharacterSheet = () => {
     return <div className={styles.errorMessage}>{error}</div>;
   }
 
+  const ParentComponent = () => {
+    const [skills, setSkills] = useState({ /* seu estado de skills aqui */ });
+  
+    const updateSkills = (updatedSkills) => {
+      setSkills(updatedSkills);  // Atualiza o estado local
+    };
+  };
+  
+
   return (
     <Box className={styles.characterSheet}>
       <Paper elevation={3} className={styles.characterHeader}>
@@ -1378,15 +1385,15 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
         <Paper elevation={3} className={styles.centerColumn}>
-          {console.log("Character:", character)}{" "}
           <SkillList
-            title="Conhecimentos & Práticas"
-            skills={{ ...character?.knowledge, ...character?.practices }}
-            instincts={character?.instincts || {}}
+            title="Skills"
+            skills={skills}
+            instincts={instincts}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
-            onRoll={handleRoll}
-            id={character?._id}
+            onRoll={onRoll}
+            id={id}
+            updateSkills={updateSkills} // Passa a função de atualização como prop
           />
         </Paper>
         <Paper elevation={3} className={styles.rightColumn}>
