@@ -445,14 +445,13 @@ const InstinctList = ({
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
-  id, // Assumindo que o id do personagem é passado como uma propriedade
-  updateInstinctsInCharacter, // Nova prop para atualizar os instintos no componente pai
+  id,
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); // Estado para controle de carregamento
+  const [loading, setLoading] = useState(false);
 
   const handleInstinctClick = (instinctKey) => {
     setSelectedInstinctKey(instinctKey);
@@ -472,16 +471,16 @@ const InstinctList = ({
   };
 
   const saveInstinctsToBackend = async (updatedInstincts) => {
-    setLoading(true); // Inicia o carregamento
+    setLoading(true);
 
     // Atualização otimista
     const prevInstincts = { ...instincts };
-    updateInstinctsInCharacter(updatedInstincts);
+    handleInstinctChange({ ...instincts, ...updatedInstincts });
 
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
         {
           headers: {
@@ -495,7 +494,7 @@ const InstinctList = ({
         error.response?.data || error.message
       );
       // Reverte atualização otimista em caso de erro
-      updateInstinctsInCharacter(prevInstincts);
+      handleInstinctChange(prevInstincts);
     } finally {
       setLoading(false);
       setEditedValues({});
@@ -535,44 +534,41 @@ const InstinctList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{title}</Typography> {/* Traduzindo o título */}
-      {/* Botão para ativar/desativar o modo de edição */}
+      <Typography variant="h6">{title}</Typography>
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
         sx={{ padding: "4px", minWidth: "unset" }}
       >
-        <EditIcon /> {/* Ícone de lápis */}
+        <EditIcon />
       </Button>
 
       {Object.entries(instincts).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
-          {/* Nome do Instinto (clicável) */}
           <Grid item xs={4} sm={3}>
             <Typography
-              onClick={() => handleInstinctClick(key)} // Ao clicar no instinto, abre o modal
+              onClick={() => handleInstinctClick(key)}
               sx={{
                 cursor: "pointer",
-                color: "text.primary", // Cor mais neutra (pode ser personalizada)
-                "&:hover": { color: "primary.main" }, // Muda a cor ao passar o mouse
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
               }}
             >
-              {key} {/* Nome do instinto */}
+              {key}
             </Typography>
           </Grid>
 
-          {/* Número do Instinto (editável quando em modo de edição) */}
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] || value} // Exibe o valor editado ou o valor atual
+                value={editedValues[key] || value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" }, // Alinha o número ao centro
+                  style: { textAlign: "center" },
                 }}
               />
             ) : (
@@ -580,31 +576,29 @@ const InstinctList = ({
             )}
           </Grid>
 
-          {/* Select do Instinto */}
           <Grid item xs={4} sm={3}>
             <FormControl
               variant="outlined"
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 100 }} // Diminuindo a largura do campo de instinto
+              sx={{ minWidth: 100 }}
             >
-              <InputLabel>Instintos</InputLabel> {/* Traduzindo o rótulo */}
+              <InputLabel>Instintos</InputLabel>
               <Select
-                label="Instintos" // Traduzindo o rótulo
+                label="Instintos"
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {instinctKey} {/* Nome do instinto */}
+                    {instinctKey}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
-          {/* Botão para rolar */}
           <Grid item xs={4} sm={2}>
             <Button
               variant="contained"
