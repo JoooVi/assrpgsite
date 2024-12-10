@@ -229,10 +229,15 @@ const SkillList = ({
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
+  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
 
   useEffect(() => {
     setLocalSkills(skills);
   }, [skills]);
+
+  useEffect(() => {
+    setLocalSelectedInstinct(selectedInstinct);
+  }, [selectedInstinct]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
@@ -356,14 +361,14 @@ const SkillList = ({
   };
 
   const handleRoll = (key) => {
-    onRoll(key, selectedInstinct[key], localSkills[key]);
+    onRoll(key, localSelectedInstinct[key], localSkills[key]);
   };
 
   const handleInstinctChangeUpdated = (skillKey, value) => {
     handleInstinctChange(skillKey, value);
-    setLocalSkills((prev) => ({
+    setLocalSelectedInstinct((prev) => ({
       ...prev,
-      [skillKey]: { ...prev[skillKey], instinct: value },
+      [skillKey]: value,
     }));
   };
 
@@ -421,7 +426,7 @@ const SkillList = ({
               <InputLabel>Instintos</InputLabel>
               <Select
                 label="Instintos"
-                value={selectedInstinct[key] || ""}
+                value={localSelectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
