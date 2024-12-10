@@ -1080,27 +1080,20 @@ const CharacterSheet = () => {
 
   const handleInputChange = (field, value) => {
     setCharacter((prevCharacter) => {
-      const updatedCharacter = { ...prevCharacter, [field]: value };
-      saveCharacter(updatedCharacter); // Chama a função para salvar no backend
-      return updatedCharacter;
+        const updatedCharacter = { ...prevCharacter, [field]: value };
+        saveCharacter(updatedCharacter); // Chama a função para salvar no backend
+        return updatedCharacter;
     });
-  };
+};
 
-  const saveCharacter = async (id, updatedCharacter, token) => {
+const saveCharacter = async (updatedCharacter) => {
     try {
-        const response = await axios.put(
-            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-            updatedCharacter,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        console.log("Personagem salvo com sucesso:", response.data);
+        const response = await axios.put(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, {
+            ...updatedCharacter
+        });
+        console.log('Personagem salvo com sucesso:', response.data);
     } catch (error) {
-        console.error("Erro ao salvar personagem:", error);
+        console.error('Erro ao salvar personagem:', error);
     }
 };
 
@@ -1386,6 +1379,7 @@ const CharacterSheet = () => {
             skills={{ ...character?.knowledge, ...character?.practices }}
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
+            handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
             id={character?._id}
           />
