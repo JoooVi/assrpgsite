@@ -1165,7 +1165,7 @@ const CharacterSheet = () => {
           <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Geração"
-              value={generationMap[character?.generation] || ""}
+              value={character?.generation || ""}
               onChange={(e) => handleInputChange("generation", e.target.value)}
               variant="outlined"
               fullWidth
