@@ -427,7 +427,7 @@ const SkillList = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={() => onRoll(key, selectedInstinct[key])}
+              onClick={() => onRoll(key, selectedInstinct[key], localSkills[key])}
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
