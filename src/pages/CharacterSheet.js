@@ -249,7 +249,7 @@ useEffect(() => {
             ...updatedSkills.practices,
         });
         // Fetch dos dados atualizados
-        const response = await axios.get(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`);
+        const response = await axios.get(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`);
         setLocalSkills(response.data);
     } catch (error) {
         // ...
