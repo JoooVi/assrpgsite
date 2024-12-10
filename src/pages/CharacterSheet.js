@@ -258,7 +258,6 @@ const SkillList = ({
       );
       console.log("Dados salvos com sucesso:", response.data);
       setLocalSkills({
-        ...localSkills,
         ...updatedSkills.knowledge,
         ...updatedSkills.practices,
       });
