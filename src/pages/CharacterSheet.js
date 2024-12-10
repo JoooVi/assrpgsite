@@ -254,31 +254,37 @@ const SkillList = ({
       setLocalSkills(skills); // Isso faz a atualização inicial apenas quando necessário
     }
   }, [skills]);
-  
+
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        {
-          knowledge: updatedSkills.knowledge,
-          practices: updatedSkills.practices,
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
+      {
+        knowledge: updatedSkills.knowledge,
+        practices: updatedSkills.practices,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Dados salvos com sucesso");
-      await fetchSkillsFromBackend(); // Isso vai buscar as habilidades atualizadas do backend
-    } catch (error) {
-      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+      }
+    );
+    console.log("Dados salvos com sucesso");
+    
+    // Atualizar diretamente o estado localSkills com os dados atualizados
+    setLocalSkills((prevSkills) => ({
+      ...prevSkills,
+      ...updatedSkills, // ou adicione os dados específicos que foram atualizados
+    }));
+
+  } catch (error) {
+    console.error("Erro ao salvar os dados:", error.response?.data || error.message);
+  } finally {
+    setLoading(false);
+  }
+};
   
   const toggleEditMode = () => {
     if (editMode) {
@@ -320,6 +326,7 @@ const SkillList = ({
         console.error("ID do personagem está indefinido");
       }
     }
+    console.log("Local Skills após atualização:", localSkills);
     setEditMode(!editMode);
   };
 
