@@ -229,7 +229,8 @@ const SkillList = ({
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
-  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
+  const [localSelectedInstinct, setLocalSelectedInstinct] =
+    useState(selectedInstinct);
 
   useEffect(() => {
     setLocalSkills(skills);
@@ -240,43 +241,43 @@ const SkillList = ({
   }, [selectedInstinct]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
+    setLoading(true);
     if (
       Object.keys(updatedSkills.knowledge).length === 0 &&
       Object.keys(updatedSkills.practices).length === 0
     ) {
       console.error("Nenhum dado foi editado.");
+      setLoading(false);
       return;
     }
-
-    setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        updatedSkills,
+        {
+          knowledge: updatedSkills.knowledge,
+          practices: updatedSkills.practices,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
       console.log("Antes do PUT:", localSkills);
       console.log("Objeto a ser enviado:", updatedSkills);
       console.log("Dados salvos com sucesso:", response.data);
-
-      setLocalSkills((prevSkills) => ({
-        ...prevSkills,
+      setLocalSkills({
+        ...localSkills,
         knowledge: {
-          ...prevSkills.knowledge,
+          ...localSkills.knowledge,
           ...updatedSkills.knowledge,
         },
         practices: {
-          ...prevSkills.practices,
+          ...localSkills.practices,
           ...updatedSkills.practices,
         },
-      }));
-
+      });
       setEditedValues({});
     } catch (error) {
       console.error(
@@ -289,7 +290,7 @@ const SkillList = ({
   };
 
   const toggleEditMode = () => {
-    if (editMode && id) {
+    if (editMode) {
       const updatedSkills = {
         knowledge: {},
         practices: {},
@@ -312,15 +313,21 @@ const SkillList = ({
         "infiltration",
       ];
 
-      Object.entries(editedValues).forEach(([skillKey, value]) => {
-        if (knowledgeKeys.includes(skillKey)) {
-          updatedSkills.knowledge[skillKey] = value;
-        } else if (practiceKeys.includes(skillKey)) {
-          updatedSkills.practices[skillKey] = value;
+      Object.keys(editedValues).forEach((skillKey) => {
+        if (localSkills[skillKey] !== undefined) {
+          if (knowledgeKeys.includes(skillKey)) {
+            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
+          } else if (practiceKeys.includes(skillKey)) {
+            updatedSkills.practices[skillKey] = editedValues[skillKey];
+          }
         }
       });
 
-      saveSkillsToBackend(updatedSkills);
+      if (id) {
+        saveSkillsToBackend(updatedSkills);
+      } else {
+        console.error("ID do personagem está indefinido");
+      }
     }
     setEditMode(!editMode);
   };
@@ -335,6 +342,47 @@ const SkillList = ({
   const handleSkillClick = (skillKey) => {
     setSelectedSkill(skillKey);
     setOpen(true);
+  };
+
+  const getSkillDescription = (key) => {
+    const descriptions = {
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      biological: "Estudos sobre ecossistemas, fauna e flora.",
+      exact: "Compreensão matemática e cálculos avançados.",
+      medicine: "Práticas médicas e tratamentos de saúde.",
+      social: "Habilidades de interação e negociação.",
+      artistic: "Capacidade de criação artística e expressão visual.",
+      sports: "Habilidades atléticas e esportivas.",
+      tools: "Capacidade de manuseio de ferramentas diversas.",
+      crafts: "Conhecimento sobre vários tipos de ofícios.",
+      weapons: "Habilidade no uso de armas de combate.",
+      vehicles: "Conhecimento e manuseio de veículos diversos.",
+      infiltration: "Habilidade em infiltração e furtividade.",
+    };
+    return descriptions[key] || "Descrição não disponível.";
+  };
+
+  const translateKey = (key) => {
+    const translations = {
+      agrarian: "Agrário",
+      biological: "Biológico",
+      exact: "Exato",
+      medicine: "Medicina",
+      social: "Social",
+      artistic: "Artístico",
+      sports: "Esportes",
+      tools: "Ferramentas",
+      crafts: "Ofícios",
+      weapons: "Armas",
+      vehicles: "Veículos",
+      infiltration: "Infiltração",
+    };
+    return translations[key] || key;
+  };
+
+  const handleRoll = (key) => {
+    onRoll(key, localSelectedInstinct[key], localSkills[key]);
   };
 
   const handleInstinctChangeUpdated = (skillKey, value) => {
@@ -352,6 +400,7 @@ const SkillList = ({
         variant="contained"
         color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
+        sx={{ padding: "4px", minWidth: "unset" }}
       >
         <EditIcon />
       </Button>
@@ -360,9 +409,13 @@ const SkillList = ({
           <Grid item xs={4} sm={3}>
             <Typography
               onClick={() => handleSkillClick(key)}
-              sx={{ cursor: "pointer", color: "text.primary", "&:hover": { color: "primary.main" } }}
+              sx={{
+                cursor: "pointer",
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
+              }}
             >
-              {key}:
+              {translateKey(key)}:
             </Typography>
           </Grid>
 
@@ -372,7 +425,11 @@ const SkillList = ({
                 value={editedValues[key] || value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
+                variant="outlined"
                 fullWidth
+                inputProps={{
+                  style: { textAlign: "center" },
+                }}
               />
             ) : (
               <Typography>{value}</Typography>
@@ -380,25 +437,50 @@ const SkillList = ({
           </Grid>
 
           <Grid item xs={4} sm={3}>
-            <Select
-              value={localSelectedInstinct[key] || ""}
-              onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
               fullWidth
+              sx={{ minWidth: 100 }}
             >
-              {Object.keys(instincts).map((instinctKey) => (
-                <MenuItem key={instinctKey} value={instinctKey}>
-                  {instinctKey}
-                </MenuItem>
-              ))}
-            </Select>
+              <InputLabel>Instintos</InputLabel>
+              <Select
+                label="Instintos"
+                value={localSelectedInstinct[key] || ""}
+                onChange={(e) =>
+                  handleInstinctChangeUpdated(key, e.target.value)
+                }
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {translateKey(instinctKey)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={4} sm={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleRoll(key)}
+              fullWidth
+              sx={{ marginLeft: "28px" }}
+            >
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
+            </Button>
           </Grid>
         </Grid>
       ))}
-
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{selectedSkill}</DialogTitle>
+        <DialogTitle>
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+        </DialogTitle>
         <DialogContent>
-          <Typography>{selectedSkill || "Descrição não disponível."}</Typography>
+          <Typography>{getSkillDescription(selectedSkill)}</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
