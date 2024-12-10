@@ -359,6 +359,14 @@ const SkillList = ({
     onRoll(key, selectedInstinct[key], localSkills[key]);
   };
 
+  const handleInstinctChangeUpdated = (skillKey, value) => {
+    handleInstinctChange(skillKey, value);
+    setLocalSkills((prev) => ({
+      ...prev,
+      [skillKey]: { ...prev[skillKey], instinct: value },
+    }));
+  };
+
   return (
     <Box>
       <Typography variant="h6">{title}</Typography>
@@ -414,7 +422,7 @@ const SkillList = ({
               <Select
                 label="Instintos"
                 value={selectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChange(key, e.target.value)}
+                onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
