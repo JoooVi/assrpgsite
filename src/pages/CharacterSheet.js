@@ -223,19 +223,20 @@ const SkillList = ({
   onRoll,
   id,
 }) => {
+  console.log("ID do Personagem no SkillList:", id);
+
   const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
 
-  // Função para salvar as habilidades (skills) no backend
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
+      const response = await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         {
           knowledge: updatedSkills.knowledge,
@@ -247,8 +248,8 @@ const SkillList = ({
           },
         }
       );
+      console.log("Dados salvos com sucesso:", response.data);
 
-      console.log("Dados salvos com sucesso");
       setLocalSkills({
         ...localSkills,
         ...updatedSkills.knowledge,
@@ -265,8 +266,7 @@ const SkillList = ({
     }
   };
 
-  // Função para alternar o modo de edição
-  const toggleEditMode = async () => {
+  const toggleEditMode = () => {
     if (editMode) {
       const updatedSkills = {
         knowledge: {},
@@ -301,7 +301,7 @@ const SkillList = ({
       });
 
       if (id) {
-        await saveSkillsToBackend(updatedSkills);
+        saveSkillsToBackend(updatedSkills);
       } else {
         console.error("ID do personagem está indefinido");
       }
@@ -309,7 +309,6 @@ const SkillList = ({
     setEditMode(!editMode);
   };
 
-  // Função para atualizar o valor editado de uma habilidade
   const handleEditedValueChange = (skillKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
@@ -317,13 +316,11 @@ const SkillList = ({
     }));
   };
 
-  // Função para abrir o modal de descrição da habilidade
   const handleSkillClick = (skillKey) => {
     setSelectedSkill(skillKey);
     setOpen(true);
   };
 
-  // Função para obter a descrição de cada habilidade
   const getSkillDescription = (key) => {
     const descriptions = {
       agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
@@ -342,14 +339,27 @@ const SkillList = ({
     return descriptions[key] || "Descrição não disponível.";
   };
 
-  // Função para alterar o instinto selecionado de uma habilidade
-  const handleInstinctChangeForSkill = (skillKey, instinctKey) => {
-    handleInstinctChange(skillKey, instinctKey);
+  const translateKey = (key) => {
+    const translations = {
+      agrarian: "Agrário",
+      biological: "Biológico",
+      exact: "Exato",
+      medicine: "Medicina",
+      social: "Social",
+      artistic: "Artístico",
+      sports: "Esportes",
+      tools: "Ferramentas",
+      crafts: "Ofícios",
+      weapons: "Armas",
+      vehicles: "Veículos",
+      infiltration: "Infiltração",
+    };
+    return translations[key] || key;
   };
 
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography>
+      <Typography variant="h6">{title}</Typography>
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
@@ -358,7 +368,6 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
-
       {Object.entries(localSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
@@ -399,13 +408,11 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instintos")}</InputLabel>
+              <InputLabel>Instintos</InputLabel>
               <Select
-                label={translateKey("Instintos")}
+                label="Instintos"
                 value={selectedInstinct[key] || ""}
-                onChange={(e) =>
-                  handleInstinctChangeForSkill(key, e.target.value)
-                }
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
@@ -424,11 +431,25 @@ const SkillList = ({
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
-              {translateKey("Rolar")}
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
       ))}
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>{getSkillDescription(selectedSkill)}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
@@ -437,11 +458,11 @@ const InstinctList = ({
   title,
   instincts,
   selectedInstinct,
+  handleInstinctChange,
   onAssimilatedRoll,
   id,
 }) => {
   const [open, setOpen] = useState(false);
-  const [localInstincts, setLocalInstincts] = useState(instincts);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
@@ -467,21 +488,28 @@ const InstinctList = ({
   const saveInstinctsToBackend = async (updatedInstincts) => {
     setLoading(true);
 
+    // Atualização otimista
+    const prevInstincts = { ...instincts };
+    handleInstinctChange({ ...instincts, ...updatedInstincts });
+
     try {
       const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      setLocalInstincts(updatedInstincts); // Atualiza localmente
     } catch (error) {
       console.error(
         "Erro ao salvar os instintos:",
         error.response?.data || error.message
       );
+      // Reverte atualização otimista em caso de erro
+      handleInstinctChange(prevInstincts);
     } finally {
       setLoading(false);
       setEditedValues({});
@@ -491,10 +519,10 @@ const InstinctList = ({
 
   const toggleEditMode = () => {
     if (editMode) {
-      const updatedInstincts = { ...localInstincts };
+      const updatedInstincts = {};
 
       Object.keys(editedValues).forEach((instinctKey) => {
-        if (localInstincts[instinctKey] !== undefined) {
+        if (instincts[instinctKey] !== undefined) {
           updatedInstincts[instinctKey] = parseInt(
             editedValues[instinctKey],
             10
@@ -531,7 +559,7 @@ const InstinctList = ({
         <EditIcon />
       </Button>
 
-      {Object.entries(localInstincts).map(([key, value]) => (
+      {Object.entries(instincts).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
             <Typography
@@ -542,7 +570,7 @@ const InstinctList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)}
+              {translateKey(key)} {/* Aplica a tradução usando translateKey */}
             </Typography>
           </Grid>
 
@@ -563,7 +591,7 @@ const InstinctList = ({
             )}
           </Grid>
 
-          <Grid item xs={4} sm={2}>
+          <Grid item xs={4} sm={3}>
             <FormControl
               variant="outlined"
               margin="dense"
@@ -571,15 +599,15 @@ const InstinctList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instintos")}</InputLabel>
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
-                label={translateKey("Instintos")}
+                label={translateKey("Instincts")}
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)}
+                    {translateKey(instinctKey)} {/* Aplica a tradução */}
                   </MenuItem>
                 ))}
               </Select>
@@ -594,7 +622,7 @@ const InstinctList = ({
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
-              {translateKey("Rolar")}
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
@@ -1207,6 +1235,7 @@ const CharacterSheet = () => {
             title="Instintos"
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
+            handleInstinctChange={handleInstinctChange}
             onAssimilatedRoll={handleAssimilatedRoll}
             id={character?._id}
           />
@@ -1300,8 +1329,9 @@ const CharacterSheet = () => {
             skills={{ ...character?.knowledge, ...character?.practices }}
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
+            handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
-            id={character?._id}
+            id={character?._id} // Certifique-se de que o ID está sendo passado corretamente
           />
         </Paper>
         <Paper elevation={3} className={styles.rightColumn}>
