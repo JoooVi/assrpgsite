@@ -1086,19 +1086,24 @@ const CharacterSheet = () => {
     });
   };
 
-  const saveCharacter = async (updatedCharacter) => {
+  const saveCharacter = async (updatedCharacter, token) => {
     try {
-      const response = await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-        {
-          ...updatedCharacter,
-        }
-      );
-      console.log("Personagem salvo com sucesso:", response.data);
+        const response = await axios.put(
+            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+            updatedCharacter,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        console.log("Personagem salvo com sucesso:", response.data);
     } catch (error) {
-      console.error("Erro ao salvar personagem:", error);
+        console.error("Erro ao salvar personagem:", error);
     }
-  };
+};
+
 
   const saveCharacterInventory = async () => {
     const token = localStorage.getItem("token");
