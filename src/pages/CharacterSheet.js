@@ -1000,20 +1000,18 @@ const CharacterSheet = () => {
   const handleAssimilationChange = (event, newValue) => {
     setCharacter((prevCharacter) => {
       let updatedAssimilation = newValue;
-      let updatedDetermination = prevCharacter?.determination || 10;
+      let maxAssimilation = 10 - (prevCharacter?.determination || 0); // Calcula o máximo de Assimilação permitido
       let message = null;
 
       // Garantir que não gaste mais pontos de assimilação do que possui
-      if (updatedAssimilation > prevCharacter.assimilation) {
-        message =
-          "Você não pode gastar mais pontos de assimilação do que possui!";
+      if (updatedAssimilation > maxAssimilation) {
+        message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
         updatedAssimilation = prevCharacter.assimilation;
       }
 
       return {
         ...prevCharacter,
         assimilation: updatedAssimilation,
-        determination: updatedDetermination,
         message: message,
       };
     });
