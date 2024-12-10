@@ -364,7 +364,7 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {key}:
+              {translateKey(key)}:
             </Typography>
           </Grid>
 
@@ -401,7 +401,7 @@ const SkillList = ({
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {instinctKey}
+                    {translateKey(instinctKey)}
                   </MenuItem>
                 ))}
               </Select>
@@ -534,7 +534,7 @@ const InstinctList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{title}</Typography>
+      <Typography variant="h6">{translateKey(title)}</Typography>
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
@@ -555,7 +555,7 @@ const InstinctList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {key}
+              {translateKey(key)} {/* Aplica a tradução usando translateKey */}
             </Typography>
           </Grid>
 
@@ -584,15 +584,15 @@ const InstinctList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>Instintos</InputLabel>
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
-                label="Instintos"
+                label={translateKey("Instincts")}
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {instinctKey}
+                    {translateKey(instinctKey)} {/* Aplica a tradução */}
                   </MenuItem>
                 ))}
               </Select>
@@ -624,7 +624,7 @@ const InstinctList = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
-            Fechar
+            {translateKey("Fechar")}
           </Button>
         </DialogActions>
       </Dialog>
