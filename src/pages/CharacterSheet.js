@@ -1312,9 +1312,9 @@ const CharacterSheet = () => {
             skills={{ ...character?.knowledge, ...character?.practices }}
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
-            handleInstinctChange={handleInstinctChange}
+            handleSkillChange={handleSkillChange} // Adicionado aqui
             onRoll={handleRoll}
-            id={character?._id} // Certifique-se de que o ID está sendo passado corretamente
+            id={character?._id} // Certifique-se de que o ID está correto
           />
         </Paper>
         <Paper elevation={3} className={styles.rightColumn}>
