@@ -230,13 +230,13 @@ const SkillList = ({
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
+      await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         {
           knowledge: updatedSkills.knowledge,
@@ -248,11 +248,7 @@ const SkillList = ({
           },
         }
       );
-      console.log("Dados salvos com sucesso:", response.data);
-
-      setEditedValues({});
-      handleSkillChange("knowledge", updatedSkills.knowledge);
-      handleSkillChange("practices", updatedSkills.practices);
+      console.log("Dados salvos com sucesso");
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
@@ -263,7 +259,12 @@ const SkillList = ({
     }
   };
 
-  const toggleEditMode = () => {
+  const updateLocalSkills = (updatedSkills) => {
+    handleSkillChange("knowledge", updatedSkills.knowledge);
+    handleSkillChange("practices", updatedSkills.practices);
+  };
+
+  const toggleEditMode = async () => {
     if (editMode) {
       const updatedSkills = {
         knowledge: {},
@@ -298,11 +299,9 @@ const SkillList = ({
       });
 
       if (id) {
-        saveSkillsToBackend(updatedSkills);
-
-        Object.keys(editedValues).forEach((skillKey) => {
-          handleSkillChange(skillKey, editedValues[skillKey]);
-        });
+        await saveSkillsToBackend(updatedSkills);
+        updateLocalSkills(updatedSkills); // Atualiza o estado local.
+        setEditedValues({});
       } else {
         console.error("ID do personagem está indefinido");
       }
