@@ -256,6 +256,8 @@ const SkillList = ({
           },
         }
       );
+      console.log("Antes do PUT:", localSkills);
+      console.log("Objeto a ser enviado:", updatedSkills);
       console.log("Dados salvos com sucesso:", response.data);
       setLocalSkills({
         ...localSkills,
@@ -1080,22 +1082,25 @@ const CharacterSheet = () => {
 
   const handleInputChange = (field, value) => {
     setCharacter((prevCharacter) => {
-        const updatedCharacter = { ...prevCharacter, [field]: value };
-        saveCharacter(updatedCharacter); // Chama a função para salvar no backend
-        return updatedCharacter;
+      const updatedCharacter = { ...prevCharacter, [field]: value };
+      saveCharacter(updatedCharacter); // Chama a função para salvar no backend
+      return updatedCharacter;
     });
-};
+  };
 
-const saveCharacter = async (updatedCharacter) => {
+  const saveCharacter = async (updatedCharacter) => {
     try {
-        const response = await axios.put(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, {
-            ...updatedCharacter
-        });
-        console.log('Personagem salvo com sucesso:', response.data);
+      const response = await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        {
+          ...updatedCharacter,
+        }
+      );
+      console.log("Personagem salvo com sucesso:", response.data);
     } catch (error) {
-        console.error('Erro ao salvar personagem:', error);
+      console.error("Erro ao salvar personagem:", error);
     }
-};
+  };
 
   const saveCharacterInventory = async () => {
     const token = localStorage.getItem("token");
