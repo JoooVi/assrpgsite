@@ -75,7 +75,6 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #2d2d2d;
   margin: 0 auto; /* Centraliza horizontalmente */
   text-align: center; /* Centraliza o texto dentro do elemento */
 }
