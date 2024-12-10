@@ -795,10 +795,6 @@ const CharacterSheet = () => {
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setCharacter({ ...character, [field]: value });
-  };
-
   const handleHealthChange = (index, value) => {
     const updatedHealthLevels = [...character?.healthLevels];
     updatedHealthLevels[index] = value;
@@ -1082,6 +1078,28 @@ const CharacterSheet = () => {
     });
   };
 
+  const handleInputChange = (field, value) => {
+    setCharacter((prevCharacter) => {
+      const updatedCharacter = { ...prevCharacter, [field]: value };
+      saveCharacter(updatedCharacter); // Chama a função para salvar no backend
+      return updatedCharacter;
+    });
+  };
+
+  const saveCharacter = async (updatedCharacter) => {
+    try {
+      const response = await axios.post(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+        {
+          ...updatedCharacter,
+        }
+      );
+      console.log("Personagem salvo com sucesso:", response.data);
+    } catch (error) {
+      console.error("Erro ao salvar personagem:", error);
+    }
+  };
+
   const saveCharacterInventory = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -1102,13 +1120,6 @@ const CharacterSheet = () => {
     } catch (error) {
       console.error("Erro ao salvar o inventário do personagem:", error);
     }
-  };
-
-  const generationMap = {
-    "Pre Collapse": "Pré colapso",
-    Collapse: "Colapso",
-    "Post Collapse": "Pós colapso",
-    Current: "Atual",
   };
 
   useEffect(() => {
@@ -1371,9 +1382,8 @@ const CharacterSheet = () => {
             skills={{ ...character?.knowledge, ...character?.practices }}
             instincts={character?.instincts || {}}
             selectedInstinct={selectedInstinct}
-            handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
-            id={character?._id} // Certifique-se de que o ID está sendo passado corretamente
+            id={character?._id}
           />
         </Paper>
         <Paper elevation={3} className={styles.rightColumn}>
