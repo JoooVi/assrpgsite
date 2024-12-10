@@ -230,6 +230,7 @@ const SkillList = ({
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Função para salvar as habilidades (skills) no backend
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true);
     try {
@@ -264,6 +265,7 @@ const SkillList = ({
     }
   };
 
+  // Função para alternar o modo de edição
   const toggleEditMode = async () => {
     if (editMode) {
       const updatedSkills = {
@@ -307,6 +309,7 @@ const SkillList = ({
     setEditMode(!editMode);
   };
 
+  // Função para atualizar o valor editado de uma habilidade
   const handleEditedValueChange = (skillKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
@@ -314,15 +317,16 @@ const SkillList = ({
     }));
   };
 
+  // Função para abrir o modal de descrição da habilidade
   const handleSkillClick = (skillKey) => {
     setSelectedSkill(skillKey);
     setOpen(true);
   };
 
+  // Função para obter a descrição de cada habilidade
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -338,6 +342,11 @@ const SkillList = ({
     return descriptions[key] || "Descrição não disponível.";
   };
 
+  // Função para alterar o instinto selecionado de uma habilidade
+  const handleInstinctChangeForSkill = (skillKey, instinctKey) => {
+    handleInstinctChange(skillKey, instinctKey);
+  };
+
   return (
     <Box>
       <Typography variant="h6">{translateKey(title)}</Typography>
@@ -349,6 +358,7 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
+
       {Object.entries(localSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
@@ -393,7 +403,9 @@ const SkillList = ({
               <Select
                 label={translateKey("Instintos")}
                 value={selectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChange(key, e.target.value)}
+                onChange={(e) =>
+                  handleInstinctChangeForSkill(key, e.target.value)
+                }
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
@@ -552,6 +564,29 @@ const InstinctList = ({
           </Grid>
 
           <Grid item xs={4} sm={2}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+              sx={{ minWidth: 100 }}
+            >
+              <InputLabel>{translateKey("Instintos")}</InputLabel>
+              <Select
+                label={translateKey("Instintos")}
+                value={selectedInstinct[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {translateKey(instinctKey)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={4} sm={2}>
             <Button
               variant="contained"
               color="primary"
@@ -559,7 +594,7 @@ const InstinctList = ({
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
-              <MeuIcone style={{ width: "24px", height: "24px" }} />
+              {translateKey("Rolar")}
             </Button>
           </Grid>
         </Grid>
