@@ -229,50 +229,71 @@ const SkillList = ({
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
-  const [localSelectedInstinct, setLocalSelectedInstinct] =
-    useState(selectedInstinct);
+  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
 
   useEffect(() => {
-    setLocalSkills(skills);
-  }, [skills]);
+  setLocalSkills(skills);
+}, [skills]); // add skills as dependency
 
-  useEffect(() => {
-    setLocalSelectedInstinct(selectedInstinct);
-  }, [selectedInstinct]); 
+useEffect(() => {
+  setLocalSelectedInstinct(selectedInstinct);
+}, [selectedInstinct]); // add selectedInstinct as dependency
 
   const saveSkillsToBackend = async (updatedSkills) => {
     // ...
     try {
-      // ...
-      setLocalSkills({
-        ...localSkills,
-        ...updatedSkills.knowledge,
-        ...updatedSkills.practices,
-      });
-      // Fetch dos dados atualizados
-      const response = await axios.get(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`
-      );
-      setLocalSkills(response.data);
+        // ...
+        setLocalSkills({
+            ...localSkills,
+            ...updatedSkills.knowledge,
+            ...updatedSkills.practices,
+        });
+        // Fetch dos dados atualizados
+        const response = await axios.get(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`);
+        setLocalSkills(response.data);
     } catch (error) {
-      // ...
+        // ...
     } finally {
-      // ...
+        // ...
     }
-  };
+};
 
   const toggleEditMode = () => {
     if (editMode) {
-      const updatedSkills = Object.keys(editedValues).reduce((acc, skillKey) => {
-        const category = knowledgeKeys.includes(skillKey) ? 'knowledge' : 'practices';
-        acc[category][skillKey] = editedValues[skillKey];
-        return acc;
-    }, { knowledge: {}, practices: {} });
+      const updatedSkills = {
+        knowledge: {},
+        practices: {},
+      };
+
+      const knowledgeKeys = [
+        "agrarian",
+        "biological",
+        "exact",
+        "medicine",
+        "social",
+        "artistic",
+      ];
+      const practiceKeys = [
+        "sports",
+        "tools",
+        "crafts",
+        "weapons",
+        "vehicles",
+        "infiltration",
+      ];
+
+      Object.keys(editedValues).forEach((skillKey) => {
+        if (localSkills[skillKey] !== undefined) {
+          if (knowledgeKeys.includes(skillKey)) {
+            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
+          } else if (practiceKeys.includes(skillKey)) {
+            updatedSkills.practices[skillKey] = editedValues[skillKey];
+          }
+        }
+      });
 
       if (id) {
-        saveSkillsToBackend(updatedSkills)
-          .then(() => {})
-          .catch((error) => {});
+        saveSkillsToBackend(updatedSkills);
       } else {
         console.error("ID do personagem está indefinido");
       }
@@ -294,8 +315,7 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -396,9 +416,7 @@ const SkillList = ({
               <Select
                 label="Instintos"
                 value={localSelectedInstinct[key] || ""}
-                onChange={(e) =>
-                  handleInstinctChangeUpdated(key, e.target.value)
-                }
+                onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
