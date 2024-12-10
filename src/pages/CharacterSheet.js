@@ -229,7 +229,8 @@ const SkillList = ({
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
-  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
+  const [localSelectedInstinct, setLocalSelectedInstinct] =
+    useState(selectedInstinct);
 
   useEffect(() => {
     setLocalSkills(skills);
@@ -237,74 +238,41 @@ const SkillList = ({
 
   useEffect(() => {
     setLocalSelectedInstinct(selectedInstinct);
-  }, [selectedInstinct]);
+  }, [selectedInstinct]); 
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true);
+    // ...
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        {
-          knowledge: updatedSkills.knowledge,
-          practices: updatedSkills.practices,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Dados salvos com sucesso:", response.data);
+      // ...
       setLocalSkills({
         ...localSkills,
         ...updatedSkills.knowledge,
         ...updatedSkills.practices,
       });
-      setEditedValues({});
+      // Fetch dos dados atualizados
+      const response = await axios.get(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`
+      );
+      setLocalSkills(response.data);
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
+      // ...
     } finally {
-      setLoading(false);
+      // ...
     }
   };
 
   const toggleEditMode = () => {
     if (editMode) {
-      const updatedSkills = {
-        knowledge: {},
-        practices: {},
-      };
-
-      const knowledgeKeys = [
-        "agrarian",
-        "biological",
-        "exact",
-        "medicine",
-        "social",
-        "artistic",
-      ];
-      const practiceKeys = [
-        "sports",
-        "tools",
-        "crafts",
-        "weapons",
-        "vehicles",
-        "infiltration",
-      ];
-
-      Object.keys(editedValues).forEach((skillKey) => {
-        if (localSkills[skillKey] !== undefined) {
-          if (knowledgeKeys.includes(skillKey)) {
-            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
-          } else if (practiceKeys.includes(skillKey)) {
-            updatedSkills.practices[skillKey] = editedValues[skillKey];
-          }
-        }
-      });
+      const updatedSkills = Object.keys(editedValues).reduce((acc, skillKey) => {
+        const category = knowledgeKeys.includes(skillKey) ? 'knowledge' : 'practices';
+        acc[category][skillKey] = editedValues[skillKey];
+        return acc;
+    }, { knowledge: {}, practices: {} });
 
       if (id) {
-        saveSkillsToBackend(updatedSkills);
+        saveSkillsToBackend(updatedSkills)
+          .then(() => {})
+          .catch((error) => {});
       } else {
         console.error("ID do personagem está indefinido");
       }
@@ -326,7 +294,8 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -427,7 +396,9 @@ const SkillList = ({
               <Select
                 label="Instintos"
                 value={localSelectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
+                onChange={(e) =>
+                  handleInstinctChangeUpdated(key, e.target.value)
+                }
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
