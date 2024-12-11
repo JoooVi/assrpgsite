@@ -230,44 +230,20 @@ const SkillList = ({
   loading,
 }) => {
   const dispatch = useDispatch();
-  const globalSkills = useSelector((state) => state.skills.skills); // Acessando o estado global de skills
+  const globalSkills = useSelector((state) => state.skills.skills); // Pegando as habilidades do estado global
 
-  const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [localSelectedInstinct, setLocalSelectedInstinct] =
-    useState(selectedInstinct);
-
-  // Chaves de habilidades (knowledge e practices)
-  const knowledgeKeys = [
-    "agrarian",
-    "biological",
-    "exact",
-    "medicine",
-    "social",
-    "artistic",
-  ];
-  const practiceKeys = [
-    "sports",
-    "tools",
-    "crafts",
-    "weapons",
-    "vehicles",
-    "infiltration",
-  ];
 
   useEffect(() => {
-    setLocalSkills(skills);
-  }, [skills]);
-
-  useEffect(() => {
-    setLocalSelectedInstinct(selectedInstinct);
-  }, [selectedInstinct]);
+    // Atualiza as habilidades locais (pode ser removido se não for necessário)
+    setEditedValues(globalSkills);
+  }, [globalSkills]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true);  // Inicia o carregamento
+    setLoading(true); // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -282,32 +258,24 @@ const SkillList = ({
           },
         }
       );
-      
-      // Atualiza o estado local e global com os dados salvos no backend
-      const updatedSkillsState = { ...localSkills, ...updatedSkills };
-      setLocalSkills(updatedSkillsState);
-      dispatch(updateSkills(updatedSkillsState));
-  
-      setEditedValues({}); // Limpa as edições após a atualização
+
+      // Atualiza as habilidades no Redux
+      dispatch(updateSkills(updatedSkills));
     } catch (error) {
       console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
-      setLoading(false);  // Finaliza o carregamento
+      setLoading(false); // Finaliza o carregamento
     }
-  };  
+  };
 
   const toggleEditMode = () => {
     if (editMode) {
       const updatedSkills = Object.entries(editedValues).reduce(
         (acc, [skillKey, value]) => {
-          if (knowledgeKeys.includes(skillKey)) {
-            acc.knowledge[skillKey] = value;
-          } else if (practiceKeys.includes(skillKey)) {
-            acc.practices[skillKey] = value;
-          }
+          acc[skillKey] = value;
           return acc;
         },
-        { knowledge: {}, practices: {} }
+        {}
       );
 
       if (id && Object.keys(editedValues).length > 0) {
@@ -331,8 +299,7 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -348,18 +315,6 @@ const SkillList = ({
     return descriptions[key] || "Descrição não disponível.";
   };
 
-  const handleRoll = (key) => {
-    onRoll(key, localSelectedInstinct[key], localSkills[key]);
-  };
-
-  const handleInstinctChangeUpdated = (skillKey, value) => {
-    handleInstinctChange(skillKey, value);
-    setLocalSelectedInstinct((prev) => ({
-      ...prev,
-      [skillKey]: value,
-    }));
-  };
-
   return (
     <Box>
       <Typography variant="h6">{translateKey(title)}</Typography>
@@ -371,7 +326,7 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
-      {Object.entries(localSkills).map(([key, value]) => (
+      {Object.entries(globalSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
             <Typography
@@ -389,9 +344,7 @@ const SkillList = ({
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={
-                  editedValues[key] !== undefined ? editedValues[key] : value
-                }
+                value={editedValues[key] !== undefined ? editedValues[key] : value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
@@ -416,10 +369,8 @@ const SkillList = ({
               <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
                 label={translateKey("Instincts")}
-                value={localSelectedInstinct[key] || ""}
-                onChange={(e) =>
-                  handleInstinctChangeUpdated(key, e.target.value)
-                }
+                value={instincts[key] || ""}
+                onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
@@ -434,7 +385,7 @@ const SkillList = ({
             <Button
               variant="contained"
               color="primary"
-              onClick={() => handleRoll(key)}
+              onClick={() => onRoll(key, instincts[key], value)}
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
@@ -443,11 +394,9 @@ const SkillList = ({
           </Grid>
         </Grid>
       ))}
+
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>
-          {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
-        </DialogTitle>
+        <DialogTitle>{selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}</DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
         </DialogContent>
@@ -464,16 +413,17 @@ const SkillList = ({
 const InstinctList = ({
   title,
   instincts,
-  selectedInstinct,
-  handleInstinctChange,
-  onAssimilatedRoll,
   id,
+  onAssimilatedRoll,
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const selectedInstinct = useSelector((state) => state.character.selectedInstinct); // Acesse o instinto selecionado no Redux
 
   const handleInstinctClick = (instinctKey) => {
     setSelectedInstinctKey(instinctKey);
@@ -497,7 +447,7 @@ const InstinctList = ({
 
     // Atualização otimista
     const prevInstincts = { ...instincts };
-    handleInstinctChange({ ...instincts, ...updatedInstincts });
+    dispatch(setSelectedInstinct({ ...selectedInstinct, ...updatedInstincts }));
 
     try {
       const token = localStorage.getItem("token");
@@ -511,12 +461,9 @@ const InstinctList = ({
         }
       );
     } catch (error) {
-      console.error(
-        "Erro ao salvar os instintos:",
-        error.response?.data || error.message
-      );
+      console.error("Erro ao salvar os instintos:", error.response?.data || error.message);
       // Reverte atualização otimista em caso de erro
-      handleInstinctChange(prevInstincts);
+      dispatch(setSelectedInstinct(prevInstincts));
     } finally {
       setLoading(false);
       setEditedValues({});
@@ -530,10 +477,7 @@ const InstinctList = ({
 
       Object.keys(editedValues).forEach((instinctKey) => {
         if (instincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = parseInt(
-            editedValues[instinctKey],
-            10
-          );
+          updatedInstincts[instinctKey] = parseInt(editedValues[instinctKey], 10);
         }
       });
 
@@ -552,6 +496,10 @@ const InstinctList = ({
       ...prev,
       [instinctKey]: value,
     }));
+  };
+
+  const handleInstinctChange = (key, value) => {
+    dispatch(setSelectedInstinct({ ...selectedInstinct, [key]: value })); // Atualiza o instinto selecionado no Redux
   };
 
   return (
@@ -577,7 +525,7 @@ const InstinctList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)} {/* Aplica a tradução usando translateKey */}
+              {translateKey(key)} {/* Aplica a tradução */}
             </Typography>
           </Grid>
 
@@ -795,14 +743,6 @@ const CharacterSheet = () => {
     setSnackbarOpen(true);
   };
 
-  const getHealthColorGradient = (points) => {
-    if (points >= 4) return "green, limegreen"; // Verde para saudável
-    if (points === 3) return "yellow, orange"; // Amarelo para leve dano
-    if (points === 2) return "orange, red"; // Laranja para mais dano
-    if (points === 1) return "red, darkred"; // Vermelho para estado crítico
-    return "black, gray"; // Preto para morte
-  };
-
   const handleCustomRoll = () => {
     setRollResult(null);
     setCustomRollResult(null);
@@ -849,10 +789,10 @@ const CharacterSheet = () => {
       updatedInventory[index] = {
         ...updatedInventory[index],
         item: updatedItem,
-        currentUses: updatedItem.currentUses || 0, // Atualize currentUses com o valor correto
-        durability: updatedItem.durability || 0, // Garanta que a durabilidade é salva corretamente
+        currentUses: updatedItem.currentUses || 0,
+        durability: updatedItem.durability || 0,
       };
-
+    
       const payload = {
         inventory: updatedInventory.map((invItem) => ({
           item: invItem.item._id || invItem.item,
@@ -868,11 +808,11 @@ const CharacterSheet = () => {
           },
         })),
       };
-
+    
       console.log("Payload enviado ao backend:", payload);
-
+    
       await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
         payload,
         {
           headers: {
@@ -880,16 +820,21 @@ const CharacterSheet = () => {
           },
         }
       );
-
+    
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: updatedInventory,
       }));
-      setEditItem(null); // Fecha o diálogo após salvar
     } catch (error) {
       console.error("Erro ao salvar o item:", error);
-      console.log(error.response); // Verifique a resposta de erro do Axios
-    }
+      if (error.response) {
+        console.log(error.response);
+      } else {
+        console.log("Erro desconhecido:", error.message);
+      }
+    } finally {
+      setEditItem(null); // Garante que o diálogo será fechado independentemente do sucesso ou falha.
+    }    
   };
 
   const handleSnackbarClose = (event, reason) => {
@@ -1333,6 +1278,7 @@ const CharacterSheet = () => {
             </Box>
           </Box>
         </Paper>
+
         <Paper elevation={3} className={styles.centerColumn}>
           {console.log("Character:", character)}
           <SkillList
