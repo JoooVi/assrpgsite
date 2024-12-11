@@ -6,8 +6,6 @@ import {
   fetchCharacterFailure,
   updateCharacter,
   updateCharacterFailure,
-  // Adicione aqui a importação de `updateInstincts` do `characterSlice`
-  updateInstincts
 } from '../slices/characterSlice';
 
 // Função para buscar os dados do personagem
@@ -49,5 +47,4 @@ export const updateCharacterData = (id, token, updatedData) => async (dispatch) 
   }
 };
 
-// Certifique-se de exportar `updateInstincts` corretamente
 export const { updateInstincts } = characterSlice.actions;

@@ -45,8 +45,35 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
-import { fetchCharacter, updateCharacterData } from '../redux/actions/characterActions';
-import { fetchCharacterFailure, updateCharacter, updateCharacterFailure, updateInstincts, setSelectedInstinct, setLoading, setNotes } from '../redux/slices/characterSlice';
+import {
+  fetchCharacter,
+  updateCharacterData,
+} from "../redux/actions/characterActions";
+import {
+  fetchCharacterStart,
+  fetchCharacterSuccess,
+  fetchCharacterFailure,
+  updateCharacter,
+  updateCharacterFailure,
+  setNotes,
+  setInventory,
+  setSelectedInstinct,
+  setRollResult,
+  setCustomRollResult,
+  setSnackbarOpen,
+  setSelectedTab,
+  setOpenItemsModal,
+  setOpenAssimilationsModal,
+  setOpenCharacteristicsModal,
+  setSelectedItem,
+  setCharacteristics,
+  setAssimilations,
+  setMaxWeight,
+  setEditItem,
+  setCustomDiceFormula,
+  updateCharacterInventory,
+} from "../redux/slices/characterSlice";
+
 
 const translateKey = (key) => {
   const translations = {
@@ -243,7 +270,7 @@ const SkillList = ({
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         {
@@ -259,7 +286,10 @@ const SkillList = ({
 
       dispatch(updateSkills(updatedSkills)); // Atualiza as habilidades no Redux
     } catch (error) {
-      console.error('Erro ao salvar os dados:', error.response?.data || error.message);
+      console.error(
+        "Erro ao salvar os dados:",
+        error.response?.data || error.message
+      );
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
@@ -296,20 +326,21 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: 'Conhecimento relacionado à agricultura e manejo de plantações.',
-      biological: 'Estudos sobre ecossistemas, fauna e flora.',
-      exact: 'Compreensão matemática e cálculos avançados.',
-      medicine: 'Práticas médicas e tratamentos de saúde.',
-      social: 'Habilidades de interação e negociação.',
-      artistic: 'Capacidade de criação artística e expressão visual.',
-      sports: 'Habilidades atléticas e esportivas.',
-      tools: 'Capacidade de manuseio de ferramentas diversas.',
-      crafts: 'Conhecimento sobre vários tipos de ofícios.',
-      weapons: 'Habilidade no uso de armas de combate.',
-      vehicles: 'Conhecimento e manuseio de veículos diversos.',
-      infiltration: 'Habilidade em infiltração e furtividade.',
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      biological: "Estudos sobre ecossistemas, fauna e flora.",
+      exact: "Compreensão matemática e cálculos avançados.",
+      medicine: "Práticas médicas e tratamentos de saúde.",
+      social: "Habilidades de interação e negociação.",
+      artistic: "Capacidade de criação artística e expressão visual.",
+      sports: "Habilidades atléticas e esportivas.",
+      tools: "Capacidade de manuseio de ferramentas diversas.",
+      crafts: "Conhecimento sobre vários tipos de ofícios.",
+      weapons: "Habilidade no uso de armas de combate.",
+      vehicles: "Conhecimento e manuseio de veículos diversos.",
+      infiltration: "Habilidade em infiltração e furtividade.",
     };
-    return descriptions[key] || 'Descrição não disponível.';
+    return descriptions[key] || "Descrição não disponível.";
   };
 
   return (
@@ -317,9 +348,9 @@ const SkillList = ({
       <Typography variant="h6">{translateKey(title)}</Typography>
       <Button
         variant="contained"
-        color={editMode ? 'secondary' : 'primary'}
+        color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        sx={{ padding: '4px', minWidth: 'unset' }}
+        sx={{ padding: "4px", minWidth: "unset" }}
       >
         <EditIcon />
       </Button>
@@ -329,9 +360,9 @@ const SkillList = ({
             <Typography
               onClick={() => handleSkillClick(key)}
               sx={{
-                cursor: 'pointer',
-                color: 'text.primary',
-                '&:hover': { color: 'primary.main' },
+                cursor: "pointer",
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
               }}
             >
               {translateKey(key)}:
@@ -341,13 +372,15 @@ const SkillList = ({
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] !== undefined ? editedValues[key] : value}
+                value={
+                  editedValues[key] !== undefined ? editedValues[key] : value
+                }
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: 'center' },
+                  style: { textAlign: "center" },
                 }}
               />
             ) : (
@@ -363,10 +396,10 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey('Instincts')}</InputLabel>
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
-                label={translateKey('Instincts')}
-                value={instincts[key] || ''}
+                label={translateKey("Instincts")}
+                value={instincts[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
@@ -384,9 +417,9 @@ const SkillList = ({
               color="primary"
               onClick={() => onRoll(key, instincts[key], value)}
               fullWidth
-              sx={{ marginLeft: '28px' }}
+              sx={{ marginLeft: "28px" }}
             >
-              <MeuIcone style={{ width: '24px', height: '24px' }} />
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
@@ -394,14 +427,15 @@ const SkillList = ({
 
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
-          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+          {selectedSkill &&
+            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
-            {translateKey('Close')}
+            {translateKey("Close")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -409,11 +443,7 @@ const SkillList = ({
   );
 };
 
-const InstinctList = ({
-  title,
-  id,
-  onAssimilatedRoll,
-}) => {
+const InstinctList = ({ title, id, onAssimilatedRoll }) => {
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -422,7 +452,9 @@ const InstinctList = ({
 
   const dispatch = useDispatch();
   const instincts = useSelector((state) => state.instinct.instincts); // Acesse os instintos do Redux
-  const selectedInstinct = useSelector((state) => state.instinct.selectedInstinct); // Acesse o instinto selecionado no Redux
+  const selectedInstinct = useSelector(
+    (state) => state.instinct.selectedInstinct
+  ); // Acesse o instinto selecionado no Redux
 
   const handleInstinctClick = (instinctKey) => {
     setSelectedInstinctKey(instinctKey);
@@ -431,14 +463,14 @@ const InstinctList = ({
 
   const getInstinctDescription = (key) => {
     const descriptions = {
-      reaction: 'Habilidade de reagir rapidamente a mudanças no ambiente.',
-      perception: 'Sensibilidade aos detalhes e mudanças no ambiente.',
-      sagacity: 'Capacidade de tomar decisões rápidas e eficazes.',
-      potency: 'Força física e resistência para superar obstáculos.',
-      influence: 'Habilidade de convencer ou manipular outros.',
-      resolution: 'Capacidade de persistir diante de dificuldades.',
+      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
+      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
+      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
+      potency: "Força física e resistência para superar obstáculos.",
+      influence: "Habilidade de convencer ou manipular outros.",
+      resolution: "Capacidade de persistir diante de dificuldades.",
     };
-    return descriptions[key] || 'Descrição não disponível.';
+    return descriptions[key] || "Descrição não disponível.";
   };
 
   const saveInstinctsToBackend = async (updatedInstincts) => {
@@ -449,7 +481,7 @@ const InstinctList = ({
     dispatch(updateInstincts({ ...instincts, ...updatedInstincts }));
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
@@ -460,7 +492,10 @@ const InstinctList = ({
         }
       );
     } catch (error) {
-      console.error('Erro ao salvar os instintos:', error.response?.data || error.message);
+      console.error(
+        "Erro ao salvar os instintos:",
+        error.response?.data || error.message
+      );
       // Reverte atualização otimista em caso de erro
       dispatch(updateInstincts(prevInstincts));
     } finally {
@@ -476,14 +511,17 @@ const InstinctList = ({
 
       Object.keys(editedValues).forEach((instinctKey) => {
         if (instincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = parseInt(editedValues[instinctKey], 10);
+          updatedInstincts[instinctKey] = parseInt(
+            editedValues[instinctKey],
+            10
+          );
         }
       });
 
       if (id) {
         saveInstinctsToBackend(updatedInstincts);
       } else {
-        console.error('ID do personagem está indefinido');
+        console.error("ID do personagem está indefinido");
       }
     } else {
       setEditMode(true);
@@ -506,9 +544,9 @@ const InstinctList = ({
       <Typography variant="h6">{translateKey(title)}</Typography>
       <Button
         variant="contained"
-        color={editMode ? 'secondary' : 'primary'}
+        color={editMode ? "secondary" : "primary"}
         onClick={toggleEditMode}
-        sx={{ padding: '4px', minWidth: 'unset' }}
+        sx={{ padding: "4px", minWidth: "unset" }}
       >
         <EditIcon />
       </Button>
@@ -519,9 +557,9 @@ const InstinctList = ({
             <Typography
               onClick={() => handleInstinctClick(key)}
               sx={{
-                cursor: 'pointer',
-                color: 'text.primary',
-                '&:hover': { color: 'primary.main' },
+                cursor: "pointer",
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
               }}
             >
               {translateKey(key)} {/* Aplica a tradução */}
@@ -533,11 +571,11 @@ const InstinctList = ({
               <TextField
                 value={editedValues[key] || value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                size='small'
-                variant='outlined'
+                size="small"
+                variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: 'center' },
+                  style: { textAlign: "center" },
                 }}
               />
             ) : (
@@ -547,16 +585,16 @@ const InstinctList = ({
 
           <Grid item xs={4} sm={3}>
             <FormControl
-              variant='outlined'
-              margin='dense'
-              size='small'
+              variant="outlined"
+              margin="dense"
+              size="small"
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey('Instincts')}</InputLabel>
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
-                label={translateKey('Instincts')}
-                value={selectedInstinct[key] || ''}
+                label={translateKey("Instincts")}
+                value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
@@ -570,13 +608,13 @@ const InstinctList = ({
 
           <Grid item xs={4} sm={2}>
             <Button
-              variant='contained'
-              color='primary'
+              variant="contained"
+              color="primary"
               onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{ marginLeft: '28px' }}
+              sx={{ marginLeft: "28px" }}
             >
-              <MeuIcone2 style={{ width: '24px', height: '24px' }} />
+              <MeuIcone2 style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
@@ -592,8 +630,8 @@ const InstinctList = ({
           <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} color='primary'>
-            {translateKey('Fechar')}
+          <Button onClick={() => setOpen(false)} color="primary">
+            {translateKey("Fechar")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -608,7 +646,9 @@ const CharacterSheet = () => {
   const loading = useSelector((state) => state.character.loading);
   const error = useSelector((state) => state.character.error);
   const inventoryItems = useSelector((state) => state.character.inventory);
-  const characteristics = useSelector((state) => state.character.characteristics);
+  const characteristics = useSelector(
+    (state) => state.character.characteristics
+  );
   const assimilations = useSelector((state) => state.character.assimilations);
   const notes = useSelector((state) => state.character.notes);
   const [selectedInstinct, setSelectedInstinct] = useState({});
@@ -619,50 +659,54 @@ const CharacterSheet = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [openItemsModal, setOpenItemsModal] = useState(false);
   const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
-  const [openCharacteristicsModal, setOpenCharacteristicsModal] = useState(false);
+  const [openCharacteristicsModal, setOpenCharacteristicsModal] =
+    useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
-  const [customDiceFormula, setCustomDiceFormula] = useState('');
+  const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [setNotes] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       dispatch(fetchCharacter(id, token)); // Dispara a ação de fetch
     } else {
-      dispatch(fetchCharacterFailure('Você precisa estar autenticado para acessar esta página'));
+      dispatch(
+        fetchCharacterFailure(
+          "Você precisa estar autenticado para acessar esta página"
+        )
+      );
     }
   }, [id, dispatch]);
 
   const calculateTotalWeight = () => {
-    const inventoryWeight = (inventoryItems || []).reduce(
-      (total, invItem) => {
-        if (invItem?.item?.weight) {
-          return total + invItem.item.weight;
-        }
-        return total;
-      },
-      0
-    );
+    const inventoryWeight = (inventoryItems || []).reduce((total, invItem) => {
+      if (invItem?.item?.weight) {
+        return total + invItem.item.weight;
+      }
+      return total;
+    }, 0);
 
     const weightModifier = character?.buffs?.weightReduction || 0;
     return inventoryWeight - weightModifier;
   };
 
   const fetchCharacteristics = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        'https://assrpgsite-be-production.up.railway.app/api/charactertraits', // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/charactertraits", // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      dispatch(updateCharacter({ ...character, characteristics: response.data }));
+      dispatch(
+        updateCharacter({ ...character, characteristics: response.data })
+      );
     } catch (error) {
-      console.error('Erro ao buscar características:', error);
+      console.error("Erro ao buscar características:", error);
     }
   };
 
@@ -681,10 +725,10 @@ const CharacterSheet = () => {
   };
 
   const fetchAssimilations = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        'https://assrpgsite-be-production.up.railway.app/api/assimilations', // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/assimilations", // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -693,15 +737,15 @@ const CharacterSheet = () => {
       );
       dispatch(updateCharacter({ ...character, assimilations: response.data }));
     } catch (error) {
-      console.error('Erro ao buscar assimilações:', error);
+      console.error("Erro ao buscar assimilações:", error);
     }
   };
 
   const fetchInventoryItems = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        'https://assrpgsite-be-production.up.railway.app/api/items', // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/items", // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -710,14 +754,16 @@ const CharacterSheet = () => {
       );
       dispatch(updateCharacter({ ...character, inventory: response.data }));
     } catch (error) {
-      console.error('Erro ao buscar itens do inventário:', error);
+      console.error("Erro ao buscar itens do inventário:", error);
     }
   };
 
   const handleHealthChange = (index, value) => {
     const updatedHealthLevels = [...character?.healthLevels];
     updatedHealthLevels[index] = value;
-    dispatch(updateCharacter({ ...character, healthLevels: updatedHealthLevels }));
+    dispatch(
+      updateCharacter({ ...character, healthLevels: updatedHealthLevels })
+    );
   };
 
   const handleInstinctChange = (skill, instinct) => {
@@ -731,8 +777,8 @@ const CharacterSheet = () => {
       updatedInventory[index] = {
         ...updatedInventory[index],
         item: updatedItem,
-        currentUses: updatedItem.currentUses || 0, // Atualize currentUses com o valor correto
-        durability: updatedItem.durability || 0, // Garanta que a durabilidade é salva corretamente
+        currentUses: updatedItem.currentUses || 0,
+        durability: updatedItem.durability || 0,
       };
 
       const payload = {
@@ -754,7 +800,7 @@ const CharacterSheet = () => {
       console.log("Payload enviado ao backend:", payload);
 
       await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
         payload,
         {
           headers: {
@@ -763,11 +809,9 @@ const CharacterSheet = () => {
         }
       );
 
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        inventory: updatedInventory,
-      }));
-      setEditItem(null); // Fecha o diálogo após salvar
+      // Despachando a ação de atualização no Redux
+      dispatch(updateCharacterInventory({ inventory: updatedInventory }));
+      dispatch(setEditItem(null)); // Fecha o diálogo após salvar
     } catch (error) {
       console.error("Erro ao salvar o item:", error);
       console.log(error.response); // Verifique a resposta de erro do Axios
@@ -779,7 +823,7 @@ const CharacterSheet = () => {
     setCustomRollResult(null);
 
     if (!selectedInstinct) {
-      console.warn('Instinto não selecionado!');
+      console.warn("Instinto não selecionado!");
       return;
     }
 
@@ -789,7 +833,7 @@ const CharacterSheet = () => {
       (character?.practices?.[skill] || 0);
 
     if (diceCountInstinct === 0 && diceCountSkill === 0) {
-      console.warn('Nenhum dado disponível para rolagem!');
+      console.warn("Nenhum dado disponível para rolagem!");
       return;
     }
 
@@ -832,26 +876,30 @@ const CharacterSheet = () => {
   };
 
   const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setSnackbarOpen(false);
   };
 
   const handleCharacteristicDelete = (index) => {
-    dispatch(updateCharacter((prevCharacter) => {
-      const newCharacteristics = [...(prevCharacter?.characteristics || [])];
-      newCharacteristics.splice(index, 1);
-      return { ...prevCharacter, characteristics: newCharacteristics };
-    }));
+    dispatch(
+      updateCharacter((prevCharacter) => {
+        const newCharacteristics = [...(prevCharacter?.characteristics || [])];
+        newCharacteristics.splice(index, 1);
+        return { ...prevCharacter, characteristics: newCharacteristics };
+      })
+    );
   };
 
   const handleAssimilationDelete = (index) => {
-    dispatch(updateCharacter((prevCharacter) => {
-      const newAssimilations = [...(prevCharacter?.assimilations || [])];
-      newAssimilations.splice(index, 1);
-      return { ...prevCharacter, assimilations: newAssimilations };
-    }));
+    dispatch(
+      updateCharacter((prevCharacter) => {
+        const newAssimilations = [...(prevCharacter?.assimilations || [])];
+        newAssimilations.splice(index, 1);
+        return { ...prevCharacter, assimilations: newAssimilations };
+      })
+    );
   };
 
   const handleTabChange = (event, newValue) => {
@@ -859,48 +907,56 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    dispatch(updateCharacter((prevCharacter) => {
-      let updatedDetermination = newValue;
-      let updatedAssimilation = prevCharacter?.assimilation || 0;
-      let message = null;
+    dispatch(
+      updateCharacter((prevCharacter) => {
+        let updatedDetermination = newValue;
+        let updatedAssimilation = prevCharacter?.assimilation || 0;
+        let message = null;
 
-      if (updatedDetermination <= 0 && updatedAssimilation < 9) {
-        updatedAssimilation += 1;
-        updatedDetermination = 10 - updatedAssimilation;
-        message = 'Você perdeu pontos de Determinação suficientes para cair uma casa!';
-      }
+        if (updatedDetermination <= 0 && updatedAssimilation < 9) {
+          updatedAssimilation += 1;
+          updatedDetermination = 10 - updatedAssimilation;
+          message =
+            "Você perdeu pontos de Determinação suficientes para cair uma casa!";
+        }
 
-      if (updatedDetermination > 10 - updatedAssimilation && updatedAssimilation > 0) {
-        updatedAssimilation -= 1;
-        updatedDetermination = newValue;
-      }
+        if (
+          updatedDetermination > 10 - updatedAssimilation &&
+          updatedAssimilation > 0
+        ) {
+          updatedAssimilation -= 1;
+          updatedDetermination = newValue;
+        }
 
-      return {
-        ...prevCharacter,
-        determination: updatedDetermination,
-        assimilation: updatedAssimilation,
-        message: message,
-      };
-    }));
+        return {
+          ...prevCharacter,
+          determination: updatedDetermination,
+          assimilation: updatedAssimilation,
+          message: message,
+        };
+      })
+    );
   };
 
   const handleAssimilationChange = (event, newValue) => {
-    dispatch(updateCharacter((prevCharacter) => {
-      let updatedAssimilation = newValue;
-      let maxAssimilation = 10 - (prevCharacter?.determination || 0);
-      let message = null;
+    dispatch(
+      updateCharacter((prevCharacter) => {
+        let updatedAssimilation = newValue;
+        let maxAssimilation = 10 - (prevCharacter?.determination || 0);
+        let message = null;
 
-      if (updatedAssimilation > maxAssimilation) {
-        message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
-        updatedAssimilation = prevCharacter.assimilation;
-      }
+        if (updatedAssimilation > maxAssimilation) {
+          message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
+          updatedAssimilation = prevCharacter.assimilation;
+        }
 
-      return {
-        ...prevCharacter,
-        assimilation: updatedAssimilation,
-        message: message,
-      };
-    }));
+        return {
+          ...prevCharacter,
+          assimilation: updatedAssimilation,
+          message: message,
+        };
+      })
+    );
   };
 
   const handleOpenItemsModal = () => {
@@ -920,38 +976,45 @@ const CharacterSheet = () => {
 
   const handleCloseItemsModal = () => setOpenItemsModal(false);
   const handleCloseAssimilationsModal = () => setOpenAssimilationsModal(false);
-  const handleCloseCharacteristicsModal = () => setOpenCharacteristicsModal(false);
+  const handleCloseCharacteristicsModal = () =>
+    setOpenCharacteristicsModal(false);
 
   const handleItemSelect = (item) => {
     setSelectedItem(item);
 
     if (selectedTab === 0) {
       // Inventário
-      dispatch(updateCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        inventory: [
-          ...(prevCharacter?.inventory || []),
-          {
-            item: {
-              ...item,
-              characteristics: item.characteristics || [],
-              currentUses: item.currentUses || 0,
+      dispatch(
+        updateCharacter((prevCharacter) => ({
+          ...prevCharacter,
+          inventory: [
+            ...(prevCharacter?.inventory || []),
+            {
+              item: {
+                ...item,
+                characteristics: item.characteristics || [],
+                currentUses: item.currentUses || 0,
+              },
             },
-          },
-        ],
-      })));
+          ],
+        }))
+      );
     } else if (selectedTab === 3) {
       // Assimilações
-      dispatch(updateCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        assimilations: [...(prevCharacter?.assimilations || []), item],
-      })));
+      dispatch(
+        updateCharacter((prevCharacter) => ({
+          ...prevCharacter,
+          assimilations: [...(prevCharacter?.assimilations || []), item],
+        }))
+      );
     } else if (selectedTab === 2) {
       // Características
-      dispatch(updateCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        characteristics: [...(prevCharacter?.characteristics || []), item],
-      })));
+      dispatch(
+        updateCharacter((prevCharacter) => ({
+          ...prevCharacter,
+          characteristics: [...(prevCharacter?.characteristics || []), item],
+        }))
+      );
     }
 
     setOpenItemsModal(false);
@@ -960,19 +1023,23 @@ const CharacterSheet = () => {
   };
 
   const handleItemDelete = (index) => {
-    dispatch(updateCharacter((prevCharacter) => {
-      const newInventory = [...(prevCharacter?.inventory || [])];
-      newInventory.splice(index, 1);
-      return { ...prevCharacter, inventory: newInventory };
-    }));
+    dispatch(
+      updateCharacter((prevCharacter) => {
+        const newInventory = [...(prevCharacter?.inventory || [])];
+        newInventory.splice(index, 1);
+        return { ...prevCharacter, inventory: newInventory };
+      })
+    );
   };
 
   const handleInputChange = (field, value) => {
-    dispatch(updateCharacter((prevCharacter) => {
-      const updatedCharacter = { ...prevCharacter, [field]: value };
-      saveCharacter(updatedCharacter); // Chama a função para salvar no backend
-      return updatedCharacter;
-    }));
+    dispatch(
+      updateCharacter((prevCharacter) => {
+        const updatedCharacter = { ...prevCharacter, [field]: value };
+        saveCharacter(updatedCharacter); // Chama a função para salvar no backend
+        return updatedCharacter;
+      })
+    );
   };
 
   const saveCharacter = async (updatedCharacter) => {
