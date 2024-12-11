@@ -1,3 +1,4 @@
+// src/redux/slices/characterSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -93,10 +94,12 @@ const characterSlice = createSlice({
     setCustomDiceFormula: (state, action) => {
       state.customDiceFormula = action.payload;
     },
+    updateCharacterInventory: (state, action) => {
+      state.inventory = action.payload.inventory;
+    },
   },
 });
 
-// Certifique-se de exportar todas as ações, incluindo `updateCharacterFailure`
 export const {
   fetchCharacterStart,
   fetchCharacterSuccess,
@@ -119,6 +122,7 @@ export const {
   setMaxWeight,
   setEditItem,
   setCustomDiceFormula,
+  updateCharacterInventory, // Certifique-se de que está sendo exportado aqui
 } = characterSlice.actions;
 
 export default characterSlice.reducer;

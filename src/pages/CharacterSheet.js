@@ -74,7 +74,6 @@ import {
   updateCharacterInventory,
 } from "../redux/slices/characterSlice";
 
-
 const translateKey = (key) => {
   const translations = {
     health: "Saúde",
@@ -655,7 +654,7 @@ const CharacterSheet = () => {
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [maxWeight, setMaxWeight] = useState(8);
+  const [maxWeight] = useState(8);
   const [selectedTab, setSelectedTab] = useState(0);
   const [openItemsModal, setOpenItemsModal] = useState(false);
   const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
