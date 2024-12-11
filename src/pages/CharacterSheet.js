@@ -45,6 +45,8 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
+import { fetchCharacter, updateCharacterData } from '../redux/actions/characteractions';
+import { fetchCharacter, fetchCharacterFailure } from '../redux/slices/characterSlice';
 
 const translateKey = (key) => {
   const translations = {
@@ -654,9 +656,14 @@ const InstinctList = ({
 
 const CharacterSheet = () => {
   const { id } = useParams();
-  const [character, setCharacter] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const character = useSelector((state) => state.character.data);
+  const loading = useSelector((state) => state.character.loading);
+  const error = useSelector((state) => state.character.error);
+  const inventoryItems = useSelector((state) => state.character.inventory);
+  const characteristics = useSelector((state) => state.character.characteristics);
+  const assimilations = useSelector((state) => state.character.assimilations);
+  const notes = useSelector((state) => state.character.notes);
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
@@ -664,55 +671,24 @@ const CharacterSheet = () => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [openItemsModal, setOpenItemsModal] = useState(false);
   const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
-  const [openCharacteristicsModal, setOpenCharacteristicsModal] =
-    useState(false);
+  const [openCharacteristicsModal, setOpenCharacteristicsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [characteristics, setCharacteristics] = useState([]);
-  const [assimilations, setAssimilations] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
-  const [maxWeight, setMaxWeight] = useState(8); // 2 para o corpo e 6 para a mochila
   const [editItem, setEditItem] = useState(null);
   const [customDiceFormula, setCustomDiceFormula] = useState("");
-  const [notes, setNotes] = useState(""); // Estado para armazenar as anotações
 
+  // Dispara a ação de fetch quando o componente é montado
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Você precisa estar autenticado para acessar esta página");
-      setLoading(false);
-      return;
+    if (token) {
+      dispatch(fetchCharacter(id, token));  // Dispara a ação de fetch
+    } else {
+      dispatch(fetchCharacterFailure('Você precisa estar autenticado para acessar esta página'));
     }
+  }, [id, dispatch]);
 
-    const fetchCharacter = async () => {
-      try {
-        const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setCharacter(response.data);
-        setNotes(response.data.notes || ""); // Carrega as anotações salvas
-        setLoading(false);
-      } catch (error) {
-        setError("Erro ao carregar a ficha do personagem");
-        setLoading(false);
-        console.error(error);
-      }
-    };
-    fetchCharacter();
-  }, [id]);
-
-  useEffect(() => {
-    if (character) {
-      setInventoryItems(character.inventory || []);
-    }
-  }, [character]);
-
+  // Calcular o peso total do inventário
   const calculateTotalWeight = () => {
-    const inventoryWeight = (character?.inventory || []).reduce(
+    const inventoryWeight = (inventoryItems || []).reduce(
       (total, invItem) => {
         if (invItem?.item?.weight) {
           return total + invItem.item.weight;
@@ -722,7 +698,6 @@ const CharacterSheet = () => {
       0
     );
 
-    // Exemplo de modificador (buff ou debuff)
     const weightModifier = character?.buffs?.weightReduction || 0;
     return inventoryWeight - weightModifier;
   };
