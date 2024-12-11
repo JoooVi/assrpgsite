@@ -220,7 +220,6 @@ const rollCustomDice = (formula) => {
 
 const SkillList = ({
   title,
-  skills,
   instincts,
   selectedInstinct,
   handleInstinctChange,
@@ -238,15 +237,14 @@ const SkillList = ({
   const [editedValues, setEditedValues] = useState({});
 
   useEffect(() => {
-    // Atualiza as habilidades locais (pode ser removido se não for necessário)
     setEditedValues(globalSkills);
   }, [globalSkills]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
     setLoading(true); // Inicia o carregamento
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
+      const token = localStorage.getItem('token');
+      await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
         {
           knowledge: updatedSkills.knowledge,
@@ -259,10 +257,9 @@ const SkillList = ({
         }
       );
 
-      // Atualiza as habilidades no Redux
-      dispatch(updateSkills(updatedSkills));
+      dispatch(updateSkills(updatedSkills)); // Atualiza as habilidades no Redux
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
+      console.error('Erro ao salvar os dados:', error.response?.data || error.message);
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
@@ -299,20 +296,20 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
-      biological: "Estudos sobre ecossistemas, fauna e flora.",
-      exact: "Compreensão matemática e cálculos avançados.",
-      medicine: "Práticas médicas e tratamentos de saúde.",
-      social: "Habilidades de interação e negociação.",
-      artistic: "Capacidade de criação artística e expressão visual.",
-      sports: "Habilidades atléticas e esportivas.",
-      tools: "Capacidade de manuseio de ferramentas diversas.",
-      crafts: "Conhecimento sobre vários tipos de ofícios.",
-      weapons: "Habilidade no uso de armas de combate.",
-      vehicles: "Conhecimento e manuseio de veículos diversos.",
-      infiltration: "Habilidade em infiltração e furtividade.",
+      agrarian: 'Conhecimento relacionado à agricultura e manejo de plantações.',
+      biological: 'Estudos sobre ecossistemas, fauna e flora.',
+      exact: 'Compreensão matemática e cálculos avançados.',
+      medicine: 'Práticas médicas e tratamentos de saúde.',
+      social: 'Habilidades de interação e negociação.',
+      artistic: 'Capacidade de criação artística e expressão visual.',
+      sports: 'Habilidades atléticas e esportivas.',
+      tools: 'Capacidade de manuseio de ferramentas diversas.',
+      crafts: 'Conhecimento sobre vários tipos de ofícios.',
+      weapons: 'Habilidade no uso de armas de combate.',
+      vehicles: 'Conhecimento e manuseio de veículos diversos.',
+      infiltration: 'Habilidade em infiltração e furtividade.',
     };
-    return descriptions[key] || "Descrição não disponível.";
+    return descriptions[key] || 'Descrição não disponível.';
   };
 
   return (
@@ -320,9 +317,9 @@ const SkillList = ({
       <Typography variant="h6">{translateKey(title)}</Typography>
       <Button
         variant="contained"
-        color={editMode ? "secondary" : "primary"}
+        color={editMode ? 'secondary' : 'primary'}
         onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
+        sx={{ padding: '4px', minWidth: 'unset' }}
       >
         <EditIcon />
       </Button>
@@ -332,9 +329,9 @@ const SkillList = ({
             <Typography
               onClick={() => handleSkillClick(key)}
               sx={{
-                cursor: "pointer",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
+                cursor: 'pointer',
+                color: 'text.primary',
+                '&:hover': { color: 'primary.main' },
               }}
             >
               {translateKey(key)}:
@@ -350,7 +347,7 @@ const SkillList = ({
                 variant="outlined"
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" },
+                  style: { textAlign: 'center' },
                 }}
               />
             ) : (
@@ -366,10 +363,10 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>
+              <InputLabel>{translateKey('Instincts')}</InputLabel>
               <Select
-                label={translateKey("Instincts")}
-                value={instincts[key] || ""}
+                label={translateKey('Instincts')}
+                value={instincts[key] || ''}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
@@ -387,22 +384,24 @@ const SkillList = ({
               color="primary"
               onClick={() => onRoll(key, instincts[key], value)}
               fullWidth
-              sx={{ marginLeft: "28px" }}
+              sx={{ marginLeft: '28px' }}
             >
-              <MeuIcone style={{ width: "24px", height: "24px" }} />
+              <MeuIcone style={{ width: '24px', height: '24px' }} />
             </Button>
           </Grid>
         </Grid>
       ))}
 
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}</DialogTitle>
+        <DialogTitle>
+          {selectedSkill && selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+        </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
-            {translateKey("Close")}
+            {translateKey('Close')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -412,7 +411,6 @@ const SkillList = ({
 
 const InstinctList = ({
   title,
-  instincts,
   id,
   onAssimilatedRoll,
 }) => {
@@ -423,7 +421,8 @@ const InstinctList = ({
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
-  const selectedInstinct = useSelector((state) => state.character.selectedInstinct); // Acesse o instinto selecionado no Redux
+  const instincts = useSelector((state) => state.instinct.instincts); // Acesse os instintos do Redux
+  const selectedInstinct = useSelector((state) => state.instinct.selectedInstinct); // Acesse o instinto selecionado no Redux
 
   const handleInstinctClick = (instinctKey) => {
     setSelectedInstinctKey(instinctKey);
@@ -432,14 +431,14 @@ const InstinctList = ({
 
   const getInstinctDescription = (key) => {
     const descriptions = {
-      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
-      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
-      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
-      potency: "Força física e resistência para superar obstáculos.",
-      influence: "Habilidade de convencer ou manipular outros.",
-      resolution: "Capacidade de persistir diante de dificuldades.",
+      reaction: 'Habilidade de reagir rapidamente a mudanças no ambiente.',
+      perception: 'Sensibilidade aos detalhes e mudanças no ambiente.',
+      sagacity: 'Capacidade de tomar decisões rápidas e eficazes.',
+      potency: 'Força física e resistência para superar obstáculos.',
+      influence: 'Habilidade de convencer ou manipular outros.',
+      resolution: 'Capacidade de persistir diante de dificuldades.',
     };
-    return descriptions[key] || "Descrição não disponível.";
+    return descriptions[key] || 'Descrição não disponível.';
   };
 
   const saveInstinctsToBackend = async (updatedInstincts) => {
@@ -447,10 +446,10 @@ const InstinctList = ({
 
     // Atualização otimista
     const prevInstincts = { ...instincts };
-    dispatch(setSelectedInstinct({ ...selectedInstinct, ...updatedInstincts }));
+    dispatch(updateInstincts({ ...instincts, ...updatedInstincts }));
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
@@ -461,9 +460,9 @@ const InstinctList = ({
         }
       );
     } catch (error) {
-      console.error("Erro ao salvar os instintos:", error.response?.data || error.message);
+      console.error('Erro ao salvar os instintos:', error.response?.data || error.message);
       // Reverte atualização otimista em caso de erro
-      dispatch(setSelectedInstinct(prevInstincts));
+      dispatch(updateInstincts(prevInstincts));
     } finally {
       setLoading(false);
       setEditedValues({});
@@ -484,7 +483,7 @@ const InstinctList = ({
       if (id) {
         saveInstinctsToBackend(updatedInstincts);
       } else {
-        console.error("ID do personagem está indefinido");
+        console.error('ID do personagem está indefinido');
       }
     } else {
       setEditMode(true);
@@ -507,9 +506,9 @@ const InstinctList = ({
       <Typography variant="h6">{translateKey(title)}</Typography>
       <Button
         variant="contained"
-        color={editMode ? "secondary" : "primary"}
+        color={editMode ? 'secondary' : 'primary'}
         onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
+        sx={{ padding: '4px', minWidth: 'unset' }}
       >
         <EditIcon />
       </Button>
@@ -520,9 +519,9 @@ const InstinctList = ({
             <Typography
               onClick={() => handleInstinctClick(key)}
               sx={{
-                cursor: "pointer",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
+                cursor: 'pointer',
+                color: 'text.primary',
+                '&:hover': { color: 'primary.main' },
               }}
             >
               {translateKey(key)} {/* Aplica a tradução */}
@@ -534,11 +533,11 @@ const InstinctList = ({
               <TextField
                 value={editedValues[key] || value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                size="small"
-                variant="outlined"
+                size='small'
+                variant='outlined'
                 fullWidth
                 inputProps={{
-                  style: { textAlign: "center" },
+                  style: { textAlign: 'center' },
                 }}
               />
             ) : (
@@ -548,16 +547,16 @@ const InstinctList = ({
 
           <Grid item xs={4} sm={3}>
             <FormControl
-              variant="outlined"
-              margin="dense"
-              size="small"
+              variant='outlined'
+              margin='dense'
+              size='small'
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>
+              <InputLabel>{translateKey('Instincts')}</InputLabel>
               <Select
-                label={translateKey("Instincts")}
-                value={selectedInstinct[key] || ""}
+                label={translateKey('Instincts')}
+                value={selectedInstinct[key] || ''}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
@@ -571,13 +570,13 @@ const InstinctList = ({
 
           <Grid item xs={4} sm={2}>
             <Button
-              variant="contained"
-              color="primary"
+              variant='contained'
+              color='primary'
               onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{ marginLeft: "28px" }}
+              sx={{ marginLeft: '28px' }}
             >
-              <MeuIcone2 style={{ width: "24px", height: "24px" }} />
+              <MeuIcone2 style={{ width: '24px', height: '24px' }} />
             </Button>
           </Grid>
         </Grid>
@@ -593,8 +592,8 @@ const InstinctList = ({
           <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
-            {translateKey("Fechar")}
+          <Button onClick={() => setOpen(false)} color='primary'>
+            {translateKey('Fechar')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -622,19 +621,17 @@ const CharacterSheet = () => {
   const [openCharacteristicsModal, setOpenCharacteristicsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
-  const [customDiceFormula, setCustomDiceFormula] = useState("");
+  const [customDiceFormula, setCustomDiceFormula] = useState('');
 
-  // Dispara a ação de fetch quando o componente é montado
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
-      dispatch(fetchCharacter(id, token));  // Dispara a ação de fetch
+      dispatch(fetchCharacter(id, token)); // Dispara a ação de fetch
     } else {
       dispatch(fetchCharacterFailure('Você precisa estar autenticado para acessar esta página'));
     }
   }, [id, dispatch]);
 
-  // Calcular o peso total do inventário
   const calculateTotalWeight = () => {
     const inventoryWeight = (inventoryItems || []).reduce(
       (total, invItem) => {
@@ -651,60 +648,60 @@ const CharacterSheet = () => {
   };
 
   const fetchCharacteristics = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     try {
       const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/charactertraits", // URL do Railway com /api
+        'https://assrpgsite-be-production.up.railway.app/api/charactertraits', // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setCharacteristics(response.data);
+      dispatch(updateCharacter({ ...character, characteristics: response.data }));
     } catch (error) {
-      console.error("Erro ao buscar características:", error);
+      console.error('Erro ao buscar características:', error);
     }
   };
 
   const fetchAssimilations = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     try {
       const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/assimilations", // URL do Railway com /api
+        'https://assrpgsite-be-production.up.railway.app/api/assimilations', // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setAssimilations(response.data);
+      dispatch(updateCharacter({ ...character, assimilations: response.data }));
     } catch (error) {
-      console.error("Erro ao buscar assimilações:", error);
+      console.error('Erro ao buscar assimilações:', error);
     }
   };
 
   const fetchInventoryItems = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     try {
       const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/items", // URL do Railway com /api
+        'https://assrpgsite-be-production.up.railway.app/api/items', // URL do Railway com /api
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setInventoryItems(response.data);
+      dispatch(updateCharacter({ ...character, inventory: response.data }));
     } catch (error) {
-      console.error("Erro ao buscar itens do inventário:", error);
+      console.error('Erro ao buscar itens do inventário:', error);
     }
   };
 
   const handleHealthChange = (index, value) => {
     const updatedHealthLevels = [...character?.healthLevels];
     updatedHealthLevels[index] = value;
-    setCharacter({ ...character, healthLevels: updatedHealthLevels });
+    dispatch(updateCharacter({ ...character, healthLevels: updatedHealthLevels }));
   };
 
   const handleInstinctChange = (skill, instinct) => {
@@ -716,7 +713,7 @@ const CharacterSheet = () => {
     setCustomRollResult(null);
 
     if (!selectedInstinct) {
-      console.warn("Instinto não selecionado!");
+      console.warn('Instinto não selecionado!');
       return;
     }
 
@@ -726,7 +723,7 @@ const CharacterSheet = () => {
       (character?.practices?.[skill] || 0);
 
     if (diceCountInstinct === 0 && diceCountSkill === 0) {
-      console.warn("Nenhum dado disponível para rolagem!");
+      console.warn('Nenhum dado disponível para rolagem!');
       return;
     }
 
@@ -768,96 +765,27 @@ const CharacterSheet = () => {
     setSnackbarOpen(true);
   };
 
-  const handleOpenCharacteristicsMenu = () => {
-    setEditItem((prevEditItem) => ({
-      ...prevEditItem,
-      showCharacteristicsMenu: true,
-    }));
-  };
-
-  const handleCharacteristicsChange = (updatedItem) => {
-    setEditItem((prevEditItem) => ({
-      ...prevEditItem,
-      item: updatedItem,
-    }));
-  };
-
-  const handleItemEdit = async (index, updatedItem) => {
-    const token = localStorage.getItem("token");
-    try {
-      const updatedInventory = [...character.inventory];
-      updatedInventory[index] = {
-        ...updatedInventory[index],
-        item: updatedItem,
-        currentUses: updatedItem.currentUses || 0,
-        durability: updatedItem.durability || 0,
-      };
-    
-      const payload = {
-        inventory: updatedInventory.map((invItem) => ({
-          item: invItem.item._id || invItem.item,
-          currentUses: invItem.currentUses,
-          durability: invItem.durability,
-          characteristics: {
-            points: invItem.item.characteristics.points,
-            details: invItem.item.characteristics.details.map((detail) => ({
-              name: detail.name,
-              description: detail.description,
-              cost: detail.cost,
-            })),
-          },
-        })),
-      };
-    
-      console.log("Payload enviado ao backend:", payload);
-    
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        inventory: updatedInventory,
-      }));
-    } catch (error) {
-      console.error("Erro ao salvar o item:", error);
-      if (error.response) {
-        console.log(error.response);
-      } else {
-        console.log("Erro desconhecido:", error.message);
-      }
-    } finally {
-      setEditItem(null); // Garante que o diálogo será fechado independentemente do sucesso ou falha.
-    }    
-  };
-
   const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") {
+    if (reason === 'clickaway') {
       return;
     }
     setSnackbarOpen(false);
   };
 
   const handleCharacteristicDelete = (index) => {
-    setCharacter((prevCharacter) => {
+    dispatch(updateCharacter((prevCharacter) => {
       const newCharacteristics = [...(prevCharacter?.characteristics || [])];
       newCharacteristics.splice(index, 1);
       return { ...prevCharacter, characteristics: newCharacteristics };
-    });
+    }));
   };
 
   const handleAssimilationDelete = (index) => {
-    setCharacter((prevCharacter) => {
+    dispatch(updateCharacter((prevCharacter) => {
       const newAssimilations = [...(prevCharacter?.assimilations || [])];
       newAssimilations.splice(index, 1);
       return { ...prevCharacter, assimilations: newAssimilations };
-    });
+    }));
   };
 
   const handleTabChange = (event, newValue) => {
@@ -865,24 +793,18 @@ const CharacterSheet = () => {
   };
 
   const handleDeterminationChange = (event, newValue) => {
-    setCharacter((prevCharacter) => {
+    dispatch(updateCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
 
-      // Se Determinação atinge 0, redefine corretamente
       if (updatedDetermination <= 0 && updatedAssimilation < 9) {
         updatedAssimilation += 1;
-        updatedDetermination = 10 - updatedAssimilation; // Corrige a Determinação
-        message =
-          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
+        updatedDetermination = 10 - updatedAssimilation;
+        message = 'Você perdeu pontos de Determinação suficientes para cair uma casa!';
       }
 
-      // Previne atualização incorreta
-      if (
-        updatedDetermination > 10 - updatedAssimilation &&
-        updatedAssimilation > 0
-      ) {
+      if (updatedDetermination > 10 - updatedAssimilation && updatedAssimilation > 0) {
         updatedAssimilation -= 1;
         updatedDetermination = newValue;
       }
@@ -893,16 +815,15 @@ const CharacterSheet = () => {
         assimilation: updatedAssimilation,
         message: message,
       };
-    });
+    }));
   };
 
   const handleAssimilationChange = (event, newValue) => {
-    setCharacter((prevCharacter) => {
+    dispatch(updateCharacter((prevCharacter) => {
       let updatedAssimilation = newValue;
-      let maxAssimilation = 10 - (prevCharacter?.determination || 0); // Calcula o máximo de Assimilação permitido
+      let maxAssimilation = 10 - (prevCharacter?.determination || 0);
       let message = null;
 
-      // Garantir que não gaste mais pontos de assimilação do que possui
       if (updatedAssimilation > maxAssimilation) {
         message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
         updatedAssimilation = prevCharacter.assimilation;
@@ -913,7 +834,7 @@ const CharacterSheet = () => {
         assimilation: updatedAssimilation,
         message: message,
       };
-    });
+    }));
   };
 
   const handleOpenItemsModal = () => {
@@ -933,15 +854,14 @@ const CharacterSheet = () => {
 
   const handleCloseItemsModal = () => setOpenItemsModal(false);
   const handleCloseAssimilationsModal = () => setOpenAssimilationsModal(false);
-  const handleCloseCharacteristicsModal = () =>
-    setOpenCharacteristicsModal(false);
+  const handleCloseCharacteristicsModal = () => setOpenCharacteristicsModal(false);
 
   const handleItemSelect = (item) => {
     setSelectedItem(item);
 
     if (selectedTab === 0) {
       // Inventário
-      setCharacter((prevCharacter) => ({
+      dispatch(updateCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: [
           ...(prevCharacter?.inventory || []),
@@ -953,19 +873,19 @@ const CharacterSheet = () => {
             },
           },
         ],
-      }));
+      })));
     } else if (selectedTab === 3) {
       // Assimilações
-      setCharacter((prevCharacter) => ({
+      dispatch(updateCharacter((prevCharacter) => ({
         ...prevCharacter,
         assimilations: [...(prevCharacter?.assimilations || []), item],
-      }));
+      })));
     } else if (selectedTab === 2) {
       // Características
-      setCharacter((prevCharacter) => ({
+      dispatch(updateCharacter((prevCharacter) => ({
         ...prevCharacter,
         characteristics: [...(prevCharacter?.characteristics || []), item],
-      }));
+      })));
     }
 
     setOpenItemsModal(false);
@@ -974,19 +894,19 @@ const CharacterSheet = () => {
   };
 
   const handleItemDelete = (index) => {
-    setCharacter((prevCharacter) => {
+    dispatch(updateCharacter((prevCharacter) => {
       const newInventory = [...(prevCharacter?.inventory || [])];
       newInventory.splice(index, 1);
       return { ...prevCharacter, inventory: newInventory };
-    });
+    }));
   };
 
   const handleInputChange = (field, value) => {
-    setCharacter((prevCharacter) => {
+    dispatch(updateCharacter((prevCharacter) => {
       const updatedCharacter = { ...prevCharacter, [field]: value };
       saveCharacter(updatedCharacter); // Chama a função para salvar no backend
       return updatedCharacter;
-    });
+    }));
   };
 
   const saveCharacter = async (updatedCharacter) => {
@@ -1037,11 +957,11 @@ const CharacterSheet = () => {
   ]);
 
   if (loading) {
-    return <div className={styles.loadingIndicator}>Carregando...</div>;
+    return <div className="loadingIndicator">Carregando...</div>;
   }
 
   if (error) {
-    return <div className={styles.errorMessage}>{error}</div>;
+    return <div className="errorMessage">{error}</div>;
   }
 
   return (
