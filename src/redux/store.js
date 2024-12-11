@@ -1,12 +1,12 @@
 // src/redux/store.js
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
-import skillsReducer from './skillsSlice';
+import skillsReducer from './skillsSlice'; // Importe seu skillsReducer
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    skills: skillsReducer,  // Adicionando skills aqui
+    skills: skillsReducer, // Adicione o skillsReducer aqui
   },
 });
 

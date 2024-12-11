@@ -43,6 +43,7 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
+import { updateSkills, setLoading } from "../redux/skillsSlice";
 
 const translateKey = (key) => {
   const translations = {
@@ -222,15 +223,16 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   id,
+  updateSkills,
+  setLoading,
+  loading,
 }) => {
   const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [localSelectedInstinct, setLocalSelectedInstinct] =
-    useState(selectedInstinct);
+  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
 
   useEffect(() => {
     setLocalSkills(skills);
@@ -256,20 +258,14 @@ const SkillList = ({
           },
         }
       );
-      console.log("Antes do PUT:", localSkills);
-      console.log("Objeto a ser enviado:", updatedSkills);
-      console.log("Dados salvos com sucesso:", response.data);
-      setLocalSkills({
+      updateSkills({
         ...localSkills,
         ...updatedSkills.knowledge,
         ...updatedSkills.practices,
       });
       setEditedValues({});
     } catch (error) {
-      console.error(
-        "Erro ao salvar os dados:",
-        error.response?.data || error.message
-      );
+      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
       setLoading(false);
     }
@@ -277,42 +273,20 @@ const SkillList = ({
 
   const toggleEditMode = () => {
     if (editMode) {
-      const updatedSkills = {
-        knowledge: {},
-        practices: {},
-      };
-
-      const knowledgeKeys = [
-        "agrarian",
-        "biological",
-        "exact",
-        "medicine",
-        "social",
-        "artistic",
-      ];
-      const practiceKeys = [
-        "sports",
-        "tools",
-        "crafts",
-        "weapons",
-        "vehicles",
-        "infiltration",
-      ];
-
-      Object.keys(editedValues).forEach((skillKey) => {
-        if (localSkills[skillKey] !== undefined) {
+      const updatedSkills = Object.entries(editedValues).reduce(
+        (acc, [skillKey, value]) => {
           if (knowledgeKeys.includes(skillKey)) {
-            updatedSkills.knowledge[skillKey] = editedValues[skillKey];
+            acc.knowledge[skillKey] = value;
           } else if (practiceKeys.includes(skillKey)) {
-            updatedSkills.practices[skillKey] = editedValues[skillKey];
+            acc.practices[skillKey] = value;
           }
-        }
-      });
+          return acc;
+        },
+        { knowledge: {}, practices: {} }
+      );
 
-      if (id) {
+      if (id && Object.keys(editedValues).length > 0) {
         saveSkillsToBackend(updatedSkills);
-      } else {
-        console.error("ID do personagem está indefinido");
       }
     }
     setEditMode(!editMode);
@@ -332,8 +306,7 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -347,24 +320,6 @@ const SkillList = ({
       infiltration: "Habilidade em infiltração e furtividade.",
     };
     return descriptions[key] || "Descrição não disponível.";
-  };
-
-  const translateKey = (key) => {
-    const translations = {
-      agrarian: "Agrário",
-      biological: "Biológico",
-      exact: "Exato",
-      medicine: "Medicina",
-      social: "Social",
-      artistic: "Artístico",
-      sports: "Esportes",
-      tools: "Ferramentas",
-      crafts: "Ofícios",
-      weapons: "Armas",
-      vehicles: "Veículos",
-      infiltration: "Infiltração",
-    };
-    return translations[key] || key;
   };
 
   const handleRoll = (key) => {
@@ -381,7 +336,7 @@ const SkillList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{title}</Typography>
+      <Typography variant="h6">{translateKey(title)}</Typography> {/* Usando translateKey para traduzir o título */}
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
@@ -401,7 +356,7 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)}:
+              {translateKey(key)}: {/* Traduzindo a chave da skill */}
             </Typography>
           </Grid>
 
@@ -430,9 +385,9 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>Instintos</InputLabel>
+              <InputLabel>{translateKey("Instincts")}</InputLabel> {/* Traduzindo a label */}
               <Select
-                label="Instintos"
+                label={translateKey("Instincts")}
                 value={localSelectedInstinct[key] || ""}
                 onChange={(e) =>
                   handleInstinctChangeUpdated(key, e.target.value)
@@ -440,7 +395,7 @@ const SkillList = ({
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)}
+                    {translateKey(instinctKey)} {/* Traduzindo os instintos */}
                   </MenuItem>
                 ))}
               </Select>
@@ -470,12 +425,22 @@ const SkillList = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
-            Fechar
+            {translateKey("Close")} {/* Traduzindo o botão de fechamento */}
           </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
+};
+
+const mapStateToProps = (state) => ({
+  skills: state.skills.skills,
+  loading: state.skills.loading,
+});
+
+const mapDispatchToProps = {
+  updateSkills,
+  setLoading,
 };
 
 const InstinctList = ({
@@ -1378,7 +1343,7 @@ const CharacterSheet = () => {
           </Box>
         </Paper>
         <Paper elevation={3} className={styles.centerColumn}>
-          {console.log("Character:", character)}{" "}
+          {console.log("Character:", character)}
           <SkillList
             title="Conhecimentos & Práticas"
             skills={{ ...character?.knowledge, ...character?.practices }}
@@ -1387,8 +1352,12 @@ const CharacterSheet = () => {
             handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
             id={character?._id}
+            updateSkills={updateSkills}
+            setLoading={setLoading}
+            loading={loading}
           />
         </Paper>
+
         <Paper elevation={3} className={styles.rightColumn}>
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
             <Typography variant="h6">Rolar Dados</Typography>

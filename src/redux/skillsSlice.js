@@ -1,25 +1,21 @@
 // src/redux/skillsSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
-  knowledge: {},
-  practices: {},
-  instincts: {},
-};
-
 const skillsSlice = createSlice({
   name: 'skills',
-  initialState,
+  initialState: {
+    skills: {},
+    loading: false,
+  },
   reducers: {
-    setSkills: (state, action) => {
-      state.knowledge = action.payload.knowledge;
-      state.practices = action.payload.practices;
+    updateSkills: (state, action) => {
+      state.skills = action.payload;
     },
-    setInstincts: (state, action) => {
-      state.instincts = action.payload;
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
   },
 });
 
-export const { setSkills, setInstincts } = skillsSlice.actions;
+export const { updateSkills, setLoading } = skillsSlice.actions;
 export default skillsSlice.reducer;
