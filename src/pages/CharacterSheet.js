@@ -265,7 +265,7 @@ const SkillList = ({
   }, [selectedInstinct]);
 
   const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true);
+    setLoading(true);  // Inicia o carregamento
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -280,28 +280,19 @@ const SkillList = ({
           },
         }
       );
-
-      // Atualizando o estado local com as habilidades salvas no backend
-      const updatedSkillsState = {
-        ...localSkills,
-        ...updatedSkills.knowledge,
-        ...updatedSkills.practices,
-      };
+      
+      // Atualiza o estado local e global com os dados salvos no backend
+      const updatedSkillsState = { ...localSkills, ...updatedSkills };
       setLocalSkills(updatedSkillsState);
-
-      // Atualiza o estado global via Redux
-      dispatch(updateSkills(updatedSkillsState)); // Atualiza globalmente com Redux
-
-      setEditedValues({}); // Limpa as edições
+      dispatch(updateSkills(updatedSkillsState));
+  
+      setEditedValues({}); // Limpa as edições após a atualização
     } catch (error) {
-      console.error(
-        "Erro ao salvar os dados:",
-        error.response?.data || error.message
-      );
+      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
-      setLoading(false);
+      setLoading(false);  // Finaliza o carregamento
     }
-  };
+  };  
 
   const toggleEditMode = () => {
     if (editMode) {
@@ -646,7 +637,7 @@ const InstinctList = ({
               fullWidth
               sx={{ marginLeft: "28px" }}
             >
-              <MeuIcone style={{ width: "24px", height: "24px" }} />
+              <MeuIcone2 style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
@@ -674,7 +665,7 @@ const InstinctList = ({
 const CharacterSheet = () => {
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
