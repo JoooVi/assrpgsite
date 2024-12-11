@@ -1,3 +1,4 @@
+// src/redux/slices/characterSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -38,6 +39,9 @@ const characterSlice = createSlice({
     fetchCharacterFailure: (state, action) => {
       state.error = action.payload;
       state.loading = false;
+    },
+    updateCharacter: (state, action) => {
+      state.data = action.payload;
     },
     setNotes: (state, action) => {
       state.notes = action.payload;
@@ -90,10 +94,12 @@ const characterSlice = createSlice({
   },
 });
 
+// Aqui, exporte todas as ações, incluindo `updateCharacter`
 export const {
   fetchCharacterStart,
   fetchCharacterSuccess,
   fetchCharacterFailure,
+  updateCharacter,
   setNotes,
   setInventory,
   setSelectedInstinct,
