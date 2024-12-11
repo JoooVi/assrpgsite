@@ -4,7 +4,7 @@ import {
   fetchCharacterSuccess, 
   fetchCharacterFailure, 
   updateCharacter, 
-  updateCharacterFailure  // Adicionei uma possível ação de erro
+  updateCharacterFailure
 } from '../slices/characterSlice';
 
 // Função para buscar os dados do personagem
