@@ -46,10 +46,7 @@ import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
 import { fetchCharacter, updateCharacterData } from '../redux/actions/characterActions';
-import { fetchCharacterFailure, updateCharacter, updateCharacterFailure } from '../redux/slices/characterSlice';
-import { updateInstincts, setSelectedInstinct, setCharacter, setLoading } from '../redux/actions/characterActions';
-
-
+import { fetchCharacterFailure, updateCharacter, updateCharacterFailure, updateInstincts, setSelectedInstinct, setLoading, setNotes } from '../redux/slices/characterSlice';
 
 const translateKey = (key) => {
   const translations = {

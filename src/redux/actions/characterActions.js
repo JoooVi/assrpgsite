@@ -1,10 +1,13 @@
+// src/redux/actions/characterActions.js
 import axios from 'axios';
-import { 
-  fetchCharacterStart, 
-  fetchCharacterSuccess, 
-  fetchCharacterFailure, 
-  updateCharacter, 
-  updateCharacterFailure
+import {
+  fetchCharacterStart,
+  fetchCharacterSuccess,
+  fetchCharacterFailure,
+  updateCharacter,
+  updateCharacterFailure,
+  // Adicione aqui a importação de `updateInstincts` do `characterSlice`
+  updateInstincts
 } from '../slices/characterSlice';
 
 // Função para buscar os dados do personagem
@@ -45,3 +48,6 @@ export const updateCharacterData = (id, token, updatedData) => async (dispatch) 
     dispatch(updateCharacterFailure(errorMessage));  // Despacha uma ação de erro caso ocorra
   }
 };
+
+// Certifique-se de exportar `updateInstincts` corretamente
+export const { updateInstincts } = characterSlice.actions;
