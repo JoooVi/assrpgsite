@@ -459,23 +459,12 @@ const SkillList = ({
   );
 };
 
-const mapStateToProps = (state) => ({
-  skills: state.skills.skills,
-  loading: state.skills.loading,
-});
-
-const mapDispatchToProps = {
-  updateSkills,
-  setLoading,
-};
-
 const InstinctList = ({
   title,
   instincts,
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
-  setLoading,
   id,
 }) => {
   const [open, setOpen] = useState(false);
