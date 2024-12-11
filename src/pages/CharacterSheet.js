@@ -371,7 +371,7 @@ const SkillList = ({
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] || value}
+                value={editedValues[key] !== undefined ? editedValues[key] : value}
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
