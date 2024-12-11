@@ -1,33 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useDispatch, useSelector } from 'react-redux';
+import { updateSkills } from '../redux/skillsSlice'; 
 import { useParams } from "react-router-dom";
-import {
-  TextField,
-  Typography,
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Rating,
-  Snackbar,
-  Alert,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Tab,
-  Tabs,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Collapse,
-} from "@mui/material";
+import {TextField,Typography,Box,Button,Grid,Paper,Rating,Snackbar,Alert,Select,MenuItem,FormControl,InputLabel,Tab,Tabs,List,ListItem,ListItemText,IconButton,Dialog,DialogTitle,DialogContent,DialogContentText,DialogActions,Collapse,} from "@mui/material";
 import LinearProgress from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -43,7 +19,6 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
-import { updateSkills, setLoading } from "../redux/skillsSlice";
 
 const translateKey = (key) => {
   const translations = {
@@ -223,10 +198,12 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   id,
-  updateSkills,
   setLoading,
   loading,
 }) => {
+  const dispatch = useDispatch();
+  const globalSkills = useSelector((state) => state.skills.skills); // Acessando o estado global de skills
+
   const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
@@ -275,8 +252,8 @@ const SkillList = ({
       };
       setLocalSkills(updatedSkillsState);
 
-      // Atualiza o estado global via updateSkills, se necessário
-      updateSkills(updatedSkillsState);
+      // Atualiza o estado global via Redux
+      dispatch(updateSkills(updatedSkillsState)); // Atualiza globalmente com Redux
 
       setEditedValues({}); // Limpa as edições
     } catch (error) {
@@ -286,7 +263,6 @@ const SkillList = ({
     }
   };
 
-  // Alternar entre modo de edição e visualização
   const toggleEditMode = () => {
     if (editMode) {
       const updatedSkills = Object.entries(editedValues).reduce(
