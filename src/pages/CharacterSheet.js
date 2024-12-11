@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useForm } from 'react-hook-form';
 import { useParams } from "react-router-dom";
 import {
   TextField,
@@ -232,10 +231,16 @@ const SkillList = ({
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [editedValues, setEditedValues] = useState({});
   const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
 
-  // Usando react-hook-form para gerenciar o formulário
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+  // Chaves de habilidades (knowledge e practices)
+  const knowledgeKeys = [
+    'agrarian', 'biological', 'exact', 'medicine', 'social', 'artistic'
+  ];
+  const practiceKeys = [
+    'sports', 'tools', 'crafts', 'weapons', 'vehicles', 'infiltration'
+  ];
 
   useEffect(() => {
     setLocalSkills(skills);
@@ -261,11 +266,19 @@ const SkillList = ({
           },
         }
       );
-      updateSkills({
+      
+      // Atualizando o estado local com as habilidades salvas no backend
+      const updatedSkillsState = {
         ...localSkills,
         ...updatedSkills.knowledge,
         ...updatedSkills.practices,
-      });
+      };
+      setLocalSkills(updatedSkillsState);
+
+      // Atualiza o estado global via updateSkills, se necessário
+      updateSkills(updatedSkillsState);
+
+      setEditedValues({}); // Limpa as edições
     } catch (error) {
       console.error("Erro ao salvar os dados:", error.response?.data || error.message);
     } finally {
@@ -273,26 +286,60 @@ const SkillList = ({
     }
   };
 
-  // Função chamada no envio do formulário
-  const onSubmit = (data) => {
-    const updatedSkills = {
-      knowledge: {},
-      practices: {},
-    };
+  // Alternar entre modo de edição e visualização
+  const toggleEditMode = () => {
+    if (editMode) {
+      const updatedSkills = Object.entries(editedValues).reduce(
+        (acc, [skillKey, value]) => {
+          if (knowledgeKeys.includes(skillKey)) {
+            acc.knowledge[skillKey] = value;
+          } else if (practiceKeys.includes(skillKey)) {
+            acc.practices[skillKey] = value;
+          }
+          return acc;
+        },
+        { knowledge: {}, practices: {} }
+      );
 
-    Object.entries(data).forEach(([skillKey, value]) => {
-      if (knowledgeKeys.includes(skillKey)) {
-        updatedSkills.knowledge[skillKey] = value;
-      } else if (practiceKeys.includes(skillKey)) {
-        updatedSkills.practices[skillKey] = value;
+      if (id && Object.keys(editedValues).length > 0) {
+        saveSkillsToBackend(updatedSkills);
       }
-    });
-
-    if (id) {
-      saveSkillsToBackend(updatedSkills);
     }
+    setEditMode(!editMode);
+  };
 
-    setEditMode(false); // Desabilitar o modo de edição
+  const handleEditedValueChange = (skillKey, value) => {
+    setEditedValues((prev) => ({
+      ...prev,
+      [skillKey]: value,
+    }));
+  };
+
+  const handleSkillClick = (skillKey) => {
+    setSelectedSkill(skillKey);
+    setOpen(true);
+  };
+
+  const getSkillDescription = (key) => {
+    const descriptions = {
+      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      biological: "Estudos sobre ecossistemas, fauna e flora.",
+      exact: "Compreensão matemática e cálculos avançados.",
+      medicine: "Práticas médicas e tratamentos de saúde.",
+      social: "Habilidades de interação e negociação.",
+      artistic: "Capacidade de criação artística e expressão visual.",
+      sports: "Habilidades atléticas e esportivas.",
+      tools: "Capacidade de manuseio de ferramentas diversas.",
+      crafts: "Conhecimento sobre vários tipos de ofícios.",
+      weapons: "Habilidade no uso de armas de combate.",
+      vehicles: "Conhecimento e manuseio de veículos diversos.",
+      infiltration: "Habilidade em infiltração e furtividade.",
+    };
+    return descriptions[key] || "Descrição não disponível.";
+  };
+
+  const handleRoll = (key) => {
+    onRoll(key, localSelectedInstinct[key], localSkills[key]);
   };
 
   const handleInstinctChangeUpdated = (skillKey, value) => {
@@ -309,90 +356,81 @@ const SkillList = ({
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
-        onClick={() => setEditMode(!editMode)}
+        onClick={toggleEditMode}
         sx={{ padding: "4px", minWidth: "unset" }}
       >
         <EditIcon />
       </Button>
-
-      {/* Início do Formulário com React Hook Form */}
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {Object.entries(localSkills).map(([key, value]) => (
-          <Grid container key={key} spacing={3} alignItems="center">
-            <Grid item xs={4} sm={3}>
-              <Typography
-                onClick={() => setSelectedSkill(key)}
-                sx={{
-                  cursor: "pointer",
-                  color: "text.primary",
-                  "&:hover": { color: "primary.main" },
-                }}
-              >
-                {translateKey(key)}:
-              </Typography>
-            </Grid>
-
-            <Grid item xs={4} sm={2}>
-              {editMode ? (
-                <TextField
-                  {...register(key, { required: true })}
-                  defaultValue={value}
-                  size="small"
-                  variant="outlined"
-                  fullWidth
-                  inputProps={{
-                    style: { textAlign: "center" },
-                  }}
-                  error={!!errors[key]} // Mostrar erro se necessário
-                  helperText={errors[key] ? "Campo obrigatório" : ""}
-                />
-              ) : (
-                <Typography>{value}</Typography>
-              )}
-            </Grid>
-
-            <Grid item xs={4} sm={3}>
-              <FormControl
-                variant="outlined"
-                margin="dense"
-                size="small"
-                fullWidth
-                sx={{ minWidth: 100 }}
-              >
-                <InputLabel>{translateKey("Instincts")}</InputLabel>
-                <Select
-                  label={translateKey("Instincts")}
-                  value={localSelectedInstinct[key] || ""}
-                  onChange={(e) => handleInstinctChangeUpdated(key, e.target.value)}
-                >
-                  {Object.keys(instincts).map((instinctKey) => (
-                    <MenuItem key={instinctKey} value={instinctKey}>
-                      {translateKey(instinctKey)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={4} sm={2}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => onRoll(key)}
-                fullWidth
-              >
-                <MeuIcone style={{ width: "24px", height: "24px" }} />
-              </Button>
-            </Grid>
+      {Object.entries(localSkills).map(([key, value]) => (
+        <Grid container key={key} spacing={3} alignItems="center">
+          <Grid item xs={4} sm={3}>
+            <Typography
+              onClick={() => handleSkillClick(key)}
+              sx={{
+                cursor: "pointer",
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
+              }}
+            >
+              {translateKey(key)}:
+            </Typography>
           </Grid>
-        ))}
-        {editMode && (
-          <Button variant="contained" color="primary" type="submit">
-            Salvar
-          </Button>
-        )}
-      </form>
 
+          <Grid item xs={4} sm={2}>
+            {editMode ? (
+              <TextField
+                value={editedValues[key] !== undefined ? editedValues[key] : value}  
+                onChange={(e) => handleEditedValueChange(key, e.target.value)}
+                size="small"
+                variant="outlined"
+                fullWidth
+                inputProps={{
+                  style: { textAlign: "center" },
+                }}
+              />
+            ) : (
+              <Typography>{value}</Typography>
+            )}
+          </Grid>
+
+          <Grid item xs={4} sm={3}>
+            <FormControl
+              variant="outlined"
+              margin="dense"
+              size="small"
+              fullWidth
+              sx={{ minWidth: 100 }}
+            >
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
+              <Select
+                label={translateKey("Instincts")}
+                value={localSelectedInstinct[key] || ""}
+                onChange={(e) =>
+                  handleInstinctChangeUpdated(key, e.target.value)
+                }
+              >
+                {Object.keys(instincts).map((instinctKey) => (
+                  <MenuItem key={instinctKey} value={instinctKey}>
+                    {translateKey(instinctKey)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={4} sm={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleRoll(key)}
+              fullWidth
+              sx={{ marginLeft: "28px" }}
+            >
+              <MeuIcone style={{ width: "24px", height: "24px" }} />
+            </Button>
+          </Grid>
+        </Grid>
+      ))}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
@@ -410,7 +448,6 @@ const SkillList = ({
     </Box>
   );
 };
-
 
 const mapStateToProps = (state) => ({
   skills: state.skills.skills,
