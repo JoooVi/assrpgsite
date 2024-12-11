@@ -45,7 +45,7 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
-import { fetchCharacter, updateCharacterData } from '../redux/actions/characteractions';
+import { fetchCharacter, updateCharacterData } from "../redux/actions/characteractions";
 import { fetchCharacterFailure } from '../redux/slices/characterSlice';
 
 const translateKey = (key) => {

@@ -3,7 +3,8 @@ import {
   fetchCharacterStart, 
   fetchCharacterSuccess, 
   fetchCharacterFailure, 
-  updateCharacter 
+  updateCharacter, 
+  updateCharacterFailure  // Adicionei uma possível ação de erro
 } from '../slices/characterSlice';
 
 // Função para buscar os dados do personagem
@@ -21,7 +22,8 @@ export const fetchCharacter = (id, token) => async (dispatch) => {
     );
     dispatch(fetchCharacterSuccess(response.data));  // Atualiza o estado com os dados
   } catch (error) {
-    dispatch(fetchCharacterFailure('Erro ao carregar os dados do personagem'));  // Caso de erro
+    const errorMessage = error.response?.data?.message || 'Erro ao carregar os dados do personagem';
+    dispatch(fetchCharacterFailure(errorMessage));  // Caso de erro, passa a mensagem de erro
   }
 };
 
@@ -39,6 +41,7 @@ export const updateCharacterData = (id, token, updatedData) => async (dispatch) 
     );
     dispatch(updateCharacter(response.data));  // Atualiza o estado com os novos dados
   } catch (error) {
-    console.error('Erro ao atualizar os dados:', error.message);
+    const errorMessage = error.response?.data?.message || 'Erro ao atualizar os dados do personagem';
+    dispatch(updateCharacterFailure(errorMessage));  // Despacha uma ação de erro caso ocorra
   }
 };
