@@ -216,8 +216,6 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-import { useForm } from 'react-hook-form';
-
 const SkillList = ({
   title,
   skills,
@@ -394,7 +392,7 @@ const SkillList = ({
           </Button>
         )}
       </form>
-      
+
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
