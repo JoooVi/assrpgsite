@@ -1,9 +1,35 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from 'react-redux';
-import { updateSkills } from '../redux/skillsSlice'; 
+import { useDispatch, useSelector } from "react-redux";
+import { updateSkills } from "../redux/skillsSlice";
 import { useParams } from "react-router-dom";
-import {TextField,Typography,Box,Button,Grid,Paper,Rating,Snackbar,Alert,Select,MenuItem,FormControl,InputLabel,Tab,Tabs,List,ListItem,ListItemText,IconButton,Dialog,DialogTitle,DialogContent,DialogContentText,DialogActions,Collapse,} from "@mui/material";
+import {
+  TextField,
+  Typography,
+  Box,
+  Button,
+  Grid,
+  Paper,
+  Rating,
+  Snackbar,
+  Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Tab,
+  Tabs,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Collapse,
+} from "@mui/material";
 import LinearProgress from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -209,14 +235,25 @@ const SkillList = ({
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
-  const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
+  const [localSelectedInstinct, setLocalSelectedInstinct] =
+    useState(selectedInstinct);
 
   // Chaves de habilidades (knowledge e practices)
   const knowledgeKeys = [
-    'agrarian', 'biological', 'exact', 'medicine', 'social', 'artistic'
+    "agrarian",
+    "biological",
+    "exact",
+    "medicine",
+    "social",
+    "artistic",
   ];
   const practiceKeys = [
-    'sports', 'tools', 'crafts', 'weapons', 'vehicles', 'infiltration'
+    "sports",
+    "tools",
+    "crafts",
+    "weapons",
+    "vehicles",
+    "infiltration",
   ];
 
   useEffect(() => {
@@ -243,7 +280,7 @@ const SkillList = ({
           },
         }
       );
-      
+
       // Atualizando o estado local com as habilidades salvas no backend
       const updatedSkillsState = {
         ...localSkills,
@@ -257,7 +294,10 @@ const SkillList = ({
 
       setEditedValues({}); // Limpa as edições
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error.response?.data || error.message);
+      console.error(
+        "Erro ao salvar os dados:",
+        error.response?.data || error.message
+      );
     } finally {
       setLoading(false);
     }
@@ -298,7 +338,8 @@ const SkillList = ({
 
   const getSkillDescription = (key) => {
     const descriptions = {
-      agrarian: "Conhecimento relacionado à agricultura e manejo de plantações.",
+      agrarian:
+        "Conhecimento relacionado à agricultura e manejo de plantações.",
       biological: "Estudos sobre ecossistemas, fauna e flora.",
       exact: "Compreensão matemática e cálculos avançados.",
       medicine: "Práticas médicas e tratamentos de saúde.",
@@ -355,7 +396,9 @@ const SkillList = ({
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] !== undefined ? editedValues[key] : value}  
+                value={
+                  editedValues[key] !== undefined ? editedValues[key] : value
+                }
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
@@ -1345,8 +1388,8 @@ const CharacterSheet = () => {
             onRoll={handleRoll}
             id={character?._id}
             updateSkills={updateSkills}
-            setLoading={setLoading}
-            loading={loading}
+            setLoading={setLoading} // Passando 'setLoading' corretamente
+            loading={loading} // Passando 'loading' corretamente
           />
         </Paper>
 
