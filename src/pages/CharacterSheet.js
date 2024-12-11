@@ -475,6 +475,7 @@ const InstinctList = ({
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
+  setLoading,
   id,
 }) => {
   const [open, setOpen] = useState(false);
