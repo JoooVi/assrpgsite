@@ -234,6 +234,14 @@ const SkillList = ({
   const [editedValues, setEditedValues] = useState({});
   const [localSelectedInstinct, setLocalSelectedInstinct] = useState(selectedInstinct);
 
+  // Definindo as chaves de knowledge e practices
+  const knowledgeKeys = [
+    'agrarian', 'biological', 'exact', 'medicine', 'social', 'artistic'
+  ];
+  const practiceKeys = [
+    'sports', 'tools', 'crafts', 'weapons', 'vehicles', 'infiltration'
+  ];
+
   useEffect(() => {
     setLocalSkills(skills);
   }, [skills]);
@@ -336,7 +344,7 @@ const SkillList = ({
 
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography> {/* Usando translateKey para traduzir o título */}
+      <Typography variant="h6">{translateKey(title)}</Typography>
       <Button
         variant="contained"
         color={editMode ? "secondary" : "primary"}
@@ -356,7 +364,7 @@ const SkillList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)}: {/* Traduzindo a chave da skill */}
+              {translateKey(key)}:
             </Typography>
           </Grid>
 
@@ -385,7 +393,7 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel> {/* Traduzindo a label */}
+              <InputLabel>{translateKey("Instincts")}</InputLabel>
               <Select
                 label={translateKey("Instincts")}
                 value={localSelectedInstinct[key] || ""}
@@ -395,7 +403,7 @@ const SkillList = ({
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)} {/* Traduzindo os instintos */}
+                    {translateKey(instinctKey)}
                   </MenuItem>
                 ))}
               </Select>
@@ -425,7 +433,7 @@ const SkillList = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
-            {translateKey("Close")} {/* Traduzindo o botão de fechamento */}
+            {translateKey("Close")}
           </Button>
         </DialogActions>
       </Dialog>
