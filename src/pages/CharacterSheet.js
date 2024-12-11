@@ -616,6 +616,7 @@ const CharacterSheet = () => {
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [maxWeight, setMaxWeight] = useState(8);
   const [selectedTab, setSelectedTab] = useState(0);
   const [openItemsModal, setOpenItemsModal] = useState(false);
   const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
@@ -623,6 +624,7 @@ const CharacterSheet = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [customDiceFormula, setCustomDiceFormula] = useState('');
+  const [setNotes] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -663,6 +665,20 @@ const CharacterSheet = () => {
     } catch (error) {
       console.error('Erro ao buscar características:', error);
     }
+  };
+
+  const handleOpenCharacteristicsMenu = () => {
+    setEditItem((prevEditItem) => ({
+      ...prevEditItem,
+      showCharacteristicsMenu: true,
+    }));
+  };
+
+  const handleCharacteristicsChange = (updatedItem) => {
+    setEditItem((prevEditItem) => ({
+      ...prevEditItem,
+      item: updatedItem,
+    }));
   };
 
   const fetchAssimilations = async () => {
@@ -707,6 +723,56 @@ const CharacterSheet = () => {
 
   const handleInstinctChange = (skill, instinct) => {
     setSelectedInstinct({ ...selectedInstinct, [skill]: instinct });
+  };
+
+  const handleItemEdit = async (index, updatedItem) => {
+    const token = localStorage.getItem("token");
+    try {
+      const updatedInventory = [...character.inventory];
+      updatedInventory[index] = {
+        ...updatedInventory[index],
+        item: updatedItem,
+        currentUses: updatedItem.currentUses || 0, // Atualize currentUses com o valor correto
+        durability: updatedItem.durability || 0, // Garanta que a durabilidade é salva corretamente
+      };
+
+      const payload = {
+        inventory: updatedInventory.map((invItem) => ({
+          item: invItem.item._id || invItem.item,
+          currentUses: invItem.currentUses,
+          durability: invItem.durability,
+          characteristics: {
+            points: invItem.item.characteristics.points,
+            details: invItem.item.characteristics.details.map((detail) => ({
+              name: detail.name,
+              description: detail.description,
+              cost: detail.cost,
+            })),
+          },
+        })),
+      };
+
+      console.log("Payload enviado ao backend:", payload);
+
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setCharacter((prevCharacter) => ({
+        ...prevCharacter,
+        inventory: updatedInventory,
+      }));
+      setEditItem(null); // Fecha o diálogo após salvar
+    } catch (error) {
+      console.error("Erro ao salvar o item:", error);
+      console.log(error.response); // Verifique a resposta de erro do Axios
+    }
   };
 
   const handleRoll = (skill, selectedInstinct) => {
