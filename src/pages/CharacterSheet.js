@@ -30,6 +30,7 @@ import {
 } from "@mui/material";
 import LinearProgress from "@mui/material/LinearProgress";
 import { setSkills, setInstincts } from '../redux/skillsSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import { styled } from "@mui/material/styles";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
