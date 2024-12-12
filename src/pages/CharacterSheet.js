@@ -224,8 +224,8 @@ const SkillList = ({
   handleInstinctChange,
   onRoll,
   id,
-  setLoading,
   setCharacter,
+  setLoading,
   loading,
 }) => {
   const dispatch = useDispatch();
@@ -657,8 +657,7 @@ const InstinctList = ({
   );
 };
 
-const CharacterSheet = ({ }) => {
-  const dispatch = useDispatch();
+const CharacterSheet = () => {
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -680,20 +679,27 @@ const CharacterSheet = ({ }) => {
   const [editItem, setEditItem] = useState(null);
   const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [notes, setNotes] = useState(""); // Estado para armazenar as anotações
-    
-    const fetchCharacter = async (characterId) => {
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Você precisa estar autenticado para acessar esta página");
+      setLoading(false);
+      return;
+    }
+
+    const fetchCharacter = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${characterId}`,
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        dispatch(setCharacter(response.data)); 
-        setNotes(response.data.notes || "");
+        setCharacter(response.data);
+        setNotes(response.data.notes || ""); // Carrega as anotações salvas
         setLoading(false);
       } catch (error) {
         setError("Erro ao carregar a ficha do personagem");
@@ -701,11 +707,14 @@ const CharacterSheet = ({ }) => {
         console.error(error);
       }
     };
-  
-    // Chama fetchCharacter para carregar os dados inicialmente
-    useEffect(() => {
-      fetchCharacter(id);
-    }, [id]);
+    fetchCharacter();
+  }, [id]);
+
+  useEffect(() => {
+    if (character) {
+      setInventoryItems(character.inventory || []);
+    }
+  }, [character]);
 
   const calculateTotalWeight = () => {
     const inventoryWeight = (character?.inventory || []).reduce(
