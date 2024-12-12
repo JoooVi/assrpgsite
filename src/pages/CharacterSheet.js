@@ -521,6 +521,18 @@ const InstinctList = ({
     }
   };
 
+const getInstinctDescription = (key) => {
+  const descriptions = {
+    reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
+    perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
+    sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
+    potency: "Força física e resistência para superar obstáculos.",
+    influence: "Habilidade de convencer ou manipular outros.",
+    resolution: "Capacidade de persistir diante de dificuldades.",
+  };
+  return descriptions[key] || "Descrição não disponível.";
+};
+
   const handleEditedValueChange = (instinctKey, value) => {
     setEditedValues((prev) => ({
       ...prev,
