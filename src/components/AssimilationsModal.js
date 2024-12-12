@@ -94,7 +94,39 @@ const AssimilationsModal = ({
               pb: 2,
             }}
           >
-            <FormControl fullWidth variant="outlined" margin="normal">
+            <FormControl
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              sx={{
+                "& .MuiInputLabel-root": {
+                  color: "#bbb", // Cor do rótulo
+                },
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#38394a", // Fundo mais claro
+                  color: "white", // Texto principal
+                  "& fieldset": {
+                    borderColor: "#555", // Borda padrão
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#777", // Borda ao passar o mouse
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#aaa", // Borda ao focar
+                  },
+                },
+                "& .MuiSelect-icon": {
+                  color: "white", // Cor do ícone de seta
+                },
+                "& .MuiMenuItem-root": {
+                  color: "white", // Texto dos itens de menu
+                  backgroundColor: "#292a3a", // Fundo dos itens
+                  "&:hover": {
+                    backgroundColor: "#444", // Fundo ao passar o mouse
+                  },
+                },
+              }}
+            >
               <InputLabel>Categoria</InputLabel>
               <Select
                 value={selectedCategory}
