@@ -644,38 +644,6 @@ const InstinctList = ({ title, id, onAssimilatedRoll }) => {
   );
 };
 
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import { 
-  fetchCharacterStart, 
-  fetchCharacterSuccess, 
-  fetchCharacterFailure, 
-  updateCharacter, 
-  updateCharacterFailure, 
-  setNotes, 
-  setInventory, 
-  setSelectedInstinct, 
-  setRollResult, 
-  setCustomRollResult, 
-  setSnackbarOpen, 
-  setSelectedTab, 
-  setOpenItemsModal, 
-  setOpenAssimilationsModal, 
-  setOpenCharacteristicsModal, 
-  setSelectedItem, 
-  setCharacteristics, 
-  setAssimilations, 
-  setMaxWeight, 
-  setEditItem, 
-  setCustomDiceFormula, 
-  updateCharacterInventory,
-  updateInstincts, // Certifique-se de importar aqui
-  setLoading // Certifique-se de importar aqui
-} from '../redux/slices/characterSlice';
-import { Box, Button, Grid, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Snackbar, Alert } from '@mui/material';
-
 const CharacterSheet = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
