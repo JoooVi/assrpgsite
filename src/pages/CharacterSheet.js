@@ -225,6 +225,7 @@ const SkillList = ({
   onRoll,
   id,
   setLoading,
+  setCharacter,
   loading,
 }) => {
   const dispatch = useDispatch();
