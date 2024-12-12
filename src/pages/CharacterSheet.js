@@ -49,30 +49,36 @@ import {
   fetchCharacter,
   updateCharacterData,
 } from "../redux/actions/characterActions";
-import {
-  fetchCharacterStart,
-  fetchCharacterSuccess,
-  fetchCharacterFailure,
-  updateCharacter,
-  updateCharacterFailure,
-  setNotes,
-  setInventory,
-  setSelectedInstinct,
-  setRollResult,
-  setCustomRollResult,
-  setSnackbarOpen,
-  setSelectedTab,
-  setOpenItemsModal,
-  setOpenAssimilationsModal,
-  setOpenCharacteristicsModal,
-  setSelectedItem,
-  setCharacteristics,
-  setAssimilations,
-  setMaxWeight,
-  setEditItem,
-  setCustomDiceFormula,
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  fetchCharacterStart, 
+  fetchCharacterSuccess, 
+  fetchCharacterFailure, 
+  updateCharacter, 
+  updateCharacterFailure, 
+  setNotes, 
+  setInventory, 
+  setSelectedInstinct, 
+  setRollResult, 
+  setCustomRollResult, 
+  setSnackbarOpen, 
+  setSelectedTab, 
+  setOpenItemsModal, 
+  setOpenAssimilationsModal, 
+  setOpenCharacteristicsModal, 
+  setSelectedItem, 
+  setCharacteristics, 
+  setAssimilations, 
+  setMaxWeight, 
+  setEditItem, 
+  setCustomDiceFormula, 
   updateCharacterInventory,
-} from "../redux/slices/characterSlice";
+  updateInstincts, // Certifique-se de importar aqui
+  setLoading // Certifique-se de importar aqui
+} from '../redux/slices/characterSlice';
 
 const translateKey = (key) => {
   const translations = {
@@ -638,6 +644,38 @@ const InstinctList = ({ title, id, onAssimilatedRoll }) => {
   );
 };
 
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  fetchCharacterStart, 
+  fetchCharacterSuccess, 
+  fetchCharacterFailure, 
+  updateCharacter, 
+  updateCharacterFailure, 
+  setNotes, 
+  setInventory, 
+  setSelectedInstinct, 
+  setRollResult, 
+  setCustomRollResult, 
+  setSnackbarOpen, 
+  setSelectedTab, 
+  setOpenItemsModal, 
+  setOpenAssimilationsModal, 
+  setOpenCharacteristicsModal, 
+  setSelectedItem, 
+  setCharacteristics, 
+  setAssimilations, 
+  setMaxWeight, 
+  setEditItem, 
+  setCustomDiceFormula, 
+  updateCharacterInventory,
+  updateInstincts, // Certifique-se de importar aqui
+  setLoading // Certifique-se de importar aqui
+} from '../redux/slices/characterSlice';
+import { Box, Button, Grid, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Snackbar, Alert } from '@mui/material';
+
 const CharacterSheet = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -645,25 +683,25 @@ const CharacterSheet = () => {
   const loading = useSelector((state) => state.character.loading);
   const error = useSelector((state) => state.character.error);
   const inventoryItems = useSelector((state) => state.character.inventory);
-  const characteristics = useSelector(
-    (state) => state.character.characteristics
-  );
+  const characteristics = useSelector((state) => state.character.characteristics);
   const assimilations = useSelector((state) => state.character.assimilations);
   const notes = useSelector((state) => state.character.notes);
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [maxWeight] = useState(8);
   const [selectedTab, setSelectedTab] = useState(0);
   const [openItemsModal, setOpenItemsModal] = useState(false);
   const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
-  const [openCharacteristicsModal, setOpenCharacteristicsModal] =
-    useState(false);
+  const [openCharacteristicsModal, setOpenCharacteristicsModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
-  const [customDiceFormula, setCustomDiceFormula] = useState("");
-  const [setNotes] = useState("");
+  const [customDiceFormula, setCustomDiceFormula] = useState('');
+
+  // Certifique-se de definir a função updateInstincts corretamente aqui
+  const handleInstinctsUpdate = (updatedInstincts) => {
+    dispatch(updateInstincts(updatedInstincts));
+  }
 
   useEffect(() => {
     const token = localStorage.getItem("token");
