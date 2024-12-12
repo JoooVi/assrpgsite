@@ -784,10 +784,19 @@ const CharacterSheet = () => {
   };
 
   const handleHealthChange = (index, value) => {
-    const updatedHealthLevels = [...character?.healthLevels];
-    updatedHealthLevels[index] = value;
-    setCharacter({ ...character, healthLevels: updatedHealthLevels });
-  };
+    if (!character || !Array.isArray(character.healthLevels)) return;
+  
+    const updatedHealthLevels = [...character.healthLevels];
+    
+    // Garantir que o índice seja válido
+    if (index >= 0 && index < updatedHealthLevels.length) {
+      updatedHealthLevels[index] = value;
+      setCharacter((prev) => ({
+        ...prev,
+        healthLevels: updatedHealthLevels,
+      }));
+    }
+  };  
 
   const handleInstinctChange = (skill, instinct) => {
     setSelectedInstinct({ ...selectedInstinct, [skill]: instinct });
@@ -823,14 +832,6 @@ const CharacterSheet = () => {
 
     setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
     setSnackbarOpen(true);
-  };
-
-  const getHealthColorGradient = (points) => {
-    if (points >= 4) return "green, limegreen"; // Verde para saudável
-    if (points === 3) return "yellow, orange"; // Amarelo para leve dano
-    if (points === 2) return "orange, red"; // Laranja para mais dano
-    if (points === 1) return "red, darkred"; // Vermelho para estado crítico
-    return "black, gray"; // Preto para morte
   };
 
   const handleCustomRoll = () => {
