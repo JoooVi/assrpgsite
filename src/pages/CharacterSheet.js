@@ -555,578 +555,6 @@ const InstinctList = ({
   };
 
   return (
-    <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography>
-      <Button
-        variant="contained"
-        color={editMode ? "secondary" : "primary"}
-        onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
-      >
-        <EditIcon />
-      </Button>
-
-      {Object.entries(instincts).map(([key, value]) => (
-        <Grid container key={key} spacing={3} alignItems="center">
-          <Grid item xs={4} sm={3}>
-            <Typography
-              onClick={() => handleInstinctClick(key)}
-              sx={{
-                cursor: "pointer",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
-              }}
-            >
-              {translateKey(key)} {/* Aplica a tradução usando translateKey */}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={4} sm={2}>
-            {editMode ? (
-              <TextField
-                value={editedValues[key] || value}
-                onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                size="small"
-                variant="outlined"
-                fullWidth
-                inputProps={{
-                  style: { textAlign: "center" },
-                }}
-              />
-            ) : (
-              <Typography>{value}</Typography>
-            )}
-          </Grid>
-
-          <Grid item xs={4} sm={3}>
-            <FormControl
-              variant="outlined"
-              margin="dense"
-              size="small"
-              fullWidth
-              sx={{ minWidth: 100 }}
-            >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>
-              <Select
-                label={translateKey("Instincts")}
-                value={selectedInstinct[key] || ""}
-                onChange={(e) => handleInstinctChange(key, e.target.value)}
-              >
-                {Object.keys(instincts).map((instinctKey) => (
-                  <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)} {/* Aplica a tradução */}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={4} sm={2}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
-              fullWidth
-              sx={{ marginLeft: "28px" }}
-            >
-              <MeuIcone2 style={{ width: "24px", height: "24px" }} />
-            </Button>
-          </Grid>
-        </Grid>
-      ))}
-
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>
-          {selectedInstinctKey &&
-            selectedInstinctKey.charAt(0).toUpperCase() +
-              selectedInstinctKey.slice(1)}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
-            {translateKey("Fechar")}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
-
-const CharacterSheet = () => {
-  const { id } = useParams();
-  const [character, setCharacter] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [selectedInstinct, setSelectedInstinct] = useState({});
-  const [rollResult, setRollResult] = useState(null);
-  const [customRollResult, setCustomRollResult] = useState(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [selectedTab, setSelectedTab] = useState(0);
-  const [openItemsModal, setOpenItemsModal] = useState(false);
-  const [openAssimilationsModal, setOpenAssimilationsModal] = useState(false);
-  const [openCharacteristicsModal, setOpenCharacteristicsModal] =
-    useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [characteristics, setCharacteristics] = useState([]);
-  const [assimilations, setAssimilations] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
-  const [maxWeight, setMaxWeight] = useState(8); // 2 para o corpo e 6 para a mochila
-  const [editItem, setEditItem] = useState(null);
-  const [customDiceFormula, setCustomDiceFormula] = useState("");
-  const [notes, setNotes] = useState(""); // Estado para armazenar as anotações
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Você precisa estar autenticado para acessar esta página");
-      setLoading(false);
-      return;
-    }
-
-    const fetchCharacter = async () => {
-      try {
-        const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setCharacter(response.data);
-        setNotes(response.data.notes || ""); // Carrega as anotações salvas
-        setLoading(false);
-      } catch (error) {
-        setError("Erro ao carregar a ficha do personagem");
-        setLoading(false);
-        console.error(error);
-      }
-    };
-    fetchCharacter();
-  }, [id]);
-
-  useEffect(() => {
-    if (character) {
-      setInventoryItems(character.inventory || []);
-    }
-  }, [character]);
-
-  const calculateTotalWeight = () => {
-    const inventoryWeight = (character?.inventory || []).reduce(
-      (total, invItem) => {
-        if (invItem?.item?.weight) {
-          return total + invItem.item.weight;
-        }
-        return total;
-      },
-      0
-    );
-
-    // Exemplo de modificador (buff ou debuff)
-    const weightModifier = character?.buffs?.weightReduction || 0;
-    return inventoryWeight - weightModifier;
-  };
-
-  const fetchCharacteristics = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/charactertraits", // URL do Railway com /api
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setCharacteristics(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar características:", error);
-    }
-  };
-
-  const fetchAssimilations = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/assimilations", // URL do Railway com /api
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setAssimilations(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar assimilações:", error);
-    }
-  };
-
-  const fetchInventoryItems = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/items", // URL do Railway com /api
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setInventoryItems(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar itens do inventário:", error);
-    }
-  };
-
-  const handleHealthChange = (index, value) => {
-    const updatedHealthLevels = [...character?.healthLevels];
-    updatedHealthLevels[index] = value;
-    setCharacter({ ...character, healthLevels: updatedHealthLevels });
-  };
-
-  const handleInstinctChange = (skill, instinct) => {
-    setSelectedInstinct({ ...selectedInstinct, [skill]: instinct });
-  };
-
-  const handleRoll = (skill, selectedInstinct) => {
-    setRollResult(null);
-    setCustomRollResult(null);
-
-    if (!selectedInstinct) {
-      console.warn("Instinto não selecionado!");
-      return;
-    }
-
-    const diceCountInstinct = character?.instincts?.[selectedInstinct] || 0;
-    const diceCountSkill =
-      (character?.knowledge?.[skill] || 0) +
-      (character?.practices?.[skill] || 0);
-
-    if (diceCountInstinct === 0 && diceCountSkill === 0) {
-      console.warn("Nenhum dado disponível para rolagem!");
-      return;
-    }
-
-    const rollDice = (count, sides) =>
-      Array.from({ length: count }, () => {
-        const face = Math.floor(Math.random() * sides) + 1;
-        return { face, result: dados[`d${sides}`][face] || [] };
-      });
-
-    const rollInstinct = rollDice(diceCountInstinct, 6);
-    const rollSkill = rollDice(diceCountSkill, 10);
-
-    setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
-    setSnackbarOpen(true);
-  };
-
-  const getHealthColorGradient = (points) => {
-    if (points >= 4) return "green, limegreen"; // Verde para saudável
-    if (points === 3) return "yellow, orange"; // Amarelo para leve dano
-    if (points === 2) return "orange, red"; // Laranja para mais dano
-    if (points === 1) return "red, darkred"; // Vermelho para estado crítico
-    return "black, gray"; // Preto para morte
-  };
-
-  const handleCustomRoll = () => {
-    setRollResult(null);
-    setCustomRollResult(null);
-
-    const results = rollCustomDice(customDiceFormula);
-    setCustomRollResult({ formula: customDiceFormula, roll: results });
-    setSnackbarOpen(true);
-  };
-
-  const handleAssimilatedRoll = (instinct, selectedInstinct) => {
-    if (!selectedInstinct) {
-      return;
-    }
-
-    const diceCount =
-      (character?.instincts[instinct] || 0) +
-      (character?.instincts[selectedInstinct] || 0);
-    const roll = Array.from({ length: diceCount }, () => {
-      const face = Math.floor(Math.random() * 12) + 1;
-      return { face, result: dados.d12[face] };
-    });
-    setRollResult({ skill: instinct, roll });
-    setSnackbarOpen(true);
-  };
-
-  const handleOpenCharacteristicsMenu = () => {
-    setEditItem((prevEditItem) => ({
-      ...prevEditItem,
-      showCharacteristicsMenu: true,
-    }));
-  };
-
-  const handleCharacteristicsChange = (updatedItem) => {
-    setEditItem((prevEditItem) => ({
-      ...prevEditItem,
-      item: updatedItem,
-    }));
-  };
-
-  const handleItemEdit = async (index, updatedItem) => {
-    const token = localStorage.getItem("token");
-    try {
-      const updatedInventory = [...character.inventory];
-      updatedInventory[index] = {
-        ...updatedInventory[index],
-        item: updatedItem,
-        currentUses: updatedItem.currentUses || 0, // Atualize currentUses com o valor correto
-        durability: updatedItem.durability || 0, // Garanta que a durabilidade é salva corretamente
-      };
-
-      const payload = {
-        inventory: updatedInventory.map((invItem) => ({
-          item: invItem.item._id || invItem.item,
-          currentUses: invItem.currentUses,
-          durability: invItem.durability,
-          characteristics: {
-            points: invItem.item.characteristics.points,
-            details: invItem.item.characteristics.details.map((detail) => ({
-              name: detail.name,
-              description: detail.description,
-              cost: detail.cost,
-            })),
-          },
-        })),
-      };
-
-      console.log("Payload enviado ao backend:", payload);
-
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        inventory: updatedInventory,
-      }));
-      setEditItem(null); // Fecha o diálogo após salvar
-    } catch (error) {
-      console.error("Erro ao salvar o item:", error);
-      console.log(error.response); // Verifique a resposta de erro do Axios
-    }
-  };
-
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
-  const handleCharacteristicDelete = (index) => {
-    setCharacter((prevCharacter) => {
-      const newCharacteristics = [...(prevCharacter?.characteristics || [])];
-      newCharacteristics.splice(index, 1);
-      return { ...prevCharacter, characteristics: newCharacteristics };
-    });
-  };
-
-  const handleAssimilationDelete = (index) => {
-    setCharacter((prevCharacter) => {
-      const newAssimilations = [...(prevCharacter?.assimilations || [])];
-      newAssimilations.splice(index, 1);
-      return { ...prevCharacter, assimilations: newAssimilations };
-    });
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setSelectedTab(newValue);
-  };
-
-  const handleDeterminationChange = (event, newValue) => {
-    setCharacter((prevCharacter) => {
-      let updatedDetermination = newValue;
-      let updatedAssimilation = prevCharacter?.assimilation || 0;
-      let message = null;
-
-      // Se Determinação atinge 0, redefine corretamente
-      if (updatedDetermination <= 0 && updatedAssimilation < 9) {
-        updatedAssimilation += 1;
-        updatedDetermination = 10 - updatedAssimilation; // Corrige a Determinação
-        message =
-          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
-      }
-
-      // Previne atualização incorreta
-      if (
-        updatedDetermination > 10 - updatedAssimilation &&
-        updatedAssimilation > 0
-      ) {
-        updatedAssimilation -= 1;
-        updatedDetermination = newValue;
-      }
-
-      return {
-        ...prevCharacter,
-        determination: updatedDetermination,
-        assimilation: updatedAssimilation,
-        message: message,
-      };
-    });
-  };
-
-  const handleAssimilationChange = (event, newValue) => {
-    setCharacter((prevCharacter) => {
-      let updatedAssimilation = newValue;
-      let maxAssimilation = 10 - (prevCharacter?.determination || 0); // Calcula o máximo de Assimilação permitido
-      let message = null;
-
-      // Garantir que não gaste mais pontos de assimilação do que possui
-      if (updatedAssimilation > maxAssimilation) {
-        message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
-        updatedAssimilation = prevCharacter.assimilation;
-      }
-
-      return {
-        ...prevCharacter,
-        assimilation: updatedAssimilation,
-        message: message,
-      };
-    });
-  };
-
-  const handleOpenItemsModal = () => {
-    fetchInventoryItems();
-    setOpenItemsModal(true);
-  };
-
-  const handleOpenAssimilationsModal = () => {
-    fetchAssimilations();
-    setOpenAssimilationsModal(true);
-  };
-
-  const handleOpenCharacteristicsModal = () => {
-    fetchCharacteristics();
-    setOpenCharacteristicsModal(true);
-  };
-
-  const handleCloseItemsModal = () => setOpenItemsModal(false);
-  const handleCloseAssimilationsModal = () => setOpenAssimilationsModal(false);
-  const handleCloseCharacteristicsModal = () =>
-    setOpenCharacteristicsModal(false);
-
-  const handleItemSelect = (item) => {
-    setSelectedItem(item);
-
-    if (selectedTab === 0) {
-      // Inventário
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        inventory: [
-          ...(prevCharacter?.inventory || []),
-          {
-            item: {
-              ...item,
-              characteristics: item.characteristics || [],
-              currentUses: item.currentUses || 0,
-            },
-          },
-        ],
-      }));
-    } else if (selectedTab === 3) {
-      // Assimilações
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        assimilations: [...(prevCharacter?.assimilations || []), item],
-      }));
-    } else if (selectedTab === 2) {
-      // Características
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        characteristics: [...(prevCharacter?.characteristics || []), item],
-      }));
-    }
-
-    setOpenItemsModal(false);
-    setOpenAssimilationsModal(false);
-    setOpenCharacteristicsModal(false);
-  };
-
-  const handleItemDelete = (index) => {
-    setCharacter((prevCharacter) => {
-      const newInventory = [...(prevCharacter?.inventory || [])];
-      newInventory.splice(index, 1);
-      return { ...prevCharacter, inventory: newInventory };
-    });
-  };
-
-  const handleInputChange = (field, value) => {
-    setCharacter((prevCharacter) => {
-      const updatedCharacter = { ...prevCharacter, [field]: value };
-      saveCharacter(updatedCharacter); // Chama a função para salvar no backend
-      return updatedCharacter;
-    });
-  };
-
-  const saveCharacter = async (updatedCharacter) => {
-    try {
-      const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-        {
-          ...updatedCharacter,
-        }
-      );
-      console.log("Personagem salvo com sucesso:", response.data);
-    } catch (error) {
-      console.error("Erro ao salvar personagem:", error);
-    }
-  };
-
-  const saveCharacterInventory = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
-        {
-          inventory: character?.inventory,
-          characteristics: character?.characteristics,
-          assimilations: character?.assimilations,
-          notes: notes,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Erro ao salvar o inventário do personagem:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (character) {
-      saveCharacterInventory();
-    }
-  }, [
-    character?.inventory,
-    character?.characteristics,
-    character?.assimilations,
-    notes,
-  ]);
-
-  if (loading) {
-    return <div className={styles.loadingIndicator}>Carregando...</div>;
-  }
-
-  if (error) {
-    return <div className={styles.errorMessage}>{error}</div>;
-  }
-
-  return (
     <Box className={styles.characterSheet}>
       <Paper elevation={3} className={styles.characterHeader}>
         <Grid container spacing={2}>
@@ -1360,7 +788,6 @@ const CharacterSheet = () => {
             </Box>
           </Box>
         </Paper>
-
         <Paper elevation={3} className={styles.centerColumn}>
           {console.log("Character:", character)}
           <SkillList
@@ -1454,22 +881,20 @@ const CharacterSheet = () => {
               <Typography
                 variant="body2"
                 color={
-                  calculateTotalWeight() > setMaxWeight
-                    ? "error"
-                    : "textPrimary"
+                  calculateTotalWeight() > maxWeight ? "error" : "textPrimary"
                 }
                 sx={{
                   fontWeight:
-                    calculateTotalWeight() > setMaxWeight ? "bold" : "normal",
+                    calculateTotalWeight() > maxWeight ? "bold" : "normal",
                 }}
               >
-                Peso Total: {calculateTotalWeight()} / {setMaxWeight}
+                Peso Total: {calculateTotalWeight()} / {maxWeight}
               </Typography>
 
               {/* Barra de Progresso */}
               <LinearProgress
                 variant="determinate"
-                value={(calculateTotalWeight() / setMaxWeight) * 50}
+                value={(calculateTotalWeight() / maxWeight) * 50}
                 sx={{
                   height: 15,
                   borderRadius: 5,
@@ -1477,13 +902,13 @@ const CharacterSheet = () => {
                   backgroundColor: "lightgrey",
                   "& .MuiLinearProgress-bar": {
                     backgroundColor:
-                      calculateTotalWeight() > setMaxWeight ? "red" : "green",
+                      calculateTotalWeight() > maxWeight ? "red" : "green",
                   },
                 }}
               />
 
               {/* Alerta de Peso Excedido */}
-              {calculateTotalWeight() > setMaxWeight && (
+              {calculateTotalWeight() > maxWeight && (
                 <Typography variant="body2" color="error" sx={{ mt: 1 }}>
                   Peso máximo excedido! Você precisa reduzir o peso.
                 </Typography>
@@ -1704,21 +1129,21 @@ const CharacterSheet = () => {
       </Snackbar>
 
       <ItemsModal
-        open={OpenItemsModal}
+        open={openItemsModal}
         handleClose={handleCloseItemsModal}
         title="Inventário"
         items={inventoryItems}
         onItemSelect={handleItemSelect}
       />
       <AssimilationsModal
-        open={OpenAssimilationsModal}
+        open={openAssimilationsModal}
         handleClose={handleCloseAssimilationsModal}
         title="Assimilações"
         items={assimilations}
         onItemSelect={handleItemSelect}
       />
       <CharacteristicsModal
-        open={OpenCharacteristicsModal}
+        open={openCharacteristicsModal}
         handleClose={handleCloseCharacteristicsModal}
         title="Características"
         items={characteristics}
