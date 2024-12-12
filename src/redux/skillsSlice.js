@@ -18,8 +18,6 @@ const skillsSlice = createSlice({
   },
 });
 
-// Exportando as ações para atualizar os skills
 export const { setSkills, updateSkills } = skillsSlice.actions;
 
-// Exportando o reducer para ser usado na configuração do Redux
 export default skillsSlice.reducer;
