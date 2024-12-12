@@ -229,7 +229,6 @@ const SkillList = ({
 }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills.skills); // Acessando o estado global de skills
-
   const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
@@ -280,13 +279,16 @@ const SkillList = ({
           },
         }
       );
-
+  
       // Atualiza o estado local e global com os dados salvos no backend
       const updatedSkillsState = { ...localSkills, ...updatedSkills };
       setLocalSkills(updatedSkillsState);
       dispatch(updateSkills(updatedSkillsState));
-
+  
       setEditedValues({}); // Limpa as edições após a atualização
+      
+      // Atualiza o character chamando a função fetchCharacter (substitua pelo nome da sua função de fetch)
+      fetchCharacter(id);
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
@@ -296,6 +298,7 @@ const SkillList = ({
       setLoading(false); // Finaliza o carregamento
     }
   };
+  
 
   const toggleEditMode = () => {
     if (editMode) {
