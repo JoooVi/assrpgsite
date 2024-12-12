@@ -1704,21 +1704,21 @@ const CharacterSheet = () => {
       </Snackbar>
 
       <ItemsModal
-        open={setOpenItemsModal}
+        open={OpenItemsModal}
         handleClose={handleCloseItemsModal}
         title="Inventário"
         items={inventoryItems}
         onItemSelect={handleItemSelect}
       />
       <AssimilationsModal
-        open={setOpenAssimilationsModal}
+        open={OpenAssimilationsModal}
         handleClose={handleCloseAssimilationsModal}
         title="Assimilações"
         items={assimilations}
         onItemSelect={handleItemSelect}
       />
       <CharacteristicsModal
-        open={setOpenCharacteristicsModal}
+        open={OpenCharacteristicsModal}
         handleClose={handleCloseCharacteristicsModal}
         title="Características"
         items={characteristics}
