@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { updateSkills } from "../redux/skillsSlice";
-import { updateInstincts } from './redux/instinctsSlice';
+import { updateInstincts } from '../redux/instinctsSlice';
 import { useParams } from "react-router-dom";
 import {
   TextField,
