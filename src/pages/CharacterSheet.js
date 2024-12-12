@@ -230,7 +230,7 @@ const SkillList = ({
 }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills.skills); // Acessando o estado global de skills
-
+  console.log(globalSkills); // Verifique se o valor está sendo atribuído corretamente
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
