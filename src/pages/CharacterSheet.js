@@ -656,7 +656,7 @@ const InstinctList = ({
   );
 };
 
-const CharacterSheet = ({ id }) => {
+const CharacterSheet = ({ }) => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
