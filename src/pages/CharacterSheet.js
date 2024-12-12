@@ -1081,8 +1081,7 @@ const CharacterSheet = () => {
     });
   };
 
-// Suponha que o estilo de "healthBar" e as funções necessárias já estão definidas
-const HealthComponent = ({ character, handleHealthChange }) => {
+const HealthComponent = ({ character, handleHealthChange, Modal, handleOpen }) => {
   const [open, setOpen] = useState(false);
   const [selectedHealthLevel, setSelectedHealthLevel] = useState(null);
 
