@@ -286,9 +286,9 @@ const SkillList = ({
       dispatch(updateSkills(updatedSkillsState));
   
       setEditedValues({}); // Limpa as edições após a atualização
-      
-      // Atualiza o character chamando a função fetchCharacter (substitua pelo nome da sua função de fetch)
-      fetchCharacter(id);
+  
+      // Atualiza o character
+      setCharacter(response.data); // Atualiza o personagem com a resposta do backend
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
@@ -297,8 +297,7 @@ const SkillList = ({
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
-  };
-  
+  };  
 
   const toggleEditMode = () => {
     if (editMode) {
