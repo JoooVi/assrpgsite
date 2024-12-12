@@ -964,37 +964,6 @@ const CharacterSheet = () => {
     setSelectedTab(newValue);
   };
 
-  const HealthComponent = ({ character, handleHealthChange }) => {
-    const [open, setOpen] = useState(false);
-    const [selectedHealthLevel, setSelectedHealthLevel] = useState(null);
-  
-    const handleOpen = (level) => {
-      setSelectedHealthLevel(level);
-      setOpen(true);
-    };
-  
-    const handleClose = () => {
-      setOpen(false);
-    };
-  
-    const getHealthDescription = (level) => {
-      switch (level) {
-        case 1:
-          return "Descrição para saúde 1.";
-        case 2:
-          return "Descrição para saúde 2.";
-        case 3:
-          return "Descrição para saúde 3.";
-        case 4:
-          return "Descrição para saúde 4.";
-        case 5:
-          return "Descrição para saúde 5.";
-        default:
-          return "Descrição não encontrada.";
-      }
-    };
-  };
-  
   const handleDeterminationChange = (event, newValue) => {
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
@@ -1375,30 +1344,6 @@ const CharacterSheet = () => {
               </Box>
             </Box>
           ))}
-          <Modal open={open} onClose={handleClose}>
-            <Box
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                bgcolor: "background.paper",
-                p: 4,
-                borderRadius: 2,
-                boxShadow: 24,
-              }}
-            >
-              <Typography variant="h6">
-                Descrição de Saúde {selectedHealthLevel}
-              </Typography>
-              <Typography variant="body1" mt={2}>
-                {getHealthDescription(selectedHealthLevel)}
-              </Typography>
-              <Button onClick={handleClose} sx={{ mt: 2 }}>
-                Fechar
-              </Button>
-            </Box>
-          </Modal>
           <Typography variant="h6" mt={4}>
             Determinação & Assimilação
           </Typography>
