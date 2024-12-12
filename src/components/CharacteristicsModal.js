@@ -77,8 +77,23 @@ const CharacteristicsModal = ({
             sx={{
               mb: 3,
               "& .MuiOutlinedInput-root": {
-                backgroundColor: "#292a3a",
+                backgroundColor: "#38394a", // Cor de fundo mais clara
                 color: "white",
+                "& fieldset": {
+                  borderColor: "#555", // Cor da borda
+                },
+                "&:hover fieldset": {
+                  borderColor: "#777", // Cor da borda ao passar o mouse
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#aaa", // Cor da borda ao focar
+                },
+              },
+              "& .MuiInputBase-input": {
+                color: "white", // Cor do texto inserido
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: "#bbb", // Cor do placeholder
               },
             }}
           />
