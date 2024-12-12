@@ -656,7 +656,8 @@ const InstinctList = ({
   );
 };
 
-const CharacterSheet = () => {
+const CharacterSheet = ({ id }) => {
+  const dispatch = useDispatch();
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -678,27 +679,20 @@ const CharacterSheet = () => {
   const [editItem, setEditItem] = useState(null);
   const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [notes, setNotes] = useState(""); // Estado para armazenar as anotações
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Você precisa estar autenticado para acessar esta página");
-      setLoading(false);
-      return;
-    }
-
-    const fetchCharacter = async () => {
+    
+    const fetchCharacter = async (characterId) => {
       try {
+        const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${characterId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setCharacter(response.data);
-        setNotes(response.data.notes || ""); // Carrega as anotações salvas
+        dispatch(setCharacter(response.data)); 
+        setNotes(response.data.notes || "");
         setLoading(false);
       } catch (error) {
         setError("Erro ao carregar a ficha do personagem");
@@ -706,14 +700,11 @@ const CharacterSheet = () => {
         console.error(error);
       }
     };
-    fetchCharacter();
-  }, [id]);
-
-  useEffect(() => {
-    if (character) {
-      setInventoryItems(character.inventory || []);
-    }
-  }, [character]);
+  
+    // Chama fetchCharacter para carregar os dados inicialmente
+    useEffect(() => {
+      fetchCharacter(id);
+    }, [id]);
 
   const calculateTotalWeight = () => {
     const inventoryWeight = (character?.inventory || []).reduce(
