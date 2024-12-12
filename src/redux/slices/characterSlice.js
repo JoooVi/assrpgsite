@@ -97,6 +97,12 @@ const characterSlice = createSlice({
     updateCharacterInventory: (state, action) => {
       state.inventory = action.payload.inventory;
     },
+    updateInstincts: (state, action) => {
+      state.data.instincts = action.payload;  // Corrigido para acessar data corretamente
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
   },
 });
 
@@ -122,7 +128,9 @@ export const {
   setMaxWeight,
   setEditItem,
   setCustomDiceFormula,
-  updateCharacterInventory, // Certifique-se de que está sendo exportado aqui
+  updateCharacterInventory,
+  updateInstincts,  // Certifique-se de exportar corretamente
+  setLoading,  // Certifique-se de exportar corretamente
 } = characterSlice.actions;
 
 export default characterSlice.reducer;

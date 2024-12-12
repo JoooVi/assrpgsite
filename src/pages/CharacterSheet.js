@@ -1,80 +1,51 @@
+// Bibliotecas e Utilitários
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { updateSkills } from "../redux/skillsSlice";
 import { useParams } from "react-router-dom";
+import axios from "axios";
+
+// Material UI
 import {
-  TextField,
-  Typography,
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Rating,
-  Snackbar,
-  Alert,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Tab,
-  Tabs,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Collapse,
+  TextField, Typography, Box, Button, Grid, Paper, Rating, Snackbar, Alert,
+  Select, MenuItem, FormControl, InputLabel, Tab, Tabs, List, ListItem,
+  ListItemText, IconButton, Dialog, DialogTitle, DialogContent, 
+  DialogContentText, DialogActions, Collapse, LinearProgress
 } from "@mui/material";
-import LinearProgress from "@mui/material/LinearProgress";
+
 import { styled } from "@mui/material/styles";
+
+// Ícones
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+
+// Componentes Personalizados
 import TriangleRatingIcon from "../components/TriangleRatingIcon";
 import TriangleRatingIconDown from "../components/TriangleRatingIconDown";
-import styles from "./CharacterSheet.module.css";
 import ItemsModal from "../components/ItemModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
+
+// Assets SVG
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
+
+// Redux Actions
+import { fetchCharacter, updateCharacterData } from "../redux/actions/characterActions";
 import {
-  fetchCharacter,
-  updateCharacterData,
-} from "../redux/actions/characterActions";
-import { 
-  fetchCharacterStart, 
-  fetchCharacterSuccess, 
-  fetchCharacterFailure, 
-  updateCharacter, 
-  updateCharacterFailure, 
-  setNotes, 
-  setInventory, 
-  setSelectedInstinct, 
-  setRollResult, 
-  setCustomRollResult, 
-  setSnackbarOpen, 
-  setSelectedTab, 
-  setOpenItemsModal, 
-  setOpenAssimilationsModal, 
-  setOpenCharacteristicsModal, 
-  setSelectedItem, 
-  setCharacteristics, 
-  setAssimilations, 
-  setMaxWeight, 
-  setEditItem, 
-  setCustomDiceFormula, 
-  updateCharacterInventory,
-  updateInstincts, // Certifique-se de importar aqui
-  setLoading // Certifique-se de importar aqui
-} from '../redux/slices/characterSlice';
+  setNotes, setInventory, setSelectedInstinct, setRollResult, 
+  setCustomRollResult, setSnackbarOpen, setSelectedTab, setOpenItemsModal, 
+  setOpenAssimilationsModal, setOpenCharacteristicsModal, setSelectedItem, 
+  setCharacteristics, setAssimilations, setMaxWeight, setEditItem, 
+  setCustomDiceFormula, updateCharacterInventory, updateInstincts, 
+  setLoading 
+} from "../redux/slices/characterSlice";
+
+// Estilos
+import styles from "./CharacterSheet.module.css";
+
 
 const translateKey = (key) => {
   const translations = {
@@ -509,16 +480,14 @@ const InstinctList = ({ title, id, onAssimilatedRoll }) => {
   const toggleEditMode = () => {
     if (editMode) {
       const updatedInstincts = {};
-
+  
       Object.keys(editedValues).forEach((instinctKey) => {
-        if (instincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = parseInt(
-            editedValues[instinctKey],
-            10
-          );
+        const newValue = parseInt(editedValues[instinctKey], 10);
+        if (!isNaN(newValue)) {
+          updatedInstincts[instinctKey] = newValue;
         }
       });
-
+  
       if (id) {
         saveInstinctsToBackend(updatedInstincts);
       } else {
@@ -527,7 +496,7 @@ const InstinctList = ({ title, id, onAssimilatedRoll }) => {
     } else {
       setEditMode(true);
     }
-  };
+  };  
 
   const handleEditedValueChange = (instinctKey, value) => {
     setEditedValues((prev) => ({

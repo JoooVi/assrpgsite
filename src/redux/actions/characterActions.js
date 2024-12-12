@@ -46,5 +46,3 @@ export const updateCharacterData = (id, token, updatedData) => async (dispatch) 
     dispatch(updateCharacterFailure(errorMessage));  // Despacha uma ação de erro caso ocorra
   }
 };
-
-export const { updateInstincts } = characterSlice.actions;
