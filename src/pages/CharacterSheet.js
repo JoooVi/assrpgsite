@@ -1081,6 +1081,113 @@ const CharacterSheet = () => {
     });
   };
 
+// Suponha que o estilo de "healthBar" e as funções necessárias já estão definidas
+const HealthComponent = ({ character, handleHealthChange }) => {
+  const [open, setOpen] = useState(false);
+  const [selectedHealthLevel, setSelectedHealthLevel] = useState(null);
+
+  const handleOpen = (level) => {
+    setSelectedHealthLevel(level);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const getHealthDescription = (level) => {
+    switch (level) {
+      case 1:
+        return "Saudável";
+      case 2:
+        return "Ferido";
+      case 3:
+        return "Precisa de 1 Sucesso ou Adaptação adicional para ter sucesso em testes.";
+      case 4:
+        return "Precisa de 2 Sucessos ou Adaptações adicional para ter sucesso em testes.";
+      case 5:
+        return "Precisa de 3 Sucessos ou Adaptações adicional para ter sucesso em testes.";
+      default:
+        return "Descrição não encontrada.";
+    }
+  };
+
+  return (
+    <>
+      <Typography variant="h6" mt={3}>
+        Saúde
+      </Typography>
+      {character?.healthLevels?.map((points, index) => (
+        <Box key={index} className="healthBar" mb={3}>
+          <Typography variant="body1" onClick={() => handleOpen(5 - index)}>
+            Saúde {5 - index}:
+          </Typography>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            mb={1}
+          >
+            <StyledRating
+              name={`health-${index}`}
+              value={points}
+              max={
+                Math.max(
+                  character?.instincts?.potency,
+                  character?.instincts?.resolution
+                ) + 2
+              }
+              onChange={(e, newValue) =>
+                handleHealthChange(index, newValue)
+              }
+              getLabelText={(value) =>
+                `${value} Coração${value !== 1 ? "es" : ""}`
+              }
+              precision={1}
+              icon={<FavoriteIcon fontSize="inherit" />}
+              emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
+              sx={{
+                fontSize: { xs: "40px", sm: "44px" },
+                display: "flex",
+                alignItems: "center",
+              }}
+            />
+            <Typography variant="body2" color="textSecondary">
+              {points === 0 ? "0 pontos" : `${points} pontos`}
+            </Typography>
+          </Box>
+        </Box>
+      ))}
+
+      {/* Modal */}
+      <Modal open={open} onClose={handleClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+          }}
+        >
+          <Typography variant="h6">
+            Descrição de Saúde {selectedHealthLevel}
+          </Typography>
+          <Typography variant="body1" mt={2}>
+            {getHealthDescription(selectedHealthLevel)}
+          </Typography>
+          <Button onClick={handleClose} sx={{ mt: 2 }}>
+            Fechar
+          </Button>
+        </Box>
+      </Modal>
+    </>
+  );
+};
+
   const handleInputChange = (field, value) => {
     setCharacter((prevCharacter) => {
       const updatedCharacter = { ...prevCharacter, [field]: value };
