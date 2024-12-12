@@ -620,7 +620,7 @@ const CharacterSheet = () => {
   const characteristics = useSelector((state) => state.character.characteristics);
   const assimilations = useSelector((state) => state.character.assimilations);
   const notes = useSelector((state) => state.character.notes);
-  const maxWeight = useSelector((state) => state.character.maxWeight);
+  const setMaxWeight = useSelector((state) => state.character.maxWeight);
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
@@ -1397,20 +1397,20 @@ const CharacterSheet = () => {
               <Typography
                 variant="body2"
                 color={
-                  calculateTotalWeight() > MaxWeight ? "error" : "textPrimary"
+                  calculateTotalWeight() > setMaxWeight ? "error" : "textPrimary"
                 }
                 sx={{
                   fontWeight:
-                    calculateTotalWeight() > MaxWeight ? "bold" : "normal",
+                    calculateTotalWeight() > setMaxWeight ? "bold" : "normal",
                 }}
               >
-                Peso Total: {calculateTotalWeight()} / {MaxWeight}
+                Peso Total: {calculateTotalWeight()} / {setMaxWeight}
               </Typography>
 
               {/* Barra de Progresso */}
               <LinearProgress
                 variant="determinate"
-                value={(calculateTotalWeight() / MaxWeight) * 50}
+                value={(calculateTotalWeight() / setMaxWeight) * 50}
                 sx={{
                   height: 15,
                   borderRadius: 5,
@@ -1418,13 +1418,13 @@ const CharacterSheet = () => {
                   backgroundColor: "lightgrey",
                   "& .MuiLinearProgress-bar": {
                     backgroundColor:
-                      calculateTotalWeight() > MaxWeight ? "red" : "green",
+                      calculateTotalWeight() > setMaxWeight ? "red" : "green",
                   },
                 }}
               />
 
               {/* Alerta de Peso Excedido */}
-              {calculateTotalWeight() > MaxWeight && (
+              {calculateTotalWeight() > setMaxWeight && (
                 <Typography variant="body2" color="error" sx={{ mt: 1 }}>
                   Peso máximo excedido! Você precisa reduzir o peso.
                 </Typography>
