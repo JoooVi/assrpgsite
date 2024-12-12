@@ -280,14 +280,14 @@ const SkillList = ({
           },
         }
       );
-  
+
       // Atualiza o estado local e global com os dados salvos no backend
       const updatedSkillsState = { ...localSkills, ...updatedSkills };
       setLocalSkills(updatedSkillsState);
       dispatch(updateSkills(updatedSkillsState));
-  
+
       setEditedValues({}); // Limpa as edições após a atualização
-  
+
       // Atualiza o character
       setCharacter(response.data);
     } catch (error) {
@@ -298,7 +298,7 @@ const SkillList = ({
     } finally {
       setLoading(false); // Finaliza o carregamento
     }
-  };  
+  };
 
   const toggleEditMode = () => {
     if (editMode) {
@@ -337,17 +337,25 @@ const SkillList = ({
     const descriptions = {
       agrarian:
         "Campo do conhecimento que governa estudos sobre o campo e o cultivo.",
-      biological: "Grande área do conhecimento que estuda as formas de vida, suas relações e compostos químicos compositivos.",
-      exact: "Matemática, Física e Engenharia estão dentro desse grande guarda-chuva, que estuda os fenômenos físicos da Terra.",
-      medicine: "Conhecimento sobre saúde humana e suas áreas conectadas, além de medicina veterinária.",
-      social: " Filosofia, Sociologia e Psicologia estão dentro desse grande grupo que busca investigar a relação dos seres humanos entre si e as sociedades e comunidades do mundo.",
-      artistic: "Investigações artísticas e suas múltiplas expressões, podendo ser usado inclusive para interpretar relatos e rastros culturais humanos.",
-      sports: "Correr, saltar, levantar peso, golpear (com armas brancas ou desarmado) e outras práticas corporais estão dentro do grupo esportivo",
+      biological:
+        "Grande área do conhecimento que estuda as formas de vida, suas relações e compostos químicos compositivos.",
+      exact:
+        "Matemática, Física e Engenharia estão dentro desse grande guarda-chuva, que estuda os fenômenos físicos da Terra.",
+      medicine:
+        "Conhecimento sobre saúde humana e suas áreas conectadas, além de medicina veterinária.",
+      social:
+        " Filosofia, Sociologia e Psicologia estão dentro desse grande grupo que busca investigar a relação dos seres humanos entre si e as sociedades e comunidades do mundo.",
+      artistic:
+        "Investigações artísticas e suas múltiplas expressões, podendo ser usado inclusive para interpretar relatos e rastros culturais humanos.",
+      sports:
+        "Correr, saltar, levantar peso, golpear (com armas brancas ou desarmado) e outras práticas corporais estão dentro do grupo esportivo",
       tools: "Capacidade de manuseio de ferramentas diversas.",
-      crafts: "Capacidade de criar, produzir ou desenvolver algo usando suas próprias mãos ou através de instrumentos.",
+      crafts:
+        "Capacidade de criar, produzir ou desenvolver algo usando suas próprias mãos ou através de instrumentos.",
       weapons: "Cuidado e uso de armas de fogo e de disparo no geral.",
       vehicles: "Capacidade de operar veículos terrestres, aéreos e marinhos.",
-      infiltration: "Esconder-se ou esgueirar-se, além de práticas de subterfúgio como arrombar fechaduras.",
+      infiltration:
+        "Esconder-se ou esgueirar-se, além de práticas de subterfúgio como arrombar fechaduras.",
     };
     return descriptions[key] || "Descrição não disponível.";
   };
@@ -485,12 +493,18 @@ const InstinctList = ({
 
   const getInstinctDescription = (key) => {
     const descriptions = {
-      reaction: "Instinto básico que mede a velocidade de reação do indivíduo. Geralmente, é usado em situações em que o personagem está em risco e precisa agir rapidamente ou em testes reflexivos em geral.",
-      perception: " Governa a capacidade sensorial do personagem, incluindo todos os sentidos e a atenção.",
-      sagacity: " Facilidade para entender e interpretar dados, explicações ou situações; agudeza de espírito; perspicácia, argúcia, astúcia.",
-      potency: "Capacidade de exercer pressão física do personagem, incluindo resistência a pressões físicas externas. Mede seu poder físico e elasticidade, relacionando seu sistema nervoso central com seu sistema muscular e ósseo.",
-      influence: "Sua capacidade de influenciar outras pessoas, seu magnetismo pessoal, carisma, escolha e cuidado com palavras e liderança.",
-      resolution: "Sua determinação física e mental, capacidade de resistir à pressão psicológica interna e externa.",
+      reaction:
+        "Instinto básico que mede a velocidade de reação do indivíduo. Geralmente, é usado em situações em que o personagem está em risco e precisa agir rapidamente ou em testes reflexivos em geral.",
+      perception:
+        " Governa a capacidade sensorial do personagem, incluindo todos os sentidos e a atenção.",
+      sagacity:
+        " Facilidade para entender e interpretar dados, explicações ou situações; agudeza de espírito; perspicácia, argúcia, astúcia.",
+      potency:
+        "Capacidade de exercer pressão física do personagem, incluindo resistência a pressões físicas externas. Mede seu poder físico e elasticidade, relacionando seu sistema nervoso central com seu sistema muscular e ósseo.",
+      influence:
+        "Sua capacidade de influenciar outras pessoas, seu magnetismo pessoal, carisma, escolha e cuidado com palavras e liderança.",
+      resolution:
+        "Sua determinação física e mental, capacidade de resistir à pressão psicológica interna e externa.",
     };
     return descriptions[key] || "Descrição não disponível.";
   };
@@ -785,9 +799,9 @@ const CharacterSheet = () => {
 
   const handleHealthChange = (index, value) => {
     if (!character || !Array.isArray(character.healthLevels)) return;
-  
+
     const updatedHealthLevels = [...character.healthLevels];
-    
+
     // Garantir que o índice seja válido
     if (index >= 0 && index < updatedHealthLevels.length) {
       updatedHealthLevels[index] = value;
@@ -796,7 +810,7 @@ const CharacterSheet = () => {
         healthLevels: updatedHealthLevels,
       }));
     }
-  };  
+  };
 
   const handleInstinctChange = (skill, instinct) => {
     setSelectedInstinct({ ...selectedInstinct, [skill]: instinct });
@@ -950,6 +964,37 @@ const CharacterSheet = () => {
     setSelectedTab(newValue);
   };
 
+  const HealthComponent = ({ character, handleHealthChange }) => {
+    const [open, setOpen] = useState(false);
+    const [selectedHealthLevel, setSelectedHealthLevel] = useState(null);
+  
+    const handleOpen = (level) => {
+      setSelectedHealthLevel(level);
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
+  
+    const getHealthDescription = (level) => {
+      switch (level) {
+        case 1:
+          return "Descrição para saúde 1.";
+        case 2:
+          return "Descrição para saúde 2.";
+        case 3:
+          return "Descrição para saúde 3.";
+        case 4:
+          return "Descrição para saúde 4.";
+        case 5:
+          return "Descrição para saúde 5.";
+        default:
+          return "Descrição não encontrada.";
+      }
+    };
+  };
+  
   const handleDeterminationChange = (event, newValue) => {
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
@@ -1130,7 +1175,7 @@ const CharacterSheet = () => {
     return <div className={styles.errorMessage}>{error}</div>;
   }
 
- return (
+  return (
     <Box className={styles.characterSheet}>
       <Paper elevation={3} className={styles.characterHeader}>
         <Grid container spacing={2}>
@@ -1286,8 +1331,14 @@ const CharacterSheet = () => {
             Saúde
           </Typography>
           {character?.healthLevels?.map((points, index) => (
-            <Box key={index} className={styles.healthBar} mb={3}>
-              <Typography variant="body1">Saúde {5 - index}:</Typography>
+            <Box key={index} className="healthBar" mb={3}>
+              <Typography
+                variant="body1"
+                onClick={() => handleOpen(5 - index)}
+                sx={{ cursor: "pointer" }}
+              >
+                Saúde {5 - index}:
+              </Typography>
               <Box
                 display="flex"
                 alignItems="center"
@@ -1324,6 +1375,30 @@ const CharacterSheet = () => {
               </Box>
             </Box>
           ))}
+          <Modal open={open} onClose={handleClose}>
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                bgcolor: "background.paper",
+                p: 4,
+                borderRadius: 2,
+                boxShadow: 24,
+              }}
+            >
+              <Typography variant="h6">
+                Descrição de Saúde {selectedHealthLevel}
+              </Typography>
+              <Typography variant="body1" mt={2}>
+                {getHealthDescription(selectedHealthLevel)}
+              </Typography>
+              <Button onClick={handleClose} sx={{ mt: 2 }}>
+                Fechar
+              </Button>
+            </Box>
+          </Modal>
           <Typography variant="h6" mt={4}>
             Determinação & Assimilação
           </Typography>
