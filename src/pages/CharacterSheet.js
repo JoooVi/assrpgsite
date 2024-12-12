@@ -33,13 +33,14 @@ import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
 
 // Redux Actions
+import { setSkills, updateSkills } from "../redux/skillsSlice"
 import { fetchCharacter, updateCharacterData } from "../redux/actions/characterActions";
 import {
   setNotes, setInventory, setSelectedInstinct, setRollResult, 
   setCustomRollResult, setSnackbarOpen, setSelectedTab, setOpenItemsModal, 
   setOpenAssimilationsModal, setOpenCharacteristicsModal, setSelectedItem, 
-  setCharacteristics, setAssimilations, setMaxWeight, setEditItem, 
-  setCustomDiceFormula, updateCharacterInventory, updateInstincts, 
+  setCharacteristics, setAssimilations, setMaxWeight, setEditItem, fetchCharacterFailure,
+  setCustomDiceFormula, updateCharacter, updateCharacterInventory, updateInstincts, 
   setLoading 
 } from "../redux/slices/characterSlice";
 
@@ -619,6 +620,7 @@ const CharacterSheet = () => {
   const characteristics = useSelector((state) => state.character.characteristics);
   const assimilations = useSelector((state) => state.character.assimilations);
   const notes = useSelector((state) => state.character.notes);
+  const maxWeight = useSelector((state) => state.character.maxWeight);
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
@@ -1395,20 +1397,20 @@ const CharacterSheet = () => {
               <Typography
                 variant="body2"
                 color={
-                  calculateTotalWeight() > maxWeight ? "error" : "textPrimary"
+                  calculateTotalWeight() > MaxWeight ? "error" : "textPrimary"
                 }
                 sx={{
                   fontWeight:
-                    calculateTotalWeight() > maxWeight ? "bold" : "normal",
+                    calculateTotalWeight() > MaxWeight ? "bold" : "normal",
                 }}
               >
-                Peso Total: {calculateTotalWeight()} / {maxWeight}
+                Peso Total: {calculateTotalWeight()} / {MaxWeight}
               </Typography>
 
               {/* Barra de Progresso */}
               <LinearProgress
                 variant="determinate"
-                value={(calculateTotalWeight() / maxWeight) * 50}
+                value={(calculateTotalWeight() / MaxWeight) * 50}
                 sx={{
                   height: 15,
                   borderRadius: 5,
@@ -1416,13 +1418,13 @@ const CharacterSheet = () => {
                   backgroundColor: "lightgrey",
                   "& .MuiLinearProgress-bar": {
                     backgroundColor:
-                      calculateTotalWeight() > maxWeight ? "red" : "green",
+                      calculateTotalWeight() > MaxWeight ? "red" : "green",
                   },
                 }}
               />
 
               {/* Alerta de Peso Excedido */}
-              {calculateTotalWeight() > maxWeight && (
+              {calculateTotalWeight() > MaxWeight && (
                 <Typography variant="body2" color="error" sx={{ mt: 1 }}>
                   Peso máximo excedido! Você precisa reduzir o peso.
                 </Typography>
@@ -1643,21 +1645,21 @@ const CharacterSheet = () => {
       </Snackbar>
 
       <ItemsModal
-        open={openItemsModal}
+        open={setOpenItemsModal}
         handleClose={handleCloseItemsModal}
         title="Inventário"
         items={inventoryItems}
         onItemSelect={handleItemSelect}
       />
       <AssimilationsModal
-        open={openAssimilationsModal}
+        open={setOpenAssimilationsModal}
         handleClose={handleCloseAssimilationsModal}
         title="Assimilações"
         items={assimilations}
         onItemSelect={handleItemSelect}
       />
       <CharacteristicsModal
-        open={openCharacteristicsModal}
+        open={setOpenCharacteristicsModal}
         handleClose={handleCloseCharacteristicsModal}
         title="Características"
         items={characteristics}
