@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { updateSkills } from "../redux/skillsSlice";
-import { updateInstincts } from '../redux/instinctsSlice';
 import { useParams } from "react-router-dom";
 import {
   TextField,
@@ -230,7 +229,8 @@ const SkillList = ({
 }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills.skills); // Acessando o estado global de skills
-  console.log(globalSkills); // Verifique se o valor está sendo atribuído corretamente
+
+  const [localSkills, setLocalSkills] = useState(skills);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -257,6 +257,10 @@ const SkillList = ({
   ];
 
   useEffect(() => {
+    setLocalSkills(skills);
+  }, [skills]);
+
+  useEffect(() => {
     setLocalSelectedInstinct(selectedInstinct);
   }, [selectedInstinct]);
 
@@ -277,8 +281,10 @@ const SkillList = ({
         }
       );
 
-      // Atualiza o estado global com os dados salvos no backend
-      dispatch(updateSkills(updatedSkills));
+      // Atualiza o estado local e global com os dados salvos no backend
+      const updatedSkillsState = { ...localSkills, ...updatedSkills };
+      setLocalSkills(updatedSkillsState);
+      dispatch(updateSkills(updatedSkillsState));
 
       setEditedValues({}); // Limpa as edições após a atualização
     } catch (error) {
@@ -344,7 +350,7 @@ const SkillList = ({
   };
 
   const handleRoll = (key) => {
-    onRoll(key, localSelectedInstinct[key], globalSkills[key]);
+    onRoll(key, localSelectedInstinct[key], localSkills[key]);
   };
 
   const handleInstinctChangeUpdated = (skillKey, value) => {
@@ -366,7 +372,7 @@ const SkillList = ({
       >
         <EditIcon />
       </Button>
-      {Object.entries(globalSkills).map(([key, value]) => (
+      {Object.entries(localSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
             <Typography
@@ -384,7 +390,9 @@ const SkillList = ({
           <Grid item xs={4} sm={2}>
             {editMode ? (
               <TextField
-                value={editedValues[key] !== undefined ? editedValues[key] : value}
+                value={
+                  editedValues[key] !== undefined ? editedValues[key] : value
+                }
                 onChange={(e) => handleEditedValueChange(key, e.target.value)}
                 size="small"
                 variant="outlined"
@@ -453,8 +461,6 @@ const SkillList = ({
     </Box>
   );
 };
-
-
 const InstinctList = ({
   title,
   instincts,
@@ -463,24 +469,38 @@ const InstinctList = ({
   onAssimilatedRoll,
   id,
 }) => {
-  const dispatch = useDispatch();
-  const globalInstincts = useSelector((state) => state.instincts.instincts); // Acessando o estado global de instintos
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Atualizar instintos no Redux (e no frontend) de forma otimista
+  const handleInstinctClick = (instinctKey) => {
+    setSelectedInstinctKey(instinctKey);
+    setOpen(true);
+  };
+
+  const getInstinctDescription = (key) => {
+    const descriptions = {
+      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
+      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
+      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
+      potency: "Força física e resistência para superar obstáculos.",
+      influence: "Habilidade de convencer ou manipular outros.",
+      resolution: "Capacidade de persistir diante de dificuldades.",
+    };
+    return descriptions[key] || "Descrição não disponível.";
+  };
+
   const saveInstinctsToBackend = async (updatedInstincts) => {
     setLoading(true);
 
     // Atualização otimista
-    const prevInstincts = { ...globalInstincts };
-    dispatch(updateInstincts(updatedInstincts)); // Atualiza o Redux instantaneamente
+    const prevInstincts = { ...instincts };
+    handleInstinctChange({ ...instincts, ...updatedInstincts });
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
@@ -491,9 +511,12 @@ const InstinctList = ({
         }
       );
     } catch (error) {
-      console.error("Erro ao salvar os instintos:", error.response?.data || error.message);
+      console.error(
+        "Erro ao salvar os instintos:",
+        error.response?.data || error.message
+      );
       // Reverte atualização otimista em caso de erro
-      dispatch(updateInstincts(prevInstincts));
+      handleInstinctChange(prevInstincts);
     } finally {
       setLoading(false);
       setEditedValues({});
@@ -506,8 +529,11 @@ const InstinctList = ({
       const updatedInstincts = {};
 
       Object.keys(editedValues).forEach((instinctKey) => {
-        if (globalInstincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = parseInt(editedValues[instinctKey], 10);
+        if (instincts[instinctKey] !== undefined) {
+          updatedInstincts[instinctKey] = parseInt(
+            editedValues[instinctKey],
+            10
+          );
         }
       });
 
@@ -520,18 +546,6 @@ const InstinctList = ({
       setEditMode(true);
     }
   };
-
-const getInstinctDescription = (key) => {
-  const descriptions = {
-    reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
-    perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
-    sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
-    potency: "Força física e resistência para superar obstáculos.",
-    influence: "Habilidade de convencer ou manipular outros.",
-    resolution: "Capacidade de persistir diante de dificuldades.",
-  };
-  return descriptions[key] || "Descrição não disponível.";
-};
 
   const handleEditedValueChange = (instinctKey, value) => {
     setEditedValues((prev) => ({
@@ -552,18 +566,18 @@ const getInstinctDescription = (key) => {
         <EditIcon />
       </Button>
 
-      {Object.entries(globalInstincts).map(([key, value]) => (
+      {Object.entries(instincts).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
           <Grid item xs={4} sm={3}>
             <Typography
-              onClick={() => setSelectedInstinctKey(key)}
+              onClick={() => handleInstinctClick(key)}
               sx={{
                 cursor: "pointer",
                 color: "text.primary",
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)}
+              {translateKey(key)} {/* Aplica a tradução usando translateKey */}
             </Typography>
           </Grid>
 
@@ -598,9 +612,9 @@ const getInstinctDescription = (key) => {
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
-                {Object.keys(globalInstincts).map((instinctKey) => (
+                {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)}
+                    {translateKey(instinctKey)} {/* Aplica a tradução */}
                   </MenuItem>
                 ))}
               </Select>
@@ -1112,7 +1126,7 @@ const CharacterSheet = () => {
     return <div className={styles.errorMessage}>{error}</div>;
   }
 
-  return (
+ return (
     <Box className={styles.characterSheet}>
       <Paper elevation={3} className={styles.characterHeader}>
         <Grid container spacing={2}>
