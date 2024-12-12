@@ -289,7 +289,7 @@ const SkillList = ({
       setEditedValues({}); // Limpa as edições após a atualização
   
       // Atualiza o character
-      setCharacter(response.data); // Atualiza o personagem com a resposta do backend
+      setCharacter(response.data);
     } catch (error) {
       console.error(
         "Erro ao salvar os dados:",
@@ -336,18 +336,18 @@ const SkillList = ({
   const getSkillDescription = (key) => {
     const descriptions = {
       agrarian:
-        "Conhecimento relacionado à agricultura e manejo de plantações.",
-      biological: "Estudos sobre ecossistemas, fauna e flora.",
-      exact: "Compreensão matemática e cálculos avançados.",
-      medicine: "Práticas médicas e tratamentos de saúde.",
-      social: "Habilidades de interação e negociação.",
-      artistic: "Capacidade de criação artística e expressão visual.",
-      sports: "Habilidades atléticas e esportivas.",
+        "Campo do conhecimento que governa estudos sobre o campo e o cultivo.",
+      biological: "Grande área do conhecimento que estuda as formas de vida, suas relações e compostos químicos compositivos.",
+      exact: "Matemática, Física e Engenharia estão dentro desse grande guarda-chuva, que estuda os fenômenos físicos da Terra.",
+      medicine: "Conhecimento sobre saúde humana e suas áreas conectadas, além de medicina veterinária.",
+      social: " Filosofia, Sociologia e Psicologia estão dentro desse grande grupo que busca investigar a relação dos seres humanos entre si e as sociedades e comunidades do mundo.",
+      artistic: "Investigações artísticas e suas múltiplas expressões, podendo ser usado inclusive para interpretar relatos e rastros culturais humanos.",
+      sports: "Correr, saltar, levantar peso, golpear (com armas brancas ou desarmado) e outras práticas corporais estão dentro do grupo esportivo",
       tools: "Capacidade de manuseio de ferramentas diversas.",
-      crafts: "Conhecimento sobre vários tipos de ofícios.",
-      weapons: "Habilidade no uso de armas de combate.",
-      vehicles: "Conhecimento e manuseio de veículos diversos.",
-      infiltration: "Habilidade em infiltração e furtividade.",
+      crafts: "Capacidade de criar, produzir ou desenvolver algo usando suas próprias mãos ou através de instrumentos.",
+      weapons: "Cuidado e uso de armas de fogo e de disparo no geral.",
+      vehicles: "Capacidade de operar veículos terrestres, aéreos e marinhos.",
+      infiltration: "Esconder-se ou esgueirar-se, além de práticas de subterfúgio como arrombar fechaduras.",
     };
     return descriptions[key] || "Descrição não disponível.";
   };
@@ -485,12 +485,12 @@ const InstinctList = ({
 
   const getInstinctDescription = (key) => {
     const descriptions = {
-      reaction: "Habilidade de reagir rapidamente a mudanças no ambiente.",
-      perception: "Sensibilidade aos detalhes e mudanças no ambiente.",
-      sagacity: "Capacidade de tomar decisões rápidas e eficazes.",
-      potency: "Força física e resistência para superar obstáculos.",
-      influence: "Habilidade de convencer ou manipular outros.",
-      resolution: "Capacidade de persistir diante de dificuldades.",
+      reaction: "Instinto básico que mede a velocidade de reação do indivíduo. Geralmente, é usado em situações em que o personagem está em risco e precisa agir rapidamente ou em testes reflexivos em geral.",
+      perception: " Governa a capacidade sensorial do personagem, incluindo todos os sentidos e a atenção.",
+      sagacity: " Facilidade para entender e interpretar dados, explicações ou situações; agudeza de espírito; perspicácia, argúcia, astúcia.",
+      potency: "Capacidade de exercer pressão física do personagem, incluindo resistência a pressões físicas externas. Mede seu poder físico e elasticidade, relacionando seu sistema nervoso central com seu sistema muscular e ósseo.",
+      influence: "Sua capacidade de influenciar outras pessoas, seu magnetismo pessoal, carisma, escolha e cuidado com palavras e liderança.",
+      resolution: "Sua determinação física e mental, capacidade de resistir à pressão psicológica interna e externa.",
     };
     return descriptions[key] || "Descrição não disponível.";
   };
