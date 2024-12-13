@@ -902,19 +902,22 @@ const CharacterSheet = () => {
       const updatedInventory = [...character.inventory];
       updatedInventory[index] = {
         ...updatedInventory[index],
-        item: updatedItem, // Atualize o item com as novas informações
-        currentUses: updatedItem.currentUses || 0, // Garantir que os usos sejam atualizados
-        durability: updatedItem.durability || 0, // Garantir que a durabilidade seja atualizada
+        name: updatedItem.name, // Nome personalizado
+        description: updatedItem.description, // Descrição personalizada
+        currentUses: updatedItem.currentUses || 0, // Atualizando o uso
+        durability: updatedItem.durability || 0, // Durabilidade
       };
-
+  
       const payload = {
         inventory: updatedInventory.map((invItem) => ({
-          item: invItem.item._id || invItem.item, // Apenas o _id do item, não o objeto inteiro
+          item: invItem.item._id || invItem.item,
+          name: invItem.name, // Incluindo o nome personalizado
+          description: invItem.description, // Incluindo a descrição personalizada
           currentUses: invItem.currentUses,
           durability: invItem.durability,
           characteristics: {
-            points: invItem.item.characteristics.points,
-            details: invItem.item.characteristics.details.map((detail) => ({
+            points: invItem.characteristics.points,
+            details: invItem.characteristics.details.map((detail) => ({
               name: detail.name,
               description: detail.description,
               cost: detail.cost,
@@ -922,36 +925,27 @@ const CharacterSheet = () => {
           },
         })),
       };
-
-      console.log("Payload enviado ao backend:", payload);
-
-      try {
-        console.log("Enviando dados para o backend:", payload); // Log dos dados sendo enviados
-        const response = await axios.put(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do backend
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log("Resposta do backend:", response.data); // Log da resposta recebida
-      } catch (error) {
-        console.error("Erro ao fazer requisição:", error); // Log de erros caso ocorra algum
-      }
-
-      // Atualizar o estado local com o inventário atualizado
+  
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: updatedInventory,
       }));
-
-      setEditItem(null); // Fechar a janela de edição após salvar
+      setEditItem(null); // Fechar o diálogo após salvar
     } catch (error) {
       console.error("Erro ao salvar o item:", error);
     }
   };
+  
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") {
