@@ -1297,7 +1297,11 @@ const CharacterSheet = () => {
         </Grid>
       </Paper>
       <Box className={styles.characterBody}>
-        <Paper elevation={3} className={styles.leftColumn}>
+        <Paper
+          elevation={3}
+          className={styles.leftColumn}
+          sx={{ width: "100%", padding: { xs: "16px", sm: "24px" } }}
+        >
           <InstinctList
             title="Instintos"
             instincts={character?.instincts || {}}
@@ -1349,6 +1353,7 @@ const CharacterSheet = () => {
               </Box>
             </Box>
           ))}
+
           <Typography variant="h6" mt={4}>
             Determinação & Assimilação
           </Typography>
@@ -1360,7 +1365,7 @@ const CharacterSheet = () => {
                 name="determination"
                 value={character?.determination || 0}
                 max={10}
-                onChange={handleDeterminationChange} // Chama a função para alterar a Determinação
+                onChange={handleDeterminationChange}
                 icon={<TriangleRatingIcon color="#67110e" />}
                 emptyIcon={<TriangleRatingIcon color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
@@ -1374,7 +1379,7 @@ const CharacterSheet = () => {
                 name="assimilation"
                 value={character?.assimilation || 0}
                 max={10}
-                onChange={handleAssimilationChange} // Chama a função correta para alterar Assimilação
+                onChange={handleAssimilationChange}
                 icon={<TriangleRatingIconDown color="#252d44" />}
                 emptyIcon={<TriangleRatingIconDown color="gray" />}
                 sx={{ fontSize: { xs: "20px", sm: "24px" } }}
@@ -1389,8 +1394,12 @@ const CharacterSheet = () => {
             </Box>
           </Box>
         </Paper>
-        <Paper elevation={3} className={styles.centerColumn}>
-          {console.log("Character:", character)}
+
+        <Paper
+          elevation={3}
+          className={styles.centerColumn}
+          sx={{ width: "100%", padding: { xs: "16px", sm: "24px" } }}
+        >
           <SkillList
             title="Conhecimentos & Práticas"
             skills={{ ...character?.knowledge, ...character?.practices }}
@@ -1400,8 +1409,8 @@ const CharacterSheet = () => {
             onRoll={handleRoll}
             id={character?._id}
             updateSkills={updateSkills}
-            setLoading={setLoading} // Passando 'setLoading' corretamente
-            loading={loading} // Passando 'loading' corretamente
+            setLoading={setLoading}
+            loading={loading}
           />
         </Paper>
 
