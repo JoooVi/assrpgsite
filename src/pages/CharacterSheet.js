@@ -900,16 +900,16 @@ const CharacterSheet = () => {
       const updatedInventory = [...character.inventory];
       updatedInventory[index] = {
         ...updatedInventory[index],
-        item: updatedItem,
-        currentUses: updatedItem.currentUses || 0, // Atualize currentUses com o valor correto
-        durability: updatedItem.durability || 0, // Garanta que a durabilidade é salva corretamente
+        item: updatedItem, // Passando o item atualizado com nome, características, etc.
+        currentUses: updatedItem.currentUses || 0, // Atualiza currentUses
+        durability: updatedItem.durability || 0, // Atualiza a durabilidade
       };
 
       const payload = {
         inventory: updatedInventory.map((invItem) => ({
-          item: invItem.item._id || invItem.item,
-          currentUses: invItem.currentUses,
-          durability: invItem.durability,
+          item: invItem.item._id || invItem.item, // Envia o _id do item
+          currentUses: invItem.currentUses, // Envia os usos atualizados
+          durability: invItem.durability, // Envia a durabilidade
           characteristics: {
             points: invItem.item.characteristics.points,
             details: invItem.item.characteristics.details.map((detail) => ({
@@ -923,8 +923,9 @@ const CharacterSheet = () => {
 
       console.log("Payload enviado ao backend:", payload);
 
+      // Enviando o payload para o backend
       await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do Railway com /api
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
         payload,
         {
           headers: {
@@ -933,6 +934,7 @@ const CharacterSheet = () => {
         }
       );
 
+      // Atualizando o estado local com os novos dados do inventário
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: updatedInventory,
@@ -1113,10 +1115,11 @@ const CharacterSheet = () => {
   const saveCharacterInventory = async () => {
     const token = localStorage.getItem("token");
     try {
+      // Cria o payload com o inventário atualizado
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
         {
-          inventory: character?.inventory,
+          inventory: character?.inventory, // Usando o inventário atualizado
           characteristics: character?.characteristics,
           assimilations: character?.assimilations,
           notes: notes,
@@ -1133,8 +1136,8 @@ const CharacterSheet = () => {
   };
 
   useEffect(() => {
-    if (character) {
-      saveCharacterInventory();
+    if (character?.inventory) {
+      saveCharacterInventory(); // Salva o inventário sempre que ele mudar
     }
   }, [
     character?.inventory,
