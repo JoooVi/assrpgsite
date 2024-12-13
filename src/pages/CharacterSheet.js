@@ -784,19 +784,19 @@ const CharacterSheet = () => {
   };
 
   const handleHealthChange = (index, value) => {
-    if (!character || !Array.isArray(character.healthLevels)) return;
+  if (!character || !Array.isArray(character.healthLevels)) return;
+
+  const updatedHealthLevels = [...character.healthLevels];
   
-    const updatedHealthLevels = [...character.healthLevels];
-    
-    // Garantir que o índice seja válido
-    if (index >= 0 && index < updatedHealthLevels.length) {
-      updatedHealthLevels[index] = value;
-      setCharacter((prev) => ({
-        ...prev,
-        healthLevels: updatedHealthLevels,
-      }));
-    }
-  };  
+  // Garantir que o índice seja válido
+  if (index >= 0 && index < updatedHealthLevels.length) {
+    updatedHealthLevels[index] = value;
+    setCharacter((prev) => ({
+      ...prev,
+      healthLevels: updatedHealthLevels,
+    }));
+  }
+};
 
   const handleInstinctChange = (skill, instinct) => {
     setSelectedInstinct({ ...selectedInstinct, [skill]: instinct });
