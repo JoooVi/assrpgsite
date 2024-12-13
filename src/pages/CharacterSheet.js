@@ -704,8 +704,9 @@ const CharacterSheet = () => {
 
     const fetchCharacter = async () => {
       try {
+        // Adicionando cache-busting
         const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`, // Adiciona timestamp para evitar cache
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -721,6 +722,7 @@ const CharacterSheet = () => {
         console.error(error);
       }
     };
+
     fetchCharacter();
   }, [id]);
 
@@ -904,7 +906,7 @@ const CharacterSheet = () => {
         currentUses: updatedItem.currentUses || 0, // Garantir que os usos sejam atualizados
         durability: updatedItem.durability || 0, // Garantir que a durabilidade seja atualizada
       };
-  
+
       const payload = {
         inventory: updatedInventory.map((invItem) => ({
           item: invItem.item._id || invItem.item, // Apenas o _id do item, não o objeto inteiro
@@ -920,11 +922,11 @@ const CharacterSheet = () => {
           },
         })),
       };
-  
+
       console.log("Payload enviado ao backend:", payload);
-  
+
       try {
-        console.log("Enviando dados para o backend:", payload);  // Log dos dados sendo enviados
+        console.log("Enviando dados para o backend:", payload); // Log dos dados sendo enviados
         const response = await axios.put(
           `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do backend
           payload,
@@ -934,22 +936,22 @@ const CharacterSheet = () => {
             },
           }
         );
-        console.log("Resposta do backend:", response.data);  // Log da resposta recebida
+        console.log("Resposta do backend:", response.data); // Log da resposta recebida
       } catch (error) {
-        console.error("Erro ao fazer requisição:", error);  // Log de erros caso ocorra algum
-      }      
-  
+        console.error("Erro ao fazer requisição:", error); // Log de erros caso ocorra algum
+      }
+
       // Atualizar o estado local com o inventário atualizado
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: updatedInventory,
       }));
-  
+
       setEditItem(null); // Fechar a janela de edição após salvar
     } catch (error) {
       console.error("Erro ao salvar o item:", error);
     }
-  };  
+  };
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") {
