@@ -857,6 +857,13 @@ const CharacterSheet = () => {
     setSnackbarOpen(true);
   };
 
+  const generationTranslations = {
+    preCollapse: "Pré-Colapso",
+    postCollapse: "Pós-Colapso",
+    collapse: "Colapso",
+    current: "Atual",
+  };
+
   const handleAssimilatedRoll = (instinct, selectedInstinct) => {
     if (!selectedInstinct) {
       return;
@@ -1168,7 +1175,11 @@ const CharacterSheet = () => {
           <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Geração"
-              value={character?.generation || ""}
+              value={
+                generationTranslations[character?.generation] ||
+                character?.generation ||
+                ""
+              }
               onChange={(e) => handleInputChange("generation", e.target.value)}
               variant="outlined"
               fullWidth
