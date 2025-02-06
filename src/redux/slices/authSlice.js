@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const initialState = {
-  user: JSON.parse(localStorage.getItem("user")) || null,
-  token: localStorage.getItem("token") || null,
-  status: "idle",
-  error: null,
+  user: JSON.parse(localStorage.getItem('user')) || null,
+  token: localStorage.getItem('token') || null,
+  isAuthenticated: !!localStorage.getItem('token'),
+  loading: false,
+  error: null
 };
 
 export const login = createAsyncThunk(
@@ -36,10 +37,18 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
+      state.isAuthenticated = false;
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       console.log("Logout realizado com sucesso");
     },
+    initializeAuth(state) {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      state.token = token;
+      state.user = user;
+      state.isAuthenticated = !!(token && user);
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -51,7 +60,11 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.user = action.payload.user;
         state.token = action.payload.token;
-        console.log("Login bem-sucedido");
+        state.isAuthenticated = true;
+        console.log("Login bem-sucedido, estado atualizado:", {
+          user: state.user,
+          isAuthenticated: state.isAuthenticated
+        });
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "failed";
@@ -61,6 +74,10 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, initializeAuth } = authSlice.actions;
+
+export const selectIsAuthenticated = (state) => {
+  return !!state.auth.token && !!state.auth.user;
+};
 
 export default authSlice.reducer;

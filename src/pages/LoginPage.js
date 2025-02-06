@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { login } from "../redux/authSlice";
+import { login } from "../redux/slices/authSlice";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import "./LoginPage.css";

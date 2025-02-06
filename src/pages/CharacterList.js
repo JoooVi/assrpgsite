@@ -58,6 +58,13 @@ const CharacterList = () => {
     fetchCharacters();
   }, [user, token]);
 
+  const generationTranslations = {
+    preCollapse: "Pré-Colapso",
+    postCollapse: "Pós-Colapso",
+    collapse: "Colapso",
+    current: "Atual",
+  };
+
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm(
       "Você realmente deseja excluir este personagem?"
@@ -144,7 +151,7 @@ const CharacterList = () => {
                     {character.name}
                   </Typography>
                   <Typography variant="body2" component="p">
-                    Geração: {character.generation}
+                    Geração: {generationTranslations[character.generation]}
                   </Typography>
                   <Typography variant="body2" component="p">
                     Ocupação: {character.occupation}

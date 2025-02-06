@@ -504,26 +504,21 @@ export default function CharacterForm(props) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log("Submitting Character:", character);
     try {
       const response = await axios.post(
-        "https://assrpgsite-be-production.up.railway.app/api/characters", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/characters",
         character,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       setSuccess(true);
-      setError("");
-      console.log("Personagem criado com sucesso:", response.data);
-    } catch (error) {
-      console.error("Erro ao criar personagem:", error);
-      setError("Erro ao criar personagem, tente novamente.");
+      console.log("Personagem salvo:", response.data);
+    } catch (err) {
+      setError("Erro ao criar personagem");
+      console.error(err);
     } finally {
-      setLoading(false); // Finaliza o carregamento
+      setLoading(false);
     }
   };
 

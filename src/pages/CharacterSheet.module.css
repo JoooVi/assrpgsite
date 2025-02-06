@@ -11,7 +11,7 @@
 .characterHeader {
   padding: 20px;
   margin-bottom: 20px;
-  background-color: #444;
+  background-color: #ffffff;
   align-items: center;
   max-width: 1100px;
   width: 100%; /* Certifique-se de que o cabeçalho ocupe toda a largura disponível */
@@ -29,7 +29,7 @@
 .leftColumn,
 .rightColumn,
 .centerColumn {
-  background-color: #444; /* Fundo cinza escuro para o Paper */
+  background-color: #ffffff; /* Fundo cinza escuro para o Paper */
   padding: 20px;
   margin: 5px;
   flex: 1;

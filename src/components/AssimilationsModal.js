@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllAssimilations } from "../redux/slices/assimilationsSlice";
 import {
   Modal,
   Backdrop,
@@ -23,12 +25,36 @@ const AssimilationsModal = ({
   open,
   handleClose,
   title,
-  items,
   onItemSelect,
+  onCreateNewAssimilation,
 }) => {
+  const dispatch = useDispatch();
+  const { allAssimilations, userAssimilations, loading } = useSelector(
+    (state) => state.assimilations
+  );
+
+  useEffect(() => {
+    if (open) {
+      dispatch(fetchAllAssimilations());
+    }
+  }, [dispatch, open]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [expanded, setExpanded] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
+
+  // Combinar assimilações do sistema e do usuário
+  const combinedAssimilations = [
+    ...allAssimilations,
+    ...userAssimilations
+  ].filter((item, index, self) =>
+    self.findIndex((t) => t._id === item._id) === index
+  );
+
+  // Extrair categorias da lista combinada
+  const categories = [
+    ...new Set(combinedAssimilations.map((item) => item.category)),
+  ].filter(Boolean);
 
   const handleAccordionChange = (index) => (event, isExpanded) => {
     setExpanded(isExpanded ? index : null);
@@ -42,17 +68,12 @@ const AssimilationsModal = ({
     setSelectedCategory(event.target.value);
   };
 
-  const filteredItems = items
-    .filter((item) =>
-      selectedCategory ? item.category === selectedCategory : true
-    )
+  // Filtrar a lista combinada
+  const displayedAssimilations = combinedAssimilations
+    .filter((item) => !selectedCategory || item.category === selectedCategory)
     .filter((item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-  const categories = [...new Set(items.map((item) => item.category))].filter(
-    Boolean
-  );
 
   return (
     <Modal
@@ -84,7 +105,15 @@ const AssimilationsModal = ({
           <Typography variant="h6" mb={2}>
             {title}
           </Typography>
-
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={onCreateNewAssimilation}
+            sx={{ mb: 3 }}
+          >
+            Criar Nova Assimilação
+          </Button>
           <Box
             sx={{
               position: "sticky",
@@ -99,32 +128,15 @@ const AssimilationsModal = ({
               variant="outlined"
               margin="normal"
               sx={{
-                "& .MuiInputLabel-root": {
-                  color: "#bbb", // Cor do rótulo
-                },
+                "& .MuiInputLabel-root": { color: "#bbb" },
                 "& .MuiOutlinedInput-root": {
-                  backgroundColor: "#38394a", // Fundo mais claro
-                  color: "white", // Texto principal
-                  "& fieldset": {
-                    borderColor: "#555", // Borda padrão
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "#777", // Borda ao passar o mouse
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#aaa", // Borda ao focar
-                  },
+                  backgroundColor: "#38394a",
+                  color: "white",
+                  "& fieldset": { borderColor: "#555" },
+                  "&:hover fieldset": { borderColor: "#777" },
+                  "&.Mui-focused fieldset": { borderColor: "#aaa" },
                 },
-                "& .MuiSelect-icon": {
-                  color: "white", // Cor do ícone de seta
-                },
-                "& .MuiMenuItem-root": {
-                  color: "white", // Texto dos itens de menu
-                  backgroundColor: "#292a3a", // Fundo dos itens
-                  "&:hover": {
-                    backgroundColor: "#444", // Fundo ao passar o mouse
-                  },
-                },
+                "& .MuiSelect-icon": { color: "white" },
               }}
             >
               <InputLabel>Categoria</InputLabel>
@@ -138,9 +150,7 @@ const AssimilationsModal = ({
                 </MenuItem>
                 {categories.map((category, index) => (
                   <MenuItem key={index} value={category}>
-                    {typeof category === "string"
-                      ? category.charAt(0).toUpperCase() + category.slice(1)
-                      : category}
+                    {category}
                   </MenuItem>
                 ))}
               </Select>
@@ -161,95 +171,81 @@ const AssimilationsModal = ({
               }}
             />
           </Box>
-
           <Box sx={{ flexGrow: 1, overflow: "auto", mb: 2 }}>
-            {filteredItems.map((item, index) => (
-              <Accordion
-                key={index}
-                expanded={expanded === index}
-                onChange={handleAccordionChange(index)}
-                sx={{
-                  bgcolor: "transparent",
-                  color: "white",
-                  mt: 1,
-                }}
-              >
-                <AccordionSummary
-                  expandIcon={
-                    <ExpandMoreIcon
-                      sx={{
-                        color: "white", // Define a cor do ícone como branca
-                      }}
-                    />
-                  }
+            {loading ? (
+              <Typography>Carregando...</Typography>
+            ) : displayedAssimilations.length > 0 ? (
+              displayedAssimilations.map((item, index) => (
+                <Accordion
+                  key={item._id}
+                  expanded={expanded === index}
+                  onChange={handleAccordionChange(index)}
+                  sx={{ bgcolor: "transparent", color: "white", mt: 1 }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
                   >
-                    <Typography variant="body1" fontWeight="bold">
-                      {item.name}
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<AddIcon />}
-                      onClick={() => onItemSelect(item)}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        width: "100%",
+                      }}
                     >
-                      Adicionar
-                    </Button>
-                  </Box>
-                </AccordionSummary>
-
-                <AccordionDetails>
-                  <Typography variant="body2">
-                    <strong>Descrição:</strong> {item.description}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Categoria:</strong> {item.category}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Custo de Sucesso:</strong> {item.successCost}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Custo de Adaptação:</strong> {item.adaptationCost}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Custo de Pressão:</strong> {item.pressureCost}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Tipo de Evolução:</strong> {item.evolutionType}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Personalizado:</strong>{" "}
-                    {item.isCustom ? "Sim" : "Não"}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Criado por:</strong> {item.createdBy}
-                  </Typography>
-                  <Divider sx={{ my: 1, bgcolor: "#444" }} />
-                  <Typography variant="body2">
-                    {item.details ||
-                      "Mais informações sobre esta assimilação..."}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
+                      <Typography variant="body1" fontWeight="bold">
+                        {item.name}
+                        <Typography variant="caption" sx={{ ml: 1, color: '#888' }}>
+                          ({item.isCustom ? 'Personalizada' : 'Sistema'})
+                        </Typography>
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<AddIcon />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onItemSelect(item);
+                        }}
+                      >
+                        Adicionar
+                      </Button>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography variant="body2">
+                      <strong>Descrição:</strong> {item.description}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Categoria:</strong> {item.category}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Custo de Sucesso:</strong> {item.successCost}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Custo de Adaptação:</strong> {item.adaptationCost}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Custo de Pressão:</strong> {item.pressureCost}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Tipo de Evolução:</strong> {item.evolutionType}
+                    </Typography>
+                    <Divider sx={{ my: 1, bgcolor: "#444" }} />
+                  </AccordionDetails>
+                </Accordion>
+              ))
+            ) : (
+              <Typography>Nenhuma assimilação encontrada.</Typography>
+            )}
           </Box>
-
-          <Box sx={{ mt: "auto" }}>
-            <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleClose}
-            >
-              Fechar
-            </Button>
-          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            onClick={handleClose}
+          >
+            Fechar
+          </Button>
         </Box>
       </Fade>
     </Modal>

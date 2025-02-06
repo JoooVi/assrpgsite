@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Remover useMemo
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { updateSkills } from "../redux/skillsSlice";
+import {
+  updateSkills,
+  updateSkillValue,
+  setSelectedInstinct, // novo import
+} from "../redux/slices/skillsSlice";
+import { saveSkillsToBackend } from "../redux/actions/skillActions";
+import { updateInstincts } from "../redux/slices/instinctsSlice";
+import { fetchInstincts } from "../redux/actions/instinctsActions";
 import { useParams } from "react-router-dom";
 import {
   TextField,
   Typography,
-  Box,
   Button,
   Grid,
   Paper,
@@ -17,6 +23,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  FormHelperText,
   Tab,
   Tabs,
   List,
@@ -28,7 +35,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Collapse,
+  Fab,
+  Popover,
+  Box, // Remover Modal, Collapse, Drawer
 } from "@mui/material";
 import LinearProgress from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
@@ -36,10 +45,11 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import HistoryIcon from "@mui/icons-material/History";
 import TriangleRatingIcon from "../components/TriangleRatingIcon";
 import TriangleRatingIconDown from "../components/TriangleRatingIconDown";
 import styles from "./CharacterSheet.module.css";
-import ItemsModal from "../components/ItemModal";
+import ItemsModal from "../components/ItemsModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
@@ -195,7 +205,7 @@ const rollCustomDice = (formula) => {
 
   // Processa cada lançamento de dados
   while ((match = regex.exec(formula)) !== null) {
-    const [_, count, sides] = match;
+    const [, count, sides] = match; // Remover _
     const countInt = parseInt(count); // Converte para inteiro uma vez
     const sidesInt = parseInt(sides); // Converte para inteiro uma vez
 
@@ -216,176 +226,143 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-const SkillList = ({
-  title,
-  skills,
-  instincts,
-  selectedInstinct,
-  handleInstinctChange,
-  onRoll,
-  id,
-  setCharacter,
-  setLoading,
-  loading,
-}) => {
+const SkillList = ({ title, id, addRollToHistory, character }) => {
   const dispatch = useDispatch();
-  const globalSkills = useSelector((state) => state.skills.skills); // Acessando o estado global de skills
-  const [localSkills, setLocalSkills] = useState(skills);
+  const globalSkills = useSelector((state) => state.skills?.skills || {});
+  const selectedInstinct = useSelector((state) => state.skills.selectedInstinct);
+  const instincts = useSelector((state) => state.instincts.instincts);
+  const loading = useSelector((state) => state.instincts?.loading);
+  const error = useSelector((state) => state.instincts?.error);
   const [open, setOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [editedValues, setEditedValues] = useState({});
-  const [localSelectedInstinct, setLocalSelectedInstinct] =
-    useState(selectedInstinct);
-
-  // Chaves de habilidades (knowledge e practices)
-  const knowledgeKeys = [
-    "agrarian",
-    "biological",
-    "exact",
-    "medicine",
-    "social",
-    "artistic",
-  ];
-  const practiceKeys = [
-    "sports",
-    "tools",
-    "crafts",
-    "weapons",
-    "vehicles",
-    "infiltration",
-  ];
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [rollResult, setRollResult] = useState(null);
+  const [isRolling, setIsRolling] = useState(false);
+  const [snackbarKey, setSnackbarKey] = useState(0);
 
   useEffect(() => {
-    setLocalSkills(skills);
-  }, [skills]);
+    if (id) {
+      const fetchInitialData = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get(
+            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
 
-  useEffect(() => {
-    setLocalSelectedInstinct(selectedInstinct);
-  }, [selectedInstinct]);
+          // Extrair knowledge e practices do personagem
+          const { knowledge = {}, practices = {} } = response.data;
 
-  const saveSkillsToBackend = async (updatedSkills) => {
-    setLoading(true); // Inicia o carregamento
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/skills`,
-        {
-          knowledge: updatedSkills.knowledge,
-          practices: updatedSkills.practices,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          // Combinar knowledge e practices em um único objeto
+          const combinedSkills = { ...knowledge, ...practices };
+
+          // Atualizar o estado global com as skills combinadas
+          dispatch(updateSkills(combinedSkills));
+
+          console.log("Skills carregadas:", combinedSkills); // Debug
+        } catch (error) {
+          console.error("Error loading data:", error);
         }
-      );
-
-      // Atualiza o estado local e global com os dados salvos no backend
-      const updatedSkillsState = { ...localSkills, ...updatedSkills };
-      setLocalSkills(updatedSkillsState);
-      dispatch(updateSkills(updatedSkillsState));
-
-      setEditedValues({}); // Limpa as edições após a atualização
-
-      // Atualiza o character
-      setCharacter(response.data);
-    } catch (error) {
-      console.error(
-        "Erro ao salvar os dados:",
-        error.response?.data || error.message
-      );
-    } finally {
-      setLoading(false); // Finaliza o carregamento
+      };
+      fetchInitialData();
     }
-  };
+  }, [id, dispatch]);
 
-  const toggleEditMode = () => {
-    if (editMode) {
-      const updatedSkills = Object.entries(editedValues).reduce(
-        (acc, [skillKey, value]) => {
-          if (knowledgeKeys.includes(skillKey)) {
-            acc.knowledge[skillKey] = value;
-          } else if (practiceKeys.includes(skillKey)) {
-            acc.practices[skillKey] = value;
-          }
-          return acc;
-        },
-        { knowledge: {}, practices: {} }
-      );
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchInstincts(id));
+    }
+  }, [id, dispatch]);
 
-      if (id && Object.keys(editedValues).length > 0) {
-        saveSkillsToBackend(updatedSkills);
+  useEffect(() => {
+    console.log("Instintos atualizados:", instincts); // Debug
+  }, [instincts]);
+
+  const handleRoll = useCallback(
+    async (key) => {
+      console.log("Initiating roll for skill:", key);
+      if (isRolling) return;
+      if (!selectedInstinct[key]) {
+        alert("Select an instinct before rolling!");
+        return;
       }
-    }
-    setEditMode(!editMode);
-  };
+      setIsRolling(true);
+      try {
+        const skillValue = parseInt(globalSkills[key]) || 0;
+        const instinctKey = selectedInstinct[key];
+        const instinctValue = parseInt(instincts[instinctKey]) || 0;
+        const totalDice = skillValue + instinctValue;
+        const results = rollCustomDice(`${totalDice}d10`);
+        setRollResult({ skill: key, roll: results });
+        setSnackbarKey((prevKey) => prevKey + 1);
+        setSnackbarOpen(true);
+        setTimeout(() => setIsRolling(false), 500);
+        addRollToHistory({ skill: key, roll: results });
+      } catch (error) {
+        console.error("Error rolling dice:", error);
+        setIsRolling(false);
+      }
+    },
+    [isRolling, globalSkills, selectedInstinct, instincts, addRollToHistory]
+  );
 
-  const handleEditedValueChange = (skillKey, value) => {
-    setEditedValues((prev) => ({
-      ...prev,
-      [skillKey]: value,
-    }));
-  };
+  const handleSnackbarClose = useCallback((event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbarOpen(false);
+  }, []);
 
-  const handleSkillClick = (skillKey) => {
-    setSelectedSkill(skillKey);
+  // CharacterSheet.js (SkillList component)
+  const handleEditedValueChange = useCallback(
+    async (key, value) => {
+      try {
+        const updatedSkills = { ...globalSkills, [key]: parseInt(value) || 0 };
+        await dispatch(saveSkillsToBackend(id, updatedSkills));
+      } catch (error) {
+        console.error("Erro ao salvar skill:", error);
+        setSnackbarOpen(true);
+      }
+    },
+    [dispatch, id, globalSkills]
+  );
+
+  const handleSkillClick = useCallback((key) => {
+    setSelectedSkill(key);
     setOpen(true);
-  };
+  }, []);
 
-  const getSkillDescription = (key) => {
+  // Dentro do componente SkillList, substitua:
+  const handleInstinctChangee = useCallback(
+    (skillKey) => (event) => { // Modificar para retornar uma função
+      dispatch(setSelectedInstinct({ [skillKey]: event.target.value }));
+    },
+    [dispatch]
+  );
+
+  const getSkillDescription = useCallback((key) => {
     const descriptions = {
-      agrarian:
-        "Campo do conhecimento que governa estudos sobre o campo e o cultivo.",
-      biological:
-        "Grande área do conhecimento que estuda as formas de vida, suas relações e compostos químicos compositivos.",
-      exact:
-        "Matemática, Física e Engenharia estão dentro desse grande guarda-chuva, que estuda os fenômenos físicos da Terra.",
-      medicine:
-        "Conhecimento sobre saúde humana e suas áreas conectadas, além de medicina veterinária.",
-      social:
-        " Filosofia, Sociologia e Psicologia estão dentro desse grande grupo que busca investigar a relação dos seres humanos entre si e as sociedades e comunidades do mundo.",
-      artistic:
-        "Investigações artísticas e suas múltiplas expressões, podendo ser usado inclusive para interpretar relatos e rastros culturais humanos.",
-      sports:
-        "Correr, saltar, levantar peso, golpear (com armas brancas ou desarmado) e outras práticas corporais estão dentro do grupo esportivo",
-      tools: "Capacidade de manuseio de ferramentas diversas.",
-      crafts:
-        "Capacidade de criar, produzir ou desenvolver algo usando suas próprias mãos ou através de instrumentos.",
-      weapons: "Cuidado e uso de armas de fogo e de disparo no geral.",
-      vehicles: "Capacidade de operar veículos terrestres, aéreos e marinhos.",
-      infiltration:
-        "Esconder-se ou esgueirar-se, além de práticas de subterfúgio como arrombar fechaduras.",
+      agrarian: "Conhecimento sobre agricultura, pecuária e gestão rural",
+      biological: "Conhecimento sobre biologia , ecologia e ciências naturais",
+      exact: "Conhecimento sobre matemática, física e outras ciências exatas",
+      medicine: "Conhecimento sobre medicina, anatomia e tratamentos",
+      social: "Conhecimento sobre sociedade, política e relações humanas",
+      artistic: "Conhecimento sobre arte, música e expressões culturais",
+      sports: "Habilidades atléticas e esportivas",
+      tools: "Habilidade com ferramentas e equipamentos",
+      crafts: "Habilidades manuais e artesanais",
+      weapons: "Habilidade com armas e combate",
+      vehicles: "Habilidade com veículos e pilotagem",
+      infiltration: "Habilidade de furtividade e infiltração",
     };
     return descriptions[key] || "Descrição não disponível.";
-  };
-
-  const handleRoll = (key) => {
-    onRoll(key, localSelectedInstinct[key], localSkills[key]);
-  };
-
-  const handleInstinctChangeUpdated = (skillKey, value) => {
-    handleInstinctChange(skillKey, value);
-    setLocalSelectedInstinct((prev) => ({
-      ...prev,
-      [skillKey]: value,
-    }));
-  };
+  }, []);
 
   return (
     <Box>
       <Typography variant="h6">{translateKey(title)}</Typography>
-      <Button
-        variant="contained"
-        color={editMode ? "secondary" : "primary"}
-        onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
-      >
-        <EditIcon />
-      </Button>
-      {Object.entries(localSkills).map(([key, value]) => (
+      {Object.entries(globalSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
-          <Grid item xs={4} sm={3}>
+          {/* Nome da Skill */}
+          <Grid item xs={12} sm={4} md={3}>
             <Typography
               onClick={() => handleSkillClick(key)}
               sx={{
@@ -398,26 +375,20 @@ const SkillList = ({
             </Typography>
           </Grid>
 
-          <Grid item xs={4} sm={2}>
-            {editMode ? (
-              <TextField
-                value={
-                  editedValues[key] !== undefined ? editedValues[key] : value
-                }
-                onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                size="small"
-                variant="outlined"
-                fullWidth
-                inputProps={{
-                  style: { textAlign: "center" },
-                }}
-              />
-            ) : (
-              <Typography>{value}</Typography>
-            )}
+          {/* Campo de edição da Skill - MODIFICADO */}
+          <Grid item xs={12} sm={4} md={2}>
+            <TextField
+              value={globalSkills[key] || 0}
+              onChange={(e) => handleEditedValueChange(key, e.target.value)}
+              size="small"
+              variant="outlined"
+              fullWidth
+              inputProps={{ style: { textAlign: "center" } }}
+            />
           </Grid>
 
-          <Grid item xs={4} sm={3}>
+          {/* Select para escolher o Instinto */}
+          <Grid item xs={12} sm={4} md={3}>
             <FormControl
               variant="outlined"
               margin="dense"
@@ -425,73 +396,167 @@ const SkillList = ({
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>
+              <InputLabel>{translateKey("Instinto")}</InputLabel>
               <Select
-                label={translateKey("Instincts")}
-                value={localSelectedInstinct[key] || ""}
-                onChange={(e) =>
-                  handleInstinctChangeUpdated(key, e.target.value)
-                }
+                label={translateKey("Instinto")}
+                value={selectedInstinct[key] || ""}
+                onChange={handleInstinctChangee(key)} // Passa o skillKey
+                disabled={loading}
               >
-                {Object.keys(instincts).map((instinctKey) => (
-                  <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)}
+                {loading ? (
+                  <MenuItem disabled>{translateKey("Carregando...")}</MenuItem>
+                ) : Object.entries(instincts).length > 0 ? (
+                  Object.entries(instincts).map(
+                    ([instinctKey, instinctValue]) => (
+                      <MenuItem key={instinctKey} value={instinctKey}>
+                        {translateKey(
+                          instinctKey.charAt(0).toUpperCase() +
+                            instinctKey.slice(1)
+                        )}
+                      </MenuItem>
+                    )
+                  )
+                ) : (
+                  <MenuItem disabled>
+                    {translateKey("Nenhum instinto disponível")}
                   </MenuItem>
-                ))}
+                )}
               </Select>
+
+              {error && <FormHelperText error>{error}</FormHelperText>}
             </FormControl>
           </Grid>
 
-          <Grid item xs={4} sm={2}>
+          {/* Botão para realizar o roll */}
+          <Grid item xs={12} sm={4} md={2}>
             <Button
               variant="contained"
               color="primary"
               onClick={() => handleRoll(key)}
               fullWidth
-              sx={{ marginLeft: "28px" }}
+              sx={{
+                marginLeft: { xs: 0, sm: "28px" },
+                marginTop: { xs: "8px", sm: 0 },
+              }}
+              disabled={!selectedInstinct[key]}
             >
               <MeuIcone style={{ width: "24px", height: "24px" }} />
             </Button>
           </Grid>
         </Grid>
       ))}
+
+      {/* Snackbar para exibir o resultado do roll */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={10000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        key={snackbarKey}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="info"
+          sx={{
+            width: "400px",
+            maxWidth: "100%",
+            backgroundColor: "#333",
+            color: "#fff",
+            borderRadius: "5px",
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            {translateKey("Resultado")}:
+          </Typography>
+          <Typography variant="subtitle1">
+            {translateKey("Habilidade")}:{" "}
+            {translateKey(rollResult?.skill) ||
+              rollResult?.skill ||
+              translateKey("Nenhuma")}
+          </Typography>
+          <Typography variant="body1">
+            {translateKey("Dados Rolados")}:
+          </Typography>
+          {rollResult?.roll?.length > 0 &&
+            rollResult.roll.map((result, index) => (
+              <div key={index}>
+                <Typography variant="body2">
+                  {translateKey("Dado")} {index + 1}:{" "}
+                  {result.result.length > 0 ? "" : translateKey("Nada")}
+                </Typography>
+                {result.result.length > 0 &&
+                  result.result.map((imgSrc, i) => (
+                    <img
+                      key={i}
+                      src={imgSrc}
+                      alt={`${translateKey("Resultado")} ${i + 1}`}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/path/to/default-image.png";
+                      }}
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        margin: "5px",
+                      }}
+                    />
+                  ))}
+              </div>
+            ))}
+        </Alert>
+      </Snackbar>
+
+      {/* Dialog para exibir a descrição da Skill */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
-            selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)}
+            translateKey(
+              selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)
+            )}
         </DialogTitle>
         <DialogContent>
           <Typography>{getSkillDescription(selectedSkill)}</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="primary">
-            {translateKey("Close")}
+            {translateKey("Fechar")}
           </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 };
+
 const InstinctList = ({
   title,
-  instincts,
   selectedInstinct,
+  instincts,
   handleInstinctChange,
   onAssimilatedRoll,
   id,
 }) => {
+  const dispatch = useDispatch();
+  console.log("InstinctList", {
+    title,
+    selectedInstinct,
+    handleInstinctChange,
+    onAssimilatedRoll,
+    id,
+  });
+  const loading = useSelector((state) => state.instincts?.loading);
+  const error = useSelector((state) => state.instincts?.error);
   const [open, setOpen] = useState(false);
   const [selectedInstinctKey, setSelectedInstinctKey] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [editedValues, setEditedValues] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [editedInstincts, setEditedInstincts] = useState({});
 
   const handleInstinctClick = (instinctKey) => {
+    console.log("handleInstinctClick", instinctKey);
     setSelectedInstinctKey(instinctKey);
     setOpen(true);
   };
 
   const getInstinctDescription = (key) => {
+    console.log("getInstinctDescription", key);
     const descriptions = {
       reaction:
         "Instinto básico que mede a velocidade de reação do indivíduo. Geralmente, é usado em situações em que o personagem está em risco e precisa agir rapidamente ou em testes reflexivos em geral.",
@@ -510,82 +575,61 @@ const InstinctList = ({
   };
 
   const saveInstinctsToBackend = async (updatedInstincts) => {
-    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
+        { instincts: updatedInstincts },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Atualiza o estado global com TODOS os instintos retornados pelo backend
+      dispatch(updateInstincts(response.data.instincts));
+    } catch (error) {
+      console.error("Erro ao salvar os instintos:", error);
+    }
+  };
 
-    // Atualização otimista
-    const prevInstincts = { ...instincts };
-    handleInstinctChange({ ...instincts, ...updatedInstincts });
+  const handleEditedInstinctChange = async (instinctKey, value) => {
+    const updatedValue = Number(value);
+    const updatedInstincts = { ...instincts, [instinctKey]: updatedValue };
 
     try {
+      // Atualização otimista
+      dispatch(updateInstincts(updatedInstincts));
+
       const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
-        { instincts: updatedInstincts },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { instincts: updatedInstincts }, // Enviar todos os instintos
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // Forçar atualização do Redux com a resposta do backend
+      const response = await axios.get(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      dispatch(updateInstincts(response.data.instincts));
     } catch (error) {
-      console.error(
-        "Erro ao salvar os instintos:",
-        error.response?.data || error.message
-      );
-      // Reverte atualização otimista em caso de erro
-      handleInstinctChange(prevInstincts);
-    } finally {
-      setLoading(false);
-      setEditedValues({});
-      setEditMode(false);
+      // Reverter em caso de erro
+      dispatch(updateInstincts(instincts));
+      console.error("Erro ao salvar:", error);
     }
   };
 
-  const toggleEditMode = () => {
-    if (editMode) {
-      const updatedInstincts = {};
-
-      Object.keys(editedValues).forEach((instinctKey) => {
-        if (instincts[instinctKey] !== undefined) {
-          updatedInstincts[instinctKey] = parseInt(
-            editedValues[instinctKey],
-            10
-          );
-        }
-      });
-
-      if (id) {
-        saveInstinctsToBackend(updatedInstincts);
-      } else {
-        console.error("ID do personagem está indefinido");
-      }
-    } else {
-      setEditMode(true);
+  useEffect(() => {
+    if (Object.keys(editedInstincts).length > 0) {
+      saveInstinctsToBackend(editedInstincts);
     }
-  };
-
-  const handleEditedValueChange = (instinctKey, value) => {
-    setEditedValues((prev) => ({
-      ...prev,
-      [instinctKey]: value,
-    }));
-  };
+  }, [editedInstincts]);
 
   return (
     <Box>
       <Typography variant="h6">{translateKey(title)}</Typography>
-      <Button
-        variant="contained"
-        color={editMode ? "secondary" : "primary"}
-        onClick={toggleEditMode}
-        sx={{ padding: "4px", minWidth: "unset" }}
-      >
-        <EditIcon />
-      </Button>
 
       {Object.entries(instincts).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
-          <Grid item xs={4} sm={3}>
+          <Grid item xs={12} sm={4} md={3}>
             <Typography
               onClick={() => handleInstinctClick(key)}
               sx={{
@@ -594,57 +638,55 @@ const InstinctList = ({
                 "&:hover": { color: "primary.main" },
               }}
             >
-              {translateKey(key)} {/* Aplica a tradução usando translateKey */}
+              {translateKey(key.charAt(0).toUpperCase() + key.slice(1))}
             </Typography>
           </Grid>
 
-          <Grid item xs={4} sm={2}>
-            {editMode ? (
-              <TextField
-                value={editedValues[key] || value}
-                onChange={(e) => handleEditedValueChange(key, e.target.value)}
-                size="small"
-                variant="outlined"
-                fullWidth
-                inputProps={{
-                  style: { textAlign: "center" },
-                }}
-              />
-            ) : (
-              <Typography>{value}</Typography>
-            )}
+          <Grid item xs={12} sm={4} md={2}>
+            <TextField
+              value={instincts[key] || 0} // Use diretamente do estado global
+              onChange={(e) => handleEditedInstinctChange(key, e.target.value)}
+              size="small"
+              variant="outlined"
+              fullWidth
+              inputProps={{ style: { textAlign: "center" } }}
+            />
           </Grid>
 
-          <Grid item xs={4} sm={3}>
+          <Grid item xs={12} sm={5} md={3.8}>
             <FormControl
               variant="outlined"
               margin="dense"
               size="small"
               fullWidth
-              sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instincts")}</InputLabel>
+              <InputLabel>{translateKey("Instinto")}</InputLabel>
               <Select
-                label={translateKey("Instincts")}
+                label={translateKey("Instinto")}
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
-                    {translateKey(instinctKey)} {/* Aplica a tradução */}
+                    {translateKey(
+                      instinctKey.charAt(0).toUpperCase() + instinctKey.slice(1)
+                    )}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
-          <Grid item xs={4} sm={2}>
+          <Grid item xs={12} sm={4} md={2}>
             <Button
               variant="contained"
               color="primary"
               onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
               fullWidth
-              sx={{ marginLeft: "28px" }}
+              sx={{
+                marginLeft: { xs: 0, sm: "3px" },
+                marginTop: { xs: "8px", sm: 0 },
+              }}
             >
               <MeuIcone2 style={{ width: "24px", height: "24px" }} />
             </Button>
@@ -655,8 +697,10 @@ const InstinctList = ({
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedInstinctKey &&
-            selectedInstinctKey.charAt(0).toUpperCase() +
-              selectedInstinctKey.slice(1)}
+            translateKey(
+              selectedInstinctKey.charAt(0).toUpperCase() +
+                selectedInstinctKey.slice(1)
+            )}
         </DialogTitle>
         <DialogContent>
           <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
@@ -672,10 +716,12 @@ const InstinctList = ({
 };
 
 const CharacterSheet = () => {
+  const dispatch = useDispatch(); // Adicione esta linha
   const { id } = useParams();
-  const [character, setCharacter] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [character, setCharacter] = useState({
+    healthPoints: 0, // Inicializar pontos de saúde com 0
+  });
+  const [error, setError] = useState(null); // Remover loading
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
@@ -693,20 +739,28 @@ const CharacterSheet = () => {
   const [editItem, setEditItem] = useState(null);
   const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [notes, setNotes] = useState(""); // Estado para armazenar as anotações
+  const [snackbarKey, setSnackbarKey] = useState(0); // Adicionar estado para chave única do Snackbar
+  const [rollHistory, setRollHistory] = useState([]); // Estado para armazenar o histórico de rolagens
+  const [anchorEl, setAnchorEl] = useState(null); // Estado para controlar o Popover
+  const [openHealthModal, setOpenHealthModal] = useState(false); // Estado para controlar o modal de saúde
+  const [selectedHealthLevel, setSelectedHealthLevel] = useState(null); // Estado para armazenar o nível de saúde selecionado
+  const instincts = useSelector((state) => state.instincts.instincts);
+  // Definir handleInstinctChange
+  const handleInstinctChange = useCallback((instinctKey, value) => {
+    setSelectedInstinct((prev) => ({ ...prev, [instinctKey]: value }));
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("Você precisa estar autenticado para acessar esta página");
-      setLoading(false);
       return;
     }
 
     const fetchCharacter = async () => {
       try {
-        // Adicionando cache-busting
         const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`, // Adiciona timestamp para evitar cache
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -714,11 +768,9 @@ const CharacterSheet = () => {
           }
         );
         setCharacter(response.data);
-        setNotes(response.data.notes || ""); // Carrega as anotações salvas
-        setLoading(false);
+        setNotes(response.data.notes || "");
       } catch (error) {
         setError("Erro ao carregar a ficha do personagem");
-        setLoading(false);
         console.error(error);
       }
     };
@@ -743,7 +795,6 @@ const CharacterSheet = () => {
       0
     );
 
-    // Exemplo de modificador (buff ou debuff)
     const weightModifier = character?.buffs?.weightReduction || 0;
     return inventoryWeight - weightModifier;
   };
@@ -752,7 +803,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/charactertraits", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/charactertraits",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -769,7 +820,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/assimilations", // URL do Railway com /api
+        "https://assrpgsite-be-production.up.railway.app/api/assimilations",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -785,17 +836,31 @@ const CharacterSheet = () => {
   const fetchInventoryItems = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/items", // URL do Railway com /api
+      const response = await axios.get("assrpgsite-be-production.up.railway.app/api/items", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setInventoryItems(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar itens do inventário:", error);
+    }
+  };
+
+  const saveHealthLevels = async (updatedHealthLevels) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/health`,
+        { healthLevels: updatedHealthLevels },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setInventoryItems(response.data);
     } catch (error) {
-      console.error("Erro ao buscar itens do inventário:", error);
+      console.error("Erro ao salvar os níveis de saúde:", error);
     }
   };
 
@@ -806,16 +871,31 @@ const CharacterSheet = () => {
 
     // Garantir que o índice seja válido
     if (index >= 0 && index < updatedHealthLevels.length) {
-      updatedHealthLevels[index] = value;
+      updatedHealthLevels[index] = value || 0; // Definir 0 se value for null ou undefined
       setCharacter((prev) => ({
         ...prev,
         healthLevels: updatedHealthLevels,
+        healthPoints: updatedHealthLevels.reduce((acc, cur) => acc + cur, 0), // Recalcular pontos de saúde
       }));
+      saveHealthLevels(updatedHealthLevels); // Salvar os níveis de saúde atualizados no backend
     }
   };
 
-  const handleInstinctChange = (skill, instinct) => {
-    setSelectedInstinct({ ...selectedInstinct, [skill]: instinct });
+  const handleHealthClick = (level) => {
+    setSelectedHealthLevel(level);
+    setOpenHealthModal(true);
+  };
+
+  const getHealthDescription = (level) => {
+    const descriptions = {
+      5: " Você está Saudável ",
+      4: " Você está Ferido ",
+      3: " Precisa de 1 sucesso ou adaptação adicional para ter sucesso em testes. ",
+      2: " Precisa de 2 sucessos ou adaptação adicional para ter sucesso em testes. ",
+      1: " Precisa de 3 sucessos ou adaptação adicional para ter sucesso em testes. ",
+      0: " Você está Morto",
+    };
+    return descriptions[level] || "Descrição não disponível.";
   };
 
   const handleRoll = (skill, selectedInstinct) => {
@@ -847,7 +927,12 @@ const CharacterSheet = () => {
     const rollSkill = rollDice(diceCountSkill, 10);
 
     setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
+    setSnackbarKey((prevKey) => prevKey + 1); // Atualizar a chave única do Snackbar
     setSnackbarOpen(true);
+    setRollHistory((prevHistory) => [
+      ...prevHistory,
+      { skill, roll: [...rollInstinct, ...rollSkill] },
+    ]);
   };
 
   const handleCustomRoll = () => {
@@ -856,7 +941,12 @@ const CharacterSheet = () => {
 
     const results = rollCustomDice(customDiceFormula);
     setCustomRollResult({ formula: customDiceFormula, roll: results });
+    setSnackbarKey((prevKey) => prevKey + 1); // Atualizar a chave única do Snackbar
     setSnackbarOpen(true);
+    setRollHistory((prevHistory) => [
+      ...prevHistory,
+      { formula: customDiceFormula, roll: results },
+    ]);
   };
 
   const generationTranslations = {
@@ -866,20 +956,26 @@ const CharacterSheet = () => {
     current: "Atual",
   };
 
+  // CharacterSheet.js (handleAssimilatedRoll)
+  // CharacterSheet.js (modificar a função handleAssimilatedRoll)
   const handleAssimilatedRoll = (instinct, selectedInstinct) => {
-    if (!selectedInstinct) {
-      return;
-    }
+    if (!selectedInstinct) return;
 
     const diceCount =
-      (character?.instincts[instinct] || 0) +
-      (character?.instincts[selectedInstinct] || 0);
+      (instincts[instinct] || 0) + (instincts[selectedInstinct] || 0);
+
     const roll = Array.from({ length: diceCount }, () => {
       const face = Math.floor(Math.random() * 12) + 1;
       return { face, result: dados.d12[face] };
     });
+
     setRollResult({ skill: instinct, roll });
+    setSnackbarKey((prevKey) => prevKey + 1);
     setSnackbarOpen(true);
+    setRollHistory((prevHistory) => [
+      ...prevHistory,
+      { skill: instinct, roll },
+    ]);
   };
 
   const handleOpenCharacteristicsMenu = () => {
@@ -902,14 +998,14 @@ const CharacterSheet = () => {
       const updatedInventory = [...character.inventory];
       updatedInventory[index] = {
         ...updatedInventory[index],
-        item: updatedItem, // Atualize o item com as novas informações
-        currentUses: updatedItem.currentUses || 0, // Garantir que os usos sejam atualizados
-        durability: updatedItem.durability || 0, // Garantir que a durabilidade seja atualizada
+        item: updatedItem,
+        currentUses: updatedItem.currentUses || 0,
+        durability: updatedItem.durability || 0,
       };
 
       const payload = {
         inventory: updatedInventory.map((invItem) => ({
-          item: invItem.item._id || invItem.item, // Apenas o _id do item, não o objeto inteiro
+          item: invItem.item._id || invItem.item,
           currentUses: invItem.currentUses,
           durability: invItem.durability,
           characteristics: {
@@ -926,9 +1022,9 @@ const CharacterSheet = () => {
       console.log("Payload enviado ao backend:", payload);
 
       try {
-        console.log("Enviando dados para o backend:", payload); // Log dos dados sendo enviados
+        console.log("Enviando dados para o backend:", payload);
         const response = await axios.put(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`, // URL do backend
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
           payload,
           {
             headers: {
@@ -936,18 +1032,17 @@ const CharacterSheet = () => {
             },
           }
         );
-        console.log("Resposta do backend:", response.data); // Log da resposta recebida
+        console.log("Resposta do backend:", response.data);
       } catch (error) {
-        console.error("Erro ao fazer requisição:", error); // Log de erros caso ocorra algum
+        console.error("Erro ao fazer requisição:", error);
       }
 
-      // Atualizar o estado local com o inventário atualizado
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: updatedInventory,
       }));
 
-      setEditItem(null); // Fechar a janela de edição após salvar
+      setEditItem(null);
     } catch (error) {
       console.error("Erro ao salvar o item:", error);
     }
@@ -980,16 +1075,38 @@ const CharacterSheet = () => {
     setSelectedTab(newValue);
   };
 
+  const saveDeterminationAndAssimilation = async (
+    determination,
+    assimilation
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/determination-assimilation`,
+        { determination, assimilation },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao salvar os pontos de determinação e assimilação:",
+        error
+      );
+    }
+  };
+
   const handleDeterminationChange = (event, newValue) => {
     setCharacter((prevCharacter) => {
       let updatedDetermination = newValue;
       let updatedAssimilation = prevCharacter?.assimilation || 0;
       let message = null;
 
-      // Se Determinação atinge 0, redefine corretamente
       if (updatedDetermination <= 0 && updatedAssimilation < 9) {
         updatedAssimilation += 1;
-        updatedDetermination = 10 - updatedAssimilation; // Corrige a Determinação
+        updatedDetermination = 10 - updatedAssimilation;
         message =
           "Você perdeu pontos de Determinação suficientes para cair uma casa!";
       }
@@ -1003,6 +1120,11 @@ const CharacterSheet = () => {
         updatedDetermination = newValue;
       }
 
+      saveDeterminationAndAssimilation(
+        updatedDetermination,
+        updatedAssimilation
+      ); // Salvar os pontos de determinação e assimilação atualizados no backend
+
       return {
         ...prevCharacter,
         determination: updatedDetermination,
@@ -1015,14 +1137,18 @@ const CharacterSheet = () => {
   const handleAssimilationChange = (event, newValue) => {
     setCharacter((prevCharacter) => {
       let updatedAssimilation = newValue;
-      let maxAssimilation = 10 - (prevCharacter?.determination || 0); // Calcula o máximo de Assimilação permitido
+      let maxAssimilation = 10 - (prevCharacter?.determination || 0);
       let message = null;
 
-      // Garantir que não gaste mais pontos de assimilação do que possui
       if (updatedAssimilation > maxAssimilation) {
         message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
         updatedAssimilation = prevCharacter.assimilation;
       }
+
+      saveDeterminationAndAssimilation(
+        prevCharacter.determination,
+        updatedAssimilation
+      ); // Salvar os pontos de determinação e assimilação atualizados no backend
 
       return {
         ...prevCharacter,
@@ -1056,7 +1182,6 @@ const CharacterSheet = () => {
     setSelectedItem(item);
 
     if (selectedTab === 0) {
-      // Inventário
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         inventory: [
@@ -1071,13 +1196,11 @@ const CharacterSheet = () => {
         ],
       }));
     } else if (selectedTab === 3) {
-      // Assimilações
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         assimilations: [...(prevCharacter?.assimilations || []), item],
       }));
     } else if (selectedTab === 2) {
-      // Características
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
         characteristics: [...(prevCharacter?.characteristics || []), item],
@@ -1097,36 +1220,38 @@ const CharacterSheet = () => {
     });
   };
 
+  const saveCharacterDetails = async (updatedDetails) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/details`,
+        updatedDetails,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Erro ao salvar os detalhes do personagem:", error);
+    }
+  };
+
   const handleInputChange = (field, value) => {
     setCharacter((prevCharacter) => {
       const updatedCharacter = { ...prevCharacter, [field]: value };
-      saveCharacter(updatedCharacter); // Chama a função para salvar no backend
+      saveCharacterDetails({ [field]: value }); // Salvar os detalhes atualizados no backend
       return updatedCharacter;
     });
-  };
-
-  const saveCharacter = async (updatedCharacter) => {
-    try {
-      const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-        {
-          ...updatedCharacter,
-        }
-      );
-      console.log("Personagem salvo com sucesso:", response.data);
-    } catch (error) {
-      console.error("Erro ao salvar personagem:", error);
-    }
   };
 
   const saveCharacterInventory = async () => {
     const token = localStorage.getItem("token");
     try {
-      // Cria o payload com o inventário atualizado
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
         {
-          inventory: character?.inventory, // Usando o inventário atualizado
+          inventory: character?.inventory,
           characteristics: character?.characteristics,
           assimilations: character?.assimilations,
           notes: notes,
@@ -1144,7 +1269,7 @@ const CharacterSheet = () => {
 
   useEffect(() => {
     if (character?.inventory) {
-      saveCharacterInventory(); // Salva o inventário sempre que ele mudar
+      saveCharacterInventory();
     }
   }, [
     character?.inventory,
@@ -1153,13 +1278,131 @@ const CharacterSheet = () => {
     notes,
   ]);
 
-  if (loading) {
-    return <div className={styles.loadingIndicator}>Carregando...</div>;
-  }
+  const handleCreateNewHomebrew = () => {
+    // Lógica para criar nova característica, assimilação ou item
+    console.log("Criar nova Homebrew");
+  };
+
+  const addRollToHistory = (roll) => {
+    setRollHistory((prevHistory) => {
+      const newHistory = [...prevHistory, roll];
+      if (newHistory.length > 5) {
+        newHistory.shift(); // Remove o item mais antigo se houver mais de 5
+      }
+      return newHistory;
+    });
+  };
+
+  const handleFabClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+
+  const openPopover = Boolean(anchorEl);
+  const popoverId = openPopover ? "history-popover" : undefined;
 
   if (error) {
     return <div className={styles.errorMessage}>{error}</div>;
   }
+
+  const RollHistory = styled(Box)(({ theme }) => ({
+    "& .roll-entry": {
+      transition: "opacity 0.5s ease-out, background-color 0.3s ease-in-out",
+      padding: theme.spacing(1),
+      marginBottom: theme.spacing(1),
+      borderRadius: theme.shape.borderRadius,
+      "&.new": {
+        backgroundColor: theme.palette.primary.light,
+        opacity: 1,
+      },
+      "&.old": {
+        backgroundColor: "transparent",
+        opacity: 0.7,
+      },
+    },
+    "& .roll-entry:last-child": {
+      backgroundColor: theme.palette.primary.light,
+      opacity: 1,
+    },
+  }));
+
+  const RollHistoryPopover = ({ open, anchorEl, onClose, rollHistory }) => (
+    <Popover
+      open={open}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      anchorOrigin={{
+        vertical: "top",
+        horizontal: "left",
+      }}
+      transformOrigin={{
+        vertical: "bottom",
+        horizontal: "right",
+      }}
+    >
+      <RollHistory sx={{ width: 350, padding: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Histórico de Rolagens
+        </Typography>
+        {rollHistory.length === 0 ? (
+          <Typography>Nenhuma rolagem registrada.</Typography>
+        ) : (
+          rollHistory.map((entry, index) => (
+            <Box
+              key={index}
+              className={`roll-entry ${
+                index === rollHistory.length - 1 ? "new" : "old"
+              }`}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight:
+                    index === rollHistory.length - 1 ? "bold" : "normal",
+                }}
+              >
+                {entry.skill
+                  ? `Habilidade: ${translateKey(entry.skill)}`
+                  : `Fórmula: ${entry.formula}`}
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {entry.roll.map((result, i) => (
+                  <Box key={i} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body2" sx={{ marginRight: 1 }}>
+                      Dado {i + 1}:
+                    </Typography>
+                    {result.result.length > 0 ? (
+                      result.result.map((imgSrc, j) => (
+                        <img
+                          key={j}
+                          src={imgSrc}
+                          alt={`Resultado ${j + 1}`}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/path/to/default-image.png";
+                          }}
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            margin: "2px",
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2">Nada</Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ))
+        )}
+      </RollHistory>
+    </Popover>
+  );
 
   return (
     <Box className={styles.characterSheet}>
@@ -1314,7 +1557,7 @@ const CharacterSheet = () => {
         >
           <InstinctList
             title="Instintos"
-            instincts={character?.instincts || {}}
+            instincts={instincts} // Passar os instintos do Redux
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onAssimilatedRoll={handleAssimilatedRoll}
@@ -1326,7 +1569,13 @@ const CharacterSheet = () => {
           </Typography>
           {character?.healthLevels?.map((points, index) => (
             <Box key={index} className={styles.healthBar} mb={3}>
-              <Typography variant="body1">Saúde {5 - index}:</Typography>
+              <Typography
+                variant="body1"
+                onClick={() => handleHealthClick(5 - index)} // Adiciona o evento de clique na palavra
+                sx={{ cursor: "pointer", "&:hover": { color: "primary.main" } }}
+              >
+                Saúde {5 - index}:
+              </Typography>
               <Box
                 display="flex"
                 alignItems="center"
@@ -1412,15 +1661,10 @@ const CharacterSheet = () => {
         >
           <SkillList
             title="Conhecimentos & Práticas"
-            skills={{ ...character?.knowledge, ...character?.practices }}
-            instincts={character?.instincts || {}}
-            selectedInstinct={selectedInstinct}
-            handleInstinctChange={handleInstinctChange}
             onRoll={handleRoll}
             id={character?._id}
-            updateSkills={updateSkills}
-            setLoading={setLoading}
-            loading={loading}
+            character={character}
+            addRollToHistory={addRollToHistory}
           />
         </Paper>
 
@@ -1695,6 +1939,7 @@ const CharacterSheet = () => {
         autoHideDuration={10000}
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        key={snackbarKey} // Usar a chave única do Snackbar
       >
         <Alert
           onClose={handleSnackbarClose}
@@ -1724,24 +1969,24 @@ const CharacterSheet = () => {
                   <div key={index}>
                     <Typography variant="body2">
                       Dado {index + 1}: {result.result.length > 0 ? "" : "Nada"}
+                      {result.result.length > 0 &&
+                        result.result.map((imgSrc, i) => (
+                          <img
+                            key={i}
+                            src={imgSrc}
+                            alt={`Resultado ${i + 1}`}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "/path/to/default-image.png";
+                            }}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              margin: "5px",
+                            }}
+                          />
+                        ))}
                     </Typography>
-                    {result.result.length > 0 &&
-                      result.result.map((imgSrc, i) => (
-                        <img
-                          key={i}
-                          src={imgSrc}
-                          alt={`Resultado ${i + 1}`}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "/path/to/default-image.png";
-                          }}
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            margin: "5px",
-                          }}
-                        />
-                      ))}
                   </div>
                 )
               )
@@ -1749,26 +1994,34 @@ const CharacterSheet = () => {
         </Alert>
       </Snackbar>
 
-      <ItemsModal
-        open={openItemsModal}
-        handleClose={handleCloseItemsModal}
-        title="Inventário"
-        items={inventoryItems}
-        onItemSelect={handleItemSelect}
-      />
-      <AssimilationsModal
-        open={openAssimilationsModal}
-        handleClose={handleCloseAssimilationsModal}
-        title="Assimilações"
-        items={assimilations}
-        onItemSelect={handleItemSelect}
-      />
       <CharacteristicsModal
         open={openCharacteristicsModal}
         handleClose={handleCloseCharacteristicsModal}
         title="Características"
         items={characteristics}
+        homebrewItems={[]}
         onItemSelect={handleItemSelect}
+        onCreateNewHomebrew={handleCreateNewHomebrew}
+      />
+
+      <AssimilationsModal
+        open={openAssimilationsModal}
+        handleClose={handleCloseAssimilationsModal}
+        title="Assimilações"
+        items={assimilations}
+        homebrewItems={[]}
+        onItemSelect={handleItemSelect}
+        onCreateNewHomebrew={handleCreateNewHomebrew}
+      />
+
+      <ItemsModal
+        open={openItemsModal}
+        handleClose={handleCloseItemsModal}
+        title="Inventário"
+        items={inventoryItems}
+        homebrewItems={[]}
+        onItemSelect={handleItemSelect}
+        onCreateNewHomebrew={handleCreateNewHomebrew}
       />
 
       {editItem !== null && (
@@ -1860,6 +2113,34 @@ const CharacterSheet = () => {
           )}
         </Dialog>
       )}
+
+      <Fab
+        color="primary"
+        aria-label="history"
+        onClick={handleFabClick}
+        sx={{ position: "fixed", bottom: 16, right: 16 }}
+      >
+        <HistoryIcon />
+      </Fab>
+
+      <RollHistoryPopover
+        open={openPopover}
+        anchorEl={anchorEl}
+        onClose={handlePopoverClose}
+        rollHistory={rollHistory}
+      />
+
+      <Dialog open={openHealthModal} onClose={() => setOpenHealthModal(false)}>
+        <DialogTitle>Saúde {selectedHealthLevel}</DialogTitle>
+        <DialogContent>
+          <Typography>{getHealthDescription(selectedHealthLevel)}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenHealthModal(false)} color="primary">
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

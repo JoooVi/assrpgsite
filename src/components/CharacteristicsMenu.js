@@ -10,7 +10,9 @@ import {
   ListItemText,
   Typography,
   Box,
+  Icon,
 } from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
   const [characteristics, setCharacteristics] = useState([]);
@@ -152,7 +154,8 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
 
   const handleAddCharacteristic = (characteristic) => {
     if (points >= characteristic.cost) {
-      const updatedCharacteristics = [...characteristics, characteristic];
+      const newCharacteristic = { ...characteristic, marked: false }; // Adicionar propriedade 'marked'
+      const updatedCharacteristics = [...characteristics, newCharacteristic];
       setCharacteristics(updatedCharacteristics);
       setPoints(points - characteristic.cost);
       onChange({
@@ -192,7 +195,7 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
                 secondary={characteristic.description}
               />
               <Button onClick={() => handleRemoveCharacteristic(index)}>
-                Remover
+                <DeleteIcon />
               </Button>
             </ListItem>
           ))}
@@ -214,7 +217,7 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
                       disabled={points < characteristic.cost}
                       sx={{ marginLeft: '10px' }}
                     >
-                      Adicionar
+                      +
                     </Button>
                   </ListItem>
                 )

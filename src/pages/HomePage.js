@@ -8,10 +8,9 @@ const HomePage = () => {
   return (
     <div className="homepage-container">
       <div className="homepage-content">
-        <h1 className="homepage-title">Bem-vindo ao Mundo de ASSIMILAÇÃO</h1>
+        <h1 className="homepage-title">NERO INDUSTRIES</h1>
         <p className="homepage-description">
-          Em um mundo devastado, você é a chave para a sobrevivência. Crie seu
-          personagem e entre nesta aventura!
+        Bem-vindo ao Sistema de Recrutamento da Nero Industries. Sua sobrevivência é nossa prioridade. Complete seu cadastro e torne-se parte da solução.
         </p>
         <div className="homepage-links">
           <Button

@@ -31,31 +31,31 @@
 }
 
 .characterName {
-  text-align: center; /* Centralizar o nome do personagem */
-  font-size: 1.2rem; /* Ajustar tamanho da fonte */
-  margin-bottom: 8px; /* Reduzir espaço abaixo do nome */
+  text-align: center; 
+  font-size: 1.2rem; 
+  margin-bottom: 8px;
 }
 
 .cardActions {
   display: flex;
   justify-content: space-between;
-  padding: 10px; /* Ajustar espaçamento */
+  padding: 10px;
 }
 
 .deleteButton {
   min-width: 0;
-  padding: 5px; /* Garantir que o botão não estique */
+  padding: 5px; 
 }
 
 @media (max-width: 768px) {
   .cardActions {
-    flex-direction: row; /* Alinhar botões lado a lado no celular */
+    flex-direction: row; 
     justify-content: space-between;
   }
 
   .deleteButton {
     width: auto;
-    margin-top: 0; /* Remover margem superior */
+    margin-top: 0;
   }
 }
 
@@ -75,8 +75,8 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  margin: 0 auto; /* Centraliza horizontalmente */
-  text-align: center; /* Centraliza o texto dentro do elemento */
+  margin: 0 auto; 
+  text-align: center;
 }
 
 .createCharacterButton {

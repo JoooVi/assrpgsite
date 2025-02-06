@@ -16,23 +16,23 @@ body {
 @keyframes changeBackground {
   0% {
     opacity: 1;
-    background-image: url('Backgroundd.png');
+    background-image: url('lab1.jpg');
   }
   25% {
     opacity: 1;
-    background-image: url('O_caramelo.png');
+    background-image: url('lab2.jpg');
   }
   50% {
     opacity: 1;
-    background-image: url('01_Cidades_inabitadas.jpg');
+    background-image: url('lab6.jpg');
   }
   75% {
     opacity: 1;
-    background-image: url('05_A_igreja.jpg');
+    background-image: url('lab4.jpg');
   }
   100% {
     opacity: 1;
-    background-image: url('Backgroundd.png');
+    background-image: url('lab5.jpg');
   }
 }
 

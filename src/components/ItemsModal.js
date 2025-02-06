@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Backdrop,
@@ -14,48 +14,49 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AddIcon from "@mui/icons-material/Add";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchItems } from "../redux/slices/itemsSlice";
 
-const CharacteristicsModal = ({
+const ItemsModal = ({
   open,
   handleClose,
-  title,
-  items = [], // Características padrão
-  homebrewItems = [], // Características personalizadas
+  title = "Itens",
   onItemSelect,
   onCreateNewHomebrew,
 }) => {
+  const dispatch = useDispatch();
+  const {
+    items: itemItems,
+    loading,
+    error,
+  } = useSelector((state) => state.items);
+  const user = useSelector((state) => state.auth.user);
+
+  // Estados e funções de controle
   const [searchTerm, setSearchTerm] = useState("");
   const [expanded, setExpanded] = useState(null);
 
-  const { characterTraits, loading, error } = useSelector(
-    (state) => state.characteristics
-  );
-  const user = useSelector((state) => state.auth.user);
+  // Função para buscar itens quando o modal é aberto
+  // ItemsModal.js (dentro do useEffect)
+  useEffect(() => {
+    if (open) {
+      dispatch(fetchItems()); // Altere para a nova ação que busca itens do sistema + custom
+    }
+  }, [open, dispatch]);
 
-  const handleAccordionChange = (id) => (event, isExpanded) => {
-    setExpanded(isExpanded ? id : null);
-  };
-
+  // Função para controlar a busca
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  // Combinar características padrão e personalizadas
-  const allCharacteristics = [
-    ...items.map(item => ({ ...item, isCustom: false })), // Forçar flag isCustom
-    ...homebrewItems.map(item => ({ ...item, isCustom: true })) // Garantir consistência
-  ];
+  // Função para controlar a expansão do Accordion
+  const handleAccordionChange = (id) => (event, isExpanded) => {
+    setExpanded(isExpanded ? id : null);
+  };
 
-  // Combinar e filtrar características
-  const filteredCharacteristics = allCharacteristics.filter(
-    (char) => !char.isCustom || char.createdBy === user._id
-  );
-
-  // Aplicar filtro de busca
-  const displayedCharacteristics = filteredCharacteristics.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtra itens do sistema + custom do usuário
+  // ItemsModal.js (simplifique a lógica)
+  const allItems = itemItems || []; // Confie nos dados do backend
 
   return (
     <Modal
@@ -88,12 +89,22 @@ const CharacteristicsModal = ({
             {title}
           </Typography>
 
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={onCreateNewHomebrew}
+            sx={{ mb: 3 }}
+          >
+            Criar Novo Item
+          </Button>
+
           <TextField
             fullWidth
             variant="outlined"
             placeholder="Buscar..."
             value={searchTerm}
-            onChange={handleSearchChange}
+            onChange={handleSearchChange} // Função definida
             sx={{
               mb: 3,
               "& .MuiOutlinedInput-root": {
@@ -106,17 +117,13 @@ const CharacteristicsModal = ({
           <Box sx={{ flexGrow: 1, overflow: "auto", mb: 2 }}>
             {loading ? (
               <Typography>Carregando...</Typography>
-            ) : displayedCharacteristics.length > 0 ? (
-              displayedCharacteristics.map((item) => (
+            ) : allItems.length > 0 ? (
+              allItems.map((item) => (
                 <Accordion
                   key={item._id}
                   expanded={expanded === item._id}
                   onChange={handleAccordionChange(item._id)}
-                  sx={{
-                    bgcolor: "transparent",
-                    color: "white",
-                    mt: 1,
-                  }}
+                  sx={{ bgcolor: "transparent", color: "white", mt: 1 }}
                 >
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
@@ -126,12 +133,9 @@ const CharacteristicsModal = ({
                         display: "flex",
                         justifyContent: "space-between",
                         width: "100%",
-                        color: "white",
                       }}
                     >
-                      <Typography variant="body1" fontWeight="bold">
-                        {item.name}
-                      </Typography>
+                      <Typography fontWeight="bold">{item.name}</Typography>
                       <Button
                         variant="contained"
                         color="secondary"
@@ -143,46 +147,30 @@ const CharacteristicsModal = ({
                     </Box>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography variant="body2">
+                    <Typography>
                       <strong>Descrição:</strong> {item.description}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Categoria:</strong> {item.category}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Pontos de Custo:</strong> {item.pointsCost}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Personalizado:</strong>{" "}
-                      {item.isCustom ? "Sim" : "Não"}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Criado por:</strong>{" "}
-                      {item.createdBy?.name || "Sistema"}
                     </Typography>
                     <Divider sx={{ my: 1, bgcolor: "#444" }} />
                   </AccordionDetails>
                 </Accordion>
               ))
             ) : (
-              <Typography>Nenhuma característica encontrada.</Typography>
+              <Typography>Nenhum item encontrado.</Typography>
             )}
           </Box>
 
-          <Box sx={{ mt: "auto" }}>
-            <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleClose}
-            >
-              Fechar
-            </Button>
-          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            onClick={handleClose}
+          >
+            Fechar
+          </Button>
         </Box>
       </Fade>
     </Modal>
   );
 };
 
-export default CharacteristicsModal;
+export default ItemsModal;

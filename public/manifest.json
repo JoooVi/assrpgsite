@@ -1,6 +1,6 @@
 {
-  "short_name": "Assimilacao RPG",
-  "name": "Site criado para o AssimilaçãoRPG (Não Oficial)",
+  "short_name": "React App",
+  "name": "Create React App Sample",
   "icons": [
     {
       "src": "favicon.ico",

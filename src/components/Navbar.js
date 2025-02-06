@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/authSlice";
+import { logout } from "../redux/slices/authSlice";
 import AccountMenu from "./AccountMenu";
 import "./Navbar.css";
-import logo from "../assets/asslogo.png";
+import logo from "../assets/asslogo1.png";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -41,6 +41,9 @@ const Navbar = () => {
         </Link>
         <Link to="/characters" className="navbar-link" onClick={closeMenu}>
           Personagens
+        </Link>
+        <Link to="/homebrews" className="navbar-link" onClick={closeMenu}>
+          Homebrews(beta)
         </Link>
       </div>
       <div className="navbar-toggle" onClick={toggleMenu}>
