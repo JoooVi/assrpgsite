@@ -23,12 +23,15 @@ const SharedHomebrew = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("SharedHomebrew component mounted"); // Adicione este log
     const fetchData = async () => {
       try {
+        console.log("Fetching data for id:", id); // Adicione este log
         const response = await axios.get(
           `https://assrpgsite-be-production.up.railway.app/api/shared/${id}`
         );
         setHomebrewData(response.data);
+        console.log("Data fetched:", response.data); // Adicione este log
       } catch (error) {
         console.error("Erro ao carregar homebrew:", error);
       }

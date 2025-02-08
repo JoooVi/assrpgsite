@@ -1,7 +1,6 @@
 {
   "name": "nero-industries",
   "version": "0.1.0",
-  "homepage": "./",
   "private": true,
   "dependencies": {
     "@dicebear/collection": "^9.2.2",
