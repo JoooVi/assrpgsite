@@ -36,33 +36,58 @@ function App() {
     initApp();
   }, [dispatch]);
 
+  useEffect(() => {
+    // Adicione o script do Ko-fi
+    const script = document.createElement("script");
+    script.src = "https://storage.ko-fi.com/cdn/scripts/overlay-widget.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      // Inicialize o widget após o script ser carregado
+      kofiWidgetOverlay.draw("jooovi", {
+        type: "floating-chat",
+        "floating-chat.donateButton.text": "Support me",
+        "floating-chat.donateButton.background-color": "#d9534f",
+        "floating-chat.donateButton.text-color": "#fff",
+      });
+    };
+
+    // Remova o script ao desmontar o componente
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/create"
-          element={isAuthenticated ? <CharacterForm /> : <LoginPage />}
-        />
-        <Route
-          path="/characters"
-          element={isAuthenticated ? <CharacterList /> : <LoginPage />}
-        />
-        <Route
-          path="/character-sheet/:id"
-          element={isAuthenticated ? <CharacterSheet /> : <LoginPage />}
-        />
-        <Route
-          path="/homebrews"
-          element={isAuthenticated ? <Homebrews /> : <LoginPage />} // Adicione a rota Homebrews
-        />
-        <Route path="/shared/:id" element={<SharedHomebrew />} />
-      </Routes>
-      <Footer />
-    </Router>
+    <div style={{ position: 'relative' }}> {/* Adicione um container relativo */}
+      <Router>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/create"
+            element={isAuthenticated ? <CharacterForm /> : <LoginPage />}
+          />
+          <Route
+            path="/characters"
+            element={isAuthenticated ? <CharacterList /> : <LoginPage />}
+          />
+          <Route
+            path="/character-sheet/:id"
+            element={isAuthenticated ? <CharacterSheet /> : <LoginPage />}
+          />
+          <Route
+            path="/homebrews"
+            element={isAuthenticated ? <Homebrews /> : <LoginPage />} // Adicione a rota Homebrews
+          />
+          <Route path="/shared/:id" element={<SharedHomebrew />} />
+        </Routes>
+        <Footer />
+      </Router>
+    </div>
   );
 }
 
