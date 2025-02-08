@@ -55,6 +55,7 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
+import { Helmet } from "react-helmet-async"; // Importe o Helmet
 
 const translateKey = (key) => {
   const translations = {
@@ -229,7 +230,9 @@ const rollCustomDice = (formula) => {
 const SkillList = ({ title, id, addRollToHistory, character }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills?.skills || {});
-  const selectedInstinct = useSelector((state) => state.skills.selectedInstinct);
+  const selectedInstinct = useSelector(
+    (state) => state.skills.selectedInstinct
+  );
   const instincts = useSelector((state) => state.instincts.instincts);
   const loading = useSelector((state) => state.instincts?.loading);
   const error = useSelector((state) => state.instincts?.error);
@@ -332,7 +335,8 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
 
   // Dentro do componente SkillList, substitua:
   const handleInstinctChangee = useCallback(
-    (skillKey) => (event) => { // Modificar para retornar uma função
+    (skillKey) => (event) => {
+      // Modificar para retornar uma função
       dispatch(setSelectedInstinct({ [skillKey]: event.target.value }));
     },
     [dispatch]
@@ -836,11 +840,14 @@ const CharacterSheet = () => {
   const fetchInventoryItems = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get("assrpgsite-be-production.up.railway.app/api/items", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "assrpgsite-be-production.up.railway.app/api/items",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Erro ao buscar itens do inventário:", error);
@@ -1406,6 +1413,24 @@ const CharacterSheet = () => {
 
   return (
     <Box className={styles.characterSheet}>
+      <Helmet>
+        <div className={styles.kofiButtonContainer}>
+          <script
+            src="https://storage.ko-fi.com/cdn/scripts/overlay-widget.js"
+            charSet="UTF-8"
+          ></script>
+          <script>
+            {`
+            kofiWidgetOverlay.draw('jooovi', {
+              'type': 'floating-chat',
+              'floating-chat.donateButton.text': 'Support me',
+              'floating-chat.donateButton.background-color': '#323842',
+              'floating-chat.donateButton.text-color': '#fff'
+            });
+          `}
+          </script>
+        </div>
+      </Helmet>
       <Paper elevation={3} className={styles.characterHeader}>
         <Grid container spacing={2}>
           {/* Primeira Linha */}

@@ -86,3 +86,10 @@
 .errorMessage {
   text-align: center;
 }
+
+.kofiButtonContainer {
+  position: fixed; /* Posicionamento fixo na tela */
+  bottom: 20px; /* Distância da parte inferior da tela */
+  right: 20px; /* Distância da parte direita da tela */
+  z-index: 1000; /* Garante que ele fique sobre outros elementos */
+}
