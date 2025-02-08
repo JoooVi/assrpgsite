@@ -10,7 +10,7 @@ import CharacterForm from "./pages/CharacterForm";
 import CharacterList from "./pages/CharacterList";
 import CharacterSheet from "./pages/CharacterSheet";
 import SharedHomebrew from "./pages/SharedHomebrew";
-import Homebrews from "./pages/Homebrews"; // Importe o componente Homebrews
+import Homebrews from "./pages/Homebrews";
 import Footer from "./components/Footer";
 import "./App.css";
 import "@fontsource/roboto/300.css";
@@ -36,63 +36,33 @@ function App() {
     initApp();
   }, [dispatch]);
 
-  useEffect(() => {
-    // Adicione o script do Ko-fi
-    const script = document.createElement("script");
-    script.src = "https://storage.ko-fi.com/cdn/scripts/overlay-widget.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    if (script && script.onload) {
-      script.onload = () => {
-        try {
-          if (typeof kofiWidgetOverlay === "object" && kofiWidgetOverlay.draw) {
-            kofiWidgetOverlay.draw("jooovi", {
-              type: "floating-chat",
-              "floating-chat.donateButton.text": "Support me",
-              "floating-chat.donateButton.background-color": "#67110e",
-              "floating-chat.donateButton.text-color": "#fff",
-            });
-          }
-        } catch (error) {
-          console.error("Erro ao inicializar o widget do Ko-fi:", error);
-        }
-      };
-    }
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
   return (
-    <div style={{ position: 'relative' }}> {/* Adicione um container relativo */}
-      <Router>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/create"
-            element={isAuthenticated ? <CharacterForm /> : <LoginPage />}
-          />
-          <Route
-            path="/characters"
-            element={isAuthenticated ? <CharacterList /> : <LoginPage />}
-          />
-          <Route
-            path="/character-sheet/:id"
-            element={isAuthenticated ? <CharacterSheet /> : <LoginPage />}
-          />
-          <Route
-            path="/homebrews"
-            element={isAuthenticated ? <Homebrews /> : <LoginPage />} // Adicione a rota Homebrews
-          />
-          <Route path="/shared/:id" element={<SharedHomebrew />} />
-        </Routes>
-        <Footer />
-      </Router>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/create"
+          element={isAuthenticated ? <CharacterForm /> : <LoginPage />}
+        />
+        <Route
+          path="/characters"
+          element={isAuthenticated ? <CharacterList /> : <LoginPage />}
+        />
+        <Route
+          path="/character-sheet/:id"
+          element={isAuthenticated ? <CharacterSheet /> : <LoginPage />}
+        />
+        <Route
+          path="/homebrews"
+          element={isAuthenticated ? <Homebrews /> : <LoginPage />} // Adicione a rota Homebrews
+        />
+        <Route path="/shared/:id" element={<SharedHomebrew />} />
+      </Routes>
+      <Footer />
+    </Router>
   );
 }
 
