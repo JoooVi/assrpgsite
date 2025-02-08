@@ -43,17 +43,22 @@ function App() {
     script.async = true;
     document.body.appendChild(script);
 
-    script.onload = () => {
-      // Inicialize o widget após o script ser carregado
-      kofiWidgetOverlay.draw("jooovi", {
-        type: "floating-chat",
-        "floating-chat.donateButton.text": "Support me",
-        "floating-chat.donateButton.background-color": "#d9534f",
-        "floating-chat.donateButton.text-color": "#fff",
-      });
-    };
-
-    // Remova o script ao desmontar o componente
+    if (script && script.onload) {
+      script.onload = () => {
+        try {
+          if (typeof kofiWidgetOverlay === "object" && kofiWidgetOverlay.draw) {
+            kofiWidgetOverlay.draw("jooovi", {
+              type: "floating-chat",
+              "floating-chat.donateButton.text": "Support me",
+              "floating-chat.donateButton.background-color": "#67110e",
+              "floating-chat.donateButton.text-color": "#fff",
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao inicializar o widget do Ko-fi:", error);
+        }
+      };
+    }
     return () => {
       document.body.removeChild(script);
     };

@@ -1,5 +1,5 @@
 {
-  "name": "nero-industries",
+  "name": "assrpgsite",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -57,7 +57,10 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "globals": {
+      "kofiWidgetOverlay": "readonly"
+    }
   },
   "browserslist": {
     "production": [
