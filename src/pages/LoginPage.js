@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { login } from "../redux/slices/authSlice";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import "./LoginPage.css";
+import "../styles/auth.css";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -27,10 +27,10 @@ const LoginPage = () => {
   }, [status, navigate]);
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit} className="login-form">
-        <div>
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2 className="auth-title">Login</h2>
+        <form onSubmit={handleSubmit} className="auth-form">
           <TextField
             label="Email"
             type="email"
@@ -40,8 +40,6 @@ const LoginPage = () => {
             fullWidth
             margin="normal"
           />
-        </div>
-        <div>
           <TextField
             label="Senha"
             type="password"
@@ -51,18 +49,19 @@ const LoginPage = () => {
             fullWidth
             margin="normal"
           />
-        </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={status === "loading"}
-          fullWidth
-        >
-          {status === "loading" ? "Carregando..." : "Entrar"}
-        </Button>
-      </form>
+          <Link to="/forgot-password">Esqueci minha senha</Link>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={status === "loading"}
+            fullWidth
+          >
+            {status === "loading" ? "Carregando..." : "Entrar"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };

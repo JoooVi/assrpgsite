@@ -10,10 +10,11 @@ import CharacterForm from "./pages/CharacterForm";
 import CharacterList from "./pages/CharacterList";
 import CharacterSheet from "./pages/CharacterSheet";
 import SharedHomebrew from "./pages/SharedHomebrew";
-import Homebrews from "./pages/Homebrews";
+import Homebrews from "./pages/Homebrews"; // Importe o componente Homebrews
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Footer from "./components/Footer";
 import "./App.css";
-import KofiButton from "./components/KofiButton";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -60,9 +61,10 @@ function App() {
           path="/homebrews"
           element={isAuthenticated ? <Homebrews /> : <LoginPage />} // Adicione a rota Homebrews
         />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/shared/:id" element={<SharedHomebrew />} />
       </Routes>
-      <KofiButton />
       <Footer />
     </Router>
   );
