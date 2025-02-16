@@ -19,6 +19,7 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import KofiButton from "./components/KofiButton";
 
 function App() {
   const dispatch = useDispatch();
@@ -66,6 +67,7 @@ function App() {
         <Route path="/shared/:id" element={<SharedHomebrew />} />
       </Routes>
       <Footer />
+      <KofiButton />
     </Router>
   );
 }
