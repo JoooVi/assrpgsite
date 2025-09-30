@@ -36,9 +36,9 @@ const CampaignSheet = () => {
         }
         try {
             const [campaignRes, playersRes, rollsRes] = await Promise.all([
-                axios.get(`https://hystoriarpg-production.up.railway.app/api/campaigns/${campaignId}`, { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get(`https://hystoriarpg-production.up.railway.app/api/campaigns/${campaignId}/players-data`, { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get(`https://hystoriarpg-production.up.railway.app/api/campaigns/${campaignId}/recent-rolls`, { headers: { Authorization: `Bearer ${token}` } })
+                axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}`, { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/players-data`, { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/recent-rolls`, { headers: { Authorization: `Bearer ${token}` } })
             ]);
 
             const masterId = campaignRes.data.master._id || campaignRes.data.master;
@@ -71,7 +71,7 @@ const CampaignSheet = () => {
 
     const handleSaveNotes = async () => {
         try {
-            await axios.put(`https://hystoriarpg-production.up.railway.app/api/campaigns/${campaignId}/notes`, { notes: masterNotes }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/notes`, { notes: masterNotes }, { headers: { Authorization: `Bearer ${token}` } });
             setSnackbarMessage("Notas salvas com sucesso!");
             setSnackbarSeverity("success");
         } catch (err) {

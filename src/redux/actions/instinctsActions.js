@@ -6,7 +6,7 @@ export const fetchInstincts = (id) => async (dispatch) => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.get(
-      `https://hystoriarpg-production.up.railway.app/api/characters/${id}/instincts`,
+      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -29,7 +29,7 @@ export const saveInstinctsToBackend = (id, updatedInstincts) => async (dispatch)
   try {
     const token = localStorage.getItem("token");
     const response = await axios.put(
-      `https://hystoriarpg-production.up.railway.app/api/characters/${id}/instincts`,
+      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
       { instincts: updatedInstincts },
       {
         headers: { Authorization: `Bearer ${token}` },

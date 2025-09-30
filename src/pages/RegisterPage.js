@@ -26,7 +26,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await axios.post("https://hystoriarpg-production.up.railway.app/api/register", {
+      const response = await axios.post("https://assrpgsite-be-production.up.railway.app/api/register", {
         name,
         email,
         password,

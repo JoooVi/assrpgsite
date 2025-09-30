@@ -251,7 +251,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
         try {
           const token = localStorage.getItem("token");
           const response = await axios.get(
-            `https://hystoriarpg-production.up.railway.app/api/characters/${id}`,
+            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
@@ -584,7 +584,7 @@ const InstinctList = ({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/instincts`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -605,14 +605,14 @@ const InstinctList = ({
 
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/instincts`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { instincts: updatedInstincts }, // Enviar todos os instintos
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // Forçar atualização do Redux com a resposta do backend
       const response = await axios.get(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/instincts`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       dispatch(updateInstincts(response.data.instincts));
@@ -760,7 +760,7 @@ const CharacterSheet = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${charId}/last-roll`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${charId}/last-roll`,
         { lastRoll: rollData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -783,7 +783,7 @@ const CharacterSheet = () => {
     const fetchCharacter = async () => {
       try {
         const response = await axios.get(
-          `https://hystoriarpg-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`,
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -826,7 +826,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://hystoriarpg-production.up.railway.app/api/charactertraits",
+        "https://assrpgsite-be-production.up.railway.app/api/charactertraits",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -843,7 +843,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        "https://hystoriarpg-production.up.railway.app/api/assimilations",
+        "https://assrpgsite-be-production.up.railway.app/api/assimilations",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -877,7 +877,7 @@ const CharacterSheet = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/health`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/health`,
         { healthLevels: updatedHealthLevels },
         {
           headers: {
@@ -1042,7 +1042,7 @@ const CharacterSheet = () => {
       try {
         console.log("Enviando dados para o backend:", payload);
         const response = await axios.put(
-          `https://hystoriarpg-production.up.railway.app/api/characters/${id}/inventory`,
+          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
           payload,
           {
             headers: {
@@ -1100,7 +1100,7 @@ const CharacterSheet = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/determination-assimilation`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/determination-assimilation`,
         { determination, assimilation },
         {
           headers: {
@@ -1240,7 +1240,7 @@ const CharacterSheet = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/details`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/details`,
         updatedDetails,
         {
           headers: {
@@ -1265,7 +1265,7 @@ const CharacterSheet = () => {
     const token = localStorage.getItem("token");
     try {
       await axios.put(
-        `https://hystoriarpg-production.up.railway.app/api/characters/${id}/inventory`,
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
         {
           inventory: character?.inventory,
           characteristics: character?.characteristics,
@@ -1322,7 +1322,7 @@ const CharacterSheet = () => {
 
       try {
         await axios.post(
-          `https://hystoriarpg-production.up.railway.app/api/campaigns/${character.campaign}/roll`, // Endpoint para registrar rolagem na campanha
+          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${character.campaign}/roll`, // Endpoint para registrar rolagem na campanha
           rollDataToSend,
           { headers: { Authorization: `Bearer ${token}` } }
         );

@@ -528,7 +528,7 @@ export default function CharacterForm(props) {
     setLoading(true);
     try {
       const response = await axios.post(
-        "https://hystoriarpg-production.up.railway.app/api/characters",
+        "https://assrpgsite-be-production.up.railway.app/api/characters",
         character,
         {
           headers: { Authorization: `Bearer ${token}` },

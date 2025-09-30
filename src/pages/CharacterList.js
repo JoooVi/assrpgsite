@@ -27,7 +27,7 @@ const CharacterList = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.get("https://hystoriarpg-production.up.railway.app/api/characters", { headers: { Authorization: `Bearer ${token}` } });
+        const response = await api.get("https://assrpgsite-be-production.up.railway.app/api/characters", { headers: { Authorization: `Bearer ${token}` } });
         setCharacters(response.data || []);
       } catch (error) {
         setError("Erro ao carregar a lista de personagens");
@@ -49,7 +49,7 @@ const CharacterList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Você realmente deseja excluir este personagem?")) {
       try {
-        await api.delete(`https://hystoriarpg-production.up.railway.app/api/characters/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await api.delete(`https://assrpgsite-be-production.up.railway.app/api/characters/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         setCharacters((prev) => prev.filter((c) => c._id !== id));
       } catch (error) {
         setError("Erro ao excluir o personagem");

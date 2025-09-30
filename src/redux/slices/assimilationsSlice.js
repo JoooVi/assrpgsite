@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Definir a URL base
-const API_URL = 'https://hystoriarpg-production.up.railway.app/api';
+const API_URL = 'https://assrpgsite-be-production.up.railway.app/api';
 
 // Thunk para criar Assimilation
 export const createAssimilation = createAsyncThunk(

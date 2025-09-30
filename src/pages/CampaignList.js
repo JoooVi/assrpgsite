@@ -54,7 +54,7 @@ const CampaignList = () => {
         setLoading(true);
         setError(null);
         const response = await axios.get(
-          "https://hystoriarpg-production.up.railway.app/api/campaigns",
+          "https://assrpgsite-be-production.up.railway.app/api/campaigns",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -77,7 +77,7 @@ const CampaignList = () => {
     try {
       // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
       const res = await axios.get(
-        "https://hystoriarpg-production.up.railway.app/api/characters/available",
+        "https://assrpgsite-be-production.up.railway.app/api/characters/available",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -102,7 +102,7 @@ const CampaignList = () => {
     try {
       // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
       await axios.post(
-        "https://hystoriarpg-production.up.railway.app/api/campaigns/join",
+        "https://assrpgsite-be-production.up.railway.app/api/campaigns/join",
         {
           inviteCode: inviteCode,
           characterId: selectedChar,
@@ -125,7 +125,7 @@ const CampaignList = () => {
     ) {
       try {
         // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
-        await axios.delete(`https://hystoriarpg-production.up.railway.app/api/campaigns/${id}`, {
+        await axios.delete(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCampaigns((prev) => prev.filter((c) => c._id !== id));

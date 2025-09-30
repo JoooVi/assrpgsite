@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Configuração da Base URL (opcional, para facilitar)
-const API_URL = 'https://hystoriarpg-production.up.railway.app/api';
+const API_URL = 'https://assrpgsite-be-production.up.railway.app/api';
 
 // Thunk para buscar Itens
 export const fetchItems = createAsyncThunk(

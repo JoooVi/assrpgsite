@@ -54,7 +54,7 @@ const CharacterPortraitPage = () => {
     if (!id) return;
     try {
       const response = await api.get(
-        `https://hystoriarpg-production.up.railway.app/api/public/characters/${id}/portrait`
+        `https://assrpgsite-be-production.up.railway.app/api/public/characters/${id}/portrait`
       );
       setCharacter(response.data);
     } catch (err) {

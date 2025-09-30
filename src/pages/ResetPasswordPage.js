@@ -22,7 +22,7 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      const response = await axios.post(`https://hystoriarpg-production.up.railway.app/api/reset-password`, {
+      const response = await axios.post(`https://assrpgsite-be-production.up.railway.app/api/reset-password`, {
         token,
         password
       });

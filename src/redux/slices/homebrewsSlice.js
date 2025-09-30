@@ -7,7 +7,7 @@ export const fetchHomebrews = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     const token = getState().auth.token;
     try {
-      const response = await axios.get('https://hystoriarpg-production.up.railway.app/api/homebrews', {
+      const response = await axios.get('https://assrpgsite-be-production.up.railway.app/api/homebrews', {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
@@ -23,7 +23,7 @@ export const createHomebrew = createAsyncThunk(
   async (homebrewData, { getState, rejectWithValue }) => {
     const token = getState().auth.token;
     try {
-      const response = await axios.post('https://hystoriarpg-production.up.railway.app/api/homebrews', homebrewData, {
+      const response = await axios.post('https://assrpgsite-be-production.up.railway.app/api/homebrews', homebrewData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;

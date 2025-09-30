@@ -183,7 +183,7 @@ export default function CampaignForm() {
       };
 
       const response = await axios.post(
-        "https://hystoriarpg-production.up.railway.app/api/campaigns",
+        "https://assrpgsite-be-production.up.railway.app/api/campaigns",
         campaignDataToSend,
         {
           headers: { Authorization: `Bearer ${token}` },
