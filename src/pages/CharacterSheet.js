@@ -251,7 +251,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
         try {
           const token = localStorage.getItem("token");
           const response = await axios.get(
-            `httpss://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
@@ -1654,9 +1654,6 @@ const CharacterSheet = () => {
             onAssimilatedRoll={handleAssimilatedRoll}
             id={character?._id}
           />
-          <Typography variant="h6" mt={2} mb={1}>
-            Saúde
-          </Typography>
 
           {character?.healthLevels?.map((points, index) => (
             <Box key={index} className={styles.healthBar} mb={2}>
