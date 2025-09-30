@@ -21,7 +21,7 @@ const ProfilePage = () => {
 
       try {
         // Enviar uma requisição ao back-end para obter os dados do perfil
-        const response = await axios.get("https://assrpgsite-be-production.up.railway.app/api/profile", {
+        const response = await axios.get("http://localhost:5000/api/profile", {
           // Alteração para HTTPS
           headers: { Authorization: `Bearer ${token}` },
         });

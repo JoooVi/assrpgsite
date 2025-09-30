@@ -88,17 +88,7 @@ const ItemsModal = ({
           <Typography variant="h6" mb={2}>
             {title}
           </Typography>
-
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={onCreateNewHomebrew}
-            sx={{ mb: 3 }}
-          >
-            Criar Novo Item
-          </Button>
-
+          
           <TextField
             fullWidth
             variant="outlined"

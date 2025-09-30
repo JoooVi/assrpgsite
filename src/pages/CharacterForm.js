@@ -1,8 +1,12 @@
+/* CharacterForm.js */
+
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import { Chip } from "@mui/material";
+import StarIcon from "@mui/icons-material/Star";
 import CssBaseline from "@mui/material/CssBaseline";
 import Grid from "@mui/material/Grid";
 import Step from "@mui/material/Step";
@@ -71,7 +75,7 @@ function getStepContent(
   switch (step) {
     case 0:
       return (
-        <div className="step">
+        <div className="step fade-in"> {/* Added fade-in class */}
           <TextField
             label="Nome"
             variant="outlined"
@@ -108,7 +112,7 @@ function getStepContent(
       );
     case 1:
       return (
-        <div className="step">
+        <div className="step fade-in"> {/* Added fade-in class */}
           <TextField
             label="Evento Marcante"
             variant="outlined"
@@ -135,7 +139,7 @@ function getStepContent(
       );
     case 2:
       return (
-        <div className="step">
+        <div className="step fade-in"> {/* Added fade-in class */}
           <TextField
             label="Propósito Individual 1"
             variant="outlined"
@@ -184,7 +188,7 @@ function getStepContent(
       );
     case 3:
       return (
-        <div className="step">
+        <div className="step fade-in"> {/* Added fade-in class */}
           <h3>Instintos</h3>
           <RadioGroup
             name="instinctChoice"
@@ -224,7 +228,15 @@ function getStepContent(
             ))}
           </Grid>
           <h3>Conhecimentos e Práticas</h3>
-          <p>Pontos restantes: {remainingPoints}</p>
+          <Chip
+            icon={<StarIcon />}
+            label={`Pontos restantes: ${remainingPoints}`}
+            color={remainingPoints > 0 ? "success" : "default"}
+            variant="outlined"
+            sx={{ mb: 2, p: 2, fontSize: "1rem" }}
+          >
+            Pontos restantes: {remainingPoints}
+          </Chip>
           <Grid container spacing={2}>
             {Object.keys(character.knowledge).map((knowledge) => (
               <Grid item xs={6} sm={4} md={2} key={knowledge.toString()}>
@@ -269,7 +281,7 @@ function getStepContent(
       );
     case 4:
       return (
-        <div className="step">
+        <div className="step fade-in"> {/* Added fade-in class */}
           <h3>Assimilação e Determinação</h3>
           <TextField
             label="Assimilação"
@@ -353,17 +365,17 @@ export default function CharacterForm(props) {
   const token = useSelector((state) => state.auth.token);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    console.log(`Input Change - ${name}:`, value);
-    setCharacter({
-      ...character,
-      [name]: value,
-    });
-    setErrors({
-      ...errors,
-      [name]: value ? "" : "Este campo é obrigatório",
-    });
-  };
+  const { name, value } = e.target;
+  setCharacter({
+    ...character,
+    [name]: value,
+  });
+  if (!value) {
+    setErrors(prev => ({ ...prev, [name]: "Este campo é obrigatório" }));
+  } else {
+    setErrors(prev => ({ ...prev, [name]: "" }));
+  }
+};
 
   const handleNestedChange = (category, e) => {
     const { name, value } = e.target;
@@ -371,6 +383,11 @@ export default function CharacterForm(props) {
     const newValue = parseInt(value) || 0;
 
     if (category === "instincts") {
+      // This part of the logic seems to be a remnant or intended for a different instinct point distribution.
+      // If you intend to limit instinct points based on instinctPoints array,
+      // you'll need a more robust check that accounts for the distribution chosen.
+      // For now, it will simply set the value if it's less than or equal to the "instinctPoints[name]"
+      // which is likely not the desired behavior if "instinctPoints" is an array of allowed values.
       if (newValue <= instinctPoints[name]) {
         setCharacter({
           ...character,
@@ -450,6 +467,11 @@ export default function CharacterForm(props) {
       0
     );
 
+    // This logic needs to be carefully reviewed based on the desired instinct point distribution.
+    // The current implementation checks if the total points used are within the sum of instinctPoints,
+    // and if the new value is present in the instinctPoints array, and if the count of that value
+    // in currentInstincts does not exceed its count in instinctPoints.
+    // This is a complex way to manage point distribution and might not be working as intended.
     if (totalPointsUsed <= instinctPoints.reduce((acc, val) => acc + val, 0)) {
       const validDistribution =
         instinctPoints.includes(newValue) &&
@@ -533,7 +555,6 @@ export default function CharacterForm(props) {
           mt: 4,
         }}
       >
-
         <Card sx={{ maxWidth: 800, width: "100%", mt: 2 }}>
           <CardContent>
             <Typography component="h1" variant="h4" align="center">

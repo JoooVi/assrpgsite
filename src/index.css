@@ -1,3 +1,6 @@
+/* index.css CORRIGIDO PARA CROSSFADE REAL */
+
+/* 1. Estilos do Body (apenas o básico) */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -5,38 +8,59 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* O fundo preto serve como segurança, caso algo falhe */
   background-color: black;
-  background-position: center center;
-  background-repeat: no-repeat;
+}
+
+/* 2. Camadas de Fundo (aqui acontece a mágica) */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Coloca as camadas atrás de todo o conteúdo */
+  
   background-size: cover;
-  animation: changeBackground 30s infinite; /* Somente a animação da troca de imagem */
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-/* Animação para alternar as imagens de fundo */
-@keyframes changeBackground {
-  0% {
-    opacity: 1;
-    background-image: url('lab1.jpg');
-  }
-  25% {
-    opacity: 1;
-    background-image: url('lab2.jpg');
-  }
-  50% {
-    opacity: 1;
-    background-image: url('lab6.jpg');
-  }
-  75% {
-    opacity: 1;
-    background-image: url('lab4.jpg');
-  }
-  100% {
-    opacity: 1;
-    background-image: url('lab5.jpg');
-  }
+/* 3. Definindo a animação das imagens */
+@keyframes imageSlideshow {
+  0% { background-image: url('lab1.jpg'); }
+  20% { background-image: url('lab2.jpg'); }
+  40% { background-image: url('lab3.jpg'); }
+  60% { background-image: url('lab4.jpg'); }
+  80% { background-image: url('lab5.jpg'); }
+  100% { background-image: url('lab6.jpg'); } /* Volta para a primeira */
 }
 
+/* 4. Definindo a animação de opacidade (o crossfade) */
+@keyframes crossfadeOpacity {
+  0% { opacity: 1; }
+  10% { opacity: 1; } /* Segura a imagem visível */
+  50% { opacity: 0; } /* Desaparece suavemente */
+  92% { opacity: 0; } /* Permanece invisível */
+  100% { opacity: 1; } /* Reaparece para o próximo ciclo */
+}
 
+/* 5. Aplicando as animações às camadas */
+
+body::before {
+  /* Altere de 25s para 50s aqui */
+  animation: imageSlideshow 100s linear infinite, crossfadeOpacity 50s linear infinite;
+}
+
+body::after {
+  /* E altere de 25s para 50s aqui também */
+  animation: imageSlideshow 100s linear infinite;
+}
+
+/* O restante do seu CSS continua igual */
 code {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif,
@@ -46,7 +70,7 @@ code {
 .video-container {
   position: relative;
   width: 100%;
-  height: 100vh; /* Garantir que o vídeo ocupa toda a altura da viewport */
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -56,23 +80,23 @@ video {
   left: 50%;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Faz o vídeo preencher toda a área */
-  transform: translate(-50%, -50%); /* Centraliza o vídeo */
-  z-index: -1; /* Coloca o vídeo atrás do conteúdo */
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  z-index: -1;
 }
 
 .video-content {
   position: relative;
-  z-index: 1; /* Coloca o conteúdo na frente do vídeo */
+  z-index: 1;
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Garantir que o conteúdo também ocupa toda a altura da viewport */
+  height: 100vh;
 }
 
 .homepage-container {
   position: relative;
   min-height: 100vh;
-  padding-bottom: 100px; /* Adiciona um espaço para garantir que o footer não sobreponha o conteúdo */
+  padding-bottom: 100px;
 }

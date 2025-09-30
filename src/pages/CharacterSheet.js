@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react"; // Remover useMemo
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import {
   updateSkills,
   updateSkillValue,
-  setSelectedInstinct, // novo import
+  setSelectedInstinct,
 } from "../redux/slices/skillsSlice";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { Link as RouterLink } from "react-router-dom";
 import { saveSkillsToBackend } from "../redux/actions/skillActions";
 import { updateInstincts } from "../redux/slices/instinctsSlice";
 import { fetchInstincts } from "../redux/actions/instinctsActions";
@@ -35,9 +37,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Menu,
   Fab,
   Popover,
-  Box, // Remover Modal, Collapse, Drawer
+  Box,
 } from "@mui/material";
 import LinearProgress from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
@@ -55,6 +58,8 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 import CharacteristicsMenu from "../components/CharacteristicsMenu";
 import { ReactComponent as MeuIcone } from "../assets/d10.svg";
 import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
+import { ReactComponent as HeartFullIcon } from "../assets/icons/heart-full.svg";
+import { ReactComponent as HeartEmptyIcon } from "../assets/icons/heart-empty.svg";
 
 const translateKey = (key) => {
   const translations = {
@@ -205,20 +210,18 @@ const rollCustomDice = (formula) => {
 
   // Processa cada lançamento de dados
   while ((match = regex.exec(formula)) !== null) {
-    const [, count, sides] = match; // Remover _
-    const countInt = parseInt(count); // Converte para inteiro uma vez
-    const sidesInt = parseInt(sides); // Converte para inteiro uma vez
-
+    const [, count, sides] = match;
+    const countInt = parseInt(count);
+    const sidesInt = parseInt(sides);
     // Valida se o dado existe
     if (!dados[`d${sidesInt}`]) {
       console.warn(`Dado d${sidesInt} não definido.`);
       continue;
     }
 
-    // Lança os dados conforme o número de contagens
     for (let i = 0; i < countInt; i++) {
-      const face = Math.floor(Math.random() * sidesInt) + 1; // Gera uma face aleatória
-      const result = dados[`d${sidesInt}`][face] || []; // Obtém o resultado da face
+      const face = Math.floor(Math.random() * sidesInt) + 1;
+      const result = dados[`d${sidesInt}`][face] || [];
       results.push({ face, result });
     }
   }
@@ -229,7 +232,9 @@ const rollCustomDice = (formula) => {
 const SkillList = ({ title, id, addRollToHistory, character }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills?.skills || {});
-  const selectedInstinct = useSelector((state) => state.skills.selectedInstinct);
+  const selectedInstinct = useSelector(
+    (state) => state.skills.selectedInstinct
+  );
   const instincts = useSelector((state) => state.instincts.instincts);
   const loading = useSelector((state) => state.instincts?.loading);
   const error = useSelector((state) => state.instincts?.error);
@@ -246,7 +251,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
         try {
           const token = localStorage.getItem("token");
           const response = await axios.get(
-            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
+            `httpss://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
@@ -332,7 +337,8 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
 
   // Dentro do componente SkillList, substitua:
   const handleInstinctChangee = useCallback(
-    (skillKey) => (event) => { // Modificar para retornar uma função
+    (skillKey) => (event) => {
+      // Modificar para retornar uma função
       dispatch(setSelectedInstinct({ [skillKey]: event.target.value }));
     },
     [dispatch]
@@ -716,12 +722,11 @@ const InstinctList = ({
 };
 
 const CharacterSheet = () => {
-  const dispatch = useDispatch(); // Adicione esta linha
+  const dispatch = useDispatch();
   const { id } = useParams();
-  const [character, setCharacter] = useState({
-    healthPoints: 0, // Inicializar pontos de saúde com 0
-  });
-  const [error, setError] = useState(null); // Remover loading
+  const { user } = useSelector((state) => state.auth);
+  const [character, setCharacter] = useState(null);
+  const [error, setError] = useState(null);
   const [selectedInstinct, setSelectedInstinct] = useState({});
   const [rollResult, setRollResult] = useState(null);
   const [customRollResult, setCustomRollResult] = useState(null);
@@ -735,20 +740,38 @@ const CharacterSheet = () => {
   const [characteristics, setCharacteristics] = useState([]);
   const [assimilations, setAssimilations] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
-  const [maxWeight, setMaxWeight] = useState(8); // 2 para o corpo e 6 para a mochila
+  const [maxWeight, setMaxWeight] = useState(8);
   const [editItem, setEditItem] = useState(null);
   const [customDiceFormula, setCustomDiceFormula] = useState("");
-  const [notes, setNotes] = useState(""); // Estado para armazenar as anotações
-  const [snackbarKey, setSnackbarKey] = useState(0); // Adicionar estado para chave única do Snackbar
-  const [rollHistory, setRollHistory] = useState([]); // Estado para armazenar o histórico de rolagens
-  const [anchorEl, setAnchorEl] = useState(null); // Estado para controlar o Popover
-  const [openHealthModal, setOpenHealthModal] = useState(false); // Estado para controlar o modal de saúde
-  const [selectedHealthLevel, setSelectedHealthLevel] = useState(null); // Estado para armazenar o nível de saúde selecionado
+  const [notes, setNotes] = useState("");
+  const [snackbarKey, setSnackbarKey] = useState(0);
+  const [rollHistory, setRollHistory] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [portraitMenuAnchorEl, setPortraitMenuAnchorEl] = useState(null);
+  const [openHealthModal, setOpenHealthModal] = useState(false);
+  const [selectedHealthLevel, setSelectedHealthLevel] = useState(null);
   const instincts = useSelector((state) => state.instincts.instincts);
-  // Definir handleInstinctChange
-  const handleInstinctChange = useCallback((instinctKey, value) => {
-    setSelectedInstinct((prev) => ({ ...prev, [instinctKey]: value }));
-  }, []);
+  const saveLastRollToBackend = async (charId, rollData) => {
+    if (!charId) {
+      console.error("ID do personagem não encontrado.");
+      console.log(rollData);
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${charId}/last-roll`,
+        { lastRoll: rollData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log("Última rolagem salva no backend:", rollData);
+    } catch (err) {
+      console.error(
+        "Erro ao salvar última rolagem:",
+        err.response ? err.response.data : err.message
+      );
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -836,11 +859,14 @@ const CharacterSheet = () => {
   const fetchInventoryItems = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get("assrpgsite-be-production.up.railway.app/api/items", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "assrpgsite-be-production.up.railway.app/api/items",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Erro ao buscar itens do inventário:", error);
@@ -929,24 +955,13 @@ const CharacterSheet = () => {
     setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
     setSnackbarKey((prevKey) => prevKey + 1); // Atualizar a chave única do Snackbar
     setSnackbarOpen(true);
-    setRollHistory((prevHistory) => [
-      ...prevHistory,
-      { skill, roll: [...rollInstinct, ...rollSkill] },
-    ]);
+    // Aqui, em vez de setRollHistory diretamente, chamamos addRollToHistory
+    addRollToHistory({ skill, roll: [...rollInstinct, ...rollSkill] }, true);
   };
 
   const handleCustomRoll = () => {
-    setRollResult(null);
-    setCustomRollResult(null);
-
     const results = rollCustomDice(customDiceFormula);
-    setCustomRollResult({ formula: customDiceFormula, roll: results });
-    setSnackbarKey((prevKey) => prevKey + 1); // Atualizar a chave única do Snackbar
-    setSnackbarOpen(true);
-    setRollHistory((prevHistory) => [
-      ...prevHistory,
-      { formula: customDiceFormula, roll: results },
-    ]);
+    addRollToHistory({ formula: customDiceFormula, roll: results }, true);
   };
 
   const generationTranslations = {
@@ -956,26 +971,29 @@ const CharacterSheet = () => {
     current: "Atual",
   };
 
-  // CharacterSheet.js (handleAssimilatedRoll)
-  // CharacterSheet.js (modificar a função handleAssimilatedRoll)
-  const handleAssimilatedRoll = (instinct, selectedInstinct) => {
-    if (!selectedInstinct) return;
+  const handleAssimilatedRoll = (instinct, selectedInstinctKey) => {
+    if (!selectedInstinctKey) {
+      alert("Selecione um instinto para combinar.");
+      return;
+    }
 
     const diceCount =
-      (instincts[instinct] || 0) + (instincts[selectedInstinct] || 0);
-
+      (instincts[instinct] || 0) + (instincts[selectedInstinctKey] || 0);
     const roll = Array.from({ length: diceCount }, () => {
       const face = Math.floor(Math.random() * 12) + 1;
-      return { face, result: dados.d12[face] };
+      return { face, result: dados.d12[face] || [] };
     });
 
-    setRollResult({ skill: instinct, roll });
-    setSnackbarKey((prevKey) => prevKey + 1);
-    setSnackbarOpen(true);
-    setRollHistory((prevHistory) => [
-      ...prevHistory,
-      { skill: instinct, roll },
-    ]);
+    // Chama a função central que salva no backend e mostra no snackbar
+    addRollToHistory(
+      {
+        skill: `Assimilado: ${translateKey(instinct)} + ${translateKey(
+          selectedInstinctKey
+        )}`,
+        roll: roll,
+      },
+      true
+    );
   };
 
   const handleOpenCharacteristicsMenu = () => {
@@ -1182,18 +1200,16 @@ const CharacterSheet = () => {
     setSelectedItem(item);
 
     if (selectedTab === 0) {
+      // Inventário
+      const newInventoryItem = {
+        item: item, // Manter o objeto populado para exibição imediata
+        durability: item.durability || 0, // Pega a durabilidade máxima do item base
+        currentUses: item.currentUses || 0,
+      };
+
       setCharacter((prevCharacter) => ({
         ...prevCharacter,
-        inventory: [
-          ...(prevCharacter?.inventory || []),
-          {
-            item: {
-              ...item,
-              characteristics: item.characteristics || [],
-              currentUses: item.currentUses || 0,
-            },
-          },
-        ],
+        inventory: [...(prevCharacter?.inventory || []), newInventoryItem],
       }));
     } else if (selectedTab === 3) {
       setCharacter((prevCharacter) => ({
@@ -1283,15 +1299,90 @@ const CharacterSheet = () => {
     console.log("Criar nova Homebrew");
   };
 
-  const addRollToHistory = (roll) => {
-    setRollHistory((prevHistory) => {
-      const newHistory = [...prevHistory, roll];
-      if (newHistory.length > 5) {
-        newHistory.shift(); // Remove o item mais antigo se houver mais de 5
+  // NOVA FUNÇÃO: Enviar rolagem para o histórico central da campanha
+  const sendRollToCampaignBackend = useCallback(
+    async (rollData) => {
+      const token = localStorage.getItem("token");
+      // 'user' está disponível aqui no escopo do componente CharacterSheet
+      if (!character?.campaign || !token || !user) {
+        console.log(
+          "Não é possível enviar para a campanha: Personagem não está em uma campanha, token ausente ou usuário não definido."
+        );
+        return;
       }
-      return newHistory;
-    });
-  };
+
+      const rollDataToSend = {
+        rollerId: user._id, // ID do usuário que fez a rolagem (o player logado)
+        rollerName: user.name || character.name, // Nome do usuário ou do personagem
+        characterId: id, // ID do personagem que fez a rolagem
+        formula: rollData.formula || rollData.skill, // A fórmula ou o skill usado
+        roll: rollData.roll, // Os resultados dos dados
+        timestamp: Date.now(),
+      };
+
+      try {
+        await axios.post(
+          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${character.campaign}/roll`, // Endpoint para registrar rolagem na campanha
+          rollDataToSend,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        console.log(
+          "Rolagem enviada com sucesso para a campanha!",
+          rollDataToSend
+        );
+      } catch (err) {
+        console.error(
+          "Falha ao enviar rolagem para a campanha:",
+          err.response?.data || err.message
+        );
+      }
+    },
+    [character?.campaign, id, user, character?.name]
+  ); // Dependências do useCallback, 'user' adicionado
+
+  const addRollToHistory = useCallback(
+    async (rollData, displayInSnackbar = false) => {
+      const token = localStorage.getItem("token");
+      const rollDataWithTimestamp = {
+        rollerName: character?.name || user?.name || "Jogador",
+        timestamp: Date.now(),
+        ...rollData,
+      };
+
+      // 1. Salva na ficha individual
+      await saveLastRollToBackend(id, rollDataWithTimestamp);
+
+      // 2. ATUALIZA O ESTADO LOCAL DO HISTÓRICO DE ROLAGENS
+      setRollHistory((prevHistory) => {
+        const newHistory = [...prevHistory, rollDataWithTimestamp].slice(-5);
+        return newHistory;
+      });
+
+      // 3. CHAMA A NOVA FUNÇÃO PARA ENVIAR PARA O BACKEND DA CAMPANHA
+      sendRollToCampaignBackend(rollDataWithTimestamp); // Chamando a nova função
+
+      // 4. Mostra o snackbar
+      if (displayInSnackbar) {
+        if (rollData.skill) {
+          setRollResult({ skill: rollData.skill, roll: rollData.roll });
+          setCustomRollResult(null);
+        } else if (rollData.formula) {
+          setCustomRollResult({
+            formula: rollData.formula,
+            roll: rollData.roll,
+          });
+          setRollResult(null);
+        }
+        setSnackbarKey((prevKey) => prevKey + 1);
+        setSnackbarOpen(true);
+      }
+    },
+    [id, character?.name, user?.name, sendRollToCampaignBackend] // 'sendRollToCampaignBackend' também é uma dependência
+  );
+
+  const handleInstinctChange = useCallback((instinctKey, value) => {
+    setSelectedInstinct((prev) => ({ ...prev, [instinctKey]: value }));
+  }, []);
 
   const handleFabClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -1563,16 +1654,20 @@ const CharacterSheet = () => {
             onAssimilatedRoll={handleAssimilatedRoll}
             id={character?._id}
           />
-
-          <Typography variant="h6" mt={3}>
+          <Typography variant="h6" mt={2} mb={1}>
             Saúde
           </Typography>
+
           {character?.healthLevels?.map((points, index) => (
-            <Box key={index} className={styles.healthBar} mb={3}>
+            <Box key={index} className={styles.healthBar} mb={2}>
               <Typography
                 variant="body1"
-                onClick={() => handleHealthClick(5 - index)} // Adiciona o evento de clique na palavra
-                sx={{ cursor: "pointer", "&:hover": { color: "primary.main" } }}
+                onClick={() => handleHealthClick(5 - index)}
+                sx={{
+                  cursor: "pointer",
+                  "&:hover": { color: "primary.main" },
+                  minWidth: "80px",
+                }}
               >
                 Saúde {5 - index}:
               </Typography>
@@ -1580,9 +1675,9 @@ const CharacterSheet = () => {
                 display="flex"
                 alignItems="center"
                 justifyContent="space-between"
-                mb={1}
+                width="100%"
               >
-                <StyledRating
+                <Rating
                   name={`health-${index}`}
                   value={points}
                   max={
@@ -1594,20 +1689,29 @@ const CharacterSheet = () => {
                   onChange={(e, newValue) =>
                     handleHealthChange(index, newValue)
                   }
-                  getLabelText={(value) =>
-                    `${value} Coração${value !== 1 ? "es" : ""}`
-                  }
                   precision={1}
-                  icon={<FavoriteIcon fontSize="inherit" />}
-                  emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
-                  sx={{
-                    fontSize: { xs: "40px", sm: "44px" },
-                    display: "flex",
-                    alignItems: "center",
-                  }}
+                  // A mágica acontece aqui!
+                  icon={
+                    <HeartFullIcon
+                      width={20}
+                      height={30}
+                      style={{ fill: "#f72c36ff" }}
+                    />
+                  }
+                  emptyIcon={
+                    <HeartEmptyIcon
+                      width={20}
+                      height={30}
+                      style={{ fill: "rgba(0, 0, 0, 0.26)" }}
+                    />
+                  }
                 />
-                <Typography variant="body2" color="textSecondary">
-                  {points === 0 ? "0 pontos" : `${points} pontos`}
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ minWidth: "60px", textAlign: "right" }}
+                >
+                  {`${points} pts`}
                 </Typography>
               </Box>
             </Box>
@@ -1736,12 +1840,11 @@ const CharacterSheet = () => {
               }}
             />
           </Tabs>
-
           {selectedTab === 0 && (
             <Box>
               <Typography variant="h6">Inventário</Typography>
 
-              {/* Exibição do Peso Total com Verificação */}
+              {/* Exibição do Peso Total */}
               <Typography
                 variant="body2"
                 color={
@@ -1755,10 +1858,10 @@ const CharacterSheet = () => {
                 Peso Total: {calculateTotalWeight()} / {maxWeight}
               </Typography>
 
-              {/* Barra de Progresso */}
+              {/* Barra de Progresso do Peso */}
               <LinearProgress
                 variant="determinate"
-                value={(calculateTotalWeight() / maxWeight) * 50}
+                value={(calculateTotalWeight() / maxWeight) * 50} // Use 50 para a barra não ficar tão grande
                 sx={{
                   height: 15,
                   borderRadius: 5,
@@ -1771,79 +1874,65 @@ const CharacterSheet = () => {
                 }}
               />
 
-              {/* Alerta de Peso Excedido */}
-              {calculateTotalWeight() > maxWeight && (
-                <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                  Peso máximo excedido! Você precisa reduzir o peso.
-                </Typography>
-              )}
-
-              {/* Botão de Adicionar */}
+              {/* Botão de Adicionar Item */}
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleOpenItemsModal}
-                sx={{
-                  padding: { xs: "8px 16px", sm: "10px 20px" },
-                  fontSize: { xs: "14px", sm: "16px" },
-                  width: { xs: "100%", sm: "auto" },
-                  mt: 2,
-                }}
+                sx={{ mt: 2 }}
               >
-                +
+                + Adicionar Item
               </Button>
 
-              {/* Lista de Itens */}
+              {/* Lista de Itens do Inventário */}
               <List>
-                {(character?.inventory || []).map((invItem, index) => (
-                  <ListItem
-                    key={index}
-                    sx={{ display: "flex", alignItems: "center" }}
-                  >
-                    <ListItemText
-                      primary={`${
-                        invItem?.item?.name || "Item desconhecido"
-                      } (Usos: ${invItem?.durability ?? "N/A"})`}
-                      secondary={`Peso: ${
-                        invItem?.item?.weight ?? "Desconhecido"
-                      } | Características: ${
-                        Array.isArray(invItem?.item?.characteristics?.details)
-                          ? invItem.item.characteristics.details
-                              .map((char) => char?.name || "Desconhecida")
-                              .join(", ")
-                          : "Nenhuma"
-                      }`}
-                      sx={{
-                        flex: 1,
-                        minWidth: 0,
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: { xs: "column", sm: "row" },
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
+                {(character?.inventory || []).map((invItem, index) => {
+                  // **DECLARAÇÃO CORRETA DAS VARIÁVEIS, DENTRO DO MAP**
+                  const itemInstance = invItem;
+                  const itemBase = invItem.item;
+                  const characteristicsToDisplay =
+                    itemInstance.characteristics || itemBase?.characteristics;
+
+                  return (
+                    <ListItem
+                      key={index}
+                      sx={{ display: "flex", alignItems: "center" }}
                     >
-                      <IconButton
-                        edge="end"
-                        onClick={() =>
-                          setEditItem({ index, item: invItem?.item || {} })
-                        }
-                        sx={{ mb: { xs: 1, sm: 0 }, mr: { sm: 1 } }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        edge="end"
-                        onClick={() => handleItemDelete(index)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  </ListItem>
-                ))}
+                      <ListItemText
+                        primary={`${
+                          itemBase?.name || "Item desconhecido"
+                        } (Usos: ${itemInstance?.durability ?? "N/A"})`}
+                        secondary={`Peso: ${
+                          itemBase?.weight ?? "N/A"
+                        } | Características: ${
+                          Array.isArray(characteristicsToDisplay?.details)
+                            ? characteristicsToDisplay.details
+                                .map((char) => char?.name || "Desconhecida")
+                                .join(", ")
+                            : "Nenhuma"
+                        }`}
+                        sx={{ flex: 1, minWidth: 0 }}
+                      />
+                      <Box>
+                        <IconButton
+                          edge="end"
+                          onClick={() =>
+                            setEditItem({ index, item: itemBase || {} })
+                          }
+                          sx={{ mr: 1 }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          edge="end"
+                          onClick={() => handleItemDelete(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </ListItem>
+                  );
+                })}
               </List>
             </Box>
           )}
@@ -1933,7 +2022,6 @@ const CharacterSheet = () => {
           )}
         </Paper>
       </Box>
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={10000}
@@ -1994,6 +2082,20 @@ const CharacterSheet = () => {
         </Alert>
       </Snackbar>
 
+      <Fab
+        color="primary"
+        aria-label="history"
+        onClick={handleFabClick}
+        sx={{ position: "fixed", bottom: 16, right: 16 }}
+      >
+        <HistoryIcon />
+      </Fab>
+      <RollHistoryPopover
+        open={openPopover}
+        anchorEl={anchorEl}
+        onClose={handlePopoverClose}
+        rollHistory={rollHistory}
+      />
       <CharacteristicsModal
         open={openCharacteristicsModal}
         handleClose={handleCloseCharacteristicsModal}
@@ -2003,7 +2105,6 @@ const CharacterSheet = () => {
         onItemSelect={handleItemSelect}
         onCreateNewHomebrew={handleCreateNewHomebrew}
       />
-
       <AssimilationsModal
         open={openAssimilationsModal}
         handleClose={handleCloseAssimilationsModal}
@@ -2013,7 +2114,6 @@ const CharacterSheet = () => {
         onItemSelect={handleItemSelect}
         onCreateNewHomebrew={handleCreateNewHomebrew}
       />
-
       <ItemsModal
         open={openItemsModal}
         handleClose={handleCloseItemsModal}
@@ -2023,7 +2123,6 @@ const CharacterSheet = () => {
         onItemSelect={handleItemSelect}
         onCreateNewHomebrew={handleCreateNewHomebrew}
       />
-
       {editItem !== null && (
         <Dialog open={true} onClose={() => setEditItem(null)}>
           <DialogTitle color="black">Editar Item</DialogTitle>
@@ -2113,7 +2212,6 @@ const CharacterSheet = () => {
           )}
         </Dialog>
       )}
-
       <Fab
         color="primary"
         aria-label="history"
@@ -2122,14 +2220,12 @@ const CharacterSheet = () => {
       >
         <HistoryIcon />
       </Fab>
-
       <RollHistoryPopover
         open={openPopover}
         anchorEl={anchorEl}
         onClose={handlePopoverClose}
         rollHistory={rollHistory}
       />
-
       <Dialog open={openHealthModal} onClose={() => setOpenHealthModal(false)}>
         <DialogTitle>Saúde {selectedHealthLevel}</DialogTitle>
         <DialogContent>

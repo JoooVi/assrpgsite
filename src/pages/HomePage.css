@@ -19,9 +19,10 @@
     0,
     0,
     0,
-    0.5
+    0.4
   ); /* Sem fundo sólido, mas com leve transparência */
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borda sutil */
   backdrop-filter: blur(8px); /* Deixa o fundo desfocado */
 }
 
@@ -62,6 +63,34 @@
   transform: scale(1);
 }
 
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.homepage-title {
+  /* ... */
+  animation: fadeInSlideUp 1s ease-out forwards;
+}
+
+.homepage-description {
+  /* ... */
+  animation: fadeInSlideUp 1s ease-out 0.3s forwards; /* Atraso de 0.3s */
+  opacity: 0; /* Começa invisível para a animação funcionar */
+}
+
+.homepage-links {
+  /* ... */
+  animation: fadeInSlideUp 1s ease-out 0.6s forwards; /* Atraso de 0.6s */
+  opacity: 0; /* Começa invisível */
+}
+
 @media (max-width: 768px) {
   .homepage-title {
     font-size: 2rem;
@@ -75,3 +104,4 @@
     flex-direction: column;
   }
 }
+

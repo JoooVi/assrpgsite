@@ -1,0 +1,121 @@
+/* Estilos base para a página da campanha */
+.campaignSheet {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  width: 100%;
+}
+
+/* O container principal do conteúdo */
+.mainContent {
+  width: 100%;
+  max-width: 1600px;
+  background: rgba(28, 37, 54, 0.85);
+  border: 1px solid #2a3b5a;
+  border-radius: 12px;
+  padding: 32px 40px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Cabeçalho da Campanha */
+.campaignHeader {
+  text-align: left;
+  padding: 0;
+  margin-bottom: 40px;
+  border-bottom: 1px solid rgba(176, 196, 222, 0.2);
+  padding-bottom: 24px;
+  position: relative; /* Para o botão de voltar */
+}
+
+.campaignNameTitle {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  color: #fff;
+}
+
+.masterInfo {
+  color: #b0c4de;
+}
+
+.campaignDescription {
+  color: #a8b2d1;
+}
+
+.inviteCode {
+  color: #a8b2d1;
+  margin-top: 10px;
+}
+
+/* Corpo da Campanha (Grid) */
+.campaignBody {
+  width: 100%;
+}
+
+.masterShieldGrid {
+  width: 100%;
+}
+
+/* Estilo para cada coluna do escudo do mestre */
+.shieldColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.columnPaper {
+  background-color: rgba(10, 25, 47, 0.65) !important;
+  color: #fff !important;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #2a3b5a;
+  flex-grow: 1; /* Faz com que os painéis preencham a altura da coluna */
+  display: flex;
+  flex-direction: column;
+}
+
+.columnTitle {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 600 !important;
+  color: #ffffff;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(176, 196, 222, 0.2);
+  padding-bottom: 10px;
+}
+
+/* Conteúdo rolável dentro das colunas */
+.scrollableContent {
+  max-height: 60vh; /* Altura máxima antes de rolar */
+  overflow-y: 100;
+  padding-right: 10px; /* Espaço para a barra de rolagem */
+}
+
+/* ===== INÍCIO DA CORREÇÃO ===== */
+/* Item da lista de personagem */
+.characterListItem {
+  display: flex !important; /* Garante que o ListItem seja um container flex */
+  flex-direction: column !important; /* Empilha o conteúdo verticalmente */
+  align-items: flex-start !important; /* Alinha o conteúdo à esquerda */
+  background-color: rgba(42, 59, 90, 0.5);
+  margin-bottom: 10px;
+  border-radius: 8px;
+  padding: 12px !important;
+  transition: background-color 0.3s ease;
+}
+/* ===== FIM DA CORREÇÃO ===== */
+
+.characterListItem:hover {
+  background-color: rgba(42, 59, 90, 0.8);
+}
+
+/* containers de loading e erro */
+.loadingContainer, .errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

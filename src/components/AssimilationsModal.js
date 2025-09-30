@@ -105,15 +105,6 @@ const AssimilationsModal = ({
           <Typography variant="h6" mb={2}>
             {title}
           </Typography>
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={onCreateNewAssimilation}
-            sx={{ mb: 3 }}
-          >
-            Criar Nova Assimilação
-          </Button>
           <Box
             sx={{
               position: "sticky",

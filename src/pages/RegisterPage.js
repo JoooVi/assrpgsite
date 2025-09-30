@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Importe 'Link' aqui
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import "./RegisterPage.css";
@@ -15,11 +15,10 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); 
-    setLoading(true); 
+    setError("");
+    setLoading(true);
     console.log("Tentativa de registro iniciada");
 
-    
     if (!email || !password || !name) {
       setError("Por favor, preencha todos os campos.");
       setLoading(false);
@@ -41,7 +40,12 @@ const RegisterPage = () => {
       }
     } catch (err) {
       console.error("Erro ao registrar usuário:", err);
-      setError("Erro ao registrar usuário. Tente novamente.");
+      // Melhorar a mensagem de erro para o usuário
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message); // Ex: "Email já cadastrado"
+      } else {
+        setError("Erro ao registrar usuário. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
@@ -98,15 +102,24 @@ const RegisterPage = () => {
             color="primary"
             disabled={loading}
             fullWidth
+            sx={{ mt: 2, mb: 1 }} // Adiciona margem superior e inferior ao botão Register
           >
             {loading ? "Registrando..." : "Registrar"}{" "}
-            {/* Texto dinâmico do botão */}
           </Button>
         </form>
+
+        {/* Seção para ir para o Login */}
         <div className="Register-footer">
-          <p>
-            Já tem uma conta? <a href="/login">Entrar</a>
-          </p>
+          <p className="Register-footer-text">Já tem uma conta?</p>
+          <Button
+            component={Link} // Usa o Link do react-router-dom
+            to="/login"
+            variant="outlined" // Ou 'text', 'contained' - escolha o que se encaixa melhor no design
+            color="secondary" // Defina uma cor que se encaixe no seu tema, talvez a mesma cor do botão primário para consistência
+            sx={{ mt: 1, color: '#67110e', borderColor: '#67110e' }} // Exemplo: cor customizada
+          >
+            Entrar
+          </Button>
         </div>
       </div>
     </div>

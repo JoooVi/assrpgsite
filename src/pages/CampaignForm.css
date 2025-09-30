@@ -1,4 +1,5 @@
-.character-form {
+/* Based on CharacterForm.css, adjusted for CampaignForm */
+.campaign-form {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
@@ -7,7 +8,7 @@
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-top: 50px;
-  margin-bottom: 150px; /* Ajustado para melhor responsividade */
+  margin-bottom: 150px;
 }
 
 h1, h3 {
@@ -33,10 +34,9 @@ h1, h3 {
 label {
   font-size: 16px;
   color: #ffffff;
-  
 }
 
-input, select {
+input, select, textarea { /* Added textarea for multiline fields */
   padding: 10px;
   font-size: 16px;
   border-radius: 5px;
@@ -46,14 +46,14 @@ input, select {
   margin: 5px;
 }
 
-/* Foco nos campos de entrada */
-input:focus, select:focus {
+/* Focus on input fields */
+input:focus, select:focus, textarea:focus {
   border-color: #252d44;
   outline: none;
   box-shadow: 0 0 5px #67110e;
 }
 
-/* Estilo dos botões */
+/* Button styles */
 button {
   background-color: #67110e;
   color: white;
@@ -77,7 +77,7 @@ button[type="button"]:hover {
   background-color: #252d44;
 }
 
-/* Botão de envio com cor diferenciada */
+/* Submit button with different color */
 button[type="submit"] {
   background-color: #252d44;
 }
@@ -86,7 +86,7 @@ button[type="submit"]:hover {
   background-color: #252d44;
 }
 
-/* Animação ao clicar */
+/* Click animation */
 button:active {
   transform: scale(0.98);
 }
@@ -106,9 +106,9 @@ button:active {
   }
 }
 
-/* Responsividade para dispositivos móveis */
+/* Responsiveness for mobile devices */
 @media (max-width: 600px) {
-  .character-form {
+  .campaign-form {
     padding: 10px;
   }
   button {
