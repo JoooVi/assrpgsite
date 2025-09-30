@@ -1,7 +1,7 @@
 import axios from "axios";
 import { updateSkills, updateSkillValue } from '../slices/skillsSlice';
 
-const API_URL = "https://assrpgsite-be-production.up.railway.app/api/characters";
+const API_URL = "https://hystoriarpg-production.up.railway.app/api/characters";
 
 
 // skillActions.js

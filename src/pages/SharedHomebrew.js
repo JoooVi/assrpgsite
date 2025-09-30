@@ -28,7 +28,7 @@ const SharedHomebrew = () => {
       try {
         console.log("Fetching data for id:", id); // Adicione este log
         const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/shared/${id}`
+          `https://hystoriarpg-production.up.railway.app/api/shared/${id}`
         );
         setHomebrewData(response.data);
         console.log("Data fetched:", response.data); // Adicione este log
@@ -43,7 +43,7 @@ const SharedHomebrew = () => {
   const handleAddToProfile = async () => {
     try {
       await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/shared/${id}/add-to-profile`,
+        `https://hystoriarpg-production.up.railway.app/api/shared/${id}/add-to-profile`,
         {},
         {
           headers: {

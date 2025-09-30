@@ -11,7 +11,7 @@ const initialState = {
 export const login = createAsyncThunk(
   "auth/login",
   async ({ email, password }) => {
-    const response = await fetch("https://assrpgsite-be-production.up.railway.app/api/login", { // URL do Railway com /api
+    const response = await fetch("https://hystoriarpg-production.up.railway.app/api/login", { // URL do Railway com /api
       method: "POST",
       headers: {
         "Content-Type": "application/json",

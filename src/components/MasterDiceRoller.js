@@ -88,7 +88,7 @@ const MasterDiceRoller = ({ campaignId }) => {
       // TODO: This assumes a new backend endpoint for master rolls in a campaign.
       // E.g., `PUT /api/campaigns/:id/master-roll` or `POST /api/campaigns/:id/rolls`
       await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/roll`, // Placeholder URL
+        `https://hystoriarpg-production.up.railway.app/api/campaigns/${campaignId}/roll`, // Placeholder URL
         {
           rollerId: user._id,
           rollerName: user.name,

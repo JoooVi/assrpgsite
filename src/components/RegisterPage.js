@@ -7,7 +7,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post('https://assrpgsite-be-production.up.railway.app/api/login', credentials);
+      const response = await axios.post('https://hystoriarpg-production.up.railway.app/api/login', credentials);
       // Salvar token no localStorage (opcional)
       localStorage.setItem('token', response.data.token);
       return response.data;
@@ -22,7 +22,7 @@ export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('https://assrpgsite-be-production.up.railway.app/api/register', userData);
+      const response = await axios.post('https://hystoriarpg-production.up.railway.app/api/register', userData);
       // Salvar token no localStorage (opcional)
       localStorage.setItem('token', response.data.token);
       return response.data;

@@ -12,7 +12,7 @@ const ForgotPasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5000/api/forgot-password", { 
+      const response = await axios.post("https://hystoriarpg-production.up.railway.app/api/forgot-password", { 
         email 
       });
       setMessage(response.data.message);

@@ -54,7 +54,7 @@ const CampaignList = () => {
         setLoading(true);
         setError(null);
         const response = await axios.get(
-          "http://localhost:5000/api/campaigns",
+          "https://hystoriarpg-production.up.railway.app/api/campaigns",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -77,7 +77,7 @@ const CampaignList = () => {
     try {
       // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
       const res = await axios.get(
-        "http://localhost:5000/api/characters/available",
+        "https://hystoriarpg-production.up.railway.app/api/characters/available",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -102,7 +102,7 @@ const CampaignList = () => {
     try {
       // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
       await axios.post(
-        "http://localhost:5000/api/campaigns/join",
+        "https://hystoriarpg-production.up.railway.app/api/campaigns/join",
         {
           inviteCode: inviteCode,
           characterId: selectedChar,
@@ -125,7 +125,7 @@ const CampaignList = () => {
     ) {
       try {
         // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
-        await axios.delete(`http://localhost:5000/api/campaigns/${id}`, {
+        await axios.delete(`https://hystoriarpg-production.up.railway.app/api/campaigns/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCampaigns((prev) => prev.filter((c) => c._id !== id));
