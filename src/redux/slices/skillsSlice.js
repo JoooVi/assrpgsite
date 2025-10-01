@@ -1,6 +1,6 @@
-// skillsSlice.js
+// skillsSlice.js - Versão Limpa
+
 import { createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
 
 const initialState = {
   skills: {},
@@ -11,8 +11,9 @@ export const skillsSlice = createSlice({
   name: 'skills',
   initialState,
   reducers: {
+    // Esta função está correta e é a que está sendo usada para
+    // preencher as perícias na sua ficha.
     updateSkills: (state, action) => {
-
       state.skills = action.payload;
     },
 
@@ -20,13 +21,10 @@ export const skillsSlice = createSlice({
       state.loading = action.payload;
     },
     
-    updateSkillValue: (state, action) => {
-      const { category, skillKey, value } = action.payload;
-      state.skills[category] = {
-        ...state.skills[category],
-        [skillKey]: value
-      };
-    },
+    // ### REMOVIDO ###
+    // A função updateSkillValue foi removida por ser obsoleta e
+    // incompatível com a estrutura de dados atual (plana).
+    // updateSkillValue: (state, action) => { ... },
 
     setSelectedInstinct: (state, action) => {
       state.selectedInstinct = { ...state.selectedInstinct, ...action.payload };
@@ -34,5 +32,6 @@ export const skillsSlice = createSlice({
   }
 });
 
-export const { updateSkills, updateSkillValue, setSelectedInstinct, setLoading } = skillsSlice.actions;
+// Removemos a exportação da função que não existe mais
+export const { updateSkills, setSelectedInstinct, setLoading } = skillsSlice.actions;
 export default skillsSlice.reducer;

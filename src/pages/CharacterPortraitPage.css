@@ -257,6 +257,59 @@ body.portrait-body-active #root,
   text-shadow: 0 0 8px #ff3815, 0 0 12px #ff5050, 0 0 15px #000;
 }
 
+/* Adicione estas classes ao final do seu CharacterPortraitPage.css */
+
+/* --- NOVOS ESTILOS PARA SAÚDE --- */
+.health-tlou {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 8px;
+}
+
+.health-status-tlou {
+  font-family: "Cinzel", serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #c9c9c9;
+  letter-spacing: 1px;
+}
+
+.health-points-rating-tlou .MuiRating-icon {
+  color: #9e1818 !important;
+  font-size: 32px;
+}
+
+.health-points-text-tlou {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e8e8e8;
+}
+
+
+/* --- NOVOS ESTILOS PARA O CABO DE GUERRA --- */
+.tug-of-war-tlou {
+    width: 100%;
+}
+
+.tug-of-war-track-tlou {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.track-end-cap-tlou {
+    flex-shrink: 0;
+}
+
+.track-icons-container-tlou {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
 /* Keyframes - AJUSTADOS PARA ESCALAR PARA 'scale(1)' (tamanho normal) */
 @keyframes individual-die-spin {
   from { transform: rotate(0deg); }

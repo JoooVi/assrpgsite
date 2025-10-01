@@ -1,4 +1,6 @@
 import React from 'react';
+// 1. Importar o hook useNavigate
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
@@ -15,12 +17,21 @@ export default function AccountMenu({ handleLogout }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
+  // 2. Inicializar o hook para obter a função de navegação
+  const navigate = useNavigate();
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  // 3. Criar uma função específica para navegar para o perfil
+  const handleProfileClick = () => {
+    navigate('/perfil'); // Redireciona para a rota '/perfil'
+    handleClose(); // Fecha o menu após o clique
   };
 
   return (
@@ -74,24 +85,15 @@ export default function AccountMenu({ handleLogout }) {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleClose}>
+        {/* 4. Usar a nova função no onClick do MenuItem de Perfil */}
+        <MenuItem onClick={handleProfileClick}>
           <Avatar /> Perfil
         </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <Avatar /> Minha Conta
-        </MenuItem>
-        <Divider />
         <MenuItem onClick={handleClose}>
           <ListItemIcon>
             <PersonAdd fontSize="small" />
           </ListItemIcon>
           Adicionar + uma conta
-        </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Configurações
         </MenuItem>
         <MenuItem onClick={() => { handleClose(); handleLogout(); }}>
           <ListItemIcon>

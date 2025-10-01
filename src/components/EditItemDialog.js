@@ -84,19 +84,6 @@ const EditItemDialog = ({ editItem, setEditItem, handleItemEdit }) => {
                 })
               }
             />
-            <TextField
-              margin="dense"
-              label="Usos"
-              type="number"
-              fullWidth
-              value={editItem?.item.durability || 0}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  item: { ...editItem.item, durability: e.target.value },
-                })
-              }
-            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography variant="h6">Características</Typography>

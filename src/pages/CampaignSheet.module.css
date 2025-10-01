@@ -55,21 +55,29 @@
   width: 100%;
 }
 
-/* Estilo para cada coluna do escudo do mestre */
+/* --- CORREÇÃO --- */
+/* Estilo para cada coluna do escudo do mestre. 
+   O Grid do MUI já cuida do alinhamento horizontal. 
+   O display: flex aqui garante que o Paper dentro dela possa esticar. */
 .shieldColumn {
   display: flex;
   flex-direction: column;
 }
 
+/* --- CORREÇÃO --- */
+/* O Paper dentro de cada coluna.
+   flex-grow: 1 faz o painel esticar para preencher toda a altura da coluna.
+   display: flex e flex-direction: column organiza o conteúdo interno (título e área de rolagem). */
 .columnPaper {
   background-color: rgba(10, 25, 47, 0.65) !important;
   color: #fff !important;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #2a3b5a;
-  flex-grow: 1; /* Faz com que os painéis preencham a altura da coluna */
+  flex-grow: 1; 
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Evita que o conteúdo vaze antes da rolagem */
 }
 
 .columnTitle {
@@ -79,28 +87,45 @@
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(176, 196, 222, 0.2);
   padding-bottom: 10px;
+  flex-shrink: 0; /* Impede que o título encolha */
 }
 
+/* --- CORREÇÃO --- */
 /* Conteúdo rolável dentro das colunas */
 .scrollableContent {
-  max-height: 60vh; /* Altura máxima antes de rolar */
-  overflow-y: 100;
+  flex-grow: 1; /* Faz esta área ocupar todo o espaço restante */
+  overflow-y: auto; /* Propriedade correta para rolagem automática */
   padding-right: 10px; /* Espaço para a barra de rolagem */
 }
 
-/* ===== INÍCIO DA CORREÇÃO ===== */
-/* Item da lista de personagem */
+/* Estilização da barra de rolagem (opcional, mas melhora a aparência) */
+.scrollableContent::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollableContent::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.scrollableContent::-webkit-scrollbar-thumb {
+  background-color: rgba(76, 134, 255, 0.4);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.scrollableContent::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(76, 134, 255, 0.6);
+}
+
+
+/* Item da lista de personagem (limpeza e simplificação) */
 .characterListItem {
-  display: flex !important; /* Garante que o ListItem seja um container flex */
-  flex-direction: column !important; /* Empilha o conteúdo verticalmente */
-  align-items: flex-start !important; /* Alinha o conteúdo à esquerda */
   background-color: rgba(42, 59, 90, 0.5);
   margin-bottom: 10px;
   border-radius: 8px;
   padding: 12px !important;
   transition: background-color 0.3s ease;
+  align-items: flex-start !important;
 }
-/* ===== FIM DA CORREÇÃO ===== */
 
 .characterListItem:hover {
   background-color: rgba(42, 59, 90, 0.8);

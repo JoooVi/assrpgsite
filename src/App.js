@@ -19,6 +19,7 @@ import CharacterForm from "./pages/CharacterForm";
 import CharacterList from "./pages/CharacterList";
 import CharacterSheet from "./pages/CharacterSheet";
 import SharedHomebrew from "./pages/SharedHomebrew";
+import ProfilePage from "./pages/ProfilePage";
 import Homebrews from "./pages/Homebrews";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -62,6 +63,7 @@ const AppContent = () => {
             
             {/* --- Rotas Protegidas --- */}
             <Route path="/create" element={isAuthenticated ? <PageTransition><CharacterForm /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
+            <Route path="/perfil" element={<ProfilePage />} />
             <Route path="/characters" element={isAuthenticated ? <PageTransition><CharacterList /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/character-sheet/:id" element={isAuthenticated ? <PageTransition><CharacterSheet /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/homebrews" element={isAuthenticated ? <PageTransition><Homebrews /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />

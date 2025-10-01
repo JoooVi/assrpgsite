@@ -1,0 +1,145 @@
+/* TugOfWar.module.css - Versão Final para SVG */
+
+.container {
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 16px !important;
+  font-weight: 500 !important;
+  color: #333;
+  
+  letter-spacing: 1px;
+}
+
+/* A trilha que contém tudo */
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Espaça os círculos para as pontas */
+  margin-bottom: 24px;
+}
+
+.trackEndCap {
+    flex-shrink: 0; /* Impede que os círculos encolham */
+}
+
+.trackIconsContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px; /* Pequeno espaço entre os losangos */
+    width: 100%;
+}
+
+
+/* Estilos para as seções de controle (pontos e botões) */
+.controlsContainer {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.controlSection {
+  text-align: center;
+}
+
+.pointsText {
+  font-weight: 500;
+  margin-bottom: 8px !important;
+}
+
+.pointsText strong {
+  font-size: 1.2em;
+}
+
+.levelText {
+  opacity: 0.7;
+  font-size: 0.9em;
+  margin-left: 4px;
+}
+
+.conversionSection {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* TugOfWar.module.css */
+
+.container {
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 16px !important;
+  font-weight: 500 !important;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.trackEndCap {
+    flex-shrink: 0;
+}
+
+.trackIconsContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.clickableIcon {
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.clickableIcon:hover {
+    transform: scale(1.15);
+}
+
+
+.controlsContainer {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.controlSection {
+  text-align: center;
+}
+
+.pointsText {
+  font-weight: 500;
+  margin-bottom: 8px !important;
+}
+
+.pointsText strong {
+  font-size: 1.2em;
+}
+
+.levelText {
+  opacity: 0.7;
+  font-size: 0.9em;
+  margin-left: 4px;
+}
+
+.conversionSection {
+  margin-top: 20px;
+  text-align: center;
+}

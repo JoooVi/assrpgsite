@@ -13,6 +13,10 @@ import {
   AccordionDetails,
   CircularProgress,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
@@ -27,7 +31,7 @@ import {
   deleteItem,
 } from "../redux/slices/itemsSlice";
 
-const ItemsList = ({ items, onShare, currentUserId }) => {
+const ItemsList = ({ onShare }) => {
   const dispatch = useDispatch();
   const { token, user } = useSelector((state) => state.auth);
   const {
@@ -39,36 +43,36 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+
+
+const scarcityLevels = {
+  0: 'Abundante',
+  1: 'Pedra',
+  2: 'Comum',
+  3: 'Incomum',
+  4: 'Atípico',
+  5: 'Raro',
+  6: 'Quase Extinto'
+};
+
   const [newItem, setNewItem] = useState({
     name: "",
-    type: "Items",
-    category: "",
-    weight: 0,
+    type: "Equipamento",
+    category: 1, // Escassez
     description: "",
-    durability: 4,
-    currentUses: 0,
-    characteristics: {
-      points: 0,
-      details: [],
-    },
+    quality: 3, // Padrão
+    characteristics: { points: 0, details: [] },
     isCustom: true,
   });
 
   useEffect(() => {
     if (token && user) {
-      console.log("Token disponível:", { hasToken: !!token, userId: user._id });
       dispatch(fetchItems());
-    } else {
-      console.log("Sem token ou usuário:", {
-        hasToken: !!token,
-        hasUser: !!user,
-      });
     }
   }, [dispatch, token, user]);
 
-  // Funções de Manipulação de Modais
   const handleEditOpen = (item) => {
-    setSelectedItem(item);
+    setSelectedItem(JSON.parse(JSON.stringify(item))); // Clona o item para evitar mutação do estado do Redux
     setEditOpen(true);
   };
 
@@ -95,20 +99,16 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
       console.error("Token ou usuário ausente");
       return;
     }
-
     try {
-      const createdItem = await dispatch(
+      await dispatch(
         createItem({
           ...newItem,
           createdBy: user._id,
-          userId: user._id,
         })
       ).unwrap();
-
-      console.log("Item criado:", createdItem);
       handleCreateClose();
-      // Recarregar a lista após criar
-      dispatch(fetchItems());
+      // Opcional: Re-fetch da lista de itens, ou o extraReducer já adiciona na lista
+      // dispatch(fetchItems());
     } catch (error) {
       console.error("Erro ao criar item:", error);
     }
@@ -116,57 +116,40 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSelectedItem((prev) => ({
-      ...prev,
-      [name]:
-        name === "weight" ||
-        name === "durability" ||
-        name === "currentUses" ||
-        name === "pointsCost"
-          ? Number(value)
-          : value,
-    }));
-  };
-
-  const handleCharacteristicsChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedItem((prev) => ({
-      ...prev,
-      characteristics: {
-        ...prev.characteristics,
+    if (name === "points") {
+      setSelectedItem((prev) => ({
+        ...prev,
+        characteristics: { ...prev.characteristics, points: Number(value) },
+      }));
+    } else {
+      setSelectedItem((prev) => ({
+        ...prev,
         [name]:
-          name === "points"
+          name === "weight" ||
+          name === "quality" ||
+          name === "currentUses" ||
+          name === "category"
             ? Number(value)
-            : value.split(",").map((d) => d.trim()),
-      },
-    }));
+            : value,
+      }));
+    }
   };
 
   const handleNewChange = (e) => {
     const { name, value } = e.target;
-    if (name in newItem.characteristics) {
-      if (name === "points") {
-        setNewItem((prev) => ({
-          ...prev,
-          characteristics: {
-            ...prev.characteristics,
-            points: Number(value),
-          },
-        }));
-      } else if (name === "details") {
-        setNewItem((prev) => ({
-          ...prev,
-          characteristics: {
-            ...prev.characteristics,
-            details: value.split(",").map((d) => d.trim()),
-          },
-        }));
-      }
+    if (name === "points") {
+      setNewItem((prev) => ({
+        ...prev,
+        characteristics: { ...prev.characteristics, points: Number(value) },
+      }));
     } else {
       setNewItem((prev) => ({
         ...prev,
         [name]:
-          name === "weight" || name === "durability" || name === "currentUses"
+          name === "weight" ||
+          name === "quality" ||
+          name === "currentUses" ||
+          name === "category"
             ? Number(value)
             : value,
       }));
@@ -179,14 +162,12 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     }
   };
 
-  // ItemsList.js (filtro existente)
   const userItems = storeItems.filter((item) => {
-    return item?.isCustom === true && item?.createdBy === user?.id;
+    return item?.isCustom === true && item?.createdBy === user?._id;
   });
 
   return (
     <Box>
-      {/* Botão para Criar Novo Item */}
       <Button
         variant="contained"
         color="primary"
@@ -197,40 +178,43 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
         Criar Novo Item
       </Button>
 
-      {/* Exibir Estado de Carregamento */}
       {loading && <CircularProgress />}
+      {error && (
+        <Alert severity="error">{error.message || "Ocorreu um erro"}</Alert>
+      )}
 
-      {/* Exibir Erro */}
-      {error && <Alert severity="error">{error}</Alert>}
-
-      {/* Lista de Itens Criados */}
       <Typography variant="h6" gutterBottom>
-        Meus Itens
+        Meus Itens Customizados
       </Typography>
       {userItems.length > 0 ? (
         userItems.map((item) => (
           <Accordion key={item._id}>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls={`panel-${item._id}-content`}
-              id={`panel-${item._id}-header`}
-            >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography>{item.name}</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
+              <Typography variant="body2">
+                <strong>Tipo:</strong> {item.type}
+              </Typography>
+              <Typography variant="body2">
                 <strong>Descrição:</strong> {item.description}
               </Typography>
-              <Typography>
-                <strong>Categoria:</strong> {item.category}
+              <Typography variant="body2">
+                <strong>Escassez:</strong> {item.category}
               </Typography>
-              <Typography>
-                <strong>Custo:</strong> {item.cost}
+              <Typography variant="body2">
+                <strong>Qualidade:</strong> {item.quality}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Peso:</strong> {item.weight}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Pontos de Característica:</strong>{" "}
+                {item.characteristics?.points || 0}
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Button
                   variant="outlined"
-                  color="primary"
                   startIcon={<EditIcon />}
                   onClick={() => handleEditOpen(item)}
                   sx={{ mr: 1 }}
@@ -276,14 +260,33 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
             required
           />
           <TextField
-            label="Categoria"
-            name="category"
+            label="Tipo"
+            name="type"
             fullWidth
             margin="normal"
-            value={newItem.category}
+            value={newItem.type}
             onChange={handleNewChange}
             required
           />
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="category-select-label">
+              Categoria (Escassez)
+            </InputLabel>
+            <Select
+              labelId="category-select-label"
+              id="category-select"
+              name="category"
+              value={newItem.category}
+              label="Categoria (Escassez)"
+              onChange={handleNewChange}
+            >
+              {Object.entries(scarcityLevels).map(([value, name]) => (
+                <MenuItem key={value} value={parseInt(value)}>
+                  {name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             label="Peso"
             name="weight"
@@ -306,43 +309,24 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
             required
           />
           <TextField
-            label="Durabilidade"
-            name="durability"
+            label="Qualidade"
+            name="quality"
             type="number"
             fullWidth
             margin="normal"
-            value={newItem.durability}
+            value={newItem.quality}
             onChange={handleNewChange}
             required
+            helperText="Padrão = 3"
           />
           <TextField
-            label="Usos Atuais"
-            name="currentUses"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={newItem.currentUses}
-            onChange={handleNewChange}
-            required
-          />
-          <TextField
-            label="Características (Pontos)"
+            label="Pontos de Características"
             name="points"
             type="number"
             fullWidth
             margin="normal"
             value={newItem.characteristics.points}
             onChange={handleNewChange}
-            required
-          />
-          <TextField
-            label="Detalhes"
-            name="details"
-            fullWidth
-            margin="normal"
-            value={newItem.characteristics.details.join(", ")}
-            onChange={handleNewChange}
-            required
           />
         </DialogContent>
         <DialogActions>
@@ -356,106 +340,96 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
       </Dialog>
 
       {/* Modal de Edição */}
-      <Dialog open={editOpen} onClose={handleEditClose}>
-        <DialogTitle>Editar Item</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Nome"
-            name="name"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.name || ""}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Tipo"
-            name="type"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.type || ""}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Categoria"
-            name="category"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.category || ""}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Peso"
-            name="weight"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.weight || 0}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Descrição"
-            name="description"
-            fullWidth
-            multiline
-            rows={4}
-            margin="normal"
-            value={selectedItem?.description || ""}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Durabilidade"
-            name="durability"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.durability || 0}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Usos Atuais"
-            name="currentUses"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.currentUses || 0}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Características (Pontos)"
-            name="points"
-            type="number"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.characteristics.points || 0}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Detalhes"
-            name="details"
-            fullWidth
-            margin="normal"
-            value={selectedItem?.characteristics.details.join(", ") || ""}
-            onChange={handleCharacteristicsChange}
-            required
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} color="secondary">
-            Cancelar
-          </Button>
-          <Button onClick={handleSaveEdit} color="primary">
-            Salvar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {selectedItem && (
+        <Dialog open={editOpen} onClose={handleEditClose}>
+          <DialogTitle>Editar Item</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Nome"
+              name="name"
+              fullWidth
+              margin="normal"
+              value={selectedItem.name}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Tipo"
+              name="type"
+              fullWidth
+              margin="normal"
+              value={selectedItem.type}
+              onChange={handleChange}
+              required
+            />
+            <FormControl fullWidth margin="normal" required>
+  <InputLabel id="edit-category-select-label">Categoria (Escassez)</InputLabel>
+  <Select
+    labelId="edit-category-select-label"
+    id="edit-category-select"
+    name="category"
+    value={selectedItem.category}
+    label="Categoria (Escassez)"
+    onChange={handleChange}
+  >
+    {Object.entries(scarcityLevels).map(([value, name]) => (
+      <MenuItem key={value} value={parseInt(value)}>
+        {name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+            <TextField
+              label="Peso"
+              name="weight"
+              type="number"
+              fullWidth
+              margin="normal"
+              value={selectedItem.weight}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Descrição"
+              name="description"
+              fullWidth
+              multiline
+              rows={4}
+              margin="normal"
+              value={selectedItem.description}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Qualidade"
+              name="quality"
+              type="number"
+              fullWidth
+              margin="normal"
+              value={selectedItem.quality}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Pontos de Características"
+              name="points"
+              type="number"
+              fullWidth
+              margin="normal"
+              value={selectedItem.characteristics.points}
+              onChange={handleChange}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleEditClose} color="secondary">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEdit} color="primary">
+              Salvar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };

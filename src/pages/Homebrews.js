@@ -66,7 +66,7 @@ const Homebrews = () => {
   const handleShare = async (type, data) => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/share", // Use a URL da API de produção aqui
+        "https://assrpgsite-be-production.up.railway.app/api/share", // Use a URL da API de produção aqui
         { type, data },
         { headers: { Authorization: `Bearer ${token}` } }
       );

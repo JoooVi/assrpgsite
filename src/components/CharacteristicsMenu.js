@@ -25,132 +25,94 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
     }
   }, [item]);
 
-  const availableCharacteristics = {
-    0: [
-      {
-        name: "Frágil",
-        cost: 0,
-        description:
-          "O item está quebrando, enferrujado, muito gasto ou com pouco combustível, bateria ou munição. O item tem sua durabilidade reduzida em -1. Um item pode ter essa característica duas vezes, se tornando Muito Frágil.",
-      },
-      {
-        name: "Improvisado",
-        cost: 0,
-        description:
-          "Um item feito na hora, sem refinamento de criação ou com material reaproveitado. Testes com esse item precisam de 1 Sucesso(joaninha) adicional para considerar resultados de Sucesso(joaninha) e Adaptação(cervo).",
-      },
-    ],
-    1: [
-      {
-        name: "Ágil",
-        cost: 1,
-        description:
-          "Uma ferramenta ou arma balanceada e capaz de efeitos poderosos em mãos ágeis. Ao fazer um teste usando esse item você pode gastar um uso para usar Reação em vez de Potência.",
-      },
-      {
-        name: "Iluminador",
-        cost: 1,
-        description:
-          "Um item usado para iluminação. Você pode gastar um dos usos do item para fazer com que ele brilhe o suficiente para iluminar um ambiente escuro até o final da etapa.",
-      },
-      {
-        name: "Letal",
-        cost: 1,
-        description:
-          "Geralmente um armamento, esse item é capaz de causar ferimentos profundos. Ao usar o item para causar dano, você pode gastar um uso do item para receber um Sucesso(joaninha) adicional em uma das faces de um dado.",
-      },
-      {
-        name: "Discreta",
-        cost: 1,
-        description:
-          "Um item fino ou pequeno que pode ser facilmente escondido. Testes para esconder o item recebem 1 D10 adicional.",
-      },
-      {
-        name: "Protetivo",
-        cost: 1,
-        description:
-          "Pensado para a proteção, esse item pode ser usado para mitigar ferimentos. Ao sofrer dano, você pode gastar um dos usos desse item para absorver o dano como se fossem pontos de saúde.",
-      },
-      {
-        name: "Nutritivo",
-        cost: 1,
-        description:
-          "Um alimento ou bebida que ajuda na recuperação. Durante a etapa de recuperação você pode gastar um dos usos do item para se alimentar e recuperar um ponto de saúde.",
-      },
-    ],
-    2: [
-      {
-        name: "Apto",
-        cost: 2,
-        description:
-          "Um item focado para uso de uma aptidão, seja um livro, equipamento de sobrevivência ou ferramenta. Escolha um conhecimento ou Prática. Ao fazer um teste da aptidão escolhida você pode gastar um dos usos do item para jogar novamente um dado para cada Adaptação(cervo) que tiver no teste (antes de manter dados).",
-      },
-      {
-        name: "Tática",
-        cost: 2,
-        description:
-          "Itens reforçados ou com design pensado para serem ergonômicos e eficientes. Ao fazer um teste com esse item você pode gastar um de seus usos para trocar 1 D6 por 1 D10.",
-      },
-      {
-        name: "Consumível",
-        cost: 2,
-        description:
-          "Itens feitos para serem usados uma vez, seja por serem destruídos no uso ou literalmente consumidos. O item tem apenas um uso. Todos os consumíveis do mesmo tipo ocupam o mesmo espaço de inventário. Permite aplicar uma característica de Categoria IV por 1 ponto ou de Categoria I por 0 pontos.",
-      },
-      {
-        name: "Durável",
-        cost: 2,
-        description:
-          "Itens reforçados e pensados para sobreviver ao desgaste, com baterias grandes ou muita munição. Não pode ser aplicado em itens de uso único. Aumenta a durabilidade do item em +2. Um item pode ter essa característica duas vezes, recebendo um total de +5 de durabilidade e se tornando Muito Durável.",
-      },
-    ],
-    3: [
-      {
-        name: "Malandro",
-        cost: 3,
-        description:
-          "Itens com partes que dificultam a visualização de seu uso ou facilitem acessar as brechas de um inimigo. Ao ter sucesso usando esse item contra uma criatura você pode gastar um de seus usos para usar Adaptação(cervo) para derrubá-la ou empurrá-la.",
-      },
-      {
-        name: "Espaçoso",
-        cost: 3,
-        description:
-          "Equipamentos e vestimentas pensadas para carregar muitos itens. A quantidade de espaços de inventário aumenta em +2. Um item pode ter essa característica duas vezes, fornecendo um total de +5 de espaços de inventário e se tornando Muito Espaçoso.",
-      },
-      {
-        name: "Espinhosa",
-        cost: 3,
-        description:
-          "Itens afiados, pontiagudos, espinhentos, pontudos ou simplesmente perigosos. Ao ter sucesso em um teste com esse item contra uma ameaça, você pode gastar um dos usos dele para reduzir em aumentar em Pressão(coruja) o custo da próxima ativação do conflito.",
-      },
-      {
-        name: "Estabilizado",
-        cost: 3,
-        description:
-          "Um equipamento cuidadosamente balanceado. Ao fazer um teste com o item, você pode gastar um dos seus usos para jogar novamente quaisquer dados com Adaptação(cervo) nas faces.",
-      },
-    ],
-    4: [
-      {
-        name: "Explosivo",
-        cost: 4,
-        description:
-          "Um item pensado para ser detonado. Ao fazer um teste com esse item, você pode gastar um uso dele para detonar a área em torno dele, destruindo estruturas e ferindo quaisquer criaturas na área em torno dele.",
-      },
-      {
-        name: "Inflamável",
-        cost: 4,
-        description:
-          "Itens capazes de gerar fogo numa escala perigosa. Ao fazer um teste com esse item, você pode gastar um uso dele para deixar a área em torno dele em chamas.",
-      },
-      {
-        name: "Médico",
-        cost: 4,
-        description:
-          "Medicamentos, utensílios médicos ou kits de primeiros socorros geralmente têm essa característica. Durante a etapa de recuperação você pode gastar um dos usos do item para fazer com que um Infectado recupere todas as caixas de saúde de um nível.",
-      },
-    ],
-  };
+  // DENTRO DO ARQUIVO: CharacteristicsMenu.js
+
+const availableCharacteristics = {
+  "-1": [
+    {
+      name: "Frágil",
+      cost: -1, // Custo pode ser ajustado conforme sua lógica de pontos
+      description:
+        "Precisa de uma [Sucesso] a menos para baixar um nível de qualidade. Se estiver no nível 1 (Defeituoso), ficará nível 0 (Quebrado) no próximo uso.",
+    },
+    {
+      name: "Improvisado",
+      cost: -1, // Custo pode ser ajustado conforme sua lógica de pontos
+      description:
+        "Criado com partes originalmente feitas com outros objetivos. Testes com esse item têm um dado a menos, mas esse efeito pode ser cancelado com o investimento de um [Sucesso].",
+    },
+  ],
+  "1": [
+    {
+      name: "Ágil",
+      cost: 1,
+      description:
+        "Uma arma balanceada. Em um teste de ataque armado, substitui Potência por Reação.",
+    },
+    {
+      name: "Discreto",
+      cost: 1,
+      description:
+        "Um item menor, fino ou retrátil. Não ocupa espaço de inventário e não será percebido pelos outros enquanto continuar guardado.",
+    },
+    // NOTA: Letal, Protetivo, etc. não são listados como características genéricas nas imagens,
+    // mas sim como parte de itens. Mantive a estrutura caso você queira adaptá-los.
+  ],
+  "2": [
+    {
+      name: "Eficiente",
+      cost: 2,
+      description:
+        "Design ergonômico e prático. Em um teste com este item, você pode trocar 1 dado por 1 dado uma vez por dia. Um uso adicional no mesmo dia faz o equipamento perder um nível de qualidade.",
+    },
+    {
+      name: "Durável",
+      cost: 2,
+      description:
+        "Item reforçado e pensado para sobreviver ao desgaste. Precisa de uma [Sucesso] adicional para perder um nível de qualidade.",
+    },
+  ],
+  "3": [
+    {
+      name: "Espaçoso",
+      cost: 3,
+      description:
+        "Vestes, bolsas ou mochilas que aumentam a quantidade de espaços de inventário em +2. Pode ser comprada mais de uma vez, acumulando seus efeitos.",
+    },
+    {
+      name: "Adrenalina",
+      cost: 3,
+      description:
+        "Começa com seis usos. Cada uso aumenta 6 dados até o próximo repouso. Cada uso adicional no mesmo dia exige um teste de Resolução + Atletismo. Após o repouso, o personagem perde um ponto de Determinação para cada uso realizado no dia.",
+    },
+    {
+      name: "Armadura",
+      cost: 3,
+      description:
+        "Veste de proteção. Ao sofrer dano, você pode fazer até três usos por cena para evitar a perda de 1 dado de dano. A cada três usos na mesma cena, a armadura baixa um nível de qualidade.",
+    },
+  ],
+  "4": [
+    {
+      name: "Explosivo",
+      cost: 4,
+      description:
+        "Item pensado para ser detonado. Ao fazer um teste, pode-se eliminá-lo para detonar uma área, ferindo criaturas com 4 de dano. Todo item Explosivo também possui Uso Único.",
+    },
+    {
+      name: "Inflamável",
+      cost: 4,
+      description:
+        "Gera fogo em escala perigosa. Pode-se baixar um nível de qualidade para incinerar uma área. Alvos atingidos sofrem 3 de dano de queimadura e precisam investir [símbolo] ou sofrerão 2 de dano no final do turno.",
+    },
+    {
+      name: "Medicinal",
+      cost: 4,
+      description:
+        "Começam com seis usos e cada uso cancela um resultado negativo no teste de Tratamento Médico. Itens de uso único podem cancelar até dois resultados negativos no mesmo teste.",
+    },
+  ],
+};
 
   const handleAddCharacteristic = (characteristic) => {
     if (points >= characteristic.cost) {

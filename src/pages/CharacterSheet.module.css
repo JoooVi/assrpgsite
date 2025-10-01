@@ -40,6 +40,10 @@
   max-width: 600px;
 }
 
+.centerColumn {
+  max-width: 450px;
+}
+
 /* Ajustes para telas menores */
 @media (max-width: 768px) {
   .characterBody {

@@ -11,6 +11,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { saveSkillsToBackend } from "../redux/actions/skillActions";
 import { updateInstincts } from "../redux/slices/instinctsSlice";
 import { fetchInstincts } from "../redux/actions/instinctsActions";
+import TugOfWar from "../components/TugOfWar";
 import { useParams } from "react-router-dom";
 import {
   TextField,
@@ -28,6 +29,7 @@ import {
   FormHelperText,
   Tab,
   Tabs,
+  Tooltip,
   List,
   ListItem,
   ListItemText,
@@ -63,106 +65,141 @@ import { ReactComponent as HeartEmptyIcon } from "../assets/icons/heart-empty.sv
 
 const translateKey = (key) => {
   const translations = {
+    // Campos Gerais
     health: "Saúde",
-    Agility: "Agilidade",
-    agility: "Agilidade",
-    Perception: "Percepção",
-    perception: "Percepção",
-    Strength: "Força",
-    strength: "Força",
     Current: "Atual",
     current: "Atual",
     collapse: "Colapso",
     preCollapse: "pré-Colapso",
     postCollapse: "Pós-Colapso",
-    Intelligence: "Inteligência",
-    Potency: "Potencia",
-    potency: "Potencia",
-    Influence: "Influência",
-    influence: "Influência",
-    Resolution: "Resolução",
-    resolution: "Resolução",
     Knowledge: "Conhecimento",
     knowledge: "Conhecimento",
     Practices: "Práticas",
     practices: "Práticas",
     Instincts: "Instintos",
     instincts: "Instintos",
+
+    // Instintos
+    Perception: "Percepção",
+    perception: "Percepção",
+    Potency: "Potência",
+    potency: "Potência",
+    Influence: "Influência",
+    influence: "Influência",
+    Resolution: "Resolução",
+    resolution: "Resolução",
     Sagacity: "Sagacidade",
     sagacity: "Sagacidade",
-    infiltration: "Infiltração",
     Reaction: "Reação",
     reaction: "Reação",
-    Agrarian: "Agrario",
-    agrarian: "Agrario",
-    Biological: "Biologico",
-    biological: "Biologico",
-    Exact: "Exato",
-    exact: "Exato",
-    Medicine: "Medicina",
+
+    // Novos Conhecimentos
+    geography: "Geografia",
+    Geography: "Geografia",
     medicine: "Medicina",
-    Social: "Social",
-    social: "Social",
-    Artistic: "Artistico",
-    artistic: "Artistico",
-    Sports: "Esportivas",
-    sports: "Esportivas",
-    Tools: "Ferramentas",
-    tools: "Ferramentas",
-    Crafts: "Oficios",
-    crafts: "Oficios",
-    Weapons: "Armas",
+    Medicine: "Medicina",
+    security: "Segurança",
+    Security: "Segurança",
+    biology: "Biologia",
+    Biology: "Biologia",
+    erudition: "Erudição",
+    Erudition: "Erudição",
+    engineering: "Engenharia",
+    Engineering: "Engenharia",
+
+    // Novas Práticas
     weapons: "Armas",
-    Vehicles: "Veiculos",
-    vehicles: "Veiculos",
-    Infiltration: "infiltração",
+    Weapons: "Armas",
+    athletics: "Atletismo",
+    Athletics: "Atletismo",
+    expression: "Expressão",
+    Expression: "Expressão",
+    stealth: "Furtividade",
+    Stealth: "Furtividade",
+    crafting: "Manufaturas",
+    Crafting: "Manufaturas",
+    survival: "Sobrevivência",
+    Survival: "Sobrevivência",
   };
 
   return translations[key] || key;
 };
 
-const StyledRating = styled(Rating)({
-  "& .MuiRating-iconFilled": {
-    color: "#ff6d75",
+const healthLevelDetails = {
+  6: {
+    name: "Saudável",
+    description: "Recuperação ativa após repouso completo.",
   },
-  "& .MuiRating-iconHover": {
-    color: "#ff3d47",
+  5: {
+    name: "Escoriado",
+    description: "Recuperação ativa após repouso completo.",
   },
-});
+  4: {
+    name: "Lacerado",
+    description:
+      "Ativa Recuperação após uma semana. Menos 1 em todos os testes.",
+  },
+  3: {
+    name: "Ferido",
+    description:
+      "Ativa Recuperação após uma semana. Menos 1 em todos os testes.",
+  },
+  2: {
+    name: "Arrebentado",
+    description:
+      "Incapaz de agir, mas mantém a consciência. Menos 2 em todos os testes.",
+  },
+  1: {
+    name: "Incapacitado",
+    description:
+      "Inconsciente. Qualquer Ação com teste exige 2 de Adaptação para ativar.",
+  },
+};
 
-const TriangleRating = styled(Rating)({
-  "& .MuiRating-iconFilled": {
-    color: "#000",
-  },
-  "& .MuiRating-iconHover": {
-    color: "#000",
-  },
-});
+const qualityLevels = {
+  0: "Quebrado",
+  1: "Defeituoso",
+  2: "Comprometido",
+  3: "Padrão",
+  4: "Reforçado",
+  5: "Superior",
+  6: "Obra-Prima",
+};
+
+const scarcityLevels = {
+  0: 'Abundante',
+  1: 'Pedra',
+  2: 'Comum',
+  3: 'Incomum',
+  4: 'Atípico',
+  5: 'Raro',
+  6: 'Quase Extinto'
+};
 
 const dados = {
   d6: {
     1: [],
     2: [],
     3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    4: [require("../assets/Coruja_1.png")],
+    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
     6: [require("../assets/Joaninha_1.png")],
   },
   d10: {
     1: [],
     2: [],
     3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    4: [require("../assets/Coruja_1.png")],
+    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
     6: [require("../assets/Joaninha_1.png")],
     7: [
       require("../assets/Joaninha_1.png"),
       require("../assets/Joaninha_1.png"),
     ],
-    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
+    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
     9: [
-      require("../assets/Joaninha_1.png"),
       require("../assets/Cervo_1.png"),
+      require("../assets/Joaninha_1.png"),
       require("../assets/Coruja_1.png"),
     ],
     10: [
@@ -175,17 +212,17 @@ const dados = {
     1: [],
     2: [],
     3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    4: [require("../assets/Coruja_1.png")],
+    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
     6: [require("../assets/Joaninha_1.png")],
     7: [
       require("../assets/Joaninha_1.png"),
       require("../assets/Joaninha_1.png"),
     ],
-    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
+    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
     9: [
-      require("../assets/Joaninha_1.png"),
       require("../assets/Cervo_1.png"),
+      require("../assets/Joaninha_1.png"),
       require("../assets/Coruja_1.png"),
     ],
     10: [
@@ -194,9 +231,9 @@ const dados = {
       require("../assets/Coruja_1.png"),
     ],
     11: [
+      require("../assets/Cervo_1.png"),
+      require("../assets/Cervo_1.png"),
       require("../assets/Joaninha_1.png"),
-      require("../assets/Cervo_1.png"),
-      require("../assets/Cervo_1.png"),
       require("../assets/Coruja_1.png"),
     ],
     12: [require("../assets/Coruja_1.png"), require("../assets/Coruja_1.png")],
@@ -208,12 +245,10 @@ const rollCustomDice = (formula) => {
   let match;
   const results = [];
 
-  // Processa cada lançamento de dados
   while ((match = regex.exec(formula)) !== null) {
     const [, count, sides] = match;
     const countInt = parseInt(count);
     const sidesInt = parseInt(sides);
-    // Valida se o dado existe
     if (!dados[`d${sidesInt}`]) {
       console.warn(`Dado d${sidesInt} não definido.`);
       continue;
@@ -255,16 +290,11 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
-          // Extrair knowledge e practices do personagem
           const { knowledge = {}, practices = {} } = response.data;
-
-          // Combinar knowledge e practices em um único objeto
           const combinedSkills = { ...knowledge, ...practices };
-
-          // Atualizar o estado global com as skills combinadas
           dispatch(updateSkills(combinedSkills));
 
-          console.log("Skills carregadas:", combinedSkills); // Debug
+          console.log("Skills carregadas:", combinedSkills);
         } catch (error) {
           console.error("Error loading data:", error);
         }
@@ -280,43 +310,84 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   }, [id, dispatch]);
 
   useEffect(() => {
-    console.log("Instintos atualizados:", instincts); // Debug
+    console.log("Instintos atualizados:", instincts);
   }, [instincts]);
 
-  const handleRoll = useCallback(
-    async (key) => {
-      console.log("Initiating roll for skill:", key);
-      if (isRolling) return;
-      if (!selectedInstinct[key]) {
-        alert("Select an instinct before rolling!");
-        return;
-      }
-      setIsRolling(true);
-      try {
-        const skillValue = parseInt(globalSkills[key]) || 0;
-        const instinctKey = selectedInstinct[key];
-        const instinctValue = parseInt(instincts[instinctKey]) || 0;
-        const totalDice = skillValue + instinctValue;
-        const results = rollCustomDice(`${totalDice}d10`);
-        setRollResult({ skill: key, roll: results });
-        setSnackbarKey((prevKey) => prevKey + 1);
-        setSnackbarOpen(true);
-        setTimeout(() => setIsRolling(false), 500);
-        addRollToHistory({ skill: key, roll: results });
-      } catch (error) {
-        console.error("Error rolling dice:", error);
-        setIsRolling(false);
-      }
-    },
-    [isRolling, globalSkills, selectedInstinct, instincts, addRollToHistory]
-  );
+  // SkillList.js
+
+const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita um item como parâmetro
+  if (isRolling) return;
+  if (!selectedInstinct[key]) {
+    alert("Selecione um instinto antes de rolar!");
+    return;
+  }
+  setIsRolling(true);
+
+  try {
+    const skillValue = parseInt(globalSkills[key]) || 0;
+    const instinctKey = selectedInstinct[key];
+    const instinctValue = parseInt(instincts[instinctKey]) || 0;
+    let totalDice = skillValue + instinctValue;
+
+    // 2. Objeto para guardar os efeitos da qualidade
+    const qualityEffect = {
+        bonusDice: '',
+        message: ''
+    };
+
+    if (itemUsado) {
+        // 3. Verifica a qualidade do item e aplica as regras
+        switch (itemUsado.quality) {
+            case 0: // Quebrado
+                alert(`O item "${itemUsado.item.name}" está quebrado e não pode ser usado.`);
+                setIsRolling(false);
+                return; // Impede a rolagem
+            case 1: // Defeituoso
+                qualityEffect.message = `Qualidade (Defeituoso): Exige 1 [Adaptação] adicional para acionar efeitos.`;
+                break;
+            case 2: // Comprometido
+                qualityEffect.message = `Qualidade (Comprometido): Exige 1 [Sucesso] adicional para ter êxito.`;
+                break;
+            case 4: // Reforçado
+                // Esta regra é mais complexa de automatizar. Por enquanto, vamos exibir como mensagem.
+                qualityEffect.message = `Qualidade (Reforçado): Você pode adicionar 1 [Adaptação] ao resultado final.`;
+                break;
+            case 5: // Superior
+                qualityEffect.bonusDice = '1d6'; // Adiciona um d6 à rolagem
+                qualityEffect.message = `Qualidade (Superior): Adicionado 1d6 à sua rolagem.`;
+                break;
+            case 6: // Obra-Prima
+                // A regra de "três vezes por sessão" exige um gerenciamento de estado mais complexo.
+                // Por simplicidade, vamos tratar como um bônus de 1d10 por agora.
+                qualityEffect.bonusDice = '1d10';
+                qualityEffect.message = `Qualidade (Obra-Prima): Adicionado 1d10 à sua rolagem.`;
+                break;
+            default: // Padrão (3) ou outros níveis sem efeito mecânico direto
+                break;
+        }
+    }
+
+    const formula = `${totalDice}d10` + (qualityEffect.bonusDice ? `+${qualityEffect.bonusDice}` : '');
+    const results = rollCustomDice(formula);
+
+    // 4. Passa a mensagem do efeito para ser exibida no resultado
+    setRollResult({ skill: key, roll: results, effectMessage: qualityEffect.message });
+    setSnackbarKey((prevKey) => prevKey + 1);
+    setSnackbarOpen(true);
+    setTimeout(() => setIsRolling(false), 500);
+    addRollToHistory({ skill: key, roll: results });
+
+  } catch (error) {
+    console.error("Erro ao rolar dados:", error);
+    setIsRolling(false);
+  }
+}, [isRolling, globalSkills, selectedInstinct, instincts, addRollToHistory]);
 
   const handleSnackbarClose = useCallback((event, reason) => {
     if (reason === "clickaway") return;
     setSnackbarOpen(false);
   }, []);
 
-  // CharacterSheet.js (SkillList component)
   const handleEditedValueChange = useCallback(
     async (key, value) => {
       try {
@@ -335,29 +406,42 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     setOpen(true);
   }, []);
 
-  // Dentro do componente SkillList, substitua:
   const handleInstinctChangee = useCallback(
     (skillKey) => (event) => {
-      // Modificar para retornar uma função
       dispatch(setSelectedInstinct({ [skillKey]: event.target.value }));
     },
     [dispatch]
   );
 
+  // ### SEÇÃO MODIFICADA: getSkillDescription ###
+  // Criei descrições para as novas perícias. Você pode alterar se quiser.
   const getSkillDescription = useCallback((key) => {
     const descriptions = {
-      agrarian: "Conhecimento sobre agricultura, pecuária e gestão rural",
-      biological: "Conhecimento sobre biologia , ecologia e ciências naturais",
-      exact: "Conhecimento sobre matemática, física e outras ciências exatas",
-      medicine: "Conhecimento sobre medicina, anatomia e tratamentos",
-      social: "Conhecimento sobre sociedade, política e relações humanas",
-      artistic: "Conhecimento sobre arte, música e expressões culturais",
-      sports: "Habilidades atléticas e esportivas",
-      tools: "Habilidade com ferramentas e equipamentos",
-      crafts: "Habilidades manuais e artesanais",
-      weapons: "Habilidade com armas e combate",
-      vehicles: "Habilidade com veículos e pilotagem",
-      infiltration: "Habilidade de furtividade e infiltração",
+      // Conhecimentos
+      geography:
+        "Conhecimento sobre terrenos, mapas, rotas e ambientes naturais ou urbanos.",
+      medicine:
+        "Conhecimento sobre medicina, anatomia, tratamentos e primeiros socorros.",
+      security:
+        "Habilidade em sistemas de segurança, travas, vigilância e contra-inteligência.",
+      biology: "Conhecimento sobre fauna, flora, ecologia e ciências naturais.",
+      erudition:
+        "Conhecimento sobre história, culturas, política e informações gerais do mundo pré e pós-colapso.",
+      engineering:
+        "Habilidade com mecânica, eletrônica, construção e reparo de estruturas e equipamentos.",
+
+      // Práticas
+      weapons: "Habilidade com armas de fogo e combate corpo a corpo.",
+      athletics:
+        "Habilidades envolvendo corrida, escalada, natação e outras proezas físicas.",
+      expression:
+        "Capacidade de se comunicar efetivamente, seja por persuasão, intimidação, performance ou arte.",
+      stealth:
+        "Habilidade de se mover silenciosamente, se esconder e passar despercebido.",
+      crafting:
+        "Habilidades manuais para criar, modificar ou consertar itens, desde vestimentas a pequenas ferramentas.",
+      survival:
+        "Habilidade de encontrar recursos, rastrear, caçar e se virar em ambientes hostis.",
     };
     return descriptions[key] || "Descrição não disponível.";
   }, []);
@@ -367,8 +451,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
       <Typography variant="h6">{translateKey(title)}</Typography>
       {Object.entries(globalSkills).map(([key, value]) => (
         <Grid container key={key} spacing={3} alignItems="center">
-          {/* Nome da Skill */}
-          <Grid item xs={12} sm={4} md={3}>
+          <Grid item xs={12} sm={4} md={4}>
             <Typography
               onClick={() => handleSkillClick(key)}
               sx={{
@@ -381,7 +464,6 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
             </Typography>
           </Grid>
 
-          {/* Campo de edição da Skill - MODIFICADO */}
           <Grid item xs={12} sm={4} md={2}>
             <TextField
               value={globalSkills[key] || 0}
@@ -393,7 +475,6 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
             />
           </Grid>
 
-          {/* Select para escolher o Instinto */}
           <Grid item xs={12} sm={4} md={3}>
             <FormControl
               variant="outlined"
@@ -406,7 +487,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
               <Select
                 label={translateKey("Instinto")}
                 value={selectedInstinct[key] || ""}
-                onChange={handleInstinctChangee(key)} // Passa o skillKey
+                onChange={handleInstinctChangee(key)}
                 disabled={loading}
               >
                 {loading ? (
@@ -433,7 +514,6 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
             </FormControl>
           </Grid>
 
-          {/* Botão para realizar o roll */}
           <Grid item xs={12} sm={4} md={2}>
             <Button
               variant="contained"
@@ -452,7 +532,6 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
         </Grid>
       ))}
 
-      {/* Snackbar para exibir o resultado do roll */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={10000}
@@ -512,7 +591,6 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
         </Alert>
       </Snackbar>
 
-      {/* Dialog para exibir a descrição da Skill */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           {selectedSkill &&
@@ -532,6 +610,10 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     </Box>
   );
 };
+
+// ... O restante do seu código continua aqui sem alterações ...
+// ... The rest of your code continues here without changes ...
+// (O código é muito longo, então o omiti para focar nas mudanças, mas você deve usar o seu arquivo completo)
 
 const InstinctList = ({
   title,
@@ -588,7 +670,6 @@ const InstinctList = ({
         { instincts: updatedInstincts },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Atualiza o estado global com TODOS os instintos retornados pelo backend
       dispatch(updateInstincts(response.data.instincts));
     } catch (error) {
       console.error("Erro ao salvar os instintos:", error);
@@ -600,24 +681,21 @@ const InstinctList = ({
     const updatedInstincts = { ...instincts, [instinctKey]: updatedValue };
 
     try {
-      // Atualização otimista
       dispatch(updateInstincts(updatedInstincts));
 
       const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
-        { instincts: updatedInstincts }, // Enviar todos os instintos
+        { instincts: updatedInstincts },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Forçar atualização do Redux com a resposta do backend
       const response = await axios.get(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       dispatch(updateInstincts(response.data.instincts));
     } catch (error) {
-      // Reverter em caso de erro
       dispatch(updateInstincts(instincts));
       console.error("Erro ao salvar:", error);
     }
@@ -650,7 +728,7 @@ const InstinctList = ({
 
           <Grid item xs={12} sm={4} md={2}>
             <TextField
-              value={instincts[key] || 0} // Use diretamente do estado global
+              value={instincts[key] || 0}
               onChange={(e) => handleEditedInstinctChange(key, e.target.value)}
               size="small"
               variant="outlined"
@@ -859,14 +937,11 @@ const CharacterSheet = () => {
   const fetchInventoryItems = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get(
-        "assrpgsite-be-production.up.railway.app/api/items",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("https://assrpgsite-be-production.up.railway.app/api/items", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Erro ao buscar itens do inventário:", error);
@@ -895,15 +970,14 @@ const CharacterSheet = () => {
 
     const updatedHealthLevels = [...character.healthLevels];
 
-    // Garantir que o índice seja válido
     if (index >= 0 && index < updatedHealthLevels.length) {
-      updatedHealthLevels[index] = value || 0; // Definir 0 se value for null ou undefined
+      updatedHealthLevels[index] = value || 0;
       setCharacter((prev) => ({
         ...prev,
         healthLevels: updatedHealthLevels,
-        healthPoints: updatedHealthLevels.reduce((acc, cur) => acc + cur, 0), // Recalcular pontos de saúde
+        healthPoints: updatedHealthLevels.reduce((acc, cur) => acc + cur, 0),
       }));
-      saveHealthLevels(updatedHealthLevels); // Salvar os níveis de saúde atualizados no backend
+      saveHealthLevels(updatedHealthLevels);
     }
   };
 
@@ -913,15 +987,9 @@ const CharacterSheet = () => {
   };
 
   const getHealthDescription = (level) => {
-    const descriptions = {
-      5: " Você está Saudável ",
-      4: " Você está Ferido ",
-      3: " Precisa de 1 sucesso ou adaptação adicional para ter sucesso em testes. ",
-      2: " Precisa de 2 sucessos ou adaptação adicional para ter sucesso em testes. ",
-      1: " Precisa de 3 sucessos ou adaptação adicional para ter sucesso em testes. ",
-      0: " Você está Morto",
-    };
-    return descriptions[level] || "Descrição não disponível.";
+    return (
+      healthLevelDetails[level]?.description || "Descrição não disponível."
+    );
   };
 
   const handleRoll = (skill, selectedInstinct) => {
@@ -953,9 +1021,8 @@ const CharacterSheet = () => {
     const rollSkill = rollDice(diceCountSkill, 10);
 
     setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
-    setSnackbarKey((prevKey) => prevKey + 1); // Atualizar a chave única do Snackbar
+    setSnackbarKey((prevKey) => prevKey + 1);
     setSnackbarOpen(true);
-    // Aqui, em vez de setRollHistory diretamente, chamamos addRollToHistory
     addRollToHistory({ skill, roll: [...rollInstinct, ...rollSkill] }, true);
   };
 
@@ -984,7 +1051,6 @@ const CharacterSheet = () => {
       return { face, result: dados.d12[face] || [] };
     });
 
-    // Chama a função central que salva no backend e mostra no snackbar
     addRollToHistory(
       {
         skill: `Assimilado: ${translateKey(instinct)} + ${translateKey(
@@ -1017,15 +1083,13 @@ const CharacterSheet = () => {
       updatedInventory[index] = {
         ...updatedInventory[index],
         item: updatedItem,
-        currentUses: updatedItem.currentUses || 0,
-        durability: updatedItem.durability || 0,
+        quality: updatedItem.quality || 0,
       };
 
       const payload = {
         inventory: updatedInventory.map((invItem) => ({
           item: invItem.item._id || invItem.item,
-          currentUses: invItem.currentUses,
-          durability: invItem.durability,
+          quality: invItem.quality,
           characteristics: {
             points: invItem.item.characteristics.points,
             details: invItem.item.characteristics.details.map((detail) => ({
@@ -1093,89 +1157,6 @@ const CharacterSheet = () => {
     setSelectedTab(newValue);
   };
 
-  const saveDeterminationAndAssimilation = async (
-    determination,
-    assimilation
-  ) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/determination-assimilation`,
-        { determination, assimilation },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (error) {
-      console.error(
-        "Erro ao salvar os pontos de determinação e assimilação:",
-        error
-      );
-    }
-  };
-
-  const handleDeterminationChange = (event, newValue) => {
-    setCharacter((prevCharacter) => {
-      let updatedDetermination = newValue;
-      let updatedAssimilation = prevCharacter?.assimilation || 0;
-      let message = null;
-
-      if (updatedDetermination <= 0 && updatedAssimilation < 9) {
-        updatedAssimilation += 1;
-        updatedDetermination = 10 - updatedAssimilation;
-        message =
-          "Você perdeu pontos de Determinação suficientes para cair uma casa!";
-      }
-
-      // Previne atualização incorreta
-      if (
-        updatedDetermination > 10 - updatedAssimilation &&
-        updatedAssimilation > 0
-      ) {
-        updatedAssimilation -= 1;
-        updatedDetermination = newValue;
-      }
-
-      saveDeterminationAndAssimilation(
-        updatedDetermination,
-        updatedAssimilation
-      ); // Salvar os pontos de determinação e assimilação atualizados no backend
-
-      return {
-        ...prevCharacter,
-        determination: updatedDetermination,
-        assimilation: updatedAssimilation,
-        message: message,
-      };
-    });
-  };
-
-  const handleAssimilationChange = (event, newValue) => {
-    setCharacter((prevCharacter) => {
-      let updatedAssimilation = newValue;
-      let maxAssimilation = 10 - (prevCharacter?.determination || 0);
-      let message = null;
-
-      if (updatedAssimilation > maxAssimilation) {
-        message = `Você pode marcar até ${maxAssimilation} pontos de Assimilação!`;
-        updatedAssimilation = prevCharacter.assimilation;
-      }
-
-      saveDeterminationAndAssimilation(
-        prevCharacter.determination,
-        updatedAssimilation
-      ); // Salvar os pontos de determinação e assimilação atualizados no backend
-
-      return {
-        ...prevCharacter,
-        assimilation: updatedAssimilation,
-        message: message,
-      };
-    });
-  };
-
   const handleOpenItemsModal = () => {
     fetchInventoryItems();
     setOpenItemsModal(true);
@@ -1200,10 +1181,9 @@ const CharacterSheet = () => {
     setSelectedItem(item);
 
     if (selectedTab === 0) {
-      // Inventário
       const newInventoryItem = {
-        item: item, // Manter o objeto populado para exibição imediata
-        durability: item.durability || 0, // Pega a durabilidade máxima do item base
+        item: item,
+        quality: item.quality || 3,
         currentUses: item.currentUses || 0,
       };
 
@@ -1253,10 +1233,20 @@ const CharacterSheet = () => {
     }
   };
 
+  const handleQualityChange = (itemIndex, newQuality) => {
+    if (newQuality < 0 || newQuality > 6) return;
+
+    const updatedInventory = [...character.inventory];
+    updatedInventory[itemIndex].quality = newQuality;
+
+    setCharacter((prev) => ({ ...prev, inventory: updatedInventory }));
+    // A função saveCharacterInventory será chamada automaticamente pelo useEffect
+  };
+
   const handleInputChange = (field, value) => {
     setCharacter((prevCharacter) => {
       const updatedCharacter = { ...prevCharacter, [field]: value };
-      saveCharacterDetails({ [field]: value }); // Salvar os detalhes atualizados no backend
+      saveCharacterDetails({ [field]: value });
       return updatedCharacter;
     });
   };
@@ -1295,15 +1285,12 @@ const CharacterSheet = () => {
   ]);
 
   const handleCreateNewHomebrew = () => {
-    // Lógica para criar nova característica, assimilação ou item
     console.log("Criar nova Homebrew");
   };
 
-  // NOVA FUNÇÃO: Enviar rolagem para o histórico central da campanha
   const sendRollToCampaignBackend = useCallback(
     async (rollData) => {
       const token = localStorage.getItem("token");
-      // 'user' está disponível aqui no escopo do componente CharacterSheet
       if (!character?.campaign || !token || !user) {
         console.log(
           "Não é possível enviar para a campanha: Personagem não está em uma campanha, token ausente ou usuário não definido."
@@ -1312,17 +1299,17 @@ const CharacterSheet = () => {
       }
 
       const rollDataToSend = {
-        rollerId: user._id, // ID do usuário que fez a rolagem (o player logado)
-        rollerName: user.name || character.name, // Nome do usuário ou do personagem
-        characterId: id, // ID do personagem que fez a rolagem
-        formula: rollData.formula || rollData.skill, // A fórmula ou o skill usado
-        roll: rollData.roll, // Os resultados dos dados
+        rollerId: user._id,
+        rollerName: user.name || character.name,
+        characterId: id,
+        formula: rollData.formula || rollData.skill,
+        roll: rollData.roll,
         timestamp: Date.now(),
       };
 
       try {
         await axios.post(
-          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${character.campaign}/roll`, // Endpoint para registrar rolagem na campanha
+          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${character.campaign}/roll`,
           rollDataToSend,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -1338,7 +1325,7 @@ const CharacterSheet = () => {
       }
     },
     [character?.campaign, id, user, character?.name]
-  ); // Dependências do useCallback, 'user' adicionado
+  );
 
   const addRollToHistory = useCallback(
     async (rollData, displayInSnackbar = false) => {
@@ -1349,19 +1336,15 @@ const CharacterSheet = () => {
         ...rollData,
       };
 
-      // 1. Salva na ficha individual
       await saveLastRollToBackend(id, rollDataWithTimestamp);
 
-      // 2. ATUALIZA O ESTADO LOCAL DO HISTÓRICO DE ROLAGENS
       setRollHistory((prevHistory) => {
         const newHistory = [...prevHistory, rollDataWithTimestamp].slice(-5);
         return newHistory;
       });
 
-      // 3. CHAMA A NOVA FUNÇÃO PARA ENVIAR PARA O BACKEND DA CAMPANHA
-      sendRollToCampaignBackend(rollDataWithTimestamp); // Chamando a nova função
+      sendRollToCampaignBackend(rollDataWithTimestamp);
 
-      // 4. Mostra o snackbar
       if (displayInSnackbar) {
         if (rollData.skill) {
           setRollResult({ skill: rollData.skill, roll: rollData.roll });
@@ -1377,7 +1360,7 @@ const CharacterSheet = () => {
         setSnackbarOpen(true);
       }
     },
-    [id, character?.name, user?.name, sendRollToCampaignBackend] // 'sendRollToCampaignBackend' também é uma dependência
+    [id, character?.name, user?.name, sendRollToCampaignBackend]
   );
 
   const handleInstinctChange = useCallback((instinctKey, value) => {
@@ -1499,7 +1482,6 @@ const CharacterSheet = () => {
     <Box className={styles.characterSheet}>
       <Paper elevation={3} className={styles.characterHeader}>
         <Grid container spacing={2}>
-          {/* Primeira Linha */}
           <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Nome"
@@ -1569,7 +1551,6 @@ const CharacterSheet = () => {
             />
           </Grid>
 
-          {/* Segunda Linha */}
           <Grid item xs={12} sm={6} md={4} lg={3}>
             <TextField
               label="Propósito 1"
@@ -1644,121 +1625,104 @@ const CharacterSheet = () => {
         <Paper
           elevation={3}
           className={styles.leftColumn}
-          sx={{ width: "100%", padding: { xs: "16px", sm: "24px" } }}
+          sx={{ width: "100%", padding: { xs: "16px", sm: "18px" } }}
         >
           <InstinctList
             title="Instintos"
-            instincts={instincts} // Passar os instintos do Redux
+            instincts={instincts}
             selectedInstinct={selectedInstinct}
             handleInstinctChange={handleInstinctChange}
             onAssimilatedRoll={handleAssimilatedRoll}
             id={character?._id}
           />
-
-          {character?.healthLevels?.map((points, index) => (
-            <Box key={index} className={styles.healthBar} mb={2}>
-              <Typography
-                variant="body1"
-                onClick={() => handleHealthClick(5 - index)}
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": { color: "primary.main" },
-                  minWidth: "80px",
-                }}
-              >
-                Saúde {5 - index}:
-              </Typography>
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                width="100%"
-              >
-                <Rating
-                  name={`health-${index}`}
-                  value={points}
-                  max={
-                    Math.max(
-                      character?.instincts?.potency,
-                      character?.instincts?.resolution
-                    ) + 2
-                  }
-                  onChange={(e, newValue) =>
-                    handleHealthChange(index, newValue)
-                  }
-                  precision={1}
-                  // A mágica acontece aqui!
-                  icon={
-                    <HeartFullIcon
-                      width={20}
-                      height={30}
-                      style={{ fill: "#f72c36ff" }}
-                    />
-                  }
-                  emptyIcon={
-                    <HeartEmptyIcon
-                      width={20}
-                      height={30}
-                      style={{ fill: "rgba(0, 0, 0, 0.26)" }}
-                    />
-                  }
-                />
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ minWidth: "60px", textAlign: "right" }}
-                >
-                  {`${points} pts`}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
-
-          <Typography variant="h6" mt={4}>
-            Determinação & Assimilação
+          <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
+            Saúde
           </Typography>
-          <Box className={styles.ratingContainer}>
-            {/* Determinação */}
-            <Box mb={2}>
-              <Typography variant="body1">Determinação</Typography>
-              <TriangleRating
-                name="determination"
-                value={character?.determination || 0}
-                max={10}
-                onChange={handleDeterminationChange}
-                icon={<TriangleRatingIcon color="#67110e" />}
-                emptyIcon={<TriangleRatingIcon color="gray" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
-            </Box>
 
-            {/* Assimilação */}
-            <Box>
-              <Typography variant="body1">Assimilação</Typography>
-              <TriangleRating
-                name="assimilation"
-                value={character?.assimilation || 0}
-                max={10}
-                onChange={handleAssimilationChange}
-                icon={<TriangleRatingIconDown color="#252d44" />}
-                emptyIcon={<TriangleRatingIconDown color="gray" />}
-                sx={{ fontSize: { xs: "20px", sm: "24px" } }}
-              />
+          {character?.healthLevels?.map((points, index) => {
+            const level = 6 - index; // Nível atual (de 6 a 1)
+            const details = healthLevelDetails[level];
+            const maxHealthForLevel =
+              1 +
+              (character?.instincts?.potency || 0) +
+              (character?.instincts?.resolution || 0);
 
-              {/* Mensagem de aviso caso Determinação tenha caído para zero */}
-              {character?.message && (
-                <Typography variant="body2" color="error" mt={2}>
-                  {character.message}
-                </Typography>
-              )}
-            </Box>
-          </Box>
+            return (
+              <Tooltip
+                title={details.description}
+                placement="right"
+                key={level}
+              >
+                <Box className={styles.healthBar} mb={2}>
+                  <Typography
+                    variant="body1"
+                    onClick={() => handleHealthClick(level)}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { color: "primary.main" },
+                      minWidth: "120px", // Aumentado para caber o nome
+                      fontWeight:
+                        character.currentHealthLevel === level
+                          ? "bold"
+                          : "normal",
+                      color:
+                        character.currentHealthLevel === level
+                          ? "primary.main"
+                          : "text.primary",
+                    }}
+                  >
+                    {details.name}:
+                  </Typography>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    width="100%"
+                  >
+                    <Rating
+                      name={`health-${level}`}
+                      value={points}
+                      max={maxHealthForLevel}
+                      onChange={(e, newValue) =>
+                        handleHealthChange(index, newValue)
+                      }
+                      precision={1}
+                      icon={
+                        <HeartFullIcon
+                          width={20}
+                          height={30}
+                          style={{ fill: "#f72c36ff" }}
+                        />
+                      }
+                      emptyIcon={
+                        <HeartEmptyIcon
+                          width={20}
+                          height={30}
+                          style={{ fill: "rgba(0, 0, 0, 0.26)" }}
+                        />
+                      }
+                    />
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{ minWidth: "60px", textAlign: "right" }}
+                    >
+                      {`${points} / ${maxHealthForLevel}`}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Tooltip>
+            );
+          })}
+
+          {character && (
+            <TugOfWar character={character} setCharacter={setCharacter} />
+          )}
         </Paper>
-
         <Paper
           elevation={3}
           className={styles.centerColumn}
-          sx={{ width: "100%", padding: { xs: "16px", sm: "24px" } }}
+          sx={{ width: "100%", padding: { xs: "18px", sm: "26px" } }}
         >
           <SkillList
             title="Conhecimentos & Práticas"
@@ -1802,17 +1766,16 @@ const CharacterSheet = () => {
             textColor="primary"
             variant="fullWidth"
             sx={{
-              // Ajusta a largura das abas para telas menores
               display: "flex",
-              flexDirection: { xs: "column", sm: "row" }, // Coloca as abas em coluna em telas pequenas
-              justifyContent: "center", // Centraliza o conteúdo das abas
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: "center",
             }}
           >
             <Tab
               label="Inventário"
               sx={{
-                fontSize: { xs: "10px", sm: "14px" }, // Reduz texto em telas pequenas
-                padding: { xs: "8px", sm: "12px" }, // Ajusta o padding em telas pequenas
+                fontSize: { xs: "10px", sm: "14px" },
+                padding: { xs: "8px", sm: "12px" },
               }}
             />
             <Tab
@@ -1841,7 +1804,6 @@ const CharacterSheet = () => {
             <Box>
               <Typography variant="h6">Inventário</Typography>
 
-              {/* Exibição do Peso Total */}
               <Typography
                 variant="body2"
                 color={
@@ -1855,10 +1817,9 @@ const CharacterSheet = () => {
                 Peso Total: {calculateTotalWeight()} / {maxWeight}
               </Typography>
 
-              {/* Barra de Progresso do Peso */}
               <LinearProgress
                 variant="determinate"
-                value={(calculateTotalWeight() / maxWeight) * 50} // Use 50 para a barra não ficar tão grande
+                value={(calculateTotalWeight() / maxWeight) * 50}
                 sx={{
                   height: 15,
                   borderRadius: 5,
@@ -1871,7 +1832,6 @@ const CharacterSheet = () => {
                 }}
               />
 
-              {/* Botão de Adicionar Item */}
               <Button
                 variant="contained"
                 color="primary"
@@ -1881,10 +1841,8 @@ const CharacterSheet = () => {
                 + Adicionar Item
               </Button>
 
-              {/* Lista de Itens do Inventário */}
               <List>
                 {(character?.inventory || []).map((invItem, index) => {
-                  // **DECLARAÇÃO CORRETA DAS VARIÁVEIS, DENTRO DO MAP**
                   const itemInstance = invItem;
                   const itemBase = invItem.item;
                   const characteristicsToDisplay =
@@ -1893,28 +1851,85 @@ const CharacterSheet = () => {
                   return (
                     <ListItem
                       key={index}
-                      sx={{ display: "flex", alignItems: "center" }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
+                        py: 2,
+                      }}
                     >
                       <ListItemText
-                        primary={`${
-                          itemBase?.name || "Item desconhecido"
-                        } (Usos: ${itemInstance?.durability ?? "N/A"})`}
-                        secondary={`Peso: ${
-                          itemBase?.weight ?? "N/A"
-                        } | Características: ${
-                          Array.isArray(characteristicsToDisplay?.details)
-                            ? characteristicsToDisplay.details
-                                .map((char) => char?.name || "Desconhecida")
-                                .join(", ")
-                            : "Nenhuma"
-                        }`}
+                        primary={itemBase?.name || "Item desconhecido"}
+                        secondary={
+                          <React.Fragment>
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {`Peso: ${itemBase?.weight ?? "N/A"} | Escassez: ${scarcityLevels[itemBase?.category] || 'N/A'}`}
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mt: 1,
+                              }}
+                            >
+                              <Typography
+                                component="span"
+                                variant="body2"
+                                color="text.secondary"
+                                mr={1}
+                              >
+                                Qualidade:{" "}
+                                {qualityLevels[invItem.quality] || "Indefinida"}
+                              </Typography>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                sx={{ minWidth: "30px", p: 0, height: "30px" }}
+                                onClick={() =>
+                                  handleQualityChange(
+                                    index,
+                                    invItem.quality - 1
+                                  )
+                                }
+                              >
+                                -
+                              </Button>
+                              <Typography
+                                component="span"
+                                sx={{ p: "0 10px", fontWeight: "bold" }}
+                              >
+                                {invItem.quality}
+                              </Typography>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                sx={{ minWidth: "30px", p: 0, height: "30px" }}
+                                onClick={() =>
+                                  handleQualityChange(
+                                    index,
+                                    invItem.quality + 1
+                                  )
+                                }
+                              >
+                                +
+                              </Button>
+                            </Box>
+                          </React.Fragment>
+                        }
                         sx={{ flex: 1, minWidth: 0 }}
                       />
                       <Box>
                         <IconButton
                           edge="end"
                           onClick={() =>
-                            setEditItem({ index, item: itemBase || {} })
+                            setEditItem({
+                              index,
+                              item: { ...itemBase, quality: invItem.quality },
+                            })
                           }
                           sx={{ mr: 1 }}
                         >
@@ -2024,7 +2039,7 @@ const CharacterSheet = () => {
         autoHideDuration={10000}
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        key={snackbarKey} // Usar a chave única do Snackbar
+        key={snackbarKey}
       >
         <Alert
           onClose={handleSnackbarClose}
@@ -2047,6 +2062,13 @@ const CharacterSheet = () => {
               customRollResult?.formula ||
               "Nenhuma"}
           </Typography>
+
+          {rollResult?.effectMessage && (
+            <Typography variant="body2" sx={{ color: '#66bb6a', fontStyle: 'italic' }}>
+                {rollResult.effectMessage}
+            </Typography>
+        )}
+
           <Typography variant="body1">Dados Rolados:</Typography>
           {(rollResult?.roll || customRollResult?.roll)?.length > 0
             ? (rollResult?.roll || customRollResult?.roll)?.map(
