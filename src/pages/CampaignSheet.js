@@ -13,18 +13,16 @@ import {
   TextField,
   List,
   ListItem,
-  Divider,
-  ListItemText,
   IconButton,
   Snackbar,
+  Divider,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import styles from "./CampaignSheet.module.css"; // Mantenha .module.css
-import CharacterPortraitOverview from "../components/CharacterPortraitOverview";
+import styles from "./CampaignSheet.module.css";
 import MasterDiceRoller from "../components/MasterDiceRoller";
 import RecentRollsFeed from "../components/RecentRollsFeed";
-
-// ... (o resto do seu código, como a função translateKey, permanece o mesmo) ...
+import TugOfWar from "../components/TugOfWar";
+import CharacterPortraitOverview from "../components/CharacterPortraitOverview"; // Re-adicionando a importação
 
 const CampaignSheet = () => {
   const { id: campaignId } = useParams();
@@ -40,17 +38,48 @@ const CampaignSheet = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
 
-  const fetchMasterShieldData = useCallback(async () => {
+  const fetchDynamicData = useCallback(async () => {
+    if (!token || !user || !isMaster) return;
+
+    try {
+      const [playersRes, rollsRes] = await Promise.all([
+        axios.get(
+          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/players-data`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ),
+        axios.get(
+          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/recent-rolls`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ),
+      ]);
+      setPlayersData(playersRes.data);
+      setRecentRolls(rollsRes.data);
+    } catch (err) {
+      console.error("Falha ao atualizar dados dinâmicos:", err);
+    }
+  }, [campaignId, user, token, isMaster]);
+
+  const fetchInitialData = useCallback(async () => {
     if (!token || !user) {
       setError("Autenticação necessária.");
       setLoading(false);
       return;
     }
+    setLoading(true);
     try {
-      const [campaignRes, playersRes, rollsRes] = await Promise.all([
-        axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const campaignRes = await axios.get(
+        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const masterId = campaignRes.data.master._id || campaignRes.data.master;
+      const currentUserIsMaster = user._id === masterId;
+      setIsMaster(currentUserIsMaster);
+      setCampaign(campaignRes.data);
+
+      if (!currentUserIsMaster) return;
+
+      const [playersRes, rollsRes] = await Promise.all([
         axios.get(
           `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/players-data`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -61,17 +90,6 @@ const CampaignSheet = () => {
         ),
       ]);
 
-      const masterId = campaignRes.data.master._id || campaignRes.data.master;
-      const currentUserIsMaster = user._id === masterId;
-      setIsMaster(currentUserIsMaster);
-
-      if (!currentUserIsMaster) {
-        setCampaign(campaignRes.data);
-        setLoading(false);
-        return;
-      }
-
-      setCampaign(campaignRes.data);
       setMasterNotes(campaignRes.data.notes || "");
       setPlayersData(playersRes.data);
       setRecentRolls(rollsRes.data);
@@ -87,10 +105,15 @@ const CampaignSheet = () => {
   }, [campaignId, user, token]);
 
   useEffect(() => {
-    fetchMasterShieldData();
-    const interval = setInterval(fetchMasterShieldData, 5000);
-    return () => clearInterval(interval);
-  }, [fetchMasterShieldData]);
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  useEffect(() => {
+    if (isMaster) {
+      const interval = setInterval(fetchDynamicData, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isMaster, fetchDynamicData]);
 
   const handleSaveNotes = async () => {
     try {
@@ -120,7 +143,7 @@ const CampaignSheet = () => {
     setSnackbarOpen(false);
   };
 
-  if (loading)
+  if (loading) {
     return (
       <Box className={styles.loadingContainer}>
         <CircularProgress />
@@ -129,8 +152,9 @@ const CampaignSheet = () => {
         </Typography>
       </Box>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <Box className={styles.errorContainer}>
         <Alert severity="error" sx={{ m: 3 }}>
@@ -138,8 +162,9 @@ const CampaignSheet = () => {
         </Alert>
       </Box>
     );
+  }
 
-  if (!campaign)
+  if (!campaign) {
     return (
       <Box className={styles.errorContainer}>
         <Alert severity="warning" sx={{ m: 3 }}>
@@ -147,6 +172,7 @@ const CampaignSheet = () => {
         </Alert>
       </Box>
     );
+  }
 
   return (
     <Box className={styles.campaignSheet}>
@@ -200,7 +226,7 @@ const CampaignSheet = () => {
                 <Paper
                   elevation={2}
                   className={styles.columnPaper}
-                  sx={{ backgroundColor: "transparent" }} // Adicione a cor desejada aqui
+                  sx={{ backgroundColor: "transparent" }}
                 >
                   <Typography
                     variant="h5"
@@ -217,7 +243,6 @@ const CampaignSheet = () => {
                             key={character._id}
                             className={styles.characterListItem}
                           >
-                            {/* ===== INÍCIO DA CORREÇÃO ===== */}
                             <Box
                               sx={{
                                 width: "100%",
@@ -260,11 +285,12 @@ const CampaignSheet = () => {
                                   </Typography>
                                 </IconButton>
                               </Box>
-                              <CharacterPortraitOverview
-                                character={character}
-                              />
+                              
+                              {/* --- VOLTAMOS COM O COMPONENTE ORIGINAL --- */}
+                              <CharacterPortraitOverview character={character} />
+
+
                             </Box>
-                            {/* ===== FIM DA CORREÇÃO ===== */}
                           </ListItem>
                         ))}
                       </List>
@@ -277,12 +303,11 @@ const CampaignSheet = () => {
                 </Paper>
               </Grid>
 
-              {/* COLUNA 2: Rolagens na Campanha */}
               <Grid item xs={12} md={4} className={styles.shieldColumn}>
                 <Paper
                   elevation={2}
                   className={styles.columnPaper}
-                  sx={{ backgroundColor: "transparent" }} // Adicione a cor desejada aqui
+                  sx={{ backgroundColor: "transparent" }}
                 >
                   <Typography
                     variant="h5"
@@ -300,13 +325,9 @@ const CampaignSheet = () => {
                 </Paper>
               </Grid>
 
-              {/* COLUNA 3: Ferramentas do Mestre (Dados e Anotações) */}
               <Grid item xs={12} md={4} className={styles.shieldColumn}>
                 <Paper elevation={2} className={styles.columnPaper}>
-                  {/* --- Seção de Rolar Dados --- */}
                   <Box sx={{ mb: 3 }}>
-                    {" "}
-                    {/* Adicionamos um espaçamento inferior */}
                     <Typography
                       variant="h5"
                       gutterBottom
@@ -321,7 +342,6 @@ const CampaignSheet = () => {
                     sx={{ my: 2, borderColor: "rgba(255, 255, 255, 0.2)" }}
                   />
 
-                  {/* --- Seção de Anotações --- */}
                   <Box
                     sx={{
                       display: "flex",
@@ -346,7 +366,7 @@ const CampaignSheet = () => {
                       onChange={(e) => setMasterNotes(e.target.value)}
                       sx={{
                         mb: 2,
-                        flexGrow: 1, // Faz o campo de texto crescer
+                        flexGrow: 1,
                         "& .MuiOutlinedInput-root": {
                           color: "white",
                           "& fieldset": {
@@ -370,9 +390,8 @@ const CampaignSheet = () => {
               </Grid>
             </Grid>
           ) : (
-            // Player's View (Permanece igual)
             <Paper elevation={3} className={styles.playerViewPaper}>
-              {/* ... seu código para a visão do jogador ... */}
+              <Typography>Visão do Jogador - Em Construção</Typography>
             </Paper>
           )}
         </Box>

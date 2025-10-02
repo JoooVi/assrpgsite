@@ -143,3 +143,28 @@
   margin-top: 20px;
   text-align: center;
 }
+
+.trackIconsContainer {
+  display: flex;
+  /* justify-content: flex-start;  <-- REMOVER OU COMENTAR ESTA LINHA */
+  justify-content: center; /* <-- ADICIONAR ESTA LINHA */
+  align-items: center;
+  flex-wrap: wrap; /* Caso tenha muitos pontos e quebre a linha */
+  flex-grow: 1;
+  gap: 2px; /* Espaçamento entre os ícones */
+}
+
+.trackEndCap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px; /* Adiciona um pouco de padding nas laterais */
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centraliza o bloco inteiro */
+  width: 100%;
+  /* gap: 5px;  <-- Se quiser um espaço maior entre o círculo e a trilha de ícones */
+}

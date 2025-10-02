@@ -1,5 +1,13 @@
 import React, { useState, useCallback } from "react";
-import { Box, TextField, Button, Typography, Snackbar, Alert, Grid } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Snackbar,
+  Alert,
+  Grid,
+} from "@mui/material";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { ReactComponent as D20Icon } from "../assets/d12.svg"; // Reutilizando um ícone de dado existente
@@ -7,34 +15,64 @@ import { ReactComponent as D20Icon } from "../assets/d12.svg"; // Reutilizando u
 // --- Dice Assets (Replicar do CharacterSheet.js) ---
 const dados = {
   d6: {
-    1: [], 2: [],
+    1: [],
+    2: [],
     3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    4: [require("../assets/Coruja_1.png")],
+    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
     6: [require("../assets/Joaninha_1.png")],
   },
   d10: {
-    1: [], 2: [],
+    1: [],
+    2: [],
     3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    4: [require("../assets/Coruja_1.png")],
+    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
     6: [require("../assets/Joaninha_1.png")],
-    7: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png")],
-    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
-    9: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    10: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png"), require("../assets/Coruja_1.png")],
+    7: [
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+    ],
+    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
+    9: [
+      require("../assets/Cervo_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
+    ],
+    10: [
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
+    ],
   },
   d12: {
-    1: [], 2: [],
+    1: [],
+    2: [],
     3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
+    4: [require("../assets/Coruja_1.png")],
+    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
     6: [require("../assets/Joaninha_1.png")],
-    7: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png")],
-    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
-    9: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    10: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png"), require("../assets/Coruja_1.png")],
-    11: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png"), require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
+    7: [
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+    ],
+    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
+    9: [
+      require("../assets/Cervo_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
+    ],
+    10: [
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
+    ],
+    11: [
+      require("../assets/Cervo_1.png"),
+      require("../assets/Cervo_1.png"),
+      require("../assets/Joaninha_1.png"),
+      require("../assets/Coruja_1.png"),
+    ],
     12: [require("../assets/Coruja_1.png"), require("../assets/Coruja_1.png")],
   },
 };
@@ -58,7 +96,7 @@ const rollCustomDice = (formula) => {
     for (let i = 0; i < countInt; i++) {
       const face = Math.floor(Math.random() * sidesInt) + 1;
       const result = dados[`d${sidesInt}`][face] || [];
-      results.push({ face, result });
+      results.push({ face, result, sides: sidesInt });
     }
   }
   return results;
@@ -102,7 +140,10 @@ const MasterDiceRoller = ({ campaignId }) => {
       setSnackbarMessage("Rolagem realizada com sucesso!");
       setSnackbarSeverity("success");
     } catch (error) {
-      console.error("Erro ao rolar dados:", error.response?.data || error.message);
+      console.error(
+        "Erro ao rolar dados:",
+        error.response?.data || error.message
+      );
       setSnackbarMessage("Erro ao realizar rolagem.");
       setSnackbarSeverity("error");
     } finally {
@@ -111,7 +152,7 @@ const MasterDiceRoller = ({ campaignId }) => {
   }, [customDiceFormula, campaignId, user, token]);
 
   const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
     setSnackbarOpen(false);
@@ -128,45 +169,76 @@ const MasterDiceRoller = ({ campaignId }) => {
         margin="normal"
         size="small"
         sx={{
-          '& .MuiInputBase-root': { color: 'white' },
-          '& .MuiInputLabel-root': { color: '#aaa' },
-          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#777' },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#fff' },
+          "& .MuiInputBase-root": { color: "white" },
+          "& .MuiInputLabel-root": { color: "#aaa" },
+          "& .MuiOutlinedInput-notchedOutline": { borderColor: "#555" },
+          "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#777" },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#fff",
+          },
         }}
       />
       <Button
         variant="contained"
         color="primary"
         onClick={handleCustomRoll}
-        startIcon={<D20Icon style={{ width: '24px', height: '24px' }} />}
-        sx={{ mt: 1, mb: 2, width: '100%' }}
+        startIcon={<D20Icon style={{ width: "24px", height: "24px" }} />}
+        sx={{ mt: 1, mb: 2, width: "100%" }}
       >
         Rolar Dados
       </Button>
 
       {rollResult && (
-        <Box sx={{ mt: 2, p: 1, border: '1px dashed #666', borderRadius: '4px', bgcolor: '#1a1a1a' }}>
-          <Typography variant="body2" sx={{ color: '#eee' }}>
+        <Box
+          sx={{
+            mt: 2,
+            p: 1,
+            border: "1px dashed #666",
+            borderRadius: "4px",
+            bgcolor: "#1a1a1a",
+          }}
+        >
+          <Typography variant="body2" sx={{ color: "#eee" }}>
             Rolagem: {rollResult.formula}
           </Typography>
           <Grid container spacing={1} sx={{ mt: 1 }}>
             {rollResult.roll.map((die, index) => (
-              <Grid item key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography variant="caption" sx={{ color: '#ccc' }}>D{die.face === 6 ? 6 : (die.face === 10 ? 10 : 12)}</Typography> {/* Infer dice type from face */}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Grid
+                item
+                key={index}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Typography variant="caption" sx={{ color: "#ccc" }}>
+                  D{die.sides}
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                  }}
+                >
                   {die.result.length > 0 ? (
                     die.result.map((imgSrc, i) => (
                       <img
                         key={i}
                         src={imgSrc}
                         alt="symbol"
-                        style={{ width: '25px', height: '25px', margin: '2px' }}
-                        onError={(e) => { e.target.onerror = null; e.target.src = "/path/to/default-image.png"; }}
+                        style={{ width: "25px", height: "25px", margin: "2px" }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/path/to/default-image.png";
+                        }}
                       />
                     ))
                   ) : (
-                    <Typography variant="body2" sx={{ color: '#f00' }}>{die.face}</Typography> // Show face number if no symbols
+                    <Typography variant="body2" sx={{ color: "#f00" }}>
+                      {die.face}
+                    </Typography> // Show face number if no symbols
                   )}
                 </Box>
               </Grid>
@@ -175,8 +247,16 @@ const MasterDiceRoller = ({ campaignId }) => {
         </Box>
       )}
 
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>

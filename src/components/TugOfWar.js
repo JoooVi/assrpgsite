@@ -1,4 +1,4 @@
-// src/components/TugOfWar.js - VERSÃO FINAL COM ÍCONES SÓLIDOS/VAZADOS
+// src/components/TugOfWar.js - VERSÃO ATUALIZADA COM MODO SÓ-LEITURA
 
 import React from 'react';
 import { Box, Typography, Button, Paper } from '@mui/material';
@@ -6,12 +6,9 @@ import axios from 'axios';
 import styles from '../styles/TugOfWar.module.css';
 
 // --- COMPONENTES DOS ÍCONES SVG ---
-
-// ### MUDANÇA PRINCIPAL AQUI ###
-// O ícone agora tem dois visuais: sólido ou vazado, controlado pela prop 'isFilled'.
 const TrackIcon = ({ color, isFilled, onClick, isClickable }) => {
-  const fillColor = isFilled ? color : 'none'; // Se não estiver preenchido, o fundo é transparente.
-  const strokeColor = color; // A cor do contorno é sempre a mesma.
+  const fillColor = isFilled ? color : 'none';
+  const strokeColor = color;
 
   return (
     <svg 
@@ -23,15 +20,14 @@ const TrackIcon = ({ color, isFilled, onClick, isClickable }) => {
       className={isClickable ? styles.clickableIcon : ''}
     >
       <path 
-        d="M20 0L0 12L20 24L40 12Z" // O caminho do losango sólido
+        d="M20 0L0 12L20 24L40 12Z"
         fill={fillColor} 
         stroke={strokeColor} 
-        strokeWidth="2.5" // A espessura do contorno
+        strokeWidth="2.5"
       />
     </svg>
   );
 };
-
 
 const DeterminationCircle = ({ level }) => (
     <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
@@ -48,9 +44,12 @@ const AssimilationCircle = ({ level }) => (
 );
 
 
-const TugOfWar = ({ character, setCharacter }) => {
-  // A lógica de salvar, gastar pontos e cair de nível continua a mesma.
+// ===== ALTERAÇÃO 1: Adicionamos a prop 'isReadOnly' =====
+const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
+
   const saveStateToBackend = async (updatedState) => {
+    // Não salva nada se for só leitura
+    if (isReadOnly) return;
     try {
       const token = localStorage.getItem("token");
       const apiState = {
@@ -70,7 +69,8 @@ const TugOfWar = ({ character, setCharacter }) => {
   };
 
   const handleSetPoints = (type, value) => {
-    if (!character) return;
+    // Não faz nada se for só leitura
+    if (isReadOnly || !character) return;
     
     let updatedState = { ...character };
 
@@ -95,7 +95,7 @@ const TugOfWar = ({ character, setCharacter }) => {
   };
 
   const handleConvertDetToAss = () => {
-    if (character.determinationPoints < 2) return;
+    if (isReadOnly || character.determinationPoints < 2) return;
 
     const newDetPoints = character.determinationPoints - 2;
     const newAssPoints = Math.min(character.assimilationLevel, character.assimilationPoints + 1);
@@ -117,14 +117,15 @@ const TugOfWar = ({ character, setCharacter }) => {
 
     // Adiciona os ícones de Determinação
     for (let i = 1; i <= character.determinationLevel; i++) {
-        const isFilled = i <= character.determinationPoints; // Verifica se este ponto está "preenchido"
+        const isFilled = i <= character.determinationPoints;
         trackItems.push(
             <TrackIcon 
                 key={`det-${i}`} 
                 color={colorDet}
-                isFilled={isFilled} // Passa a informação para o componente do ícone
+                isFilled={isFilled}
+                // ===== ALTERAÇÃO 2: Ações de clique são desativadas no modo só-leitura =====
                 onClick={() => handleSetPoints('determination', i)}
-                isClickable={true}
+                isClickable={!isReadOnly}
             />
         );
     }
@@ -138,7 +139,7 @@ const TugOfWar = ({ character, setCharacter }) => {
                 color={colorAss}
                 isFilled={isFilled}
                 onClick={() => handleSetPoints('assimilation', i)}
-                isClickable={true}
+                isClickable={!isReadOnly}
             />
         );
     }
@@ -181,15 +182,18 @@ const TugOfWar = ({ character, setCharacter }) => {
         </div>
       </div>
 
-      <div className={styles.conversionSection}>
-        <Button
-          variant="contained"
-          onClick={handleConvertDetToAss}
-          disabled={character.determinationPoints < 2}
-        >
-          Converter 2 DET p/ 1 Ponto de ASS
-        </Button>
-      </div>
+      {/* ===== ALTERAÇÃO 3: Ocultamos o botão de conversão no modo só-leitura ===== */}
+      {!isReadOnly && (
+        <div className={styles.conversionSection}>
+          <Button
+            variant="contained"
+            onClick={handleConvertDetToAss}
+            disabled={character.determinationPoints < 2}
+          >
+            Converter 2 DET p/ 1 Ponto de ASS
+          </Button>
+        </div>
+      )}
     </Paper>
   );
 };
