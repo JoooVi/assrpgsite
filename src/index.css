@@ -31,12 +31,12 @@ body::after {
 
 /* 3. Definindo a animação das imagens */
 @keyframes imageSlideshow {
-  0% { background-image: url('lab1.jpg'); }
-  20% { background-image: url('lab2.jpg'); }
-  40% { background-image: url('lab3.jpg'); }
-  60% { background-image: url('lab4.jpg'); }
-  80% { background-image: url('lab5.jpg'); }
-  100% { background-image: url('lab6.jpg'); } /* Volta para a primeira */
+  0% { background-image: url('lab1.png'); }
+  20% { background-image: url('lab2.png'); }
+  40% { background-image: url('lab3.png'); }
+  60% { background-image: url('lab4.png'); }
+  80% { background-image: url('lab5.png'); }
+  100% { background-image: url('lab6.png'); } /* Volta para a primeira */
 }
 
 /* 4. Definindo a animação de opacidade (o crossfade) */
