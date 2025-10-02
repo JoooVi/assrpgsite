@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Tooltip,
   IconButton,
-  Fab,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,10 +24,8 @@ import {
   SpeedDialAction,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
 import LoginIcon from "@mui/icons-material/Login";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
-import { motion } from "framer-motion";
 
 const CampaignList = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -43,6 +40,7 @@ const CampaignList = () => {
   const [inviteCode, setInviteCode] = useState("");
   const [selectedChar, setSelectedChar] = useState("");
   const [availableChars, setAvailableChars] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     if (!user || !token) {
@@ -73,9 +71,9 @@ const CampaignList = () => {
     fetchCampaigns();
   }, [user, token]);
 
-  const handleOpenJoinModal = async () => {
+  const fetchAvailableCharacters = async () => {
+    setModalLoading(true);
     try {
-      // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
       const res = await axios.get(
         "https://assrpgsite-be-production.up.railway.app/api/characters/available",
         {
@@ -83,30 +81,37 @@ const CampaignList = () => {
         }
       );
       setAvailableChars(res.data);
-      setOpenJoinModal(true);
     } catch (err) {
-      console.error("Erro ao buscar personagens:", err);
-      alert(
-        "Erro ao buscar seus personagens. Você precisa ter personagens disponíveis para entrar em uma campanha."
-      );
+      console.error("Não foi possível buscar personagens (isso é normal se o usuário não tiver nenhum):", err);
+      setAvailableChars([]);
+    } finally {
+      setModalLoading(false);
     }
   };
 
+  const handleOpenJoinModal = () => {
+    setOpenJoinModal(true);
+    fetchAvailableCharacters();
+  };
+
   const handleJoinCampaign = async () => {
-    if (!inviteCode || !selectedChar) {
-      alert(
-        "Por favor, preencha o código de convite e selecione um personagem."
-      );
+    if (!inviteCode) {
+      alert("Por favor, preencha o código de convite.");
       return;
     }
+    
+    const payload = {
+      inviteCode: inviteCode,
+    };
+
+    if (selectedChar) {
+      payload.characterId = selectedChar;
+    }
+
     try {
-      // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
       await axios.post(
         "https://assrpgsite-be-production.up.railway.app/api/campaigns/join",
-        {
-          inviteCode: inviteCode,
-          characterId: selectedChar,
-        },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       window.location.reload();
@@ -124,7 +129,6 @@ const CampaignList = () => {
       )
     ) {
       try {
-        // --- CORREÇÃO AQUI: URL completa para a chamada da API ---
         await axios.delete(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -156,101 +160,85 @@ const CampaignList = () => {
     );
   }
 
-  if (!loading && campaigns.length === 0) {
-    return (
-      <div className="noCampaigns">
-        <div className="noCampaignsBox">
-          <Typography
-            variant="h5"
-            component="div"
-            className="noCampaignsText"
-            style={{ color: "#fff", fontFamily: "'Orbitron', sans-serif" }}
-          >
-            Nenhuma Campanha Encontrada
-          </Typography>
-          <Typography
-            variant="body1"
-            component="div"
-            sx={{ marginBottom: "20px" }}
-            className="noCampaignsText"
-          >
-            Você pode criar uma nova campanha ou juntar-se a uma existente com
-            um código de convite.
-          </Typography>
-          <Box
-            sx={{ display: "flex", gap: 2, mt: 2, justifyContent: "center" }}
-          >
-            <Button
-              onClick={() => navigate("/create-campaign")}
-              variant="contained"
-              color="primary"
-            >
-              Criar Campanha
-            </Button>
-            <Button onClick={handleOpenJoinModal} variant="outlined">
-              Entrar com Código
-            </Button>
-          </Box>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="campaignList">
-      <h2>Suas Campanhas</h2>
-
-      <div className="campaignCards">
-        {campaigns.map((campaign, index) => (
-          <article
-            key={campaign._id}
-            className="campaignCard"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <div className="contentPane">
-              <div className="campaignInfo">
-                <Typography
-                  variant="h5"
-                  component="h2"
-                  className="campaignName"
-                >
-                  {campaign.name}
-                </Typography>
-                <Typography variant="body2" className="infoText">
-                  Mestre: {campaign.masterName || "Desconhecido"}
-                </Typography>
-                <Typography variant="body2" className="infoText">
-                  Jogadores: {campaign.playersCount || 0}
-                </Typography>
-                <Typography variant="body2" className="infoText">
-                  Status: {campaign.status || "Ativa"}
-                </Typography>
-              </div>
-              <div className="cardActions">
-                <Button
-                  variant="outlined"
-                  className="actionButton"
-                  onClick={() => navigate(`/campaign-lobby/${campaign._id}`)}
-                >
-                  Abrir Campanha
-                </Button>
-                {user && campaign.isMaster && (
-                  <Tooltip title="Excluir Campanha">
-                    <IconButton
-                      size="small"
-                      className="deleteButton"
-                      onClick={() => handleDelete(campaign._id)}
+    // Usamos um Fragment <> para agrupar tudo sem adicionar um div extra no DOM
+    <>
+      {campaigns.length === 0 ? (
+        // TELA DE NENHUMA CAMPANHA
+        <div className="noCampaigns">
+          <div className="noCampaignsBox">
+            <Typography
+              variant="h5"
+              component="div"
+              className="noCampaignsText"
+              style={{ color: "#fff", fontFamily: "'Orbitron', sans-serif" }}
+            >
+              Nenhuma Campanha Encontrada
+            </Typography>
+            <Typography
+              variant="body1"
+              component="div"
+              sx={{ marginBottom: "20px" }}
+              className="noCampaignsText"
+            >
+              Use o menu de ações para criar uma nova campanha ou juntar-se a uma existente.
+            </Typography>
+          </div>
+        </div>
+      ) : (
+        // TELA COM A LISTA DE CAMPANHAS
+        <div className="campaignList">
+          <h2>Suas Campanhas</h2>
+          <div className="campaignCards">
+            {campaigns.map((campaign, index) => (
+              <article
+                key={campaign._id}
+                className="campaignCard"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="contentPane">
+                  <div className="campaignInfo">
+                    <Typography variant="h5" component="h2" className="campaignName">
+                      {campaign.name}
+                    </Typography>
+                    <Typography variant="body2" className="infoText">
+                      Mestre: {campaign.masterName || "Desconhecido"}
+                    </Typography>
+                    <Typography variant="body2" className="infoText">
+                      Jogadores: {campaign.playersCount || 0}
+                    </Typography>
+                    <Typography variant="body2" className="infoText">
+                      Status: {campaign.status || "Ativa"}
+                    </Typography>
+                  </div>
+                  <div className="cardActions">
+                    <Button
+                      variant="outlined"
+                      className="actionButton"
+                      onClick={() => navigate(`/campaign-lobby/${campaign._id}`)}
                     >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+                      Abrir Campanha
+                    </Button>
+                    {user && campaign.isMaster && (
+                      <Tooltip title="Excluir Campanha">
+                        <IconButton
+                          size="small"
+                          className="deleteButton"
+                          onClick={() => handleDelete(campaign._id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
 
+      {/* COMPONENTES COMPARTILHADOS - Sempre presentes */}
       <SpeedDial
         ariaLabel="Menu de Ações da Campanha"
         sx={{ position: "fixed", bottom: 30, right: 30 }}
@@ -288,16 +276,25 @@ const CampaignList = () => {
           />
           <FormControl fullWidth>
             <InputLabel id="select-character-label">
-              Escolha seu Personagem
+              Escolha seu Personagem (Opcional)
             </InputLabel>
             <Select
               labelId="select-character-label"
               id="select-character"
               value={selectedChar}
-              label="Escolha seu Personagem"
+              label="Escolha seu Personagem (Opcional)"
               onChange={(e) => setSelectedChar(e.target.value)}
+              disabled={modalLoading}
             >
-              {availableChars.length > 0 ? (
+              <MenuItem value="">
+                <em>Nenhum - Entrar sem personagem</em>
+              </MenuItem>
+              {modalLoading ? (
+                <MenuItem disabled>
+                  <CircularProgress size={20} />
+                  <span style={{ marginLeft: "10px" }}>Carregando...</span>
+                </MenuItem>
+              ) : availableChars.length > 0 ? (
                 availableChars.map((char) => (
                   <MenuItem key={char._id} value={char._id}>
                     {char.name} ({char.occupation || "Sem ocupação"})
@@ -318,7 +315,7 @@ const CampaignList = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </>
   );
 };
 
