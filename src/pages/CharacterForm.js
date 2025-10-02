@@ -15,6 +15,7 @@ import {
   CardContent,
   Card,
   Button,
+  Icon,
   IconButton,
   Box,
 } from "@mui/material";
@@ -29,10 +30,20 @@ import axios from "axios";
 import AppTheme from "../theme/AppTheme";
 import "./CharacterForm.css";
 
-// =============================================================================
-// ### MUDANÇA ESTRUTURAL: Componentes para cada Passo ###
-// Em vez de uma função gigante, cada passo agora é um componente separado.
-// =============================================================================
+const packIcons = {
+  // --- Pacotes que você já tinha ---
+  Combatente: 'military_tech',        
+  Curandeiro: 'healing',       
+  Desbravador: 'explore',      
+
+  // --- Pacotes Adicionais ---
+  Estudioso: 'menu_book',    
+  Mercador: 'balance',      
+  Nômade: 'hiking',         
+  infiltrador: 'visibility_off',
+  Selvagem: 'forest',        
+  Sobrevivente: 'whatshot',
+};
 
 const Step1_Informacoes = ({ character, handleInputChange, errors }) => (
   <div className="step fade-in">
@@ -137,88 +148,49 @@ const Step3_Propositos = ({ character, handleInputChange, errors }) => (
   </div>
 );
 
-const Step4_Equipamento = ({
-  character,
-  handlePackSelect,
-  handleAccordionToggle,
-  expandedPack,
-  areItemsLoading,
-  initialEquipmentPacks,
-}) => {
-  if (areItemsLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100%",
-        }}
-      >
-        <CircularProgress />
-        <Typography sx={{ ml: 2, color: "white" }}>
-          Carregando itens...
-        </Typography>
-      </Box>
-    );
-  }
+const Step4_Equipamento = ({ character, handlePackSelect, initialEquipmentPacks }) => {
   return (
     <div className="step fade-in">
       <h3>Equipamento Inicial</h3>
       <Typography variant="body1" sx={{ mb: 2, color: "white" }}>
         Escolha um pacote de equipamentos.
       </Typography>
-      <Box>
+      <Grid container spacing={2}>
         {initialEquipmentPacks.map((pack) => (
-          <div
-            key={pack.name}
-            className={`pack-container ${
-              character.initialPack === pack.name ? "selected" : ""
-            }`}
-          >
-            <div
-              className="pack-summary"
-              onClick={() => handleAccordionToggle(pack.name)}
+          <Grid item xs={12} sm={6} md={4} key={pack.name}>
+            <Card
+              onClick={() => handlePackSelect(pack)}
+              sx={{
+                cursor: 'pointer',
+                border: character.initialPack === pack.name ? '2px solid' : '2px solid transparent',
+                borderColor: character.initialPack === pack.name ? 'primary.main' : 'transparent',
+                position: 'relative',
+                transition: 'border-color 0.3s ease',
+                backgroundColor: '#03002b', // Cor de fundo do seu CSS
+                color: 'white'
+              }}
             >
-              <Typography className="pack-summary-title">
-                {pack.name}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                {character.initialPack === pack.name && (
-                  <CheckCircleIcon color="success" sx={{ mr: 2 }} />
-                )}
-                <span
-                  style={{
-                    transform:
-                      expandedPack === pack.name
-                        ? "rotate(180deg)"
-                        : "rotate(0deg)",
-                    transition: "transform 0.3s",
-                  }}
-                >
-                  ▼
-                </span>
-              </Box>
-            </div>
-            {expandedPack === pack.name && (
-              <div className="pack-details">
-                <Typography variant="body2" sx={{ fontStyle: "italic", mb: 2 }}>
-                  Itens: {pack.items.join(", ")}
+              {character.initialPack === pack.name && (
+                <CheckCircleIcon
+                  color="success"
+                  sx={{ position: 'absolute', top: 8, right: 8 }}
+                />
+              )}
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Icon sx={{ mr: 1 }}>{packIcons[pack.name] || 'backpack'}</Icon>
+                  <Typography variant="h6" component="div">
+                    {pack.name}
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', minHeight: 60 }}>
+                  Itens: {pack.items.join(', ')}
                 </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => handlePackSelect(pack)}
-                  disabled={character.initialPack === pack.name}
-                >
-                  {character.initialPack === pack.name
-                    ? "Selecionado"
-                    : "Selecionar Pacote"}
-                </Button>
-              </div>
-            )}
-          </div>
+              </CardContent>
+            </Card>
+          </Grid>
         ))}
-      </Box>
+      </Grid>
     </div>
   );
 };
