@@ -15,12 +15,15 @@ import {
   CardContent,
   Card,
   Button,
+  IconButton,
   Box,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import StarIcon from "@mui/icons-material/Star";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import AppTheme from "../theme/AppTheme";
@@ -249,22 +252,48 @@ const Step5_Distribuicao = ({
       sx={{ mb: 2, p: 2, fontSize: "1rem" }}
     />
     <Grid container spacing={2}>
-      {Object.keys(character.instincts).map((instinct) => (
+        {Object.keys(character.instincts).map((instinct) => (
         <Grid item xs={6} sm={4} md={2} key={instinct}>
-          <TextField
-            label={translateKey(
-              instinct.charAt(0).toUpperCase() + instinct.slice(1)
-            )}
-            fullWidth
-            required
-            name={instinct}
-            value={character.instincts[instinct]}
-            onChange={handleInstinctChange}
-            error={!!errors[instinct]}
-            helperText={errors[instinct]}
-            type="number"
-            inputProps={{ min: 1, max: 3 }}
-          />
+          <FormControl fullWidth>
+            <Typography variant="body1" sx={{ color: "white", mb: 1 }}>
+              {translateKey(
+                instinct.charAt(0).toUpperCase() + instinct.slice(1)
+              )}
+            </Typography>
+            <Box
+              className="instinct-control"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+              }}
+            >
+              <button
+                type="button" // <<< ADICIONE ISSO
+                className="instinct-btn"
+                onClick={() => handleInstinctChange(instinct, character.instincts[instinct] - 1)}
+                disabled={character.instincts[instinct] <= 1}
+              >
+                -
+              </button>
+              <Typography
+                variant="h6"
+                className="instinct-value"
+                sx={{ color: "white", minWidth: "24px", textAlign: "center" }}
+              >
+                {character.instincts[instinct]}
+              </Typography>
+              <button
+                type="button" // <<< ADICIONE ISSO
+                className="instinct-btn"
+                onClick={() => handleInstinctChange(instinct, character.instincts[instinct] + 1)}
+                disabled={character.instincts[instinct] >= 3 || remainingInstinctPoints <= 0} // Adicionei a verificação de pontos aqui também
+              >
+                +
+              </button>
+            </Box>
+          </FormControl>
         </Grid>
       ))}
     </Grid>
@@ -421,8 +450,8 @@ const initialEquipmentPacks = [
       "Corda (15 metros)",
       "Faca",
       "Gazuas",
-      "Manto camuflado", 
-      "Pé de Cabra"
+      "Manto camuflado",
+      "Pé de Cabra",
     ],
   },
   {
@@ -437,12 +466,7 @@ const initialEquipmentPacks = [
   },
   {
     name: "Sobrevivente",
-    items: [
-      "Corda (15 metros)",
-      "Machado",
-      "Pederneira",
-      "Saco de dormir",
-    ],
+    items: ["Corda (15 metros)", "Machado", "Pederneira", "Saco de dormir"],
   },
 ];
 const translateKey = (key) => {
@@ -546,9 +570,12 @@ export default function CharacterForm() {
       if (token) {
         setAreItemsLoading(true);
         try {
-          const response = await axios.get("https://assrpgsite-be-production.up.railway.app/api/items", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await axios.get(
+            "https://assrpgsite-be-production.up.railway.app/api/items",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setAllItems(response.data);
         } catch (err) {
           console.error("Erro ao buscar itens:", err);
@@ -631,19 +658,17 @@ export default function CharacterForm() {
     }));
   };
 
-  const handleInstinctChange = (e) => {
-    const { name, value } = e.target;
-    const newValue = parseInt(value, 10);
-    const currentValue = character.instincts[name];
-    if (isNaN(newValue) || newValue < 1 || newValue > 3) return;
-    const diff = newValue - currentValue;
-    if (diff > 0 && diff > remainingInstinctPoints) return;
-    setRemainingInstinctPoints((prev) => prev - diff);
-    setCharacter((prev) => ({
-      ...prev,
-      instincts: { ...prev.instincts, [name]: newValue },
-    }));
-  };
+  const handleInstinctChange = (name, newValue) => {
+  const currentValue = character.instincts[name];
+  if (isNaN(newValue) || newValue < 1 || newValue > 3) return;
+  const diff = newValue - currentValue;
+  if (diff > 0 && diff > remainingInstinctPoints) return;
+  setRemainingInstinctPoints((prev) => prev - diff);
+  setCharacter((prev) => ({
+    ...prev,
+    instincts: { ...prev.instincts, [name]: newValue },
+  }));
+};
 
   const validateStep = () => {
     const stepRequiredFields = {
@@ -697,9 +722,13 @@ export default function CharacterForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("https://assrpgsite-be-production.up.railway.app/api/characters", character, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        "https://assrpgsite-be-production.up.railway.app/api/characters",
+        character,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setSuccess(true);
     } catch (err) {
       setError("Erro ao criar personagem");

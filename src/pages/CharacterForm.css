@@ -175,3 +175,95 @@ button:active {
   background-color: #03002b;
   border-top: 1px solid #e0d8c8;
 }
+
+/* Container principal de cada instinto */
+.instinct-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza horizontalmente o conteúdo */
+  gap: 8px; /* Espaço entre o título e o controle de instinto */
+  text-align: center;
+  padding: 5px; /* Adiciona um pequeno padding para não ficar grudado */
+}
+
+/* Estilo para o container dos botões de Instinto */
+.instinct-control {
+  display: flex;
+  flex-direction: column; /* Organiza os itens em coluna */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Espaço entre os botões e o número */
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 10px; /* Bordas levemente arredondadas para o container */
+  padding: 10px;
+  width: 100%; /* Ocupa a largura total da coluna do Grid */
+  max-width: 100px; /* Limita o tamanho máximo para não esticar */
+  margin: 0 auto; /* Centraliza o container na coluna */
+}
+
+/* Estilo para os botões de incremento/decremento */
+.instinct-btn {
+  background-color: #67110e;
+  color: #ffffff;
+  border: none;
+  width: 40px; /* Largura fixa para o círculo */
+  height: 40px; /* Altura fixa para o círculo */
+  padding: 0; /* Remove padding para não interferir com width/height */
+  border-radius: 50%; /* Botões circulares */
+  cursor: pointer;
+  font-size: 1.5rem; /* Aumenta o tamanho do + e - */
+  display: flex; /* Para centralizar o texto dentro do círculo */
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.instinct-btn:hover {
+  background-color: #8c1e19;
+  transform: scale(1.05);
+}
+
+.instinct-btn:disabled {
+  background-color: #5a5a5a;
+  color: #b1b1b1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Estilo para o número de Instinto */
+.instinct-value {
+  color: #fff;
+  font-size: 1.8rem; /* Tamanho maior para o número principal */
+  font-weight: bold;
+  min-width: 40px; /* Garante que o número não se comprima */
+  text-align: center;
+  padding: 5px 0;
+}
+
+/* Responsividade para telas menores (celular) */
+@media (max-width: 600px) {
+  .instinct-container {
+    gap: 5px;
+  }
+  .instinct-control {
+    max-width: 80px; /* Reduz a largura máxima do container em mobile */
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .instinct-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1.3rem; /* Ajusta o tamanho do + e - para mobile */
+  }
+
+  .instinct-value {
+    font-size: 1.5rem; /* Ajusta o tamanho do número para mobile */
+    min-width: 30px;
+  }
+
+  /* Ajusta o espaçamento do Grid para mobile */
+  .MuiGrid-item {
+    padding: 5px !important; /* Overrides default Material-UI padding */
+  }
+}
