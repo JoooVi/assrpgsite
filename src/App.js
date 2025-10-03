@@ -26,6 +26,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CharacterPortraitPage from "./pages/CharacterPortraitPage";
 import CampaignList from "./pages/CampaignList";
 import CampaignForm from "./pages/CampaignForm";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
 
 // --- IMPORTAÇÕES AJUSTADAS ---
 import CampaignLobby from "./components/CampaignLobby"; // Assumindo que o arquivo está em 'src/pages/'
@@ -55,6 +56,7 @@ const AppContent = () => {
             <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
             <Route path="/forgot-password" element={<PageTransition><ForgotPasswordPage /></PageTransition>} />
             <Route path="/reset-password/:token" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
             {/* --- Rota de Homebrew Compartilhado (Pública) --- */}
             <Route path="/shared/:id" element={<SharedHomebrew />} />

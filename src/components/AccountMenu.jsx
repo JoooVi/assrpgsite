@@ -1,23 +1,19 @@
 import React from 'react';
-// 1. Importar o hook useNavigate
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import PersonAdd from '@mui/icons-material/PersonAdd';
-import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
+import { IconButton } from '@mui/material';
 
-export default function AccountMenu({ handleLogout }) {
+// Recebe 'handleLogout' e 'user' como props
+export default function AccountMenu({ handleLogout, user }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-
-  // 2. Inicializar o hook para obter a função de navegação
   const navigate = useNavigate();
 
   const handleClick = (event) => {
@@ -28,10 +24,9 @@ export default function AccountMenu({ handleLogout }) {
     setAnchorEl(null);
   };
 
-  // 3. Criar uma função específica para navegar para o perfil
   const handleProfileClick = () => {
-    navigate('/perfil'); // Redireciona para a rota '/perfil'
-    handleClose(); // Fecha o menu após o clique
+    navigate('/perfil');
+    handleClose();
   };
 
   return (
@@ -46,7 +41,13 @@ export default function AccountMenu({ handleLogout }) {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+            <Avatar 
+              sx={{ width: 32, height: 32 }}
+              src={user?.avatar} // Usa a URL do avatar do usuário
+            >
+              {/* Fallback: Se não houver avatar, usa a primeira letra do nome */}
+              {user?.name?.charAt(0).toUpperCase()}
+            </Avatar>
           </IconButton>
         </Tooltip>
       </Box>
@@ -85,9 +86,8 @@ export default function AccountMenu({ handleLogout }) {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        {/* 4. Usar a nova função no onClick do MenuItem de Perfil */}
         <MenuItem onClick={handleProfileClick}>
-          <Avatar /> Perfil
+          <Avatar src={user?.avatar} /> Perfil
         </MenuItem>
         <MenuItem onClick={handleClose}>
           <ListItemIcon>

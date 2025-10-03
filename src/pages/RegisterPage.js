@@ -1,8 +1,12 @@
+// src/pages/RegisterPage.js
+
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom"; // Importe 'Link' aqui
+import { useNavigate, Link } from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider"; // 1. Importar o Divider
+import { FaDiscord } from 'react-icons/fa'; // 2. Importar o ícone (opcional, mas recomendado)
 import "./RegisterPage.css";
 
 const RegisterPage = () => {
@@ -15,6 +19,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // ... (sua lógica de registro com e-mail continua igual)
     setError("");
     setLoading(true);
     console.log("Tentativa de registro iniciada");
@@ -40,9 +45,8 @@ const RegisterPage = () => {
       }
     } catch (err) {
       console.error("Erro ao registrar usuário:", err);
-      // Melhorar a mensagem de erro para o usuário
       if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message); // Ex: "Email já cadastrado"
+        setError(err.response.data.message);
       } else {
         setError("Erro ao registrar usuário. Tente novamente.");
       }
@@ -51,12 +55,19 @@ const RegisterPage = () => {
     }
   };
 
+  // 3. Adicionar a função para o registro com Discord
+  const handleDiscordRegister = () => {
+    // Redireciona para a mesma rota de autenticação do backend
+    window.location.href = 'https://assrpgsite-be-production.up.railway.app/api/auth/discord';
+  };
+
   return (
     <div className="Register-page">
       <div className="Register-container">
         <h2 className="Register-title">Registrar-se</h2>
         <form className="Register-form" onSubmit={handleSubmit}>
-          <div>
+            {/* ... Seus TextFields de nome, email e senha ... */}
+            <div>
             <TextField
               label="Nome"
               type="text"
@@ -95,28 +106,45 @@ const RegisterPage = () => {
               InputLabelProps={{ style: { fontSize: 18 } }}
             />
           </div>
-          {error && <p className="error-message">{error}</p>}
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={loading}
-            fullWidth
-            sx={{ mt: 2, mb: 1 }} // Adiciona margem superior e inferior ao botão Register
-          >
-            {loading ? "Registrando..." : "Registrar"}{" "}
-          </Button>
+            {error && <p className="error-message">{error}</p>}
+            <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                fullWidth
+                sx={{ mt: 2, mb: 1 }}
+            >
+                {loading ? "Registrando..." : "Registrar"}
+            </Button>
         </form>
+
+        {/* 4. Adicionar o divisor e o novo botão */}
+        <Divider sx={{ my: 2, color: 'rgba(0, 0, 0, 0.6)' }}>OU</Divider>
+
+        <Button
+          variant="contained"
+          fullWidth
+          startIcon={<FaDiscord />}
+          onClick={handleDiscordRegister}
+          sx={{ 
+            backgroundColor: '#5865F2', 
+            '&:hover': { backgroundColor: '#4752C4' },
+            mb: 2 // Adiciona uma margem inferior
+          }}
+        >
+          Registrar-se com Discord
+        </Button>
 
         {/* Seção para ir para o Login */}
         <div className="Register-footer">
           <p className="Register-footer-text">Já tem uma conta?</p>
           <Button
-            component={Link} // Usa o Link do react-router-dom
+            component={Link}
             to="/login"
-            variant="outlined" // Ou 'text', 'contained' - escolha o que se encaixa melhor no design
-            color="secondary" // Defina uma cor que se encaixe no seu tema, talvez a mesma cor do botão primário para consistência
-            sx={{ mt: 1, color: '#67110e', borderColor: '#67110e' }} // Exemplo: cor customizada
+            variant="outlined"
+            color="secondary"
+            sx={{ mt: 1, color: '#67110e', borderColor: '#67110e' }}
           >
             Entrar
           </Button>
