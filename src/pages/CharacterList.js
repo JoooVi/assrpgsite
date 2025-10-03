@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import api from "../api";
-// Passo 1: Mude a importação do CSS.
 import "./CharacterList.css"; 
 import { Button, Typography, CircularProgress, Tooltip, IconButton, Fab } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -16,29 +15,55 @@ const CharacterList = () => {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const user = useSelector((state) => state.auth.user);
-  const token = useSelector((state) => state.auth.token);
+
+  // Vamos pegar o estado de autenticação também
+  const { user, token, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
-  // A lógica do seu componente (useEffect, handleDelete, etc.) continua a mesma...
+  // --- LOG DE DEPURAÇÃO ---
+  // Este log vai rodar toda vez que o componente renderizar
+  console.log("CharacterList renderizou. Autenticado:", isAuthenticated, "Token:", !!token);
+
   useEffect(() => {
-    if (!user || !token) return;
     const fetchCharacters = async () => {
+      // Garantimos que temos um token antes de tentar buscar
+      if (!token) {
+        setLoading(false); // Se não há token, paramos o carregamento
+        return;
+      }
+      
+      // --- LOG DE DEPURAÇÃO ---
+      console.log("useEffect disparado! Buscando personagens com o token...");
+
       try {
         setLoading(true);
         setError(null);
-        const response = await api.get("https://assrpgsite-be-production.up.railway.app/api/characters", { headers: { Authorization: `Bearer ${token}` } });
+        const response = await api.get("https://assrpgsite-be-production.up.railway.app/api/characters", { 
+            headers: { Authorization: `Bearer ${token}` } 
+        });
         setCharacters(response.data || []);
       } catch (error) {
-        setError("Erro ao carregar a lista de personagens");
-        console.error(error);
+        // Se o erro for 404 (nenhum personagem), não tratamos como um erro de falha
+        if (error.response && error.response.status === 404) {
+          setCharacters([]);
+        } else {
+          setError("Erro ao carregar a lista de personagens");
+          console.error(error);
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchCharacters();
-  }, [user, token]);
 
+    // Chamamos a função para buscar os personagens
+    fetchCharacters();
+
+  // A MUDANÇA PRINCIPAL ESTÁ AQUI:
+  // O array de dependências agora observa o 'token'.
+  // Quando o token muda de 'null' para um valor real após o login, este efeito será executado novamente.
+  }, [token]);
+
+  // ... (O resto do seu componente continua exatamente igual)
   const generationTranslations = {
     preCollapse: "Pré-Colapso",
     postCollapse: "Pós-Colapso",
@@ -65,7 +90,6 @@ const CharacterList = () => {
     );
   }
 
-  // Passo 2: Use as classes como strings normais (ex: "noCharacters")
   if (characters.length === 0) {
     return (
       <div className="noCharacters">
