@@ -1,9 +1,7 @@
-// Arquivo: src/pages/AuthCallbackPage.js
-
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setAuthFromToken } from '../redux/slices/authSlice'; // Criaremos isso a seguir
+import { setAuthFromToken } from '../redux/slices/authSlice';
 
 const AuthCallbackPage = () => {
   const dispatch = useDispatch();
@@ -11,22 +9,25 @@ const AuthCallbackPage = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Pega o token dos parâmetros da URL (ex: /auth/callback?token=...)
+    console.log("--- PASSO 1: Entrei na página de Callback ---");
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
 
     if (token) {
+      console.log("--- PASSO 2: Token encontrado! Despachando para o Redux... ---");
       dispatch(setAuthFromToken(token));
-      navigate('/characters'); // Redireciona para a página principal após o login
+      console.log("--- PASSO 3: Redirecionando para /characters AGORA! ---");
+      navigate('/characters');
     } else {
-      // Caso de erro, redireciona para a página de login
+      console.error("--- ERRO: Cheguei na Callback, mas não encontrei o token! ---");
       navigate('/login');
     }
   }, [dispatch, navigate, location]);
 
   return (
-    <div>
-      <p>Autenticando...</p>
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h2>Autenticando...</h2>
+      <p>Aguarde, estamos processando seu login.</p>
     </div>
   );
 };

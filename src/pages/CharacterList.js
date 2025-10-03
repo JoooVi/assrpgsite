@@ -12,56 +12,66 @@ import { adventurerNeutral } from "@dicebear/collection";
 import { motion } from "framer-motion";
 
 const CharacterList = () => {
-  const [characters, setCharacters] = useState([]);
+  const [characters, setCharacters] = useState(null); // Inicia como nulo
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Vamos pegar o estado de autenticação também
-  const { user, token, isAuthenticated } = useSelector((state) => state.auth);
+  
+  const { token, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
-  // --- LOG DE DEPURAÇÃO ---
-  // Este log vai rodar toda vez que o componente renderizar
-  console.log("CharacterList renderizou. Autenticado:", isAuthenticated, "Token:", !!token);
+  // Log que roda a cada renderização do componente
+  console.log("-> CharacterList RENDERIZOU. Está autenticado?", isAuthenticated);
 
   useEffect(() => {
-    const fetchCharacters = async () => {
-      // Garantimos que temos um token antes de tentar buscar
-      if (!token) {
-        setLoading(false); // Se não há token, paramos o carregamento
-        return;
-      }
-      
-      // --- LOG DE DEPURAÇÃO ---
-      console.log("useEffect disparado! Buscando personagens com o token...");
+    console.log("-> useEffect da CharacterList foi ACIONADO. Token atual:", !!token);
 
+    const fetchCharacters = async () => {
+      console.log("-> Dentro do useEffect: Iniciando a busca de personagens...");
       try {
         setLoading(true);
         setError(null);
         const response = await api.get("https://assrpgsite-be-production.up.railway.app/api/characters", { 
             headers: { Authorization: `Bearer ${token}` } 
         });
+        console.log("-> SUCESSO! Personagens recebidos da API:", response.data);
         setCharacters(response.data || []);
       } catch (error) {
-        // Se o erro for 404 (nenhum personagem), não tratamos como um erro de falha
         if (error.response && error.response.status === 404) {
+          console.log("-> AVISO: A API retornou 404. Nenhum personagem encontrado.");
           setCharacters([]);
         } else {
+          console.error("-> ERRO na busca de personagens:", error);
           setError("Erro ao carregar a lista de personagens");
-          console.error(error);
         }
       } finally {
         setLoading(false);
       }
     };
 
-    // Chamamos a função para buscar os personagens
-    fetchCharacters();
+    // A condição para buscar agora é mais explícita:
+    if (isAuthenticated && token) {
+      fetchCharacters();
+    } else {
+      console.log("-> Dentro do useEffect: Decidi NÃO buscar personagens porque não estou autenticado.");
+      // Se não estiver autenticado, garantimos que a tela não fique carregando infinitamente
+      setLoading(false);
+    }
+  }, [isAuthenticated, token]); // O efeito depende diretamente da autenticação e do token
 
-  // A MUDANÇA PRINCIPAL ESTÁ AQUI:
-  // O array de dependências agora observa o 'token'.
-  // Quando o token muda de 'null' para um valor real após o login, este efeito será executado novamente.
-  }, [token]);
+  // ... O resto do seu componente continua igual ...
+  // Apenas uma pequena mudança na condição de carregamento
+  if (loading) {
+    return <div className="loadingIndicator"><CircularProgress /></div>;
+  }
+
+  // Se 'characters' for nulo, significa que a busca ainda não foi disparada
+  if (characters === null) {
+      return (
+          <div className="noCharacters">
+              <Typography variant="h5">Aguardando autenticação...</Typography>
+          </div>
+      )
+  }
 
   // ... (O resto do seu componente continua exatamente igual)
   const generationTranslations = {

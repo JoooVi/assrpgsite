@@ -36,6 +36,7 @@ body {
 .navbar-center {
   flex: 1;
   justify-content: center; /* Centralizar os botões */
+  gap: 30px; /* Adicionado para espaçamento entre os links */
   text-align: center;
   transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
   max-height: 300px; /* Ajuste conforme necessário */
@@ -53,20 +54,47 @@ body {
   justify-content: flex-end;
 }
 
+/* --- SEÇÃO MODIFICADA COM O NOVO ESTILO --- */
+
 .navbar-link {
-  color: #ecf0f1;
+  /* Estilos base do novo design */
+  color: var(--text-secondary, #bdc3c7); /* Usa a variável, com um fallback cinza */
   text-decoration: none;
-  font-size: 18px;
-  padding: 10px;
-  transition: all 0.3s ease;
-  margin: 0 10px;
+  font-weight: 600;
+  font-size: 1rem; /* Equivalente a 16px, mas mais flexível */
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  /* IMPORTANTE: Adiciona position: relative para o efeito da linha funcionar */
+  position: relative; 
 }
 
 .navbar-link:hover {
-  background-color: #00638a;
-  border-radius: 5px;
-  transform: translateY(-6px);
+  /* Efeito de hover do novo design */
+  color: var(--text-primary, #ffffff);
+  background-color: rgba(255, 255, 255, 0.05);
 }
+
+/* Novo: Cria o elemento da linha, inicialmente invisível */
+.navbar-link::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; /* Posição da linha abaixo do texto */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; /* Começa com largura zero */
+  height: 2px;
+  background-color: var(--accent-primary, #3cdce7); /* Usa a variável de destaque */
+  transition: width 0.3s ease;
+}
+
+/* Novo: Faz a linha aparecer ao passar o mouse */
+.navbar-link:hover::after {
+  width: 100%; /* Expande a largura para 100% */
+}
+
+/* --- FIM DA SEÇÃO MODIFICADA --- */
 
 .navbar-logo {
   display: flex;
@@ -83,10 +111,6 @@ body {
 
 .logo-image:hover {
   transform: scale(1.05); /* Leve aumento no logo */
-}
-
-.navbar-logo:hover {
-  transform: scale(1.1);
 }
 
 /* Estilos do botão hambúrguer */
