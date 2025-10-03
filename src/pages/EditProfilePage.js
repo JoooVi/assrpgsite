@@ -34,7 +34,7 @@ const EditProfilePage = () => {
             setBio(user.bio || '');
             setTwitter(user.socials?.twitter || '');
             setTwitch(user.socials?.twitch || '');
-            setAvatarPreview(user.avatar ? `https://assrpgsite-be-production.up.railway.app${user.avatar}` : '');
+            setAvatarPreview(user.avatar || '');
         }
     }, [user]);
 
