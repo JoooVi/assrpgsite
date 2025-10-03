@@ -1,544 +1,208 @@
-.characterList {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 0; /* Adiciona um respiro vertical */
-}
+/* Arquivo: CharacterList.css (Versão 6 - Efeito de Fundo Sutil) */
 
-:root {
-  --card-bg: rgba(10, 25, 47, 0.85);
-  --border-color: rgb(8, 7, 7);
-  --glow-color: rgba(0, 0, 0, 0.7);
-  --font-tech: 'Orbitron', sans-serif; /* Fonte que adicionamos */
-}
-
-/* Container principal dos cards */
-.characterCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 40px;
-  width: 100%;
-  max-width: 1400px;
-  padding: 20px;
-}
-
-/* O novo "Dossiê Card" */
-.dossierCard {
-  display: flex;
-  height: 180px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-  
-  /* Animação de entrada */
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.dossierCard:hover {
-  border-color: var(--glow-color);
-  box-shadow: 0 0 20px var(--glow-color);
-}
-
-.avatarPane {
-  flex-shrink: 0;
-  width: 140px; /* Um pouco menor para dar mais espaço */
-  height: 140px;
-  margin: 20px; /* Centraliza verticalmente e adiciona espaço */
-  border-radius: 50%; 
-  border: 3px solid var(--border-color);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7), inset 0 0 10px rgba(0,0,0,0.5);
-  background: linear-gradient(45deg, #000, #222);
-  padding: 5px; /* Espaçamento interno para a imagem */
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.dossierCard:hover .avatarPane {
-  border-color: var(--glow-color);
-  box-shadow: 0 0 25px var(--glow-color), inset 0 0 15px rgba(200,0,0,0.2);
-}
-
-.avatarImage {
-  width: 100%;
-  height: 99%;
-  object-fit: cover;
-  transform: scale(1.4);
-  transition: transform 0.4s ease;
-  border-radius: 10px;
-}
-
-.dossierCard:hover .avatarImage {
-  transform: scale(1.05); /* Efeito de zoom sutil na imagem */
-}
-
-/* Painel da Direita (Conteúdo) */
-.contentPane {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-}
-
-.characterName {
-  font-family: var(--font-tech) !important; /* Usa a nova fonte */
-  font-weight: 700 !important;
-  color: #fff;
-  margin-bottom: 12px !important;
-  letter-spacing: 1.5px;
-}
-
-.infoText {
-  color: #a8b2d1; /* Um cinza-azulado claro */
-  font-size: 0.9rem !important;
-}
-
-.cardActions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid var(--border-color);
-  padding-top: 10px;
-}
-
-.actionButton {
-  color: #a8b2d1 !important;
-  border-color: rgba(10, 8, 8, 0.5) !important;
-  font-family: var(--font-tech) !important;
-}
-
-.actionButton:hover {
-  background-color: var(--glow-color) !important;
-  border-color: var(--glow-color) !important;
-  color: #fff !important;
-}
-
-.deleteButton {
-  color: #a8b2d1 !important;
-}
-
-/* Animação de entrada (pode manter a mesma) */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-/* ... (Seu CSS existente antes das media queries) ... */
-
-.deleteButton {
-  color: #a8b2d1 !important; /* Mantenha a cor existente */
-}
-
-
-/* ------------------------------------------- */
-/* Media Queries para Responsividade */
-/* ------------------------------------------- */
-
-/* Para telas menores que 1024px (tablets em modo paisagem e menores) */
-@media (max-width: 1024px) {
-  /* ... (outras regras existentes) ... */
-
-  .cardActions {
-    flex-direction: column; /* Empilha os botões */
-    border-top: none;
-    padding-top: 15px;
-    align-items: center; /* Centraliza os itens quando empilhados */
-  }
-
-  /* Aplica margem inferior a todos os elementos dentro de .cardActions, exceto o último */
-  .cardActions > *:not(:last-child) {
-    margin-bottom: 10px;
-  }
-
-  .actionButton {
-    width: 100%;
-    font-size: 0.9rem !important;
-  }
-
-  /* Estilos para o deleteButton (agora específico) */
-  .deleteButton { /* APONTANDO DIRETAMENTE PARA A SUA CLASSE */
-    width: 44px !important; /* Tamanho fixo para garantir que não estique */
-    height: 44px !important;
-    padding: 0 !important; /* Remove padding padrão do MUI para controle total */
-    min-width: 0 !important; /* Garante que não haja min-width inesperado */
-    flex-shrink: 0 !important; /* CRÍTICO: Impede que o item encolha ou estique */
-    display: flex; /* Para centralizar o ícone */
-    justify-content: center; /* Centraliza horizontalmente o ícone */
-    align-items: center; /* Centraliza verticalmente o ícone */
-    background-color: rgba(255, 255, 255, 0.05); /* Fundo para visualização */
-    border-radius: 50%; /* Para que o fundo seja circular */
-  }
-
-  /* Ajuste específico para o ícone SVG dentro do deleteButton */
-  .deleteButton .MuiSvgIcon-root { /* APONTANDO PARA O ÍCONE DENTRO DA SUA CLASSE */
-    font-size: 1.5rem !important; /* Tamanho do ícone */
-  }
-
-  /* Se o IconButton do LiveTvIcon também precisar de estilos, ele usará .MuiIconButton-root
-     ou você pode criar uma classe específica para ele também. */
-  /* Exemplo para o LiveTvIcon, se precisar de estilos específicos: */
-  /* .streamButton {
-       width: 44px !important;
-       height: 44px !important;
-       // ... outras propriedades
-     }
-  */
-}
-
-/* NOVA MEDIA QUERY: Para telas menores que 769px (smartphones em modo paisagem e tablets em modo retrato, incluindo 598px) */
-@media (max-width: 768px) {
-  /* ... (outras regras existentes) ... */
-
-  /* Ajustes para deleteButton em telas menores */
-  .deleteButton {
-    width: 40px !important; /* Reduz o tamanho do botão */
-    height: 40px !important;
-  }
-  .deleteButton .MuiSvgIcon-root {
-    font-size: 1.3rem !important; /* Ajusta o tamanho do ícone */
-  }
-}
-
-/* Para telas muito pequenas (smartphones em modo retrato) */
-@media (max-width: 480px) {
-  /* ... (outras regras existentes) ... */
-
-  /* Ajustes para deleteButton em telas muito pequenas */
-  .deleteButton {
-    width: 36px !important; /* Tamanho ainda menor */
-    height: 36px !important;
-  }
-  .deleteButton .MuiSvgIcon-root {
-    font-size: 1.2rem !important; /* Ajuste do ícone */
-  }
-}
-/* Base Styles - Keep these as they are or adjust for larger screens */
-.characterList {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 0;
-}
-
-:root {
-  --card-bg: rgba(10, 25, 47, 0.85);
-  --border-color: rgb(8, 7, 7);
-  --glow-color: rgba(0, 0, 0, 0.7);
-  --font-tech: 'Orbitron', sans-serif;
-}
-
-.characterCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 40px;
+.characterListContainer {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1300px;
+  margin: 0 auto;
   padding: 20px;
-}
-
-.dossierCard {
-  display: flex;
-  height: 180px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.dossierCard:hover {
-  border-color: var(--glow-color);
-  box-shadow: 0 0 20px var(--glow-color);
-}
-
-.avatarPane {
-  flex-shrink: 0;
-  width: 140px;
-  height: 140px;
-  margin: 20px;
-  border-radius: 50%;
-  border: 3px solid var(--border-color);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7), inset 0 0 10px rgba(0,0,0,0.5);
-  background: linear-gradient(45deg, #000, #222);
-  padding: 5px;
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.dossierCard:hover .avatarPane {
-  border-color: var(--glow-color);
-  box-shadow: 0 0 25px var(--glow-color), inset 0 0 15px rgba(200,0,0,0.2);
-}
-
-.avatarImage {
-  width: 100%;
-  height: 99%;
-  object-fit: cover;
-  transform: scale(1.4);
-  transition: transform 0.4s ease;
-  border-radius: 10px;
-}
-
-.dossierCard:hover .avatarImage {
-  transform: scale(1.05);
-}
-
-.contentPane {
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
+}
+
+.listHeader {
+  display: flex;
   justify-content: space-between;
-  padding: 20px;
+  align-items: center;
+  margin-bottom: 40px;
+  padding: 0 10px;
 }
 
-.characterName {
-  font-family: var(--font-tech) !important;
-  font-weight: 700 !important;
+.listHeader h1 {
   color: #fff;
-  margin-bottom: 12px !important;
-  letter-spacing: 1.5px;
+  font-family: 'Orbitron', sans-serif;
 }
 
-.infoText {
-  color: #a8b2d1;
-  font-size: 0.9rem !important;
-}
-
-.cardActions {
+.characterGrid {
   display: flex;
-  justify-content: space-between; /* Espaçamento entre os botões quando em linha */
-  align-items: center; /* Alinha verticalmente os botões quando em linha */
-  border-top: 1px solid var(--border-color);
-  padding-top: 10px;
-}
-
-.actionButton {
-  color: #a8b2d1 !important;
-  border-color: rgba(10, 8, 8, 0.5) !important;
-  font-family: var(--font-tech) !important;
-}
-
-.actionButton:hover {
-  background-color: var(--glow-color) !important;
-  border-color: var(--glow-color) !important;
-  color: #fff !important;
-}
-
-.deleteButton {
-  color: #a8b2d1 !important;
-}
-
-/* Animação de entrada */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ------------------------------------------- */
-/* Media Queries para Responsividade */
-/* ------------------------------------------- */
-
-/* Para telas menores que 1024px (tablets em modo paisagem e menores) */
-@media (max-width: 1024px) {
-  .characterCards {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-    padding: 15px;
-  }
-
-  .dossierCard {
-    height: auto;
-    flex-direction: column; /* Empilha o avatar e o conteúdo verticalmente */
-    align-items: center; /* Centraliza itens na coluna */
-    padding: 15px;
-  }
-
-  .avatarPane {
-    margin: 15px 0;
-    width: 120px;
-    height: 120px;
-  }
-
-  .contentPane {
-    padding: 10px 0;
-    text-align: center;
-  }
-
-  .characterName {
-    font-size: 1.2rem !important;
-    margin-bottom: 8px !important;
-  }
-
-  .infoText {
-    font-size: 0.85rem !important;
-  }
-
-  .cardActions {
-    flex-direction: column; /* Empilha os botões */
-    border-top: none; /* Remove a linha divisória */
-    padding-top: 15px;
-    /* Removendo gap e usando margin-bottom para espaçamento vertical */
-    /* gap: 10px; */
-    align-items: center; /* Centraliza horizontalmente os itens empilhados */
-  }
-
-  /* Adiciona margem inferior a todos os elementos dentro de .cardActions, exceto o último */
-  .cardActions > *:not(:last-child) {
-    margin-bottom: 10px;
-  }
-
-  .actionButton {
-    width: 100%; /* Botão de ação ocupa a largura total */
-    font-size: 0.9rem !important;
-  }
-
-  /* Estilos para TODOS os IconButtons dentro de .cardActions (botão de stream e lixeira) */
-  .cardActions .MuiIconButton-root {
-    width: 44px !important; /* Tamanho fixo para garantir que não estique */
-    height: 44px !important;
-    padding: 0 !important; /* Remove padding padrão do MUI */
-    min-width: 0 !important; /* Garante que não haja min-width inesperado */
-    flex-shrink: 0 !important; /* Impede que o item encolha ou estique */
-    display: flex; /* Para centralizar o ícone */
-    justify-content: center; /* Centraliza horizontalmente o ícone */
-    align-items: center; /* Centraliza verticalmente o ícone */
-    /* Fundo e borda para visualização - pode remover depois de resolver */
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
-  }
-
-  /* Tamanho do ícone SVG dentro dos IconButtons */
-  .cardActions .MuiIconButton-root .MuiSvgIcon-root {
-    font-size: 1.5rem !important;
-  }
-}
-
-.noCharacters {
-  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
+  gap: 45px;
+}
+
+.characterCard {
+  width: 210px;
+  height: 285px;
+  background: #222;
+  border-radius: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  
+  border: 1px solid #444;
+  box-shadow: 
+    0 0 0 1px #1a1a1a,
+    inset 0 2px 8px rgba(0, 0, 0, 0.6),
+    0 4px 10px rgba(0, 0, 0, 0.5);
+
+  animation: fadeIn 0.5s ease-out forwards;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.characterCard:hover {
+  transform: translateY(-10px) scale(1.05);
+  border-color: #aaa;
+  box-shadow: 
+    0 0 0 1px #1a1a1a,
+    inset 0 2px 8px rgba(0, 0, 0, 0.6),
+    0 10px 40px rgba(170, 170, 170, 0.2);
+}
+
+.cardImageContainer {
   width: 100%;
-  min-height: 60vh;
-  padding: 20px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-.noCharactersBox {
-  max-width: 500px;
-  text-align: center;
-  padding: 40px;
-  background: rgba(10, 25, 47, 0.65);
-  border: 1px solid rgb(21, 28, 41);
-  border-radius: 8px;
-  animation: fadeIn 0.5s ease-out;
-  backdrop-filter: blur(8px); 
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease-out;
 }
 
-.noCharactersText {
-  color: #a8b2d1;
-  margin-bottom: 12px !important;
+.characterCard:hover .cardImage {
+  transform: scale(1.1);
 }
 
-/* Para telas menores que 768px (smartphones em modo paisagem e tablets em modo retrato) */
+.characterCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: skewX(-25deg);
+  transition: left 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 1;
+}
+
+.characterCard:hover::before {
+  left: 120%;
+}
+
+/* === EFEITO DE FUNDO DO TEXTO SUTIL E REFINADO === */
+.cardInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  
+  /* ALTERADO: Padding vertical drasticamente reduzido para diminuir a altura da faixa */
+  padding: 10px 20px 12px 20px;
+  text-align: left;
+  
+  /* ALTERADO: Gradiente mais suave e curto, focado na base */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+  
+  /* REMOVIDO: O backdrop-filter foi removido para um visual mais limpo */
+  
+  transform: translateY(0);
+  transition: transform 0.4s ease;
+  z-index: 2;
+}
+
+
+.characterName {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 1);
+  letter-spacing: 0.5px;
+}
+
+.characterSubtitle {
+  font-size: 0.8rem;
+  color: #b8b8b8;
+  margin: 0;
+  font-weight: 400;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+
+.cardHoverActions {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 3;
+}
+
+.characterCard:hover .cardHoverActions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.actionIcon {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.actionIcon:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.1);
+}
+
+/* === Responsividade === */
+@media (max-width: 900px) {
+  .characterCard {
+    width: 180px;
+    height: 240px;
+  }
+}
+
 @media (max-width: 768px) {
-  .characterList {
-    padding: 20px 0;
-  }
-
-  .characterCards {
-    grid-template-columns: 1fr; /* Um card por linha */
+  .listHeader {
+    flex-direction: column;
     gap: 20px;
-    padding: 10px;
-  }
-
-  .dossierCard {
-    padding: 10px;
-  }
-
-  .avatarPane {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 10px;
-  }
-
-  .characterName {
-    font-size: 1.1rem !important;
-    margin-bottom: 5px !important;
-  }
-
-  .infoText {
-    font-size: 0.8rem !important;
-  }
-
-  .actionButton {
-    font-size: 0.85rem !important;
-    padding: 8px 15px !important;
-  }
-
-  /* Ajustes para IconButtons em telas menores que 768px */
-  .cardActions .MuiIconButton-root {
-    width: 40px !important;
-    height: 40px !important;
-  }
-  .cardActions .MuiIconButton-root .MuiSvgIcon-root {
-    font-size: 1.3rem !important;
+    margin-bottom: 30px;
   }
 }
 
-/* Para telas muito pequenas (smartphones em modo retrato) */
-@media (max-width: 480px) {
-  .characterList {
-    padding: 15px 0;
-  }
-
-  .characterCards {
-    gap: 15px;
-    padding: 5px;
-  }
-
-  .dossierCard {
-    padding: 8px;
-  }
-
-  .avatarPane {
-    width: 80px;
-    height: 80px;
-  }
-
-  .characterName {
-    font-size: 1rem !important;
-    letter-spacing: 1px;
-  }
-
-  .infoText {
-    font-size: 0.75rem !important;
-  }
-
-  .actionButton {
-    font-size: 0.8rem !important;
-    padding: 6px 12px !important;
-  }
-
-  /* Ajustes para IconButtons em telas muito pequenas */
-  .cardActions .MuiIconButton-root {
-    width: 36px !important;
-    height: 36px !important;
-  }
-  .cardActions .MuiIconButton-root .MuiSvgIcon-root {
-    font-size: 1.2rem !important;
-  }
+@media (max-width: 540px) {
+    .characterGrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .characterCard {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 7 / 9.5;
+    }
+    .characterName { font-size: 1.1rem; }
+    .characterSubtitle { font-size: 0.75rem; }
+    .cardInfo { padding: 10px 15px; }
 }

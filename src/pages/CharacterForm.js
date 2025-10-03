@@ -17,6 +17,7 @@ import {
   Button,
   Icon,
   IconButton,
+  Avatar,
   Box,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -45,8 +46,15 @@ const packIcons = {
   Sobrevivente: 'whatshot',
 };
 
-const Step1_Informacoes = ({ character, handleInputChange, errors }) => (
+const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange}) => (
   <div className="step fade-in">
+     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3, gap: 2 }}>
+        <Avatar src={avatarPreview} sx={{ width: 100, height: 100, bgcolor: '#03002b' }} />
+        <Button variant="outlined" component="label">
+            Escolher Avatar
+            <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
+        </Button>
+    </Box>
     <TextField
       label="Nome"
       fullWidth
@@ -468,7 +476,7 @@ const translateKey = (key) => {
 function getStepContent(step, props) {
   switch (step) {
     case 0:
-      return <Step1_Informacoes {...props} />;
+      return <Step1_Informacoes {...props} handleAvatarChange={props.handleAvatarChange} avatarPreview={props.avatarPreview} />;
     case 1:
       return <Step2_Evento {...props} />;
     case 2:
@@ -535,7 +543,10 @@ export default function CharacterForm() {
   const [allItems, setAllItems] = useState([]);
   const [remainingInstinctPoints, setRemainingInstinctPoints] = useState(3);
   const [errors, setErrors] = useState({});
+  const [avatar, setAvatar] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
   const token = useSelector((state) => state.auth.token);
+  
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -615,6 +626,14 @@ export default function CharacterForm() {
     }
   };
 
+  const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setAvatar(file); // Salva o arquivo no estado
+            setAvatarPreview(URL.createObjectURL(file)); // Cria uma URL local para o preview
+        }
+    };
+
   const handleTugOfWarChange = (e) => {
     let newDetLevel = parseInt(e.target.value, 10);
     if (isNaN(newDetLevel)) newDetLevel = 1;
@@ -691,24 +710,58 @@ export default function CharacterForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.post(
-        "https://assrpgsite-be-production.up.railway.app/api/characters",
-        character,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setSuccess(true);
-    } catch (err) {
-      setError("Erro ao criar personagem");
-      console.error(err);
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setLoading(true);
+
+  const formData = new FormData();
+
+  // ====================================================================
+  // LÓGICA DE CONSTRUÇÃO DO FORMDATA (A "MELHOR FORMA")
+  // ====================================================================
+  Object.entries(character).forEach(([key, value]) => {
+    // Para objetos aninhados (instincts, knowledge, practices),
+    // mas que não são arrays.
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+        // Isso cria chaves como: instincts[reaction], instincts[perception], etc.
+        // O backend entende isso e reconstrói o objeto automaticamente.
+        formData.append(`${key}[${nestedKey}]`, nestedValue);
+      });
+    } 
+    // Para o array de inventário, o JSON.stringify ainda é a forma mais simples.
+    else if (Array.isArray(value)) {
+      formData.append(key, JSON.stringify(value));
+    } 
+    // Para todos os outros campos simples (name, generation, etc.).
+    else {
+      formData.append(key, value);
     }
-  };
+  });
+
+  // Adiciona o arquivo de avatar, se ele existir
+  if (avatar) {
+    formData.append('avatar', avatar);
+  }
+  // ====================================================================
+
+  try {
+    await axios.post(
+      "https://assrpgsite-be-production.up.railway.app/api/characters",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    setSuccess(true);
+  } catch (err) {
+    setError("Erro ao criar personagem");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const propsForStep = {
     character,
@@ -725,6 +778,8 @@ export default function CharacterForm() {
     areItemsLoading,
     initialEquipmentPacks,
     translateKey,
+    avatarPreview,
+    handleAvatarChange
   };
 
   return (
