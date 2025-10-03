@@ -57,8 +57,15 @@ const EditProfilePage = () => {
         if (avatar) {
             formData.append('avatar', avatar);
         }
+
         try {
-            const config = { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` } };
+            // --- CORREÇÃO AQUI ---
+            const config = { 
+                headers: { 
+                    'Content-Type': 'multipart/form-data', 
+                    Authorization: `Bearer ${token}` // Adicionado o token
+                } 
+            };
             const { data } = await api.put('/profile', formData, config);
             dispatch(updateUser(data));
             alert('Perfil atualizado com sucesso!');
@@ -72,7 +79,12 @@ const EditProfilePage = () => {
         e.preventDefault();
         if (newPassword !== confirmPassword) return alert('As novas senhas não coincidem.');
         try {
-            const config = { headers: { Authorization: `Bearer ${token}` } };
+            // --- CORREÇÃO AQUI ---
+            const config = { 
+                headers: { 
+                    Authorization: `Bearer ${token}` // Adicionado o token
+                } 
+            };
             await api.post('/profile/change-password', { currentPassword, newPassword }, config);
             alert('Senha alterada com sucesso!');
             setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
@@ -84,7 +96,13 @@ const EditProfilePage = () => {
     const handleDeleteAccount = async () => {
         if (window.confirm('TEM CERTEZA? Esta ação é irreversível.')) {
             try {
-                const config = { headers: { Authorization: `Bearer ${token}` }, data: { password: deletePassword } };
+                // --- CORREÇÃO AQUI ---
+                const config = { 
+                    headers: { 
+                        Authorization: `Bearer ${token}` // Adicionado o token
+                    }, 
+                    data: { password: deletePassword } 
+                };
                 await api.delete('/profile/delete-account', config);
                 alert('Conta deletada com sucesso.');
                 dispatch(logout());
