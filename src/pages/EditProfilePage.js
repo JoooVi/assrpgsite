@@ -59,19 +59,16 @@ const EditProfilePage = () => {
         }
 
         try {
-            // --- CORREÇÃO AQUI ---
-            const config = { 
-                headers: { 
-                    'Content-Type': 'multipart/form-data', 
-                    Authorization: `Bearer ${token}` // Adicionado o token
-                } 
-            };
-            const { data } = await api.put('/profile', formData, config);
-            dispatch(updateUser(data));
-            alert('Perfil atualizado com sucesso!');
-            navigate('/perfil');
-        } catch (error) {
-            alert('Erro ao atualizar o perfil.');
+        // Não precisa mais do objeto 'config' manual para o token!
+        // Apenas o header 'Content-Type' pode ser necessário, mas o axios geralmente o define
+        const { data } = await api.put('/profile', formData, {
+             headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        dispatch(updateUser(data));
+        alert('Perfil atualizado com sucesso!');
+        navigate('/perfil');
+    } catch (error) {
+        alert('Erro ao atualizar o perfil.');
         }
     };
     
