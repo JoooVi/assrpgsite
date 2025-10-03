@@ -27,6 +27,7 @@ import CharacterPortraitPage from "./pages/CharacterPortraitPage";
 import CampaignList from "./pages/CampaignList";
 import CampaignForm from "./pages/CampaignForm";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
+import EditProfilePage from "./pages/EditProfilePage";
 
 // --- IMPORTAÇÕES AJUSTADAS ---
 import CampaignLobby from "./components/CampaignLobby"; // Assumindo que o arquivo está em 'src/pages/'
@@ -67,6 +68,7 @@ const AppContent = () => {
             {/* --- Rotas Protegidas --- */}
             <Route path="/create" element={isAuthenticated ? <PageTransition><CharacterForm /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/edit-profile" element={isAuthenticated ? <PageTransition><EditProfilePage /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/characters" element={isAuthenticated ? <PageTransition><CharacterList /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/character-sheet/:id" element={isAuthenticated ? <PageTransition><CharacterSheet /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/homebrews" element={isAuthenticated ? <PageTransition><Homebrews /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />

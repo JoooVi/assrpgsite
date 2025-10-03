@@ -5,10 +5,11 @@ import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import PersonAdd from '@mui/icons-material/PersonAdd';
+import Settings from '@mui/icons-material/Settings'; // Ícone de Configurações
 import Logout from '@mui/icons-material/Logout';
-import { IconButton } from '@mui/material';
 
 // Recebe 'handleLogout' e 'user' como props
 export default function AccountMenu({ handleLogout, user }) {
@@ -25,7 +26,13 @@ export default function AccountMenu({ handleLogout, user }) {
   };
 
   const handleProfileClick = () => {
-    navigate('/perfil');
+    navigate('/perfil'); // Leva para a página de visualização
+    handleClose();
+  };
+  
+  // 1. Criar uma função específica para navegar para a página de edição
+  const handleSettingsClick = () => {
+    navigate('/edit-profile'); // Leva para a nova página de edição
     handleClose();
   };
 
@@ -43,9 +50,8 @@ export default function AccountMenu({ handleLogout, user }) {
           >
             <Avatar 
               sx={{ width: 32, height: 32 }}
-              src={user?.avatar} // Usa a URL do avatar do usuário
+              src={user?.avatar}
             >
-              {/* Fallback: Se não houver avatar, usa a primeira letra do nome */}
               {user?.name?.charAt(0).toUpperCase()}
             </Avatar>
           </IconButton>
@@ -89,12 +95,17 @@ export default function AccountMenu({ handleLogout, user }) {
         <MenuItem onClick={handleProfileClick}>
           <Avatar src={user?.avatar} /> Perfil
         </MenuItem>
-        <MenuItem onClick={handleClose}>
+
+        <Divider />
+
+        {/* 2. Adicionar o novo MenuItem para "Configurações" */}
+        <MenuItem onClick={handleSettingsClick}>
           <ListItemIcon>
-            <PersonAdd fontSize="small" />
+            <Settings fontSize="small" />
           </ListItemIcon>
-          Adicionar + uma conta
+          Configurações
         </MenuItem>
+
         <MenuItem onClick={() => { handleClose(); handleLogout(); }}>
           <ListItemIcon>
             <Logout fontSize="small" />

@@ -1,72 +1,122 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import "./ProfilePage.css";
+
+// Componentes do Material-UI
+import { Button, Typography, Paper, Box, Divider, CircularProgress, Tabs, Tab, Avatar } from '@mui/material';
+import { FaDiscord } from 'react-icons/fa';
+
+// 1. IMPORTAR SEUS COMPONENTES DE PÁGINA
+import CharacterList from './CharacterList'; 
+import Homebrews from './Homebrews';
+
+import "./ProfilePage.css"; 
+
+// Componente para o painel de cada aba (sem alterações)
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div role="tabpanel" hidden={value !== index} {...other}>
+      {value === index && (
+        // Removido o padding 'p:3' daqui para que os componentes filhos controlem seu próprio espaçamento
+        <Box sx={{ pt: 3 }}> 
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 const ProfilePage = () => {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true); // Adicionado estado de carregamento
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const [tab, setTab] = useState(0);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
+  const handleTabChange = (event, newValue) => {
+    setTab(newValue);
+  };
 
-      if (!token) {
-        setLoading(false); // Para garantir que o carregamento seja desativado
-        console.log("Token não encontrado, redirecionando para login");
-        return navigate("/login"); // Redireciona para o login caso o token não esteja presente
-      }
+  const handleLinkDiscord = () => {
+    window.location.href = 'https://assrpgsite-be-production.up.railway.app/api/auth/discord';
+  };
 
-      try {
-        // Enviar uma requisição ao back-end para obter os dados do perfil
-        const response = await axios.get("https://assrpgsite-be-production.up.railway.app/api/profile", {
-          // Alteração para HTTPS
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log("Dados do perfil carregados:", response.data);
-        setUser(response.data); // Armazena os dados do usuário
-        setLoading(false); // Desativa o estado de carregamento após a resposta
-      } catch (err) {
-        console.error("Erro ao carregar dados do perfil:", err);
-        setError("Erro ao carregar dados do perfil.");
-        setLoading(false); // Desativa o estado de carregamento mesmo em caso de erro
-      }
-    };
-
-    fetchUserData();
-  }, [navigate]);
-
-  if (loading) {
-    return <div className="loading-spinner">Carregando...</div>; // Exibe enquanto os dados do usuário estão sendo carregados
-  }
-
-  if (error) {
+  if (!user) {
     return (
-      <div className="error-message">
-        {error}
-        <button onClick={() => navigate("/login")}>
-          Tentar Novamente
-        </button>{" "}
-        {/* Botão para tentar novamente */}
-      </div>
+      <Box className="profile-loading-container">
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Carregando perfil...</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className="profile-container">
-      <h2>Perfil do Usuário</h2>
-      <div className="profile-info">
-        <p>
-          <strong>Nome:</strong> {user.name}
-        </p>
-        <p>
-          <strong>Email:</strong> {user.email}
-        </p>
-      </div>
-      <button onClick={() => navigate("/edit-profile")}>Editar Perfil</button>
-    </div>
+    <Box className="profile-page-container">
+      <Paper className="profile-paper" elevation={3}>
+        
+        {/* Cabeçalho do Perfil (sem alterações) */}
+        <Box className="profile-header">
+          <Avatar 
+            src={user.avatar ? `https://assrpgsite-be-production.up.railway.app${user.avatar}` : null}
+            sx={{ width: 100, height: 100, border: '2px solid #fff' }}
+          >
+            {user.name?.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box className="profile-header-info">
+            <Typography variant="h4" component="h1" className="profile-name">
+              {user.name}
+            </Typography>
+            <Typography variant="body2" className="profile-bio">
+              {user.bio || "Este agente ainda não adicionou uma biografia."}
+            </Typography>
+          </Box>
+          <Button variant="outlined" onClick={() => navigate("/edit-profile")} className="edit-profile-button">
+            Editar Perfil
+          </Button>
+        </Box>
+
+        {/* Abas de Navegação (removido o 'disabled') */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tab} onChange={handleTabChange} centered variant="fullWidth">
+            <Tab label="Visão Geral" />
+            <Tab label="Personagens" />
+            <Tab label="Homebrews" />
+            <Tab label="Campanhas" disabled /> {/* Deixei campanhas desabilitado por enquanto */}
+          </Tabs>
+        </Box>
+
+        {/* 2. CONTEÚDO DAS ABAS AGORA COM SEUS COMPONENTES REAIS */}
+        <TabPanel value={tab} index={0}>
+          <Box sx={{p: 3}}> {/* Adicionado padding interno para esta aba específica */}
+            <Typography variant="h6" gutterBottom>Contas Vinculadas</Typography>
+            {user.discordId ? (
+              <Box className="account-linked success">
+                <FaDiscord />
+                <Typography>Conta do Discord vinculada!</Typography>
+              </Box>
+            ) : (
+              <Box className="account-not-linked">
+                <Typography sx={{ mb: 2 }}>Vincule sua conta do Discord para login rápido.</Typography>
+                <Button variant="contained" startIcon={<FaDiscord />} onClick={handleLinkDiscord} sx={{ backgroundColor: '#5865F2', '&:hover': { backgroundColor: '#4752C4' } }}>
+                  Vincular Conta do Discord
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </TabPanel>
+
+        <TabPanel value={tab} index={1}>
+          <CharacterList />
+        </TabPanel>
+        
+        <TabPanel value={tab} index={2}>
+          <Homebrews />
+        </TabPanel>
+
+        <TabPanel value={tab} index={3}>
+          <Typography sx={{p: 3}}>A lista de campanhas do usuário aparecerá aqui no futuro.</Typography>
+        </TabPanel>
+      </Paper>
+    </Box>
   );
 };
 

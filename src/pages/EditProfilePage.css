@@ -1,0 +1,12 @@
+.danger-zone {
+    margin-top: 24px;
+    border: 1px solid #d32f2f; /* Cor de erro do Material-UI */
+    border-radius: 4px;
+    padding: 16px;
+    background-color: rgba(211, 47, 47, 0.1);
+}
+
+.danger-zone-title {
+    color: #f44336; /* Cor de erro mais brilhante para o título */
+    margin-bottom: 8px !important;
+}

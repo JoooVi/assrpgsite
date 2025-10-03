@@ -1,63 +1,87 @@
-.profile-container {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  h2 {
+.profile-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  min-height: 80vh;
+}
+
+.profile-paper {
+  width: 100%;
+  max-width: 800px; /* Aumentamos a largura para acomodar o novo layout */
+  padding: 0 !important; /* Removemos o padding principal para dar espaço ao conteúdo das abas */
+  background-color: rgba(20, 20, 30, 0.85) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px !important;
+  color: #f0f0f0 !important;
+  overflow: hidden; /* Garante que o conteúdo não vaze das bordas arredondadas */
+}
+
+/* --- NOVOS ESTILOS PARA O CABEÇALHO --- */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background-color: rgba(0, 0, 0, 0.2); /* Um fundo sutil para o cabeçalho */
+}
+
+.profile-header-info {
+  flex-grow: 1;
+}
+
+.profile-name {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.profile-bio {
+  color: #bdc3c7; /* Cinza claro para a bio */
+  font-style: italic;
+  margin-top: 8px !important;
+}
+
+.edit-profile-button {
+  align-self: flex-start; /* Alinha o botão no topo */
+}
+/* --- FIM DOS ESTILOS DE CABEÇALHO --- */
+
+
+/* Estilos para o conteúdo das abas que já existiam */
+.account-linked {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 4px;
+  gap: 12px;
+}
+
+.account-linked.success {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+}
+
+.account-linked svg {
+  font-size: 1.5rem;
+}
+
+.profile-loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    color: #f0f0f0;
+}
+
+/* Ajustes para responsividade do novo cabeçalho */
+@media (max-width: 600px) {
+  .profile-header {
+    flex-direction: column;
     text-align: center;
-    color: #333;
   }
-  
-  .profile-info {
-    margin: 20px 0;
+  .edit-profile-button {
+    align-self: center;
+    margin-top: 16px;
   }
-  
-  .profile-info p {
-    font-size: 1.1rem;
-    color: #555;
-  }
-  
-  .profile-info strong {
-    color: #67110e;
-  }
-  
-  button {
-    padding: 10px;
-    background-color: #67110e;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: block;
-    margin: 20px auto;
-  }
-  
-  button:hover {
-    background-color: #67110e;
-  }
-  
-  /* Carregando */
-  .loading-spinner {
-    text-align: center;
-    font-size: 1.5rem;
-    color: #67110e;
-  }
-  
-  /* Mensagem de erro */
-  .error-message {
-    text-align: center;
-    color: red;
-    font-size: 1.2rem;
-  }
-  
-  .error-message button {
-    margin-top: 10px;
-    background-color: #ff4d4d;
-    color: white;
-  }  
+}
