@@ -175,6 +175,50 @@
   transform: scale(1.1);
 }
 
+/* =========================================== */
+/* ESTILOS PARA TELA DE NENHUM PERSONAGEM      */
+/* =========================================== */
+
+/* Container principal que ocupa a tela e centraliza o conteúdo */
+.noCharacters {
+  width: 100%;
+  min-height: 60vh; /* Garante altura suficiente para centralizar verticalmente */
+  display: flex;
+  justify-content: center; /* Centraliza o box na horizontal */
+  align-items: center;     /* Centraliza o box na vertical */
+  padding: 20px;
+}
+
+/* O box com a mensagem */
+.noCharactersBox {
+  max-width: 500px;
+  width: 100%;
+  display: flex;         /* Usar flexbox para alinhar o conteúdo interno */
+  flex-direction: column;/* Empilha o texto e o botão */
+  align-items: center;   /* Centraliza tudo dentro do box */
+  padding: 40px;
+  background: var(--card-bg, rgba(10, 25, 47, 0.75)); /* Usa a variável de cor do seu tema */
+  border: 1px solid var(--border-color, rgb(21, 28, 41));
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilo para os textos */
+.noCharactersText {
+  color: #a8b2d1;
+  text-align: center; /* Garante alinhamento caso o texto quebre a linha */
+}
+
+/* Espaçamento entre os elementos de texto e o botão */
+.noCharactersBox .MuiTypography-h5 {
+  margin-bottom: 8px !important;
+}
+
+.noCharactersBox .MuiTypography-body1 {
+  margin-bottom: 24px !important;
+}
+
 /* === Responsividade === */
 @media (max-width: 900px) {
   .characterCard {
