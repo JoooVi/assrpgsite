@@ -1,11 +1,12 @@
-// src/components/TugOfWar.js - VERSÃO ATUALIZADA COM MODO SÓ-LEITURA
+// src/components/TugOfWar.js - VERSÃO CORRIGIDA
 
 import React from 'react';
-import { Box, Typography, Button, Paper } from '@mui/material';
+// CORREÇÃO 2: Adicionar 'Slider' à lista de imports do Material-UI
+import { Box, Typography, Button, Paper, Slider } from '@mui/material';
 import axios from 'axios';
 import styles from '../styles/TugOfWar.module.css';
 
-// --- COMPONENTES DOS ÍCONES SVG ---
+// --- COMPONENTES DOS ÍCONES SVG (Sem alterações) ---
 const TrackIcon = ({ color, isFilled, onClick, isClickable }) => {
   const fillColor = isFilled ? color : 'none';
   const strokeColor = color;
@@ -44,11 +45,27 @@ const AssimilationCircle = ({ level }) => (
 );
 
 
-// ===== ALTERAÇÃO 1: Adicionamos a prop 'isReadOnly' =====
 const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
+  const TOTAL_LEVELS = 10; // Valor fixo
+
+  // CORREÇÃO 1: A função handleLevelChange foi movida para DENTRO do componente
+  // para que tenha acesso a 'isReadOnly', 'character', 'setCharacter' e 'saveStateToBackend'.
+  const handleLevelChange = (event, newDeterminationLevel) => {
+    if (isReadOnly || !character) return;
+    const detLevel = parseInt(newDeterminationLevel, 10);
+    const assLevel = TOTAL_LEVELS - detLevel;
+    const updatedState = {
+      ...character,
+      determinationLevel: detLevel,
+      assimilationLevel: assLevel,
+      determinationPoints: detLevel,
+      assimilationPoints: assLevel,
+    };
+    setCharacter(updatedState);
+    saveStateToBackend(updatedState);
+  };
 
   const saveStateToBackend = async (updatedState) => {
-    // Não salva nada se for só leitura
     if (isReadOnly) return;
     try {
       const token = localStorage.getItem("token");
@@ -69,7 +86,6 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
   };
 
   const handleSetPoints = (type, value) => {
-    // Não faz nada se for só leitura
     if (isReadOnly || !character) return;
     
     let updatedState = { ...character };
@@ -115,7 +131,6 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
     const colorDet = "#a73c39";
     const colorAss = "#3b4766";
 
-    // Adiciona os ícones de Determinação
     for (let i = 1; i <= character.determinationLevel; i++) {
         const isFilled = i <= character.determinationPoints;
         trackItems.push(
@@ -123,14 +138,12 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
                 key={`det-${i}`} 
                 color={colorDet}
                 isFilled={isFilled}
-                // ===== ALTERAÇÃO 2: Ações de clique são desativadas no modo só-leitura =====
                 onClick={() => handleSetPoints('determination', i)}
                 isClickable={!isReadOnly}
             />
         );
     }
 
-    // Adiciona os ícones de Assimilação
     for (let i = 1; i <= character.assimilationLevel; i++) {
         const isFilled = i <= character.assimilationPoints;
         trackItems.push(
@@ -166,6 +179,36 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
       </Typography>
       
       {renderTrack()}
+
+      {!isReadOnly && (
+        <Box sx={{ padding: '16px 24px', textAlign: 'center' }}>
+            <Typography variant="overline">Ajustar Níveis</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography sx={{ color: '#a73c39', fontWeight: 'bold' }}>Determinação</Typography>
+                <Slider
+                    aria-label="Ajuste de Níveis"
+                    value={character.determinationLevel || 0}
+                    onChange={handleLevelChange}
+                    min={0}
+                    max={TOTAL_LEVELS}
+                    sx={{
+                        color: '#a73c39',
+                        '& .MuiSlider-thumb': {
+                            backgroundColor: '#a73c39',
+                        },
+                        '& .MuiSlider-track': {
+                            border: 'none',
+                        },
+                        '& .MuiSlider-rail': {
+                            opacity: 0.5,
+                            backgroundColor: '#3b4766',
+                        },
+                    }}
+                />
+                <Typography sx={{ color: '#3b4766', fontWeight: 'bold' }}>Assimilação</Typography>
+            </Box>
+        </Box>
+      )}
       
       <div className={styles.controlsContainer}>
         <div className={styles.controlSection}>
@@ -182,7 +225,6 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
         </div>
       </div>
 
-      {/* ===== ALTERAÇÃO 3: Ocultamos o botão de conversão no modo só-leitura ===== */}
       {!isReadOnly && (
         <div className={styles.conversionSection}>
           <Button
