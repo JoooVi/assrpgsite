@@ -26,13 +26,45 @@ import {
   createCharacteristic,
   updateCharacteristic,
   deleteCharacteristic,
-  fetchUserCharacterTraits,
+  // --- ALTERAÇÃO 1: Importar 'fetchCharacterTraits' (para buscar TODOS) ---
+  // Remover 'fetchUserCharacterTraits'
+  fetchCharacterTraits, 
 } from "../redux/slices/characteristicsSlice";
 
-const CharacteristicsList = ({ characterTraits, onShare }) => {
+// (Estilos darkTextFieldStyles e darkSelectStyles permanecem os mesmos...)
+// --- NOVO: Estilos reutilizáveis para componentes escuros ---
+const darkTextFieldStyles = {
+  '& .MuiInputBase-input': { color: '#fff' },
+  '& .MuiInputLabel-root': { color: '#ccc' },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: '#888' },
+    '&:hover fieldset': { borderColor: '#fff' },
+  },
+};
+
+const darkSelectStyles = {
+  '& .MuiInputBase-input': { color: '#fff' },
+  '& .MuiInputLabel-root': { color: '#ccc' },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: '#888' },
+    '&:hover fieldset': { borderColor: '#fff' },
+  },
+  '& .MuiSvgIcon-root': { color: '#ccc' }
+};
+// --- FIM DOS ESTILOS ---
+
+// --- ALTERAÇÃO 2: Remover 'characterTraits' das props ---
+const CharacteristicsList = ({ onShare }) => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const { token, isAuthenticated, user } = auth;
+
+  // --- ALTERAÇÃO 3: Selecionar TODAS as características do Redux ---
+  const { characterTraits: allTraits = [] } = useSelector((state) => state.characteristics);
+
+  // --- ALTERAÇÃO 4: Filtrar localmente (como no ItemsList) ---
+  const characterTraits = allTraits.filter(trait => trait.createdBy === user?._id);
+
 
   useEffect(() => {
     console.log("Estado completo da autenticação:", {
@@ -46,7 +78,8 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
 
   useEffect(() => {
     if (isAuthenticated && token) {
-      dispatch(fetchUserCharacterTraits());
+      // --- ALTERAÇÃO 5: Chamar a ação para buscar TODAS as características ---
+      dispatch(fetchCharacterTraits()); 
     }
   }, [dispatch, isAuthenticated, token]);
 
@@ -61,6 +94,9 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
     isCustom: true,
   });
 
+  // (O resto das funções de manipulação permanecem as mesmas...)
+  // ... (handleEditOpen, handleEditClose, handleSaveEdit, etc.) ...
+  
   // Funções de Manipulação de Modais
   const handleEditOpen = (trait) => {
     setSelectedTrait(trait);
@@ -169,10 +205,22 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
         Criar Nova Característica
       </Button>
 
-      {/* Modal de Criação */}
-      <Dialog open={createOpen} onClose={handleCreateClose}>
-        <DialogTitle>Criar Nova Característica</DialogTitle>
-        <DialogContent>
+      {/* Modal de Criação (Estilizado) */}
+      <Dialog 
+        open={createOpen} 
+        onClose={handleCreateClose}
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', 
+            color: '#e0e0e0', 
+            border: '1px solid #4a4a4a' 
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
+          Criar Nova Característica
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
           <TextField
             label="Nome"
             name="name"
@@ -181,6 +229,7 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={newTrait.name}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Descrição"
@@ -192,19 +241,21 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={newTrait.description}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
 
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel>Categoria</InputLabel>
+          <FormControl fullWidth margin="normal" required sx={darkSelectStyles}>
+            <InputLabel id="category-label-create">Categoria</InputLabel>
             <Select
+              labelId="category-label-create"
               name="category"
               value={newTrait.category}
               label="Categoria"
               onChange={handleNewChange}
-              sx={{
-                "& .MuiSelect-select": {
-                  backgroundColor: "#f5f5f5",
-                },
+              MenuProps={{ // Estilo do dropdown
+                PaperProps: {
+                  sx: { bgcolor: '#2a2d30', color: '#e0e0e0' }
+                }
               }}
             >
               <MenuItem value="Físico">Físico</MenuItem>
@@ -223,10 +274,11 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={newTrait.pointsCost}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCreateClose} color="secondary">
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
+          <Button onClick={handleCreateClose} sx={{ color: '#ccc' }}>
             Cancelar
           </Button>
           <Button onClick={handleCreateTrait} color="primary">
@@ -236,12 +288,26 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
       </Dialog>
 
       {/* Lista de Características Criadas */}
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom sx={{ color: '#ffffff', mt: 2 }}> 
         Características Criadas
       </Typography>
-      {characterTraits.length > 0 ? (
+      
+      {/* --- ALTERAÇÃO 6: A lista agora usa a variável filtrada 'characterTraits' --- */}
+      {/* --- (O nome da variável é o mesmo, mas a sua origem mudou) --- */}
+      {characterTraits.length > 0 ? ( 
         characterTraits.map((trait) => (
-          <Accordion key={trait._id}>
+          // Accordion (Estilizado)
+          <Accordion 
+            key={trait._id}
+            sx={{
+              bgcolor: '#2a2d30', 
+              color: '#e0e0e0',
+              border: '1px solid #4a4a4a',
+              '& .MuiAccordionSummary-expandIconWrapper .MuiSvgIcon-root': {
+                color: '#ccc', // Cor do ícone
+              }
+            }}
+          >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls={`panel-${trait._id}-content`}
@@ -249,7 +315,7 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             >
               <Typography>{trait.name}</Typography>
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails sx={{ borderTop: '1px solid #4a4a4a' }}>
               <Typography>
                 <strong>Descrição:</strong> {trait.description}
               </Typography>
@@ -260,8 +326,7 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
                 <strong>Pontos de Custo:</strong> {trait.pointsCost}
               </Typography>
               <Box sx={{ mt: 4, display: "flex", gap: 2 }}>
-                {" "}
-                {/* Alterado */}
+                
                 <Button
                   variant="outlined"
                   color="primary"
@@ -295,10 +360,22 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
         <Typography>Nenhuma Característica criada.</Typography>
       )}
 
-      {/* Modal de Edição */}
-      <Dialog open={editOpen} onClose={handleEditClose}>
-        <DialogTitle>Editar Característica</DialogTitle>
-        <DialogContent>
+      {/* Modal de Edição (Estilizado) */}
+      <Dialog 
+        open={editOpen} 
+        onClose={handleEditClose}
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', 
+            color: '#e0e0e0', 
+            border: '1px solid #4a4a4a' 
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
+          Editar Característica
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
           <TextField
             label="Nome"
             name="name"
@@ -307,6 +384,7 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={selectedTrait?.name || ""}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Descrição"
@@ -318,6 +396,7 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={selectedTrait?.description || ""}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Categoria"
@@ -327,6 +406,7 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={selectedTrait?.category || ""}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Pontos de Custo"
@@ -337,10 +417,11 @@ const CharacteristicsList = ({ characterTraits, onShare }) => {
             value={selectedTrait?.pointsCost || 0}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} color="secondary">
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
+          <Button onClick={handleEditClose} sx={{ color: '#ccc' }}> 
             Cancelar
           </Button>
           <Button onClick={handleSaveEdit} color="primary">

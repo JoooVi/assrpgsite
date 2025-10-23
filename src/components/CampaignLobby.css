@@ -1,20 +1,23 @@
-/* Container da PÁGINA para centralizar o conteúdo principal */
+/* Container da PÁGINA */
 .lobbyPageContainer {
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 20px 10px; /* Reduzido padding vertical, mantido horizontal pequeno */
     width: 100%;
+    min-height: calc(100vh - 80px); /* Altura mínima considerando a navbar */
+    box-sizing: border-box; /* Garante padding incluído */
 }
 
-/* O novo "FUNDO GERAL" para todo o conteúdo do lobby */
+/* Fundo Geral do Conteúdo */
 .mainContent {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1100px; /* Ligeiramente reduzido */
     background: rgba(28, 37, 54, 0.85);
     border: 1px solid #2a3b5a;
     border-radius: 12px;
-    padding: 32px 40px;
+    padding: 24px 30px; /* Reduzido padding */
     animation: fadeIn 0.5s ease-in-out;
+    box-sizing: border-box;
 }
 
 @keyframes fadeIn {
@@ -22,46 +25,50 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Grid de AÇÕES, agora alinhado à direita */
+/* Grid de AÇÕES */
 .actionsGrid {
-    justify-content: flex-end !important; /* Alinha todos os botões para a direita */
-    margin-bottom: 24px !important;
+    justify-content: flex-end !important; /* Mantém alinhado à direita em desktop */
+    margin-bottom: 20px !important; /* Reduzido margin */
+    gap: 8px; /* Adiciona um gap entre os botões */
 }
 
 .actionsGridItem {
-    padding: 0 8px !important;
+    padding: 0 !important; /* Remove padding extra do Grid Item */
 }
 
-/* Header do Lobby, agora sem fundo próprio */
+/* Header do Lobby */
 .lobbyHeader {
-    text-align: left; /* Título alinhado à esquerda */
+    text-align: left;
     padding: 0;
-    margin-bottom: 40px;
+    margin-bottom: 30px; /* Reduzido margin */
     border-bottom: 1px solid rgba(176, 196, 222, 0.2);
-    padding-bottom: 24px;
+    padding-bottom: 20px; /* Reduzido padding */
 }
 
-/* Nome da campanha com fonte tech */
+/* Nome da campanha */
 .campaignName {
     font-family: 'Orbitron', sans-serif !important;
     font-weight: 700 !important;
     color: #fff;
-    font-size: 2.5rem !important;
+    font-size: 2.2rem !important; /* Ligeiramente reduzido */
     margin-bottom: 8px !important;
+    word-break: break-word; /* Quebra nomes compridos */
 }
 
 .lobbyHeader .MuiTypography-subtitle1 {
     color: #b0c4de !important;
+    font-size: 1rem !important; /* Ajustado */
 }
 
-/* Botões de ação com estilo sutil */
+/* Botões de ação */
 .actionButton {
     color: #b0c4de !important;
     border-color: rgba(176, 196, 222, 0.3) !important;
     font-family: 'Orbitron', sans-serif !important;
     transition: all 0.2s ease-in-out !important;
-    text-transform: none !important; /* Para não ficar em maiúsculas */
-    font-size: 0.85rem !important;
+    text-transform: none !important;
+    font-size: 0.8rem !important; /* Ligeiramente reduzido */
+    padding: 6px 12px !important; /* Ajusta padding */
 }
 
 .actionButton:hover {
@@ -70,37 +77,306 @@
     color: #fff !important;
 }
 
-/* Seção dos personagens, agora sem fundo próprio */
+/* Seção dos personagens */
 .characterSection {
     padding: 0;
 }
 
 .characterSectionTitle {
-    margin-bottom: 24px;
-    text-align: left; /* Título alinhado à esquerda */
+    margin-bottom: 20px; /* Reduzido */
+    text-align: left;
     font-weight: 600;
     color: #ffffff;
     font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.5rem !important; /* Reduzido */
 }
 
 /* Itens da lista de personagens */
 .characterListItem {
     transition: background-color 0.3s ease;
-    padding: 16px !important;
+    padding: 12px 16px !important; /* Ajustado padding */
     border-radius: 8px;
     background-color: rgba(42, 59, 90, 0.5);
-    margin-bottom: 12px;
+    margin-bottom: 10px; /* Reduzido */
+    /* --- ADICIONADO: Flexbox para layout interno --- */
+    display: flex;
+    flex-wrap: wrap; /* Permite quebrar linha */
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Espaço entre texto e botões */
 }
 
 .characterListItem:hover {
     background-color: rgba(42, 59, 90, 0.8);
 }
 
+/* Ajusta o texto para não ocupar espaço demais */
+.characterListItem .MuiListItemText-root {
+    flex-grow: 1; /* Ocupa espaço disponível */
+    margin-right: 10px; /* Espaço antes dos botões */
+}
+
 .characterListItem .MuiListItemText-primary {
     color: #fff;
     font-weight: 500;
+    word-break: break-word; /* Quebra nomes compridos */
 }
 
 .characterListItem .MuiListItemText-secondary {
     color: #a8b2d1;
+    font-size: 0.85rem !important; /* Reduzido */
 }
+
+/* Container dos botões dentro do ListItem */
+.characterListItem .MuiBox-root {
+   /* display: flex; (Já está no Box do JSX) */
+   flex-wrap: nowrap; /* Não deixa os botões quebrarem entre si */
+   gap: 8px !important; /* Espaço entre os botões */
+}
+
+/* --- RESPONSIVIDADE --- */
+
+/* Tablets e Telas Médias (<= 960px) */
+@media (max-width: 960px) {
+    .mainContent {
+        padding: 20px 25px; /* Ajusta padding */
+        max-width: 95%; /* Permite um pouco mais de largura */
+    }
+
+    .campaignName {
+        font-size: 2rem !important;
+    }
+
+    .characterSectionTitle {
+        font-size: 1.3rem !important;
+    }
+}
+
+/* Telemóveis (<= 600px) */
+@media (max-width: 600px) {
+    .lobbyPageContainer {
+        padding: 15px 5px; /* Menos padding ainda */
+    }
+    .mainContent {
+        padding: 15px; /* Menos padding */
+        max-width: 100%; /* Ocupa tudo */
+    }
+
+    /* Grid de Ações: Centralizado e com wrap */
+    .actionsGrid {
+        justify-content: center !important; /* Centraliza os botões */
+        flex-wrap: wrap; /* Permite quebrar linha */
+    }
+    .actionsGridItem {
+        width: calc(50% - 8px); /* Tenta colocar 2 botões por linha */
+        display: flex; /* Necessário para o botão ocupar o espaço */
+    }
+    .actionsGridItem .MuiButton-root {
+        width: 100%; /* Faz o botão ocupar o espaço do item */
+        justify-content: center; /* Centraliza ícone e texto */
+        font-size: 0.75rem !important; /* Fonte menor */
+        padding: 6px 8px !important;
+    }
+     /* Caso ímpar, o último ocupa a linha toda */
+     .actionsGridItem:last-child:nth-child(odd) {
+         width: calc(100% - 8px);
+     }
+
+
+    .campaignName {
+        font-size: 1.8rem !important;
+    }
+    .lobbyHeader .MuiTypography-subtitle1 {
+        font-size: 0.9rem !important;
+    }
+
+    .characterSectionTitle {
+        font-size: 1.2rem !important;
+    }
+
+    /* Layout do ListItem em mobile */
+    .characterListItem {
+        flex-direction: column; /* Empilha texto e botões */
+        align-items: flex-start; /* Alinha tudo à esquerda */
+        gap: 15px; /* Mais espaço vertical */
+    }
+    .characterListItem .MuiListItemText-root {
+        margin-right: 0; /* Remove margem desnecessária */
+        width: 100%; /* Ocupa toda a largura */
+    }
+     .characterListItem .MuiBox-root {
+         width: 100%; /* Botões ocupam a largura toda */
+         justify-content: flex-start; /* Alinha botões à esquerda */
+         gap: 10px !important; /* Aumenta espaço entre botões */
+     }
+      .characterListItem .MuiButton-root,
+      .characterListItem .MuiIconButton-root {
+          padding: 6px 10px !important; /* Ajusta padding dos botões internos */
+      }
+}
+
+/* ... (Todo o CSS anterior) ... */
+
+/* Header do Lobby */
+.lobbyHeader {
+    text-align: left;
+    padding: 0;
+    margin-bottom: 30px;
+    border-bottom: 1px solid rgba(176, 196, 222, 0.2);
+    padding-bottom: 20px;
+    /* --- ADICIONADO: Para conter a imagem --- */
+    position: relative; /* Ou pode ser flex column */
+    overflow: hidden; /* Garante que a imagem respeite o border-radius do pai se houver */
+}
+
+/* --- NOVO: Estilo para a imagem da capa no Lobby --- */
+.lobbyCoverImage {
+    width: 100%; /* Ocupa toda a largura do header */
+    max-height: 250px; /* Altura máxima (ajusta conforme preferir) */
+    object-fit: cover; /* Cobre o espaço sem distorcer */
+    border-radius: 6px; /* Cantos arredondados (opcional) */
+    margin-bottom: 16px; /* Espaço abaixo da imagem, antes do título */
+    display: block; /* Garante que ocupe a linha */
+    border: 1px solid #2a3b5a; /* Borda sutil */
+}
+/* --- FIM DO NOVO ESTILO --- */
+
+
+/* Nome da campanha */
+.campaignName {
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 700 !important;
+    color: #fff;
+    font-size: 2.2rem !important;
+    margin-bottom: 8px !important;
+    word-break: break-word;
+}
+
+/* ... (Resto do CSS) ... */
+
+/* --- AJUSTE RESPONSIVO OPCIONAL --- */
+@media (max-width: 600px) {
+    /* ... (outros estilos mobile) ... */
+
+    .lobbyCoverImage {
+        max-height: 180px; /* Imagem menor em mobile */
+        margin-bottom: 12px;
+    }
+
+    .campaignName {
+        font-size: 1.8rem !important;
+    }
+    /* DENTRO DE @media (max-width: 600px) */
+
+    /* Grid de Ações: Centralizado e com wrap */
+    .actionsGrid {
+        justify-content: center !important;
+        flex-wrap: wrap;
+        gap: 10px; /* Aumenta o gap ligeiramente */
+    }
+    .actionsGridItem {
+        /* --- ALTERADO --- */
+        /* width: calc(50% - 8px); /* REMOVIDO - Deixa o flex decidir */
+        flex-basis: auto; /* Permite largura natural */
+        flex-grow: 1; /* Permite crescer até um limite */
+        max-width: 250px; /* LIMITE MÁXIMO para não esticar demais */
+        display: flex; /* Mantém flex */
+        justify-content: center; /* CENTRALIZA o botão dentro do item */
+         /* --- FIM DA ALTERAÇÃO --- */
+    }
+    .actionsGridItem .MuiButton-root {
+        /* --- ALTERADO --- */
+        /* width: 100%; /* REMOVIDO - Não força largura total */
+        /* --- FIM DA ALTERAÇÃO --- */
+        justify-content: center;
+        font-size: 0.75rem !important;
+        padding: 6px 10px !important; /* Ajustado padding */
+        white-space: nowrap; /* Evita quebra de linha no texto do botão */
+    }
+     /* Remove a regra do last-child ímpar, pois não é mais necessária */
+     /* .actionsGridItem:last-child:nth-child(odd) { ... } REMOVIDO */
+
+     /* ... (restante das regras mobile) ... */
+
+     /* Layout do ListItem em mobile (Botões "Ver Ficha", etc.) */
+    .characterListItem {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    .characterListItem .MuiListItemText-root {
+        margin-right: 0;
+        width: 100%;
+    }
+     .characterListItem .MuiBox-root { /* Container dos botões Ver Ficha, etc. */
+         width: 100%;
+         justify-content: flex-start; /* Mantém à esquerda */
+         gap: 10px !important;
+         /* --- ADICIONADO: Permite quebrar linha se necessário --- */
+         flex-wrap: wrap;
+     }
+      /* Garante que os botões não estiquem */
+      .characterListItem .MuiButton-root,
+      .characterListItem .MuiIconButton-root {
+          padding: 6px 10px !important;
+          /* --- ADICIONADO: Impede crescimento excessivo --- */
+          flex-grow: 0;
+          flex-shrink: 0;
+      }
+}
+
+/* ... (Todo o CSS anterior) ... */
+
+/* --- NOVOS ESTILOS PARA EDIÇÃO DA CAPA --- */
+
+/* Container da imagem para permitir posicionamento absoluto do botão */
+.lobbyCoverImageContainer {
+    position: relative; /* Necessário para o posicionamento absoluto do botão */
+    display: block; /* Garante que ocupe a linha */
+    margin-bottom: 16px; /* Mantém o espaço abaixo da imagem */
+    border-radius: 6px; /* Aplica o border-radius aqui */
+    overflow: hidden; /* Garante que o botão não vaze */
+    border: 1px solid #2a3b5a; /* Mantém a borda */
+}
+
+/* Imagem da capa (sem alterações, mas pode ajustar aqui) */
+.lobbyCoverImage {
+    width: 100%;
+    max-height: 250px;
+    object-fit: cover;
+    display: block; /* Remove espaço extra abaixo da imagem */
+    /* border-radius já está no container */
+    /* margin-bottom removido daqui */
+    /* border removido daqui */
+}
+
+/* Botão de editar capa */
+.editCoverButton {
+    position: absolute !important; /* Posicionamento sobre a imagem */
+    top: 8px !important;
+    right: 8px !important;
+    background-color: rgba(0, 0, 0, 0.6) !important; /* Fundo semi-transparente */
+    color: white !important;
+    transition: background-color 0.2s ease-in-out !important;
+}
+
+.editCoverButton:hover {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Ajuste mobile para o botão de editar (opcional) */
+@media (max-width: 600px) {
+    .lobbyCoverImage {
+        max-height: 180px;
+    }
+    .editCoverButton {
+        top: 4px !important;
+        right: 4px !important;
+    }
+    /* Diminui o ícone dentro do botão se necessário */
+    .editCoverButton svg {
+       font-size: 1.2rem !important; /* Exemplo */
+    }
+}
+
+/* --- FIM DOS NOVOS ESTILOS --- */

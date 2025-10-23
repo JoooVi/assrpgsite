@@ -9,12 +9,13 @@ import logo from "../assets/asslogo1.png";
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // Pega o objeto 'user' completo do estado do Redux
   const { user } = useSelector((state) => state.auth);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
+    // --- ALTERAÇÃO: Fechar o menu ao fazer logout ---
+    closeMenu(); 
     navigate("/login");
   };
 
@@ -27,12 +28,15 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
+    // --- ALTERAÇÃO: Adiciona classe 'mobile-menu-open' quando aberto ---
+    <nav className={`navbar ${isMenuOpen ? "mobile-menu-open" : ""}`}>
       <div className="navbar-left">
         <Link to="/" className="navbar-logo" onClick={closeMenu}>
           <img src={logo} alt="Logo" className="logo-image" />
         </Link>
       </div>
+
+      {/* --- ALTERAÇÃO: Este div agora é o menu dropdown em mobile --- */}
       <div className={`navbar-center ${isMenuOpen ? "active" : ""}`}>
         <Link to="/" className="navbar-link" onClick={closeMenu}>
           Home
@@ -49,16 +53,33 @@ const Navbar = () => {
         <Link to="/homebrews" className="navbar-link" onClick={closeMenu}>
           Homebrews
         </Link>
+
+        {/* --- NOVO: Secção para conta/login DENTRO do menu mobile --- */}
+        <div className="mobile-account-section">
+          {user ? (
+            // Passa a função closeMenu para o AccountMenu (opcional, mas bom UX)
+            <AccountMenu handleLogout={handleLogout} user={user} onLinkClick={closeMenu}/>
+          ) : (
+            <Link to="/login" className="navbar-link" onClick={closeMenu}>
+              Conectar
+            </Link>
+          )}
+        </div>
+        {/* --- FIM DA NOVA SECÇÃO --- */}
+
       </div>
+
+      {/* Botão Hambúrguer permanece igual */}
       <div className="navbar-toggle" onClick={toggleMenu}>
-        <span className="bar"></span>
-        <span className="bar"></span>
-        <span className="bar"></span>
+        <span className={`bar ${isMenuOpen ? "open" : ""}`}></span>
+        <span className={`bar ${isMenuOpen ? "open" : ""}`}></span>
+        <span className={`bar ${isMenuOpen ? "open" : ""}`}></span>
       </div>
+
+      {/* Secção direita original - será escondida em mobile via CSS */}
       <div className="navbar-right">
-        {/* Verifica se o usuário existe para decidir o que renderizar */}
         {user ? (
-          // Passa o objeto 'user' como prop para o AccountMenu
+          // Não precisa do onLinkClick aqui
           <AccountMenu handleLogout={handleLogout} user={user} />
         ) : (
           <Link to="/login" className="navbar-link">

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import {
   Box,
   TextField,
@@ -79,6 +79,7 @@ const dados = {
 // --- END Dice Assets ---
 
 const rollCustomDice = (formula) => {
+  // ... (A tua função rollCustomDice permanece a mesma) ...
   const regex = /(\d+)d(\d+)/g;
   let match;
   const results = [];
@@ -102,16 +103,20 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-const MasterDiceRoller = ({ campaignId }) => {
+// --- ALTERAÇÃO 1: Envolvemos o componente com forwardRef ---
+const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
   const { user, token } = useSelector((state) => state.auth);
+  // Estado interno para o TextField (rolagem manual)
   const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [rollResult, setRollResult] = useState(null); // Store roll result for display
 
-  const handleCustomRoll = useCallback(async () => {
-    if (!customDiceFormula.trim()) {
+  // --- ALTERAÇÃO 2: Criámos uma função 'executeRoll' que aceita a fórmula ---
+  // Esta função contém a lógica de rolagem que estava no handleCustomRoll
+  const executeRoll = useCallback(async (formulaToRoll) => {
+    if (!formulaToRoll || !formulaToRoll.trim()) {
       setSnackbarMessage("Por favor, insira uma fórmula de dados.");
       setSnackbarSeverity("warning");
       setSnackbarOpen(true);
@@ -119,18 +124,17 @@ const MasterDiceRoller = ({ campaignId }) => {
     }
 
     try {
-      const results = rollCustomDice(customDiceFormula);
-      setRollResult({ formula: customDiceFormula, roll: results }); // Set for local display
+      const results = rollCustomDice(formulaToRoll);
+      // Atualiza o display local com o resultado da rolagem
+      setRollResult({ formula: formulaToRoll, roll: results }); 
 
-      // Send roll to backend for master's rolls feed (or general campaign rolls)
-      // TODO: This assumes a new backend endpoint for master rolls in a campaign.
-      // E.g., `PUT /api/campaigns/:id/master-roll` or `POST /api/campaigns/:id/rolls`
+      // Envia a rolagem para o backend (para o RecentRollsFeed)
       await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/roll`, // Placeholder URL
+        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/roll`, 
         {
           rollerId: user._id,
-          rollerName: user.name,
-          formula: customDiceFormula,
+          rollerName: user.name || "Mestre", // Garante um nome
+          formula: formulaToRoll,
           roll: results,
           timestamp: new Date(),
         },
@@ -149,7 +153,23 @@ const MasterDiceRoller = ({ campaignId }) => {
     } finally {
       setSnackbarOpen(true);
     }
-  }, [customDiceFormula, campaignId, user, token]);
+  }, [campaignId, user, token]); // Dependências da lógica de execução
+
+  // --- ALTERAÇÃO 3: O 'handleCustomRoll' (do botão interno) agora chama o 'executeRoll' ---
+  const handleInternalRoll = () => {
+    executeRoll(customDiceFormula);
+  };
+  
+  // --- ALTERAÇÃO 4: Usamos 'useImperativeHandle' para expor uma função ao "pai" ---
+  useImperativeHandle(ref, () => ({
+    /**
+     * Permite que o componente pai (CampaignSheet) dispare uma rolagem
+     * com uma fórmula específica (ex: a fórmula da Ameaça).
+     */
+    triggerRoll: (formulaFromParent) => {
+      executeRoll(formulaFromParent);
+    }
+  }));
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -160,6 +180,7 @@ const MasterDiceRoller = ({ campaignId }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
+      {/* O TextField ainda usa o estado interno 'customDiceFormula' */}
       <TextField
         label="Fórmula dos Dados (ex: 1d6+2d10)"
         value={customDiceFormula}
@@ -178,16 +199,18 @@ const MasterDiceRoller = ({ campaignId }) => {
           },
         }}
       />
+      {/* O botão interno agora chama 'handleInternalRoll' */}
       <Button
         variant="contained"
         color="primary"
-        onClick={handleCustomRoll}
+        onClick={handleInternalRoll}
         startIcon={<D20Icon style={{ width: "24px", height: "24px" }} />}
         sx={{ mt: 1, mb: 2, width: "100%" }}
       >
         Rolar Dados
       </Button>
 
+      {/* O display de resultado (exibido localmente) permanece igual */}
       {rollResult && (
         <Box
           sx={{
@@ -236,9 +259,10 @@ const MasterDiceRoller = ({ campaignId }) => {
                       />
                     ))
                   ) : (
-                    <Typography variant="body2" sx={{ color: "#f00" }}>
+                    // Alterado: Mostrar a 'face' (número) se não houver símbolos
+                    <Typography variant="body2" sx={{ color: '#aaa', fontWeight: 'bold' }}>
                       {die.face}
-                    </Typography> // Show face number if no symbols
+                    </Typography> 
                   )}
                 </Box>
               </Grid>
@@ -247,6 +271,7 @@ const MasterDiceRoller = ({ campaignId }) => {
         </Box>
       )}
 
+      {/* O Snackbar permanece igual */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
@@ -262,6 +287,6 @@ const MasterDiceRoller = ({ campaignId }) => {
       </Snackbar>
     </Box>
   );
-};
+}); // Fim do forwardRef
 
 export default MasterDiceRoller;

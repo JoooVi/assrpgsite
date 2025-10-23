@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import "./CampaignList.css";
+import "./CampaignList.css"; // Mantém o teu CSS existente
 import {
   Box,
   Button,
@@ -22,6 +22,8 @@ import {
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
+  // --- NOVO: Import CardMedia para a imagem ---
+  CardMedia,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LoginIcon from "@mui/icons-material/Login";
@@ -35,7 +37,6 @@ const CampaignList = () => {
   const token = useSelector((state) => state.auth.token);
   const navigate = useNavigate();
 
-  // Estados para o modal
   const [openJoinModal, setOpenJoinModal] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [selectedChar, setSelectedChar] = useState("");
@@ -43,7 +44,8 @@ const CampaignList = () => {
   const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
-    if (!user || !token) {
+    // ... (fetchCampaigns permanece igual) ...
+     if (!user || !token) {
       setLoading(false);
       return;
     }
@@ -58,12 +60,28 @@ const CampaignList = () => {
           }
         );
         if (response.data && Array.isArray(response.data)) {
-          setCampaigns(response.data);
+          // --- Mapeia para construir a URL completa da imagem ---
+          const campaignsWithImages = response.data.map(campaign => {
+             // Assumindo que o backend retorna o caminho relativo como 'uploads/covers/nome-arquivo.jpg'
+             // E o teu servidor está configurado para servir a pasta 'uploads' estaticamente
+             // ou que o caminho já é uma URL completa (ex: Cloudinary)
+             let imageUrl = campaign.coverImage ? `https://assrpgsite-be-production.up.railway.app/${campaign.coverImage.replace(/\\/g, '/')}` : null; // Constrói URL completa
+
+             // Se o caminho já for uma URL completa (começa com http), usa diretamente
+             if (campaign.coverImage && campaign.coverImage.startsWith('http')) {
+                 imageUrl = campaign.coverImage;
+             }
+
+             return { ...campaign, coverImageUrl: imageUrl };
+          });
+          setCampaigns(campaignsWithImages);
+          // --- Fim do mapeamento ---
         } else {
           setCampaigns([]);
         }
       } catch (error) {
         setError("Erro ao carregar a lista de campanhas.");
+        console.error("Erro fetchCampaigns:", error); // Log do erro
       } finally {
         setLoading(false);
       }
@@ -72,7 +90,8 @@ const CampaignList = () => {
   }, [user, token]);
 
   const fetchAvailableCharacters = async () => {
-    setModalLoading(true);
+    // ... (fetchAvailableCharacters permanece igual) ...
+      setModalLoading(true);
     try {
       const res = await axios.get(
         "https://assrpgsite-be-production.up.railway.app/api/characters/available",
@@ -90,16 +109,18 @@ const CampaignList = () => {
   };
 
   const handleOpenJoinModal = () => {
-    setOpenJoinModal(true);
+    // ... (handleOpenJoinModal permanece igual) ...
+     setOpenJoinModal(true);
     fetchAvailableCharacters();
   };
 
   const handleJoinCampaign = async () => {
-    if (!inviteCode) {
+    // ... (handleJoinCampaign permanece igual) ...
+     if (!inviteCode) {
       alert("Por favor, preencha o código de convite.");
       return;
     }
-    
+
     const payload = {
       inviteCode: inviteCode,
     };
@@ -114,6 +135,7 @@ const CampaignList = () => {
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      // Recarrega a página para atualizar a lista (pode ser melhorado com state update)
       window.location.reload();
     } catch (err) {
       alert(
@@ -123,7 +145,8 @@ const CampaignList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (
+    // ... (handleDelete permanece igual) ...
+      if (
       window.confirm(
         "Você realmente deseja excluir esta campanha? Esta ação é irreversível."
       )
@@ -140,7 +163,8 @@ const CampaignList = () => {
   };
 
   const actions = [
-    {
+    // ... (actions permanece igual) ...
+      {
       icon: <LoginIcon />,
       name: "Entrar em uma Campanha",
       handler: handleOpenJoinModal,
@@ -153,7 +177,8 @@ const CampaignList = () => {
   ];
 
   if (loading) {
-    return (
+    // ... (loading JSX permanece igual) ...
+      return (
       <div className="loadingIndicator">
         <CircularProgress />
       </div>
@@ -161,11 +186,10 @@ const CampaignList = () => {
   }
 
   return (
-    // Usamos um Fragment <> para agrupar tudo sem adicionar um div extra no DOM
     <>
       {campaigns.length === 0 ? (
-        // TELA DE NENHUMA CAMPANHA
-        <div className="noCampaigns">
+        // ... (noCampaigns JSX permanece igual) ...
+         <div className="noCampaigns">
           <div className="noCampaignsBox">
             <Typography
               variant="h5"
@@ -186,16 +210,29 @@ const CampaignList = () => {
           </div>
         </div>
       ) : (
-        // TELA COM A LISTA DE CAMPANHAS
+        // --- LISTA DE CAMPANHAS ATUALIZADA ---
         <div className="campaignList">
           <h2>Suas Campanhas</h2>
           <div className="campaignCards">
             {campaigns.map((campaign, index) => (
               <article
                 key={campaign._id}
-                className="campaignCard"
+                className="campaignCard" // A classe CSS existente fará o estilo base
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
+                {/* --- ADIÇÃO: Imagem da Capa --- */}
+                {/* Usamos CardMedia para a imagem */}
+                <CardMedia
+                  component="img"
+                  className="campaignCardImage" // Adiciona uma classe para estilizar
+                  image={campaign.coverImageUrl || "/path/to/default-campaign-image.jpg"} // Usa a URL construída ou uma imagem padrão
+                  alt={`Capa da campanha ${campaign.name}`}
+                  // sx opcional para altura ou object-fit se necessário no CSS
+                   sx={{ height: 140, objectFit: 'cover' }} // Exemplo de altura fixa
+                />
+                {/* --- FIM DA ADIÇÃO --- */}
+
+                {/* O conteúdo original do card (informações e ações) */}
                 <div className="contentPane">
                   <div className="campaignInfo">
                     <Typography variant="h5" component="h2" className="campaignName">
@@ -236,11 +273,13 @@ const CampaignList = () => {
             ))}
           </div>
         </div>
+        // --- FIM DA LISTA ATUALIZADA ---
       )}
 
-      {/* COMPONENTES COMPARTILHADOS - Sempre presentes */}
+      {/* SpeedDial e Modal permanecem iguais */}
       <SpeedDial
-        ariaLabel="Menu de Ações da Campanha"
+        // ... props ...
+         ariaLabel="Menu de Ações da Campanha"
         sx={{ position: "fixed", bottom: 30, right: 30 }}
         icon={<SpeedDialIcon />}
       >
@@ -255,12 +294,14 @@ const CampaignList = () => {
       </SpeedDial>
 
       <Dialog
-        open={openJoinModal}
+        // ... props ...
+         open={openJoinModal}
         onClose={() => setOpenJoinModal(false)}
         fullWidth
         maxWidth="xs"
       >
-        <DialogTitle>Juntar-se a uma Campanha</DialogTitle>
+        {/* ... Conteúdo do Modal ... */}
+         <DialogTitle>Juntar-se a uma Campanha</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Three.js - Dados com Imagens</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+    
+    <!-- 
+      CORREÇÃO: Usando Import Maps para dizer ao navegador onde encontrar as bibliotecas 
+      e garantindo que a versão do Three.js é compatível com a biblioteca de dados.
+    -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js",
+            "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/controls/OrbitControls.js",
+            "three/examples/jsm/libs/stats.module.js": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/libs/stats.module.js",
+            "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+        }
+    }
+    </script>
+
+</head>
+<body>
+    <div id="info">Use o mouse para rolar e dar zoom. Clique para lançar os dados. Um D6 usa imagens.</div>
+    <div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
+
+<!-- O código continua dentro de um único script do tipo "module". -->
+<script type="module">
+    // Importando as bibliotecas como módulos
+    import * as THREE from 'three';
+    import * as CANNON from 'cannon-es';
+    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+    import Stats from 'three/examples/jsm/libs/stats.module.js';
+    // Usando uma versão da biblioteca de dados que é compatível com módulos
+    import { DiceManager, DiceD6, DiceD10, DiceD12 } from 'https://cdn.jsdelivr.net/gh/T-zt/threejs-dice/lib/dice.js';
+
+    // Variáveis globais padrão
+    let container, scene, camera, renderer, controls, stats, world;
+    const diceObjects = []; // Array para armazenar os objetos de dados para o evento de clique
+
+    // O código inicia imediatamente, pois os módulos cuidam da ordem de carregamento.
+    init();
+    animate();
+
+    // FUNÇÕES
+    function init() {
+        // CENA
+        scene = new THREE.Scene();
+        // CÂMERA
+        const SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+        const VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+        camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+        scene.add(camera);
+        camera.position.set(0, 700, 500); // Posição ajustada para melhor visualização
+
+        // RENDERIZADOR
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        renderer.shadowMap.enabled = true; // Habilitar sombras
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container = document.getElementById('ThreeJS');
+        container.appendChild(renderer.domElement);
+
+        // CONTROLES
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        // ESTATÍSTICAS
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.bottom = '0px';
+        stats.domElement.style.zIndex = 100;
+        container.appendChild(stats.domElement);
+
+        // LUZES
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const topLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        topLight.position.set(100, 200, 100);
+        topLight.castShadow = true;
+        topLight.shadow.mapSize.width = 2048;
+        topLight.shadow.mapSize.height = 2048;
+        scene.add(topLight);
+
+        // PISO
+        const floorMaterial = new THREE.MeshPhongMaterial({ color: '#006622', side: THREE.DoubleSide });
+        const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.receiveShadow = true; // Piso recebe sombra
+        floor.position.y = -100;
+        floor.rotation.x = Math.PI / 2;
+        scene.add(floor);
+
+        // FOG
+        scene.fog = new THREE.FogExp2(0x9999ff, 0.00025);
+
+
+        ////////////
+        // CUSTOM //
+        ////////////
+
+        // Configuração do mundo da física com CANNON.js
+        world = new CANNON.World();
+        world.gravity.set(0, -9.8 * 200, 0); // Gravidade ajustada para o novo eixo Y
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 16;
+        DiceManager.setWorld(world);
+
+        // --- SUBSTITUIÇÃO DAS FACES DO DADO D6 POR IMAGENS ---
+
+        const textureLoader = new THREE.TextureLoader();
+
+        const dice6FaceTextures = [
+            textureLoader.load('https://placehold.co/256x256/ffffff/000000?text=Figura+1'), // Face 1
+            textureLoader.load('https://placehold.co/256x256/ffffff/000000?text=Figura+2'), // Face 2
+            textureLoader.load('https://placehold.co/256x256/ffffff/000000?text=Figura+3'), // Face 3
+            textureLoader.load('https://placehold.co/256x256/ffffff/000000?text=Figura+4'), // Face 4
+            textureLoader.load('https://placehold.co/256x256/ffffff/000000?text=Figura+5'), // Face 5
+            textureLoader.load('https://placehold.co/256x256/ffffff/000000?text=Figura+6'), // Face 6
+        ];
+
+        const dice6ImageMaterials = dice6FaceTextures.map(texture => {
+            return new THREE.MeshPhongMaterial({ map: texture });
+        });
+
+        // --- CRIAÇÃO DOS DADOS ---
+        let customDice6 = new DiceD6({ size: 50, backColor: '#ff0000' });
+        customDice6.getObject().material = dice6ImageMaterials;
+        customDice6.getObject().position.set(0, 150, 0); // Posição inicial
+        customDice6.getObject().castShadow = true;
+        scene.add(customDice6.getObject());
+        diceObjects.push(customDice6);
+
+        let standardD10 = new DiceD10({size: 50});
+        standardD10.getObject().position.set(-150, 150, 0);
+        standardD10.getObject().castShadow = true;
+        scene.add(standardD10.getObject());
+        diceObjects.push(standardD10);
+        
+        let standardD12 = new DiceD12({size: 50});
+        standardD12.getObject().position.set(150, 150, 0);
+        standardD12.getObject().castShadow = true;
+        scene.add(standardD12.getObject());
+        diceObjects.push(standardD12);
+
+        window.addEventListener('click', () => {
+            diceObjects.forEach(d => {
+                const randomX = (Math.random() - 0.5) * 400;
+                const randomZ = (Math.random() - 0.5) * 400;
+                d.getObject().position.set(randomX, 150 + Math.random() * 50, randomZ);
+                d.updateBodyFromMesh();
+                const force = 30 + Math.random() * 20;
+                d.getObject().body.applyImpulse(
+                    new CANNON.Vec3(0, force * 200, force * 100),
+                    new CANNON.Vec3(0, 0, 0)
+                );
+                d.getObject().body.angularVelocity.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+            });
+        });
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        update();
+        render();
+    }
+
+    function update() {
+        world.step(1.0 / 60.0);
+        // CORREÇÃO: Usando o método da biblioteca para atualizar os dados
+        DiceManager.update();
+        controls.update();
+        stats.update();
+    }
+
+    function render() {
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }, false);
+</script>
+</body>
+</html>

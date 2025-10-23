@@ -173,8 +173,9 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
   };
 
   return (
-    <Paper elevation={0} className={styles.container}>
-      <Typography variant="h6" gutterBottom className={styles.title}>
+    <Paper elevation={0} className={styles.container}
+      sx={{ bgcolor: '#1e1e1e' }}>
+      <Typography variant="h6" gutterBottom sx={{ color: '#ccc' }} className={styles.title}>
         Assimilação & Determinação
       </Typography>
       
@@ -182,7 +183,7 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
 
       {!isReadOnly && (
         <Box sx={{ padding: '16px 24px', textAlign: 'center' }}>
-            <Typography variant="overline">Ajustar Níveis</Typography>
+            <Typography sx={{ color: '#ccc' }} variant="overline">Ajustar Níveis</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography sx={{ color: '#a73c39', fontWeight: 'bold' }}>Determinação</Typography>
                 <Slider
@@ -205,20 +206,20 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
                         },
                     }}
                 />
-                <Typography sx={{ color: '#3b4766', fontWeight: 'bold' }}>Assimilação</Typography>
+                <Typography sx={{ color: '#4b5a80ff', fontWeight: 'bold' }}>Assimilação</Typography>
             </Box>
         </Box>
       )}
       
       <div className={styles.controlsContainer}>
         <div className={styles.controlSection}>
-          <Typography variant="h6" className={styles.pointsText}>
+          <Typography variant="h6" sx={{ color: '#ccc' }} className={styles.pointsText}>
             <strong>{character.determinationPoints}</strong>
             <span className={styles.levelText}> Pontos de Determinação</span>
           </Typography>
         </div>
         <div className={styles.controlSection}>
-          <Typography variant="h6" className={styles.pointsText}>
+          <Typography variant="h6" sx={{ color: '#ccc' }} className={styles.pointsText}>
             <strong>{character.assimilationPoints}</strong>
             <span className={styles.levelText}> Pontos de Assimilação</span>
           </Typography>

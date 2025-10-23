@@ -11,6 +11,11 @@ import { Link as RouterLink } from "react-router-dom";
 import { saveSkillsToBackend } from "../redux/actions/skillActions";
 import { updateInstincts } from "../redux/slices/instinctsSlice";
 import { fetchInstincts } from "../redux/actions/instinctsActions";
+import EditItemDialog from "../components/EditItemDialog";
+import ArmaPlaceholder from "../assets/arma_placeholder.svg";
+import UtilidadePlaceholder from "../assets/utilidade_placeholder.svg";
+import ConsumivelPlaceholder from "../assets/consumivel_placeholder.svg";
+import InventoryGrid from "../components/InventoryGrid";
 import TugOfWar from "../components/TugOfWar";
 import { useParams } from "react-router-dom";
 import {
@@ -25,6 +30,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  CircularProgress,
   InputLabel,
   FormHelperText,
   Tab,
@@ -167,14 +173,20 @@ const qualityLevels = {
 };
 
 const scarcityLevels = {
-  0: 'Abundante',
-  1: 'Pedra',
-  2: 'Comum',
-  3: 'Incomum',
-  4: 'Atípico',
-  5: 'Raro',
-  6: 'Quase Extinto'
+  0: "Abundante",
+  1: "Pedra",
+  2: "Comum",
+  3: "Incomum",
+  4: "Atípico",
+  5: "Raro",
+  6: "Quase Extinto",
 };
+
+const quickAccessPlaceholders = [
+  { type: "Arma", icon: ArmaPlaceholder },
+  { type: "Utilidade", icon: UtilidadePlaceholder },
+  { type: "Consumível", icon: ConsumivelPlaceholder },
+];
 
 const dados = {
   d6: {
@@ -257,7 +269,7 @@ const rollCustomDice = (formula) => {
     for (let i = 0; i < countInt; i++) {
       const face = Math.floor(Math.random() * sidesInt) + 1;
       const result = dados[`d${sidesInt}`][face] || [];
-      results.push({ face, result });
+      results.push({ face, result, sides: sidesInt }); // Adiciona o 'sides'
     }
   }
 
@@ -313,75 +325,83 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     console.log("Instintos atualizados:", instincts);
   }, [instincts]);
 
-  // SkillList.js
 
-const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita um item como parâmetro
-  if (isRolling) return;
-  if (!selectedInstinct[key]) {
-    alert("Selecione um instinto antes de rolar!");
-    return;
-  }
-  setIsRolling(true);
+  const handleRoll = useCallback(
+    async (key, itemUsado = null) => {
+      // 1. Aceita um item como parâmetro
+      if (isRolling) return;
+      if (!selectedInstinct[key]) {
+        alert("Selecione um instinto antes de rolar!");
+        return;
+      }
+      setIsRolling(true);
 
-  try {
-    const skillValue = parseInt(globalSkills[key]) || 0;
-    const instinctKey = selectedInstinct[key];
-    const instinctValue = parseInt(instincts[instinctKey]) || 0;
-    let totalDice = skillValue + instinctValue;
+      try {
+        const skillValue = parseInt(globalSkills[key]) || 0;
+        const instinctKey = selectedInstinct[key];
+        const instinctValue = parseInt(instincts[instinctKey]) || 0;
+        let totalDice = skillValue + instinctValue;
 
-    // 2. Objeto para guardar os efeitos da qualidade
-    const qualityEffect = {
-        bonusDice: '',
-        message: ''
-    };
+        // 2. Objeto para guardar os efeitos da qualidade
+        const qualityEffect = {
+          bonusDice: "",
+          message: "",
+        };
 
-    if (itemUsado) {
-        // 3. Verifica a qualidade do item e aplica as regras
-        switch (itemUsado.quality) {
+        if (itemUsado) {
+          // 3. Verifica a qualidade do item e aplica as regras
+          switch (itemUsado.quality) {
             case 0: // Quebrado
-                alert(`O item "${itemUsado.item.name}" está quebrado e não pode ser usado.`);
-                setIsRolling(false);
-                return; // Impede a rolagem
+              alert(
+                `O item "${itemUsado.item.name}" está quebrado e não pode ser usado.`
+              );
+              setIsRolling(false);
+              return; // Impede a rolagem
             case 1: // Defeituoso
-                qualityEffect.message = `Qualidade (Defeituoso): Exige 1 [Adaptação] adicional para acionar efeitos.`;
-                break;
+              qualityEffect.message = `Qualidade (Defeituoso): Exige 1 [Adaptação] adicional para acionar efeitos.`;
+              break;
             case 2: // Comprometido
-                qualityEffect.message = `Qualidade (Comprometido): Exige 1 [Sucesso] adicional para ter êxito.`;
-                break;
+              qualityEffect.message = `Qualidade (Comprometido): Exige 1 [Sucesso] adicional para ter êxito.`;
+              break;
             case 4: // Reforçado
-                // Esta regra é mais complexa de automatizar. Por enquanto, vamos exibir como mensagem.
-                qualityEffect.message = `Qualidade (Reforçado): Você pode adicionar 1 [Adaptação] ao resultado final.`;
-                break;
+              // Esta regra é mais complexa de automatizar. Por enquanto, vamos exibir como mensagem.
+              qualityEffect.message = `Qualidade (Reforçado): Você pode adicionar 1 [Adaptação] ao resultado final.`;
+              break;
             case 5: // Superior
-                qualityEffect.bonusDice = '1d6'; // Adiciona um d6 à rolagem
-                qualityEffect.message = `Qualidade (Superior): Adicionado 1d6 à sua rolagem.`;
-                break;
+              qualityEffect.bonusDice = "1d6"; // Adiciona um d6 à rolagem
+              qualityEffect.message = `Qualidade (Superior): Adicionado 1d6 à sua rolagem.`;
+              break;
             case 6: // Obra-Prima
-                // A regra de "três vezes por sessão" exige um gerenciamento de estado mais complexo.
-                // Por simplicidade, vamos tratar como um bônus de 1d10 por agora.
-                qualityEffect.bonusDice = '1d10';
-                qualityEffect.message = `Qualidade (Obra-Prima): Adicionado 1d10 à sua rolagem.`;
-                break;
+              qualityEffect.bonusDice = "1d10";
+              qualityEffect.message = `Qualidade (Obra-Prima): Adicionado 1d10 à sua rolagem.`;
+              break;
             default: // Padrão (3) ou outros níveis sem efeito mecânico direto
-                break;
+              break;
+          }
         }
-    }
 
-    const formula = `${totalDice}d10` + (qualityEffect.bonusDice ? `+${qualityEffect.bonusDice}` : '');
-    const results = rollCustomDice(formula);
+        const formula =
+          `${totalDice}d10` +
+          (qualityEffect.bonusDice ? `+${qualityEffect.bonusDice}` : "");
+        const results = rollCustomDice(formula);
 
-    // 4. Passa a mensagem do efeito para ser exibida no resultado
-    setRollResult({ skill: key, roll: results, effectMessage: qualityEffect.message });
-    setSnackbarKey((prevKey) => prevKey + 1);
-    setSnackbarOpen(true);
-    setTimeout(() => setIsRolling(false), 500);
-    addRollToHistory({ skill: key, roll: results });
-
-  } catch (error) {
-    console.error("Erro ao rolar dados:", error);
-    setIsRolling(false);
-  }
-}, [isRolling, globalSkills, selectedInstinct, instincts, addRollToHistory]);
+        // 4. Passa a mensagem do efeito para ser exibida no resultado
+        setRollResult({
+          skill: key,
+          roll: results,
+          effectMessage: qualityEffect.message,
+        });
+        setSnackbarKey((prevKey) => prevKey + 1);
+        setSnackbarOpen(true);
+        setTimeout(() => setIsRolling(false), 500);
+        addRollToHistory({ skill: key, roll: results });
+      } catch (error) {
+        console.error("Erro ao rolar dados:", error);
+        setIsRolling(false);
+      }
+    },
+    [isRolling, globalSkills, selectedInstinct, instincts, addRollToHistory]
+  );
 
   const handleSnackbarClose = useCallback((event, reason) => {
     if (reason === "clickaway") return;
@@ -413,8 +433,6 @@ const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita u
     [dispatch]
   );
 
-  // ### SEÇÃO MODIFICADA: getSkillDescription ###
-  // Criei descrições para as novas perícias. Você pode alterar se quiser.
   const getSkillDescription = useCallback((key) => {
     const descriptions = {
       // Conhecimentos
@@ -448,15 +466,17 @@ const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita u
 
   return (
     <Box>
-      <Typography variant="h6">{translateKey(title)}</Typography>
+      <Typography variant="h6" color="#ccc">
+        {translateKey(title)}
+      </Typography>
       {Object.entries(globalSkills).map(([key, value]) => (
-        <Grid container key={key} spacing={3} alignItems="center">
+        <Grid container key={key} spacing={1} alignItems="center">
           <Grid item xs={12} sm={4} md={4}>
             <Typography
               onClick={() => handleSkillClick(key)}
               sx={{
                 cursor: "pointer",
-                color: "text.primary",
+                color: "#ccc", // <-- ALTERADO (para herdar o branco da coluna)
                 "&:hover": { color: "primary.main" },
               }}
             >
@@ -465,6 +485,7 @@ const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita u
           </Grid>
 
           <Grid item xs={12} sm={4} md={2}>
+            {/* --- CAMPO DE TEXTO CORRIGIDO --- */}
             <TextField
               value={globalSkills[key] || 0}
               onChange={(e) => handleEditedValueChange(key, e.target.value)}
@@ -472,6 +493,14 @@ const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita u
               variant="outlined"
               fullWidth
               inputProps={{ style: { textAlign: "center" } }}
+              sx={{
+            
+                "& .MuiInputBase-input": { color: "#fff" }, // Texto digitado
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#888" }, // Borda padrão
+                  "&:hover fieldset": { borderColor: "#fff" }, // Borda no hover
+                },
+              }}
             />
           </Grid>
 
@@ -483,12 +512,25 @@ const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita u
               fullWidth
               sx={{ minWidth: 100 }}
             >
-              <InputLabel>{translateKey("Instinto")}</InputLabel>
+              <InputLabel sx={{ color: "#ccc" }}>
+                {translateKey("Instinto")}
+              </InputLabel>
+
+              {/* --- SELECT CORRIGIDO --- */}
               <Select
                 label={translateKey("Instinto")}
                 value={selectedInstinct[key] || ""}
                 onChange={handleInstinctChangee(key)}
                 disabled={loading}
+                sx={{
+                  // <-- ADICIONADO
+                  color: "#fff", // Cor do texto selecionado
+                  "& .MuiSvgIcon-root": { color: "#fff" }, // Cor da setinha
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#888" }, // Borda
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff",
+                  }, // Borda no hover
+                }}
               >
                 {loading ? (
                   <MenuItem disabled>{translateKey("Carregando...")}</MenuItem>
@@ -559,50 +601,102 @@ const handleRoll = useCallback(async (key, itemUsado = null) => { // 1. Aceita u
               rollResult?.skill ||
               translateKey("Nenhuma")}
           </Typography>
-          <Typography variant="body1">
-            {translateKey("Dados Rolados")}:
+          
+          {/* --- INÍCIO DA MUDANÇA (Baseado no MasterDiceRoller) --- */}
+          {/* Mensagem de Efeito (para Qualidade de Item) */}
+          {rollResult?.effectMessage && (
+            <Typography
+              variant="body2"
+              sx={{ color: "#66bb6a", fontStyle: "italic", my: 1 }}
+            >
+              {rollResult.effectMessage}
+            </Typography>
+          )}
+
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            {translateKey("Dados Individuais")}:
           </Typography>
-          {rollResult?.roll?.length > 0 &&
-            rollResult.roll.map((result, index) => (
-              <div key={index}>
-                <Typography variant="body2">
-                  {translateKey("Dado")} {index + 1}:{" "}
-                  {result.result.length > 0 ? "" : translateKey("Nada")}
-                </Typography>
-                {result.result.length > 0 &&
-                  result.result.map((imgSrc, i) => (
-                    <img
-                      key={i}
-                      src={imgSrc}
-                      alt={`${translateKey("Resultado")} ${i + 1}`}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/path/to/default-image.png";
-                      }}
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        margin: "5px",
-                      }}
-                    />
-                  ))}
-              </div>
-            ))}
+          
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {rollResult?.roll?.length > 0 ? (
+              rollResult.roll.map((die, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    p: 1,
+                    bgcolor: 'rgba(0,0,0,0.2)',
+                    borderRadius: 1,
+                    minWidth: '60px'
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 'bold' }}>
+                    Dado {index + 1} (d{die.sides || '?'}) {/* Assumindo que rollCustomDice adicione 'sides' */}
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', minHeight: '30px', alignItems: 'center' }}>
+                    {die.result.length > 0 ? (
+                      die.result.map((imgSrc, i) => (
+                        <img
+                          key={i}
+                          src={imgSrc}
+                          alt="symbol"
+                          style={{ width: "25px", height: "25px", margin: "2px" }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/path/to/default-image.png";
+                          }}
+                        />
+                      ))
+                    ) : (
+                      // Mostra o número da face se não houver símbolos
+                      <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }}>
+                        {die.face}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              ))
+            ) : (
+              <Typography>Nenhum dado rolado.</Typography>
+            )}
+          </Box>
+          {/* --- FIM DA MUDANÇA --- */}
         </Alert>
       </Snackbar>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>
+     <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)}
+        // 1. Adiciona os estilos do Paper (fundo, cor, borda)
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', 
+            color: '#e0e0e0', 
+            border: '1px solid #4a4a4a' 
+          }
+        }}
+      >
+        {/* 2. Adiciona estilo ao Título (borda e cor) */}
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
           {selectedSkill &&
             translateKey(
               selectedSkill.charAt(0).toUpperCase() + selectedSkill.slice(1)
             )}
         </DialogTitle>
-        <DialogContent>
-          <Typography>{getSkillDescription(selectedSkill)}</Typography>
+        
+        {/* 3. Adiciona estilo ao Conteúdo (padding e cor do texto) */}
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
+          <Typography sx={{ color: '#e0e0e0' }}>
+            {getSkillDescription(selectedSkill)}
+          </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
+        
+        {/* 4. Adiciona estilo às Ações (borda) */}
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
+          {/* 5. Altera o botão para usar sx para cor */}
+          <Button onClick={() => setOpen(false)} sx={{ color: '#ccc' }}>
             {translateKey("Fechar")}
           </Button>
         </DialogActions>
@@ -712,13 +806,13 @@ const InstinctList = ({
       <Typography variant="h6">{translateKey(title)}</Typography>
 
       {Object.entries(instincts).map(([key, value]) => (
-        <Grid container key={key} spacing={3} alignItems="center">
+        <Grid container key={key} spacing={1} alignItems="center">
           <Grid item xs={12} sm={4} md={3}>
             <Typography
               onClick={() => handleInstinctClick(key)}
               sx={{
                 cursor: "pointer",
-                color: "text.primary",
+                color: "#ccc", // Cor do texto principal
                 "&:hover": { color: "primary.main" },
               }}
             >
@@ -727,6 +821,7 @@ const InstinctList = ({
           </Grid>
 
           <Grid item xs={12} sm={4} md={2}>
+            {/* --- CAMPO DE TEXTO CORRIGIDO --- */}
             <TextField
               value={instincts[key] || 0}
               onChange={(e) => handleEditedInstinctChange(key, e.target.value)}
@@ -734,6 +829,14 @@ const InstinctList = ({
               variant="outlined"
               fullWidth
               inputProps={{ style: { textAlign: "center" } }}
+              sx={{
+                // <-- ADICIONADO
+                "& .MuiInputBase-input": { color: "#fff" }, // Texto digitado
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#888" }, // Borda padrão
+                  "&:hover fieldset": { borderColor: "#fff" }, // Borda no hover
+                },
+              }}
             />
           </Grid>
 
@@ -744,11 +847,25 @@ const InstinctList = ({
               size="small"
               fullWidth
             >
-              <InputLabel>{translateKey("Instinto")}</InputLabel>
+              {/* --- LABEL CORRIGIDO --- */}
+              <InputLabel sx={{ color: "#ccc" }}>
+                {translateKey("Instinto")}
+              </InputLabel>
+
+              {/* --- SELECT CORRIGIDO --- */}
               <Select
                 label={translateKey("Instinto")}
                 value={selectedInstinct[key] || ""}
                 onChange={(e) => handleInstinctChange(key, e.target.value)}
+                sx={{
+                  // <-- ADICIONADO
+                  color: "#fff", // Cor do texto selecionado
+                  "& .MuiSvgIcon-root": { color: "#fff" }, // Cor da setinha
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#888" }, // Borda
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff",
+                  }, // Borda no hover
+                }}
               >
                 {Object.keys(instincts).map((instinctKey) => (
                   <MenuItem key={instinctKey} value={instinctKey}>
@@ -764,7 +881,7 @@ const InstinctList = ({
           <Grid item xs={12} sm={4} md={2}>
             <Button
               variant="contained"
-              color="primary"
+              color="primary" // <-- CORRIGIDO (para usar a cor primária do tema)
               onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
               fullWidth
               sx={{
@@ -778,19 +895,32 @@ const InstinctList = ({
         </Grid>
       ))}
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>
+      {/* O Dialog não precisa de alteração de cor, 
+     pois ele já tem seu próprio fundo branco por padrão */}
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        // Adiciona estilo escuro ao Paper do Dialog
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', // Fundo escuro
+            color: '#e0e0e0', // Texto claro
+            border: '1px solid #4a4a4a' // Borda
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}> {/* Título branco */}
           {selectedInstinctKey &&
             translateKey(
               selectedInstinctKey.charAt(0).toUpperCase() +
                 selectedInstinctKey.slice(1)
             )}
         </DialogTitle>
-        <DialogContent>
-          <Typography>{getInstinctDescription(selectedInstinctKey)}</Typography>
+        <DialogContent sx={{ paddingTop: '20px !important' }}> {/* Padding e cor do texto */}
+          <Typography sx={{ color: '#e0e0e0' }}>{getInstinctDescription(selectedInstinctKey)}</Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}> {/* Borda superior */}
+          <Button onClick={() => setOpen(false)} sx={{ color: '#ccc' }}> {/* Cor do botão fechar */}
             {translateKey("Fechar")}
           </Button>
         </DialogActions>
@@ -826,6 +956,7 @@ const CharacterSheet = () => {
   const [rollHistory, setRollHistory] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [portraitMenuAnchorEl, setPortraitMenuAnchorEl] = useState(null);
+  const [backpackCapacity, setBackpackCapacity] = useState(6);
   const [openHealthModal, setOpenHealthModal] = useState(false);
   const [selectedHealthLevel, setSelectedHealthLevel] = useState(null);
   const instincts = useSelector((state) => state.instincts.instincts);
@@ -885,20 +1016,92 @@ const CharacterSheet = () => {
     }
   }, [character]);
 
-  const calculateTotalWeight = () => {
-    const inventoryWeight = (character?.inventory || []).reduce(
-      (total, invItem) => {
-        if (invItem?.item?.weight) {
-          return total + invItem.item.weight;
-        }
-        return total;
-      },
-      0
+
+  const calculateSlots = useCallback(() => {
+    // Se character não existe, retorna valores padrão
+    if (!character)
+      return { bodySlots: 3, backpackSlots: backpackCapacity, usedBody: 0, usedBackpack: 0 };
+
+    const inventory = character.inventory || [];
+
+    // --- LÓGICA DE MOCHILA SIMPLIFICADA (Mantida) ---
+    const baseBackpackSlots = backpackCapacity; // Usa o estado
+    // --- FIM DA LÓGICA ---
+
+    // Itens que não ocupam espaço (lendo de itemData ou item)
+    const exemptItems = inventory.filter(
+      (inv) => {
+          const itemDetails = inv?.itemData || inv?.item; // Compatibilidade
+          return (itemDetails?.modifiers?.includes("Isento") || false) ||
+                 ["Vestimenta", "Cantil"].includes(itemDetails?.type); // Mochila removida
+      }
     );
 
-    const weightModifier = character?.buffs?.weightReduction || 0;
-    return inventoryWeight - weightModifier;
-  };
+    const itemsInBody = inventory.filter(
+      (inv) => inv.slotLocation === "corpo" && !exemptItems.includes(inv)
+    );
+    const itemsInBackpack = inventory.filter(
+      (inv) => inv.slotLocation === "mochila" && !exemptItems.includes(inv)
+    );
+
+    // --- CORREÇÃO NO CÁLCULO DO BÔNUS ---
+    const backpackBonus = itemsInBody
+      .concat(itemsInBackpack)
+      .reduce((bonus, inv) => {
+        // Lê os modificadores de inv.itemData (nova estrutura) ou inv.item (antiga)
+        const itemDetails = inv?.itemData || inv?.item;
+        // Usa optional chaining seguro em itemDetails.modifiers
+        const espacoso = itemDetails?.modifiers?.find((m) => // <-- CORRIGIDO AQUI
+          m && typeof m === 'string' && m.startsWith("Espaçoso") // Adiciona verificação extra
+        );
+        if (espacoso) {
+          // Tenta pegar o número depois de ':', senão usa 2 como padrão
+          const bonusValue = parseInt(espacoso.split(":")[1], 10);
+          return bonus + (isNaN(bonusValue) ? 2 : bonusValue); // Usa 2 se não houver número ou for inválido
+        }
+        return bonus;
+      }, 0);
+    // --- FIM DA CORREÇÃO ---
+
+    const totalBackpackSlots = baseBackpackSlots + backpackBonus; // Soma o bônus calculado
+    const totalBodySlots = 3;
+
+    // Calcula slots usados (lendo de itemData ou item)
+    const calculateUsedSlots = (items) => {
+        return items.reduce((sum, inv) => {
+            const itemDetails = inv?.itemData || inv?.item;
+            if (!itemDetails) return sum; // Pula item inválido
+
+            let slotsOcupados = itemDetails.slots || 1;
+            if (itemDetails.modifiers?.includes("Pequeno")) { slotsOcupados = 0; }
+            else if (slotsOcupados < 1) { slotsOcupados = 1; }
+            if (itemDetails.modifiers?.includes("Pesado")) { slotsOcupados += 1; }
+            
+            return sum + slotsOcupados;
+          }, 0);
+    };
+
+    const usedBodySlots = calculateUsedSlots(itemsInBody);
+    const usedBackpackSlots = calculateUsedSlots(itemsInBackpack);
+
+    return {
+      totalBodySlots,
+      totalBackpackSlots,
+      usedBodySlots,
+      usedBackpackSlots,
+      itemsInBody, // Retorna os itens filtrados para o InventoryGrid usar
+      itemsInBackpack, // Retorna os itens filtrados para o InventoryGrid usar
+    };
+  }, [character, backpackCapacity]); // Mantém dependências
+
+  const {
+    totalBodySlots,
+    totalBackpackSlots,
+    usedBodySlots,
+    usedBackpackSlots,
+    itemsInBody,
+    itemsInBackpack,
+  } = calculateSlots();
 
   const fetchCharacteristics = async () => {
     const token = localStorage.getItem("token");
@@ -937,23 +1140,30 @@ const CharacterSheet = () => {
   const fetchInventoryItems = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get("https://assrpgsite-be-production.up.railway.app/api/items", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://assrpgsite-be-production.up.railway.app/api/items",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setInventoryItems(response.data);
     } catch (error) {
       console.error("Erro ao buscar itens do inventário:", error);
     }
   };
 
-  const saveHealthLevels = async (updatedHealthLevels) => {
+  const saveHealthLevels = async (updatedHealthLevels, newCurrentLevel) => {
+    // <-- ADICIONADO AQUI
     try {
       const token = localStorage.getItem("token");
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/health`,
-        { healthLevels: updatedHealthLevels },
+        {
+          healthLevels: updatedHealthLevels,
+          currentHealthLevel: newCurrentLevel,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -965,19 +1175,96 @@ const CharacterSheet = () => {
     }
   };
 
-  const handleHealthChange = (index, value) => {
+  const handleUseConsumable = (invItemToUse) => {
+    // --- LEITURA CORRIGIDA ---
+    // Pega os detalhes do item a ser usado (novo 'itemData' ou antigo 'item')
+    const itemToUseDetails = invItemToUse?.itemData || invItemToUse?.item;
+
+    if (!itemToUseDetails) {
+      console.error("Tentativa de usar um item inválido:", invItemToUse);
+      alert("Erro: Não foi possível usar o item.");
+      return;
+    }
+    // Pega o ID base para comparação
+    const baseIdToUse = itemToUseDetails.originalItemId || itemToUseDetails._id;
+    // --- FIM DA LEITURA CORRIGIDA ---
+
+    setCharacter((prev) => {
+      let itemFoundAndUsed = false; // Flag para garantir que só um item seja decrementado
+
+      const updatedInventory = prev.inventory.map(invItem => {
+        // Se já usamos o item, apenas retorna os restantes
+        if (itemFoundAndUsed) {
+          return invItem;
+        }
+
+        // Pega os detalhes do item atual no loop
+        const currentItemDetails = invItem?.itemData || invItem?.item;
+
+        // Se o item atual for inválido ou o ID base não bater, mantém o item
+        if (!currentItemDetails || (currentItemDetails.originalItemId || currentItemDetails._id) !== baseIdToUse) {
+          return invItem;
+        }
+
+        // IDs base batem. Compara propriedades da INSTÂNCIA para achar o correto.
+        // (Similar à lógica de delete e move)
+        if (
+          invItem.quality === invItemToUse.quality &&
+          invItem.slotLocation === invItemToUse.slotLocation &&
+          invItem.quantity === invItemToUse.quantity && // Compara quantidade original
+          invItem.currentUses === invItemToUse.currentUses &&
+          invItem.quantity > 0 // Garante que ainda há o que consumir
+        ) {
+          // Encontramos a instância exata! Decrementa a quantidade.
+          itemFoundAndUsed = true;
+          return { ...invItem, quantity: invItem.quantity - 1 };
+        }
+
+        // IDs base batem, mas instância diferente. Mantém este item.
+        return invItem;
+
+      }).filter(invItem => invItem.quantity > 0); // Remove itens com quantidade 0 após o map
+
+      // Se não encontramos o item exato para usar
+      if (!itemFoundAndUsed) {
+         console.warn("handleUseConsumable: Não foi possível encontrar a instância exata do item para usar.", invItemToUse);
+         return prev; // Retorna estado anterior
+      }
+
+      // Retorna o estado com o inventário atualizado
+      return { ...prev, inventory: updatedInventory };
+      // O useEffect que salva o inventário cuidará do backend
+    });
+
+    // --- LOG CORRIGIDO ---
+    // Loga o nome lendo de itemToUseDetails
+    console.log("Usou item:", itemToUseDetails.name);
+    // --- FIM DO LOG CORRIGIDO ---
+
+    // Adicione aqui a lógica para aplicar o EFEITO do item (recuperar vida, etc.)
+    // Exemplo:
+    // if (itemToUseDetails.resourceType === 'comida') { /* Lógica comida */ }
+    // if (itemToUseDetails.type === 'Medicamento') { /* Lógica cura */ }
+  };
+
+ const handleHealthChange = (index, value) => {
     if (!character || !Array.isArray(character.healthLevels)) return;
 
     const updatedHealthLevels = [...character.healthLevels];
 
     if (index >= 0 && index < updatedHealthLevels.length) {
       updatedHealthLevels[index] = value || 0;
+
+      const newCurrentLevel = 6 - index;
+
       setCharacter((prev) => ({
         ...prev,
         healthLevels: updatedHealthLevels,
         healthPoints: updatedHealthLevels.reduce((acc, cur) => acc + cur, 0),
+        currentHealthLevel: newCurrentLevel,
       }));
-      saveHealthLevels(updatedHealthLevels);
+
+      saveHealthLevels(updatedHealthLevels, newCurrentLevel);
     }
   };
 
@@ -992,39 +1279,7 @@ const CharacterSheet = () => {
     );
   };
 
-  const handleRoll = (skill, selectedInstinct) => {
-    setRollResult(null);
-    setCustomRollResult(null);
-
-    if (!selectedInstinct) {
-      console.warn("Instinto não selecionado!");
-      return;
-    }
-
-    const diceCountInstinct = character?.instincts?.[selectedInstinct] || 0;
-    const diceCountSkill =
-      (character?.knowledge?.[skill] || 0) +
-      (character?.practices?.[skill] || 0);
-
-    if (diceCountInstinct === 0 && diceCountSkill === 0) {
-      console.warn("Nenhum dado disponível para rolagem!");
-      return;
-    }
-
-    const rollDice = (count, sides) =>
-      Array.from({ length: count }, () => {
-        const face = Math.floor(Math.random() * sides) + 1;
-        return { face, result: dados[`d${sides}`][face] || [] };
-      });
-
-    const rollInstinct = rollDice(diceCountInstinct, 6);
-    const rollSkill = rollDice(diceCountSkill, 10);
-
-    setRollResult({ skill, roll: [...rollInstinct, ...rollSkill] });
-    setSnackbarKey((prevKey) => prevKey + 1);
-    setSnackbarOpen(true);
-    addRollToHistory({ skill, roll: [...rollInstinct, ...rollSkill] }, true);
-  };
+   
 
   const handleCustomRoll = () => {
     const results = rollCustomDice(customDiceFormula);
@@ -1048,7 +1303,7 @@ const CharacterSheet = () => {
       (instincts[instinct] || 0) + (instincts[selectedInstinctKey] || 0);
     const roll = Array.from({ length: diceCount }, () => {
       const face = Math.floor(Math.random() * 12) + 1;
-      return { face, result: dados.d12[face] || [] };
+      return { face, result: dados.d12[face] || [], sides: 12 }; 
     });
 
     addRollToHistory(
@@ -1137,11 +1392,78 @@ const CharacterSheet = () => {
     setSnackbarOpen(false);
   };
 
+  // Função para abrir o dialog de edição (com lógica de cópia)
+ // Função para abrir o dialog de edição (SIMPLIFICADA)
+  const handleEditItem = (invItem) => {
+    // Verifica se temos um item de inventário válido para editar
+    // Ele pode ter 'item' (antigo) ou 'itemData' (novo)
+    if (!invItem || (!invItem.item && !invItem.itemData)) {
+      console.error("Tentativa de editar um item de inventário inválido:", invItem);
+      alert("Não é possível editar este item. Dados inválidos.");
+      return;
+    }
+    // Guarda o item de inventário COMPLETO no estado para o dialog usar
+    setEditItem({ invItemData: invItem }); // Passa o invItem inteiro
+  };
+
   const handleCharacteristicDelete = (index) => {
     setCharacter((prevCharacter) => {
       const newCharacteristics = [...(prevCharacter?.characteristics || [])];
       newCharacteristics.splice(index, 1);
       return { ...prevCharacter, characteristics: newCharacteristics };
+    });
+  };
+
+  // Função para salvar as edições do item (Frontend + Backend)
+ const handleSaveItemEdit = (originalInvItemData, updatedItemDataFromDialog) => {
+    setCharacter(prevCharacter => {
+      // Tenta encontrar o item de forma mais robusta
+      const itemIndex = prevCharacter.inventory.findIndex(invItem => {
+          // Se ambos têm itemData, compara IDs originais
+          if (invItem.itemData && originalInvItemData.itemData) {
+              return invItem.itemData.originalItemId === originalInvItemData.itemData.originalItemId &&
+                     invItem.quality === originalInvItemData.quality && // Compara campos da instância
+                     invItem.slotLocation === originalInvItemData.slotLocation &&
+                     invItem.quantity === originalInvItemData.quantity;
+          }
+          // Se ambos têm item (estrutura antiga), compara IDs
+          else if (invItem.item && originalInvItemData.item) {
+              // Verifica se item é objeto com _id ou apenas string ObjectId
+              const originalId = typeof originalInvItemData.item === 'string' ? originalInvItemData.item : originalInvItemData.item._id;
+              const currentId = typeof invItem.item === 'string' ? invItem.item : invItem.item._id;
+              return currentId === originalId &&
+                     invItem.quality === originalInvItemData.quality &&
+                     invItem.slotLocation === originalInvItemData.slotLocation &&
+                     invItem.quantity === originalInvItemData.quantity;
+          }
+          // Se as estruturas forem mistas ou inválidas, não encontra
+          return false;
+      });
+
+      if (itemIndex === -1) {
+          console.error("Não foi possível encontrar o item original no inventário para salvar as edições.");
+          alert("Erro ao salvar: Item não encontrado no inventário.");
+          return prevCharacter; // Retorna estado anterior se não encontrar
+      }
+
+      // Cria a nova versão do item de inventário SEMPRE com a estrutura itemData
+      const updatedInvItem = {
+          ...prevCharacter.inventory[itemIndex], // Mantém quality, quantity, slotLocation da instância original
+          itemData: updatedItemDataFromDialog // Salva os dados editados em itemData
+      };
+      // Remove o campo 'item' obsoleto, caso exista
+      delete updatedInvItem.item;
+
+      // Cria o novo array de inventário
+      const updatedInventory = [
+          ...prevCharacter.inventory.slice(0, itemIndex),
+          updatedInvItem, // Insere o item atualizado (já com itemData)
+          ...prevCharacter.inventory.slice(itemIndex + 1),
+      ];
+
+      console.log("Inventário atualizado localmente (item editado):", updatedInventory);
+      return { ...prevCharacter, inventory: updatedInventory };
+      // O useEffect que salva o inventário cuidará do backend
     });
   };
 
@@ -1177,42 +1499,213 @@ const CharacterSheet = () => {
   const handleCloseCharacteristicsModal = () =>
     setOpenCharacteristicsModal(false);
 
-  const handleItemSelect = (item) => {
-    setSelectedItem(item);
+  const handleItemSelect = (itemFromModal) => { // Renomeado para clareza
+    // Calcula os slots necessários JÁ considerando modificador "Pesado"
+    let slotsNeeded = itemFromModal.slots || 1;
+    if (itemFromModal.modifiers?.includes("Pesado")) {
+        slotsNeeded += 1;
+    }
+    
+    const { usedBackpackSlots, totalBackpackSlots } = calculateSlots();
 
-    if (selectedTab === 0) {
-      const newInventoryItem = {
-        item: item,
-        quality: item.quality || 3,
-        currentUses: item.currentUses || 0,
-      };
-
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        inventory: [...(prevCharacter?.inventory || []), newInventoryItem],
-      }));
-    } else if (selectedTab === 3) {
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        assimilations: [...(prevCharacter?.assimilations || []), item],
-      }));
-    } else if (selectedTab === 2) {
-      setCharacter((prevCharacter) => ({
-        ...prevCharacter,
-        characteristics: [...(prevCharacter?.characteristics || []), item],
-      }));
+    // Regra: Impede adicionar se não houver espaço na mochila
+    if (usedBackpackSlots + slotsNeeded > totalBackpackSlots) {
+      alert("Espaço insuficiente na mochila!");
+      return;
     }
 
-    setOpenItemsModal(false);
-    setOpenAssimilationsModal(false);
-    setOpenCharacteristicsModal(false);
+    // --- CRIA A CÓPIA EMBUTIDA ---
+    const newItemInstance = {
+      // Campos específicos da instância
+      quantity: 1, // Começa com 1
+      quality: itemFromModal.quality || 3, // Pega a qualidade base do item
+      slotLocation: "mochila",
+      currentUses: 0,
+      // Copia os dados do item original para itemData
+      itemData: {
+        originalItemId: itemFromModal._id, // Guarda a referência ao original
+        name: itemFromModal.name,
+        type: itemFromModal.type,
+        category: itemFromModal.category,
+        slots: itemFromModal.slots,
+        modifiers: itemFromModal.modifiers || [],
+        isArtefato: itemFromModal.isArtefato || false,
+        resourceType: itemFromModal.resourceType || null,
+        isConsumable: itemFromModal.isConsumable || false,
+        description: itemFromModal.description || "",
+        characteristics: itemFromModal.characteristics || { points: 0, details: [] },
+        // Não copiamos quality aqui, pois usamos o campo quality de cima
+      },
+    };
+    // --- FIM DA CÓPIA ---
+
+    setCharacter((prev) => ({
+      ...prev,
+      // Adiciona a nova instância (com itemData) ao inventário
+      inventory: [...(prev?.inventory || []), newItemInstance],
+    }));
+    // O useEffect que salva o inventário cuidará do backend
+
+    handleCloseItemsModal();
   };
 
-  const handleItemDelete = (index) => {
-    setCharacter((prevCharacter) => {
-      const newInventory = [...(prevCharacter?.inventory || [])];
-      newInventory.splice(index, 1);
-      return { ...prevCharacter, inventory: newInventory };
+  // --- ADICIONE ESTA NOVA FUNÇÃO ---
+  const handleAssimilationSelect = (assimilation) => {
+    // Adiciona a assimilação ao array 'assimilations' do personagem
+    setCharacter((prev) => ({
+      ...prev,
+      assimilations: [...(prev?.assimilations || []), assimilation],
+    }));
+
+    // Fecha o modal correto
+    handleCloseAssimilationsModal();
+  };
+
+  // --- E ADICIONE ESTA NOVA FUNÇÃO ---
+  const handleCharacteristicSelect = (characteristic) => {
+    // Adiciona a característica ao array 'characteristics' do personagem
+    setCharacter((prev) => ({
+      ...prev,
+      characteristics: [...(prev?.characteristics || []), characteristic],
+    }));
+
+    // Fecha o modal correto
+    handleCloseCharacteristicsModal();
+  };
+
+  const handleMoveItem = (itemToMove, targetLocation) => {
+    // --- LEITURA CORRIGIDA ---
+    // Pega os detalhes do item (novo 'itemData' ou antigo 'item')
+    const itemDetails = itemToMove?.itemData || itemToMove?.item;
+
+    if (!itemDetails) {
+      console.error("Tentativa de mover um item inválido:", itemToMove);
+      alert("Erro: Não foi possível mover o item.");
+      return;
+    }
+
+    // Calcula os slots necessários LENDO DE itemDetails
+    let slotsNeeded = itemDetails.slots || 1;
+    if (itemDetails.modifiers?.includes("Pequeno")) { slotsNeeded = 0; }
+    else if (slotsNeeded < 1) { slotsNeeded = 1; }
+    if (itemDetails.modifiers?.includes("Pesado")) { slotsNeeded += 1; }
+    // --- FIM DA LEITURA CORRIGIDA ---
+
+    // Pega os slots usados/totais (função calculateSlots já está correta)
+    const {
+      usedBodySlots,
+      totalBodySlots,
+      usedBackpackSlots,
+      totalBackpackSlots,
+    } = calculateSlots(); //
+
+    // Verifica espaço no destino
+    if (
+      targetLocation === "corpo" &&
+      usedBodySlots + slotsNeeded > totalBodySlots
+    ) {
+      alert("Espaço insuficiente no corpo!");
+      return;
+    }
+
+    if (
+      targetLocation === "mochila" &&
+      usedBackpackSlots + slotsNeeded > totalBackpackSlots
+    ) {
+      alert("Espaço insuficiente na mochila!");
+      return;
+    }
+
+    // Atualiza o inventário localmente (lógica de encontrar o item melhorada)
+    setCharacter((prev) => {
+      let itemFound = false;
+      const updatedInventory = prev.inventory.map((invItem) => {
+          const currentItemDetails = invItem?.itemData || invItem?.item;
+          // Compara IDs base e propriedades da instância para encontrar o item correto
+          if (!itemFound &&
+              currentItemDetails &&
+              (currentItemDetails.originalItemId || currentItemDetails._id) === (itemDetails.originalItemId || itemDetails._id) &&
+              invItem.quality === itemToMove.quality &&
+              invItem.quantity === itemToMove.quantity &&
+              invItem.slotLocation === itemToMove.slotLocation // Compara localização original
+              /* Adicione mais comparações se necessário */
+             ) {
+              itemFound = true;
+              return { ...invItem, slotLocation: targetLocation }; // Atualiza a localização
+          }
+          return invItem;
+      });
+
+      if (!itemFound) {
+          console.warn("handleMoveItem: Não foi possível encontrar a instância exata do item para mover.", itemToMove);
+          return prev; // Retorna estado anterior se não encontrar
+      }
+
+      return { ...prev, inventory: updatedInventory };
+      // O useEffect que salva o inventário cuidará do backend
+    });
+  };
+
+  // Função para deletar um item específico do inventário
+  const handleItemDelete = (itemToDelete) => {
+    // Pega os detalhes do item a ser deletado (funciona com itemData ou item)
+    const itemToDeleteDetails = itemToDelete?.itemData || itemToDelete?.item;
+
+    // Se o item a deletar for inválido, interrompe
+    if (!itemToDeleteDetails) {
+      console.error("Tentativa de deletar um item inválido:", itemToDelete);
+      alert("Erro: Não foi possível identificar o item para exclusão.");
+      return;
+    }
+
+    // Pega o ID base (originalItemId da nova estrutura ou _id da antiga)
+    const baseIdToDelete = itemToDeleteDetails.originalItemId || itemToDeleteDetails._id;
+
+    setCharacter((prev) => {
+      let itemFoundAndDeleted = false; // Flag para garantir que só um item seja removido
+
+      const newInventory = prev.inventory.filter((invItem) => {
+        // Se já encontramos e removemos o item, mantemos todos os restantes
+        if (itemFoundAndDeleted) {
+          return true;
+        }
+
+        // Pega os detalhes do item atual no loop do filtro
+        const currentItemDetails = invItem?.itemData || invItem?.item;
+
+        // Se o item atual for inválido ou o ID base não bater, mantém o item
+        if (!currentItemDetails || (currentItemDetails.originalItemId || currentItemDetails._id) !== baseIdToDelete) {
+          return true; // Mantém este item
+        }
+
+        // IDs base batem. Agora compara as propriedades da INSTÂNCIA para ter certeza.
+        // Precisamos comparar propriedades que diferenciam instâncias idênticas.
+        if (
+          invItem.quality === itemToDelete.quality &&
+          invItem.slotLocation === itemToDelete.slotLocation &&
+          invItem.quantity === itemToDelete.quantity && // Compara quantidade
+          // Adicione mais comparações se necessário (ex: currentUses)
+          invItem.currentUses === itemToDelete.currentUses
+        ) {
+          // Encontramos a instância EXATA que queremos remover
+          itemFoundAndDeleted = true; // Marca que encontramos
+          return false; // Remove este item do inventário
+        }
+
+        // IDs base batem, mas as propriedades da instância são diferentes. Mantém este item.
+        return true;
+      });
+
+      // Se após o filtro, a flag não foi ativada, algo deu errado (o item não foi encontrado)
+      if (!itemFoundAndDeleted) {
+        console.warn("handleItemDelete: Não foi possível encontrar a instância exata do item para deletar.", itemToDelete);
+        // Retorna o estado anterior para evitar exclusões acidentais
+        return prev;
+      }
+
+      // Retorna o estado com o inventário atualizado (item removido)
+      return { ...prev, inventory: newInventory };
+      // O useEffect que salva o inventário cuidará do backend
     });
   };
 
@@ -1382,250 +1875,407 @@ const CharacterSheet = () => {
     return <div className={styles.errorMessage}>{error}</div>;
   }
 
-  const RollHistory = styled(Box)(({ theme }) => ({
-    "& .roll-entry": {
-      transition: "opacity 0.5s ease-out, background-color 0.3s ease-in-out",
-      padding: theme.spacing(1),
-      marginBottom: theme.spacing(1),
-      borderRadius: theme.shape.borderRadius,
-      "&.new": {
-        backgroundColor: theme.palette.primary.light,
-        opacity: 1,
-      },
-      "&.old": {
-        backgroundColor: "transparent",
-        opacity: 0.7,
-      },
-    },
-    "& .roll-entry:last-child": {
-      backgroundColor: theme.palette.primary.light,
-      opacity: 1,
-    },
-  }));
 
   const RollHistoryPopover = ({ open, anchorEl, onClose, rollHistory }) => (
-    <Popover
-      open={open}
-      anchorEl={anchorEl}
-      onClose={onClose}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "left",
-      }}
-      transformOrigin={{
-        vertical: "bottom",
-        horizontal: "right",
-      }}
-    >
-      <RollHistory sx={{ width: 350, padding: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Histórico de Rolagens
+  <Popover
+    open={open}
+    anchorEl={anchorEl}
+    onClose={onClose}
+    anchorOrigin={{
+      vertical: "top",
+      horizontal: "left",
+    }}
+    transformOrigin={{
+      vertical: "bottom",
+      horizontal: "right",
+    }}
+    // --- MUDANÇA 1: Adicionar PaperProps para o estilo escuro ---
+    PaperProps={{
+      sx: {
+        bgcolor: '#1e1e1e', // Fundo escuro
+        color: '#e0e0e0', // Texto claro
+        border: '1px solid #4a4a4a', // Borda
+        borderRadius: '8px', // Bordas arredondadas
+      }
+    }}
+  >
+    {/* --- MUDANÇA 2: Usar 'Box' normal em vez do 'styled(Box)' --- */}
+    <Box sx={{ width: 350, padding: 2 }}>
+      <Typography 
+        variant="h6" 
+        gutterBottom 
+        sx={{ color: '#ffffff', borderBottom: '1px solid #4a4a4a', pb: 1 }} // <-- Cor e borda
+      >
+        Histórico de Rolagens
+      </Typography>
+      {rollHistory.length === 0 ? (
+        <Typography sx={{ color: '#aaa', fontStyle: 'italic' }}> {/* <-- Cor */}
+          Nenhuma rolagem registrada.
         </Typography>
-        {rollHistory.length === 0 ? (
-          <Typography>Nenhuma rolagem registrada.</Typography>
-        ) : (
-          rollHistory.map((entry, index) => (
-            <Box
-              key={index}
-              className={`roll-entry ${
-                index === rollHistory.length - 1 ? "new" : "old"
-              }`}
+      ) : (
+        rollHistory.map((entry, index) => (
+          <Box
+            key={index}
+            // --- MUDANÇA 3: Aplicar estilos da entrada diretamente aqui ---
+            sx={{
+              transition: "background-color 0.3s ease-in-out, opacity 0.5s ease-out",
+              padding: 1,
+              marginBottom: 1,
+              borderRadius: 1,
+              // Destaque para a entrada mais recente (última do array)
+              backgroundColor: index === rollHistory.length - 1 ? '#2a2d30' : 'transparent', 
+              opacity: index === rollHistory.length - 1 ? 1 : 0.7,
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight:
+                  index === rollHistory.length - 1 ? "bold" : "normal",
+                color: '#e0e0e0' // <-- Cor
+              }}
             >
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight:
-                    index === rollHistory.length - 1 ? "bold" : "normal",
-                }}
-              >
-                {entry.skill
-                  ? `Habilidade: ${translateKey(entry.skill)}`
-                  : `Fórmula: ${entry.formula}`}
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {entry.roll.map((result, i) => (
-                  <Box key={i} sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography variant="body2" sx={{ marginRight: 1 }}>
-                      Dado {i + 1}:
+              {entry.skill
+                ? `Habilidade: ${translateKey(entry.skill)}`
+                : `Fórmula: ${entry.formula}`}
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
+              {entry.roll.map((result, i) => (
+                <Box key={i} sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography variant="body2" sx={{ marginRight: 1, color: '#ccc' }}> {/* <-- Cor */}
+                    {/* Agora usamos result.sides (graças à correção 3) */}
+                    Dado {i + 1} (d{result.sides || '?'})
+                  </Typography>
+                  {result.result.length > 0 ? (
+                    result.result.map((imgSrc, j) => (
+                      <img
+                        key={j}
+                        src={imgSrc}
+                        alt={`Resultado ${j + 1}`}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/path/to/default-image.png";
+                        }}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          margin: "2px",
+                        }}
+                      />
+                    ))
+                  ) : (
+                    // --- MUDANÇA 4: Padronizar exibição (número ou "Nada") ---
+                    <Typography variant="body2" sx={{ color: '#aaa', fontWeight: 'bold' }}>
+                      {result.face ? result.face : 'Nada'}
                     </Typography>
-                    {result.result.length > 0 ? (
-                      result.result.map((imgSrc, j) => (
-                        <img
-                          key={j}
-                          src={imgSrc}
-                          alt={`Resultado ${j + 1}`}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "/path/to/default-image.png";
-                          }}
-                          style={{
-                            width: "20px",
-                            height: "20px",
-                            margin: "2px",
-                          }}
-                        />
-                      ))
-                    ) : (
-                      <Typography variant="body2">Nada</Typography>
-                    )}
-                  </Box>
-                ))}
-              </Box>
+                  )}
+                </Box>
+              ))}
             </Box>
-          ))
-        )}
-      </RollHistory>
-    </Popover>
-  );
+          </Box>
+        ))
+      )}
+    </Box>
+  </Popover>
+);
+
+  if (!character) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          bgcolor: "#0c0c0c",
+          color: "white",
+        }}
+      >
+        <CircularProgress color="primary" />
+        <Typography sx={{ ml: 2 }}>
+          Carregando ficha do personagem...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box className={styles.characterSheet}>
-      <Paper elevation={3} className={styles.characterHeader}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Nome"
-              value={character?.name || ""}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
+      <Paper
+        elevation={3}
+        sx={{ bgcolor: "#1e1e1e" }}
+        className={styles.characterHeader}
+      >
+        {/* --- MODIFICADO: Grid Principal do Cabeçalho ---
+      Adicionado 'alignItems="center"' para centralizar verticalmente
+      o avatar com os campos de texto.
+  */}
+        <Grid container spacing={-2} alignItems="center">
+          {/* --- INÍCIO: Coluna do Avatar Adicionada --- */}
+          <Grid
+            item
+            xs={12} // Em telas pequenas, o avatar fica em cima
+            sm={4} // Em telas médias e grandes, ocupa 4/12
+            md={3} // Em telas grandes, ocupa 3/12
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 2,
+            }}
+          >
+            <Box
               sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
+                width: { xs: 120, sm: 150 }, // Tamanho responsivo
+                height: { xs: 120, sm: 150 },
+                borderRadius: "50%", // Deixa a imagem redonda
+                border: "3px solid #4a4a4a",
+                bgcolor: "#2a2d30", // Fundo se não houver imagem
+                overflow: "hidden", // Garante que a imagem fique dentro do círculo
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
-            />
+            >
+              {/* Verifica se 'character.avatar' existe */}
+              {character.avatar ? (
+                <Box
+                  component="img"
+                  src={character.avatar} //
+                  alt="Avatar"
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover", // Garante que a imagem cubra o espaço
+                  }}
+                />
+              ) : (
+                // Placeholder se não houver avatar
+                <Typography variant="caption" sx={{ color: "#888" }}>
+                  Sem Avatar
+                </Typography>
+              )}
+            </Box>
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Geração"
-              value={
-                generationTranslations[character?.generation] ||
-                character?.generation ||
-                ""
-              }
-              onChange={(e) => handleInputChange("generation", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Evento"
-              value={character?.event || ""}
-              onChange={(e) => handleInputChange("event", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Ocupação"
-              value={character?.occupation || ""}
-              onChange={(e) => handleInputChange("occupation", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
+          {/* --- FIM: Coluna do Avatar Adicionada --- */}
 
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Propósito 1"
-              value={character?.purpose1 || ""}
-              onChange={(e) => handleInputChange("purpose1", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
+          {/* --- INÍCIO: Coluna dos Campos de Texto --- 
+        Este Grid item agora envolve todos os TextFields
+    */}
+          <Grid item xs={12} sm={8} md={9}>
+            {/* Adicionamos um Grid container interno para manter o layout original dos campos */}
+            <Grid container spacing={2}>
+              {/* Todos os 8 Grid items originais vêm aqui, 
+            com as props 'sx' de cor que já corrigimos */}
+
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Nome"
+                  value={character?.name || ""}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Geração"
+                  value={
+                    generationTranslations[character?.generation] ||
+                    character?.generation ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleInputChange("generation", e.target.value)
+                  }
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Evento"
+                  value={character?.event || ""}
+                  onChange={(e) => handleInputChange("event", e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Ocupação"
+                  value={character?.occupation || ""}
+                  onChange={(e) =>
+                    handleInputChange("occupation", e.target.value)
+                  }
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Propósito 1"
+                  value={character?.purpose1 || ""}
+                  onChange={(e) =>
+                    handleInputChange("purpose1", e.target.value)
+                  }
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Propósito 2"
+                  value={character?.purpose2 || ""}
+                  onChange={(e) =>
+                    handleInputChange("purpose2", e.target.value)
+                  }
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Propósito Relacional 1"
+                  value={character?.relationalPurpose1 || ""}
+                  onChange={(e) =>
+                    handleInputChange("relationalPurpose1", e.target.value)
+                  }
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <TextField
+                  label="Propósito Relacional 2"
+                  value={character?.relationalPurpose2 || ""}
+                  onChange={(e) =>
+                    handleInputChange("relationalPurpose2", e.target.value)
+                  }
+                  variant="outlined"
+                  fullWidth
+                  margin="dense"
+                  size="small"
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      fontSize: { xs: "14px", sm: "16px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#fff" },
+                    "& .MuiInputLabel-root": { color: "#ccc" },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#888" },
+                      "&:hover fieldset": { borderColor: "#fff" },
+                    },
+                  }}
+                />
+              </Grid>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Propósito 2"
-              value={character?.purpose2 || ""}
-              onChange={(e) => handleInputChange("purpose2", e.target.value)}
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Propósito Relacional 1"
-              value={character?.relationalPurpose1 || ""}
-              onChange={(e) =>
-                handleInputChange("relationalPurpose1", e.target.value)
-              }
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <TextField
-              label="Propósito Relacional 2"
-              value={character?.relationalPurpose2 || ""}
-              onChange={(e) =>
-                handleInputChange("relationalPurpose2", e.target.value)
-              }
-              variant="outlined"
-              fullWidth
-              margin="dense"
-              size="small"
-              sx={{
-                "& .MuiInputBase-root": {
-                  fontSize: { xs: "14px", sm: "16px" },
-                },
-              }}
-            />
-          </Grid>
+          {/* --- FIM: Coluna dos Campos de Texto --- */}
         </Grid>
       </Paper>
       <Box className={styles.characterBody}>
         <Paper
           elevation={3}
           className={styles.leftColumn}
-          sx={{ width: "100%", padding: { xs: "16px", sm: "18px" } }}
+          sx={{
+            bgcolor: "#1e1e1e",
+            color: "#ccc",
+            width: "100%",
+            padding: { xs: "16px", sm: "18px" },
+          }}
         >
           <InstinctList
             title="Instintos"
@@ -1668,7 +2318,7 @@ const CharacterSheet = () => {
                       color:
                         character.currentHealthLevel === level
                           ? "primary.main"
-                          : "text.primary",
+                          : "#ccc",
                     }}
                   >
                     {details.name}:
@@ -1698,14 +2348,19 @@ const CharacterSheet = () => {
                         <HeartEmptyIcon
                           width={20}
                           height={30}
-                          style={{ fill: "rgba(0, 0, 0, 0.26)" }}
+                          style={{ fill: "rgba(206, 197, 197, 0.26)" }}
                         />
                       }
                     />
+                    {/* --- TEXTO DE CONTAGEM CORRIGIDO --- */}
                     <Typography
                       variant="body2"
-                      color="textSecondary"
-                      sx={{ minWidth: "60px", textAlign: "right" }}
+                      // REMOVIDO: color="textSecondary"
+                      sx={{
+                        minWidth: "60px",
+                        textAlign: "right",
+                        color: "#ccc", // <-- ADICIONADO
+                      }}
                     >
                       {`${points} / ${maxHealthForLevel}`}
                     </Typography>
@@ -1722,20 +2377,35 @@ const CharacterSheet = () => {
         <Paper
           elevation={3}
           className={styles.centerColumn}
-          sx={{ width: "100%", padding: { xs: "18px", sm: "26px" } }}
+          sx={{
+            width: "100%",
+            padding: { xs: "18px", sm: "26px" },
+            bgcolor: "#1e1e1e",
+          }}
         >
           <SkillList
             title="Conhecimentos & Práticas"
-            onRoll={handleRoll}
             id={character?._id}
             character={character}
             addRollToHistory={addRollToHistory}
           />
         </Paper>
 
-        <Paper elevation={3} className={styles.rightColumn}>
+        <Paper
+          elevation={3}
+          className={styles.rightColumn}
+          sx={{
+            width: "100%",
+            padding: { xs: "16px", sm: "18px" },
+            bgcolor: "#1e1e1e",
+          }}
+        >
           <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
-            <Typography variant="h6">Rolar Dados</Typography>
+            <Typography variant="h6" sx={{ color: "#ccc" }} mb={1}>
+              Rolar Dados
+            </Typography>
+
+            {/* --- CAMPO DE TEXTO CORRIGIDO --- */}
             <TextField
               label="Fórmula dos Dados (ex: 1d6+2d10+3d12)"
               value={customDiceFormula}
@@ -1744,7 +2414,16 @@ const CharacterSheet = () => {
               fullWidth
               margin="dense"
               size="small"
-              sx={{ fontSize: { xs: "14px", sm: "16px" } }}
+              sx={{
+                // <-- 'sx' COMPLETAMENTE ATUALIZADO
+                fontSize: { xs: "14px", sm: "16px" },
+                "& .MuiInputBase-input": { color: "#fff" }, // Texto digitado
+                "& .MuiInputLabel-root": { color: "#ccc" }, // Label
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#888" }, // Borda padrão
+                  "&:hover fieldset": { borderColor: "#fff" }, // Borda no hover
+                },
+              }}
             />
             <Button
               variant="contained"
@@ -1756,19 +2435,20 @@ const CharacterSheet = () => {
                 width: { xs: "100%", sm: "auto" },
               }}
             >
-              Rolar Dados
+              Rolar
             </Button>
           </Box>
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
             indicatorColor="primary"
-            textColor="primary"
+            textColor="inherit" // <-- ALTERADO
             variant="fullWidth"
             sx={{
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
               justifyContent: "center",
+              color: "#fff", // <-- ADICIONADO
             }}
           >
             <Tab
@@ -1776,6 +2456,7 @@ const CharacterSheet = () => {
               sx={{
                 fontSize: { xs: "10px", sm: "14px" },
                 padding: { xs: "8px", sm: "12px" },
+                color: "inherit", // <-- ADICIONADO
               }}
             />
             <Tab
@@ -1783,6 +2464,7 @@ const CharacterSheet = () => {
               sx={{
                 fontSize: { xs: "10px", sm: "14px" },
                 padding: { xs: "8px", sm: "12px" },
+                color: "inherit", // <-- ADICIONADO
               }}
             />
             <Tab
@@ -1790,6 +2472,7 @@ const CharacterSheet = () => {
               sx={{
                 fontSize: { xs: "10px", sm: "14px" },
                 padding: { xs: "8px", sm: "12px" },
+                color: "inherit", // <-- ADICIONADO
               }}
             />
             <Tab
@@ -1797,160 +2480,62 @@ const CharacterSheet = () => {
               sx={{
                 fontSize: { xs: "10px", sm: "14px" },
                 padding: { xs: "8px", sm: "12px" },
+                color: "inherit", // <-- ADICIONADO
               }}
             />
           </Tabs>
           {selectedTab === 0 && (
-            <Box>
-              <Typography variant="h6">Inventário</Typography>
+            <Box className={styles.inventoryContainer}> {/* Trocado de Paper para Box */}
+              {/* --- CABEÇALHO --- */}
+              <Box className={styles.inventoryHeader}>
+                <Typography variant="h5" className={styles.headerTitle}>
+                  Inventário
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleOpenItemsModal} //
+                >
+                  + Adicionar Item do Arsenal
+                </Button>
+              </Box>
 
-              <Typography
-                variant="body2"
-                color={
-                  calculateTotalWeight() > maxWeight ? "error" : "textPrimary"
-                }
-                sx={{
-                  fontWeight:
-                    calculateTotalWeight() > maxWeight ? "bold" : "normal",
-                }}
-              >
-                Peso Total: {calculateTotalWeight()} / {maxWeight}
-              </Typography>
-
-              <LinearProgress
-                variant="determinate"
-                value={(calculateTotalWeight() / maxWeight) * 50}
-                sx={{
-                  height: 15,
-                  borderRadius: 5,
-                  mt: 1,
-                  backgroundColor: "lightgrey",
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor:
-                      calculateTotalWeight() > maxWeight ? "red" : "green",
-                  },
-                }}
+              <InventoryGrid
+                title={`Acesso Rápido (${usedBodySlots}/${totalBodySlots})`} //
+                items={itemsInBody} //
+                totalSlots={totalBodySlots} //
+                onMove={(item) => handleMoveItem(item, "mochila")} //
+                onDelete={handleItemDelete} //
+                onEdit={handleEditItem}
+                onUse={handleUseConsumable}
+                location="corpo"
+                styles={styles} //
+                qualityLevels={qualityLevels} //
+                placeholders={quickAccessPlaceholders} // Passa os placeholders (Arma, Utilidade, etc.)
               />
 
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOpenItemsModal}
-                sx={{ mt: 2 }}
-              >
-                + Adicionar Item
-              </Button>
-
-              <List>
-                {(character?.inventory || []).map((invItem, index) => {
-                  const itemInstance = invItem;
-                  const itemBase = invItem.item;
-                  const characteristicsToDisplay =
-                    itemInstance.characteristics || itemBase?.characteristics;
-
-                  return (
-                    <ListItem
-                      key={index}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        borderBottom: "1px solid rgba(255, 255, 255, 0.12)",
-                        py: 2,
-                      }}
-                    >
-                      <ListItemText
-                        primary={itemBase?.name || "Item desconhecido"}
-                        secondary={
-                          <React.Fragment>
-                            <Typography
-                              component="span"
-                              variant="body2"
-                              color="text.secondary"
-                            >
-                              {`Peso: ${itemBase?.weight ?? "N/A"} | Escassez: ${scarcityLevels[itemBase?.category] || 'N/A'}`}
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                mt: 1,
-                              }}
-                            >
-                              <Typography
-                                component="span"
-                                variant="body2"
-                                color="text.secondary"
-                                mr={1}
-                              >
-                                Qualidade:{" "}
-                                {qualityLevels[invItem.quality] || "Indefinida"}
-                              </Typography>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                sx={{ minWidth: "30px", p: 0, height: "30px" }}
-                                onClick={() =>
-                                  handleQualityChange(
-                                    index,
-                                    invItem.quality - 1
-                                  )
-                                }
-                              >
-                                -
-                              </Button>
-                              <Typography
-                                component="span"
-                                sx={{ p: "0 10px", fontWeight: "bold" }}
-                              >
-                                {invItem.quality}
-                              </Typography>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                sx={{ minWidth: "30px", p: 0, height: "30px" }}
-                                onClick={() =>
-                                  handleQualityChange(
-                                    index,
-                                    invItem.quality + 1
-                                  )
-                                }
-                              >
-                                +
-                              </Button>
-                            </Box>
-                          </React.Fragment>
-                        }
-                        sx={{ flex: 1, minWidth: 0 }}
-                      />
-                      <Box>
-                        <IconButton
-                          edge="end"
-                          onClick={() =>
-                            setEditItem({
-                              index,
-                              item: { ...itemBase, quality: invItem.quality },
-                            })
-                          }
-                          sx={{ mr: 1 }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          edge="end"
-                          onClick={() => handleItemDelete(index)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </ListItem>
-                  );
-                })}
-              </List>
+              <InventoryGrid
+                title={`Mochila (${usedBackpackSlots}/${totalBackpackSlots})`} //
+                items={itemsInBackpack} //
+                totalSlots={totalBackpackSlots} //
+                onMove={(item) => handleMoveItem(item, "corpo")} //
+                onDelete={handleItemDelete}
+                onUse={handleUseConsumable} //
+                onEdit={handleEditItem} //
+                location="mochila"
+                styles={styles} //
+                qualityLevels={qualityLevels} //
+                // Não passa placeholders, então mostrará slots vazios genéricos
+              />
             </Box>
           )}
           {selectedTab === 1 && (
-            <Box>
-              <Typography variant="h6">Anotações</Typography>
+            <Box sx={{ padding: 2 }}>
+              {" "}
+              {/* Adiciona padding para bater com o inventário */}
+              <Typography variant="h6" sx={{ color: "#fff" }}>
+                Anotações
+              </Typography>
               <TextField
                 label="Anotações"
                 multiline
@@ -1959,12 +2544,29 @@ const CharacterSheet = () => {
                 fullWidth
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                sx={{
+                  // <-- Adiciona estilos de tema escuro
+                  "& .MuiInputBase-root": {
+                    color: "#fff",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#888",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff",
+                    },
+                  },
+                  "& .MuiInputLabel-root": { color: "#ccc" },
+                }}
               />
             </Box>
           )}
           {selectedTab === 2 && (
-            <Box>
-              <Typography variant="h6">Características</Typography>
+            <Box sx={{ padding: 2 }}>
+              {" "}
+              {/* Adiciona padding */}
+              <Typography variant="h6" sx={{ color: "#fff" }}>
+                Características
+              </Typography>
               <Button
                 variant="contained"
                 color="primary"
@@ -1983,11 +2585,14 @@ const CharacterSheet = () => {
                     <ListItemText
                       primary={item.name}
                       secondary={item.description}
+                      primaryTypographyProps={{ sx: { color: "#fff" } }} // <-- Cor primária
+                      secondaryTypographyProps={{ sx: { color: "#ccc" } }} // <-- Cor secundária
                     />
                     <Box display="flex" alignItems="center">
                       <IconButton
                         edge="end"
                         onClick={() => handleCharacteristicDelete(index)}
+                        sx={{ color: "#fff" }} // <-- Cor do ícone
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -1998,8 +2603,12 @@ const CharacterSheet = () => {
             </Box>
           )}
           {selectedTab === 3 && (
-            <Box>
-              <Typography variant="h6">Assimilações</Typography>
+            <Box sx={{ padding: 2 }}>
+              {" "}
+              {/* Adiciona padding */}
+              <Typography variant="h6" sx={{ color: "#fff" }}>
+                Assimilações
+              </Typography>
               <Button
                 variant="contained"
                 color="primary"
@@ -2018,11 +2627,14 @@ const CharacterSheet = () => {
                     <ListItemText
                       primary={item.name}
                       secondary={item.description}
+                      primaryTypographyProps={{ sx: { color: "#fff" } }} // <-- Cor primária
+                      secondaryTypographyProps={{ sx: { color: "#ccc" } }} // <-- Cor secundária
                     />
                     <Box display="flex" alignItems="center">
                       <IconButton
                         edge="end"
                         onClick={() => handleAssimilationDelete(index)}
+                        sx={{ color: "#fff" }} // <-- Cor do ícone
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -2056,48 +2668,74 @@ const CharacterSheet = () => {
             Resultado:
           </Typography>
           <Typography variant="subtitle1">
-            Habilidade:{" "}
-            {translateKey(rollResult?.skill) ||
-              rollResult?.skill ||
-              customRollResult?.formula ||
-              "Nenhuma"}
+            {/* Habilidade ou Fórmula */}
+            {rollResult?.skill 
+                ? `${translateKey("Habilidade")}: ${translateKey(rollResult.skill) || rollResult.skill}`
+                : `${translateKey("Fórmula")}: ${customRollResult?.formula}`
+            }
           </Typography>
 
+          {/* Mensagem de Efeito (para Qualidade de Item) */}
           {rollResult?.effectMessage && (
-            <Typography variant="body2" sx={{ color: '#66bb6a', fontStyle: 'italic' }}>
-                {rollResult.effectMessage}
+            <Typography
+              variant="body2"
+              sx={{ color: "#66bb6a", fontStyle: "italic", my: 1 }}
+            >
+              {rollResult.effectMessage}
             </Typography>
-        )}
+          )}
 
-          <Typography variant="body1">Dados Rolados:</Typography>
-          {(rollResult?.roll || customRollResult?.roll)?.length > 0
-            ? (rollResult?.roll || customRollResult?.roll)?.map(
-                (result, index) => (
-                  <div key={index}>
-                    <Typography variant="body2">
-                      Dado {index + 1}: {result.result.length > 0 ? "" : "Nada"}
-                      {result.result.length > 0 &&
-                        result.result.map((imgSrc, i) => (
-                          <img
-                            key={i}
-                            src={imgSrc}
-                            alt={`Resultado ${i + 1}`}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "/path/to/default-image.png";
-                            }}
-                            style={{
-                              width: "50px",
-                              height: "50px",
-                              margin: "5px",
-                            }}
-                          />
-                        ))}
-                    </Typography>
-                  </div>
-                )
-              )
-            : null}
+          {/* --- INÍCIO DA MUDANÇA (Baseado no MasterDiceRoller) --- */}
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            {translateKey("Dados Individuais")}:
+          </Typography>
+          
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {(rollResult?.roll || customRollResult?.roll)?.length > 0 ? (
+              (rollResult?.roll || customRollResult?.roll).map((die, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    p: 1,
+                    bgcolor: 'rgba(0,0,0,0.2)',
+                    borderRadius: 1,
+                    minWidth: '60px'
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 'bold' }}>
+                    Dado {index + 1} (d{die.sides || '?'})
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', minHeight: '30px', alignItems: 'center' }}>
+                    {die.result.length > 0 ? (
+                      die.result.map((imgSrc, i) => (
+                        <img
+                          key={i}
+                          src={imgSrc}
+                          alt="symbol"
+                          style={{ width: "25px", height: "25px", margin: "2px" }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/path/to/default-image.png";
+                          }}
+                        />
+                      ))
+                    ) : (
+                      // Mostra o número da face se não houver símbolos
+                      <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }}>
+                        {die.face}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              ))
+            ) : (
+              <Typography>Nenhum dado rolado.</Typography>
+            )}
+          </Box>
+          {/* --- FIM DA MUDANÇA --- */}
         </Alert>
       </Snackbar>
 
@@ -2121,7 +2759,7 @@ const CharacterSheet = () => {
         title="Características"
         items={characteristics}
         homebrewItems={[]}
-        onItemSelect={handleItemSelect}
+        onItemSelect={handleCharacteristicSelect} // <-- CORRETO
         onCreateNewHomebrew={handleCreateNewHomebrew}
       />
       <AssimilationsModal
@@ -2130,7 +2768,7 @@ const CharacterSheet = () => {
         title="Assimilações"
         items={assimilations}
         homebrewItems={[]}
-        onItemSelect={handleItemSelect}
+        onItemSelect={handleAssimilationSelect} // <-- CORRETO
         onCreateNewHomebrew={handleCreateNewHomebrew}
       />
       <ItemsModal
@@ -2142,95 +2780,11 @@ const CharacterSheet = () => {
         onItemSelect={handleItemSelect}
         onCreateNewHomebrew={handleCreateNewHomebrew}
       />
-      {editItem !== null && (
-        <Dialog open={true} onClose={() => setEditItem(null)}>
-          <DialogTitle color="black">Editar Item</DialogTitle>
-          <DialogContent>
-            <DialogContentText>Edite os detalhes do item.</DialogContentText>
-            <TextField
-              margin="dense"
-              label="Nome"
-              type="text"
-              fullWidth
-              value={editItem.item.name}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  item: { ...editItem.item, name: e.target.value },
-                })
-              }
-            />
-            <TextField
-              margin="dense"
-              label="Descrição"
-              type="text"
-              fullWidth
-              value={editItem.item.description}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  item: { ...editItem.item, description: e.target.value },
-                })
-              }
-            />
-            <TextField
-              margin="dense"
-              label="Peso"
-              type="number"
-              fullWidth
-              value={editItem.item.weight}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  item: { ...editItem.item, weight: e.target.value },
-                })
-              }
-            />
-            <TextField
-              margin="dense"
-              label="Usos"
-              type="number"
-              fullWidth
-              value={editItem.item.durability}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  item: { ...editItem.item, durability: e.target.value },
-                })
-              }
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleOpenCharacteristicsMenu()}
-            >
-              Características
-            </Button>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setEditItem(null)} color="primary">
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => handleItemEdit(editItem.index, editItem.item)}
-              color="primary"
-            >
-              Salvar
-            </Button>
-          </DialogActions>
-
-          {editItem?.showCharacteristicsMenu && (
-            <CharacteristicsMenu
-              open={editItem.showCharacteristicsMenu}
-              item={editItem.item}
-              onClose={() =>
-                setEditItem({ ...editItem, showCharacteristicsMenu: false })
-              }
-              onChange={handleCharacteristicsChange}
-            />
-          )}
-        </Dialog>
-      )}
+      <EditItemDialog
+          editItem={editItem} // Passa o estado que controla a abertura/dados
+          onClose={() => setEditItem(null)} // Função para fechar
+          onSave={handleSaveItemEdit} // Função para salvar as alterações
+      />
       <Fab
         color="primary"
         aria-label="history"
@@ -2245,13 +2799,34 @@ const CharacterSheet = () => {
         onClose={handlePopoverClose}
         rollHistory={rollHistory}
       />
-      <Dialog open={openHealthModal} onClose={() => setOpenHealthModal(false)}>
-        <DialogTitle>Saúde {selectedHealthLevel}</DialogTitle>
-        <DialogContent>
-          <Typography>{getHealthDescription(selectedHealthLevel)}</Typography>
+      <Dialog 
+        open={openHealthModal} 
+        onClose={() => setOpenHealthModal(false)}
+        // 1. Adiciona os estilos do Paper (fundo, cor, borda)
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', 
+            color: '#e0e0e0', 
+            border: '1px solid #4a4a4a' 
+          }
+        }}
+      >
+        {/* 2. Adiciona estilo ao Título (borda e cor) */}
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
+          Saúde {selectedHealthLevel}
+        </DialogTitle>
+        
+        {/* 3. Adiciona estilo ao Conteúdo (padding e cor do texto) */}
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
+          <Typography sx={{ color: '#e0e0e0' }}>
+            {getHealthDescription(selectedHealthLevel)}
+          </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenHealthModal(false)} color="primary">
+        
+        {/* 4. Adiciona estilo às Ações (borda) */}
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
+          {/* 5. Altera o botão para usar sx para cor */}
+          <Button onClick={() => setOpenHealthModal(false)} sx={{ color: '#ccc' }}>
             Fechar
           </Button>
         </DialogActions>

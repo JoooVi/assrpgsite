@@ -574,28 +574,60 @@ export default function CharacterForm() {
   }, [token]);
 
   const handlePackSelect = (pack) => {
-    if (!pack || allItems.length === 0) {
+    // Verifica se temos os dados dos itens carregados
+    if (!pack || areItemsLoading || allItems.length === 0) {
+      console.warn("handlePackSelect: Pacote inválido ou itens ainda não carregados.");
+      setError("Aguarde o carregamento dos itens antes de selecionar um pacote.");
       return;
     }
+    setError(""); // Limpa erro anterior
+
     const newInventory = [];
     for (const itemName of pack.items) {
-      const itemFromDb = allItems.find((dbItem) => dbItem.name === itemName);
+      // Encontra o item completo no array 'allItems'
+      const itemFromDb = allItems.find(
+        (dbItem) => dbItem.name.toLowerCase() === itemName.toLowerCase() // Comparação case-insensitive
+      );
+
       if (itemFromDb) {
-        newInventory.push({
-          item: itemFromDb._id,
-          quality: itemFromDb.quality || 3,
-          currentUses: 0,
-        });
+        // --- INÍCIO DA CORREÇÃO: CRIA A ESTRUTURA COM itemData ---
+        const newItemInstance = {
+          // Campos específicos da instância
+          quality: itemFromDb.quality || 3, // Qualidade inicial baseada no item
+          quantity: 1,                     // Pacote inicial geralmente tem 1 de cada
+          slotLocation: 'mochila',          // Começa na mochila
+          currentUses: 0,                  // Usos iniciais zerados
+          // Copia os dados do item original para itemData (estrutura embutida)
+          itemData: {
+            originalItemId: itemFromDb._id, // Guarda a referência ao original
+            name: itemFromDb.name,
+            type: itemFromDb.type,
+            category: itemFromDb.category,
+            slots: itemFromDb.slots,
+            modifiers: itemFromDb.modifiers || [],
+            isArtefato: itemFromDb.isArtefato || false,
+            resourceType: itemFromDb.resourceType || null,
+            isConsumable: itemFromDb.isConsumable || false,
+            description: itemFromDb.description || "",
+            // Copia characteristics OU usa default se não existir
+            characteristics: itemFromDb.characteristics ? JSON.parse(JSON.stringify(itemFromDb.characteristics)) : { points: 0, details: [] },
+          }
+        };
+        newInventory.push(newItemInstance);
+        // --- FIM DA CORREÇÃO ---
       } else {
+        // Mantém o aviso se um item do pacote não for encontrado
         console.warn(
           `Item "${itemName}" do pacote "${pack.name}" não foi encontrado no banco de dados.`
         );
       }
     }
+
+    // Atualiza o estado do personagem com o pacote selecionado e o inventário formatado
     setCharacter((prev) => ({
       ...prev,
       initialPack: pack.name,
-      inventory: newInventory,
+      inventory: newInventory, // Usa o inventário com a estrutura itemData correta
     }));
   };
 

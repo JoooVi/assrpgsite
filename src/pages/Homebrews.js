@@ -104,18 +104,35 @@ const Homebrews = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom textAlign="center">
+      {/* --- ALTERADO: Aplicado estilo escuro ao Paper principal --- */}
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          p: 4, 
+          bgcolor: '#1e1e1e', // Fundo escuro
+          color: '#e0e0e0'  // Texto claro
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          textAlign="center"
+          sx={{ color: '#ffffff' }} // Cor do título
+        >
           Meus Homebrews
         </Typography>
 
-        {/* Tabs de Navegação */}
+        {/* --- ALTERADO: Aplicado estilo escuro aos Tabs --- */}
         <Tabs
           value={selectedTab}
           onChange={handleTabChange}
           variant="fullWidth"
           indicatorColor="primary"
-          textColor="primary"
+          textColor="inherit" // Alterado de 'primary'
+          sx={{ 
+            color: '#ccc', // Cor das tabs não selecionadas
+            borderBottom: '1px solid #4a4a4a'
+          }} 
         >
           <Tab label="Assimilações" />
           <Tab label="Itens" />
@@ -142,7 +159,6 @@ const Homebrews = () => {
 
           {selectedTab === 2 && (
             <CharacteristicsList
-            characterTraits={characterTraits}
             onShare={(trait) => handleShare('trait', trait)} // ✅ Envia o objeto completo
             currentUserId={currentUser?._id}
           />

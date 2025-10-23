@@ -1,4 +1,4 @@
-// src/pages/CharacterPortraitPage.js - VERSÃO ATUALIZADA
+// src/pages/CharacterPortraitPage.js - VERSÃO ATUALIZADA COM OVERLAYS DE MACHUCADOS
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
@@ -14,6 +14,14 @@ import "./CharacterPortraitPage.css";
 import { ReactComponent as HeartFullIcon } from '../assets/icons/heart-full.svg';
 import { ReactComponent as HeartEmptyIcon } from '../assets/icons/heart-empty.svg';
 
+// Importa as imagens de overlay de machucados
+import bruisedOverlay from '../assets/damage_overlays/escoriado.png';
+import laceratedOverlay from '../assets/damage_overlays/lacerado.png';
+import injuredOverlay from '../assets/damage_overlays/ferido.png';
+import brokenOverlay from '../assets/damage_overlays/arrebentado.png';
+import incapacitatedOverlay from '../assets/damage_overlays/incapacitado.png';
+// --- FIM DA IMPORTAÇÃO ---
+
 // Helper com os nomes e descrições dos 6 Níveis de Saúde
 const healthLevelDetails = {
     6: { name: "Saudável" },
@@ -23,6 +31,26 @@ const healthLevelDetails = {
     2: { name: "Arrebentado" },
     1: { name: "Incapacitado" },
 };
+
+const healthLevelColors = {
+    6: "#4caf50", // Verde (Saudável)
+    5: "#fdd835", // Amarelo (Escoriado)
+    4: "#fb8c00", // Laranja (Lacerado)
+    3: "#f44336", // Vermelho Claro (Ferido)
+    2: "#d32f2f", // Vermelho (Arrebentado)
+    1: "#b71c1c", // Vermelho Escuro (Incapacitado)
+};
+
+// --- NOVO: MAPA DE OVERLAYS DE DANO ---
+const damageOverlays = {
+    6: null, // Ou null/"" se não quiser um overlay para saudável
+    5: bruisedOverlay,
+    4: laceratedOverlay,
+    3: injuredOverlay,
+    2: brokenOverlay,
+    1: incapacitatedOverlay,
+};
+// --- FIM DO NOVO MAPA ---
 
 // --- COMPONENTES DOS ÍCONES SVG PARA O CABO DE GUERRA ---
 const TrackIcon = ({ color, isFilled }) => {
@@ -62,38 +90,31 @@ const CharacterPortraitPage = () => {
   const [animatedRoll, setAnimatedRoll] = useState(null);
   const [lastSeenRollTimestamp, setLastSeenRollTimestamp] = useState(null);
 
- const fetchCharacterData = useCallback(async () => {
+  const fetchCharacterData = useCallback(async () => {
     if (!id) return;
     try {
-      // Adicionamos `?t=${new Date().getTime()}` para forçar a busca de dados novos
       const response = await api.get(
         `https://assrpgsite-be-production.up.railway.app/api/public/characters/${id}/portrait?t=${new Date().getTime()}`
       );
       setCharacter(response.data);
     } catch (err) {
       console.error("Polling error:", err);
-      // Evita setar erro se já tivermos dados, para não piscar a tela
       if (!character) {
         setError("Falha ao buscar dados do personagem.");
       }
     } finally {
-      // Garante que o loading só seja desativado uma vez
       if (loading) setLoading(false);
     }
-    // Removemos as dependências desnecessárias para estabilizar a função
   }, [id, character, loading]);
 
- useEffect(() => {
+  useEffect(() => {
     document.documentElement.classList.add("portrait-html-active");
     document.body.classList.add("portrait-body-active");
     
-    // Busca os dados imediatamente ao carregar a página
     fetchCharacterData();
     
-    // Inicia o intervalo que chama a função a cada 2.5 segundos
     const intervalId = setInterval(fetchCharacterData, FETCH_INTERVAL);
     
-    // Limpa o intervalo quando o componente é desmontado
     return () => {
       document.documentElement.classList.remove("portrait-html-active");
       document.body.classList.remove("portrait-body-active");
@@ -101,7 +122,6 @@ const CharacterPortraitPage = () => {
     };
   }, [fetchCharacterData])
 
-  // Lógica de animação de dados (sem alterações)
   useEffect(() => {
     const lastRoll = character?.lastRoll;
     if (lastRoll?.timestamp && lastRoll.timestamp !== lastSeenRollTimestamp) {
@@ -118,54 +138,65 @@ const CharacterPortraitPage = () => {
     );
   }
 
-  // ### LÓGICA DE SAÚDE ATUALIZADA ###
   const currentHealthLevel = character.currentHealthLevel || 6;
   const currentHealthInfo = healthLevelDetails[currentHealthLevel] || { name: "Desconhecido" };
   const currentHealthPoints = character.healthLevels ? character.healthLevels[6 - currentHealthLevel] : 0;
   const maxHealthPerLevel = 1 + (character.instincts?.potency || 0) + (character.instincts?.resolution || 0);
 
-  // ### LÓGICA DO CABO DE GUERRA ATUALIZADA ###
   const { determinationLevel, determinationPoints, assimilationLevel, assimilationPoints } = character;
   const colorDet = "#a73c39";
   const colorAss = "#3b4766";
   const detTrackIcons = Array.from({ length: determinationLevel }, (_, i) => i + 1);
   const assTrackIcons = Array.from({ length: assimilationLevel }, (_, i) => i + 1);
 
+  // --- NOVO: SELECIONA O OVERLAY CORRETO ---
+  const currentDamageOverlay = damageOverlays[currentHealthLevel];
+  // --- FIM DO NOVO ---
+
   return (
     <Box className="live-portrait-wrapper">
-      {/* ... (lógica de animação de dados - sem alterações) ... */}
-
       <Paper className="character-portrait-container-tlou" elevation={0}>
         <Box className="portrait-avatar-section-tlou">
           <img
-            src={character.avatarUrl || "/default-avatar.png"}
+            src={character.avatar || "/default-avatar.png"}
             alt={`${character.name || "Sobrevivente"} avatar`}
             className="portrait-avatar-image-tlou"
           />
+          {/* --- NOVO: OVERLAY DE MACHUCADO --- */}
+          {currentDamageOverlay && (
+            <img 
+              src={currentDamageOverlay} 
+              alt="Damage Overlay" 
+              className="portrait-damage-overlay-tlou"
+            />
+          )}
+          {/* --- FIM DO NOVO --- */}
         </Box>
         <Box className="status-section-tlou">
           <Typography variant="h5" className="character-name-tlou">
             {character.name || "Sobrevivente Desconhecido"}
           </Typography>
 
-          {/* ### SEÇÃO DE SAÚDE ATUALIZADA ### */}
           <Box className="status-item-tlou health-tlou">
-            <Typography className="health-status-tlou">
+            <Typography 
+              className="health-status-tlou"
+              sx={{ color: healthLevelColors[currentHealthLevel] || '#FFF' }}
+            >
               STATUS: {currentHealthInfo.name.toUpperCase()}
             </Typography>
+
             <Rating
-  name="health-portrait"
-  value={currentHealthPoints}
-  max={maxHealthPerLevel}
-  readOnly
-  className="health-points-rating-tlou"
-  icon={<HeartFullIcon width={28} height={28} />}
-  emptyIcon={<HeartEmptyIcon width={28} height={28} style={{ opacity: 0.3 }} />}
-/>
+              name="health-portrait"
+              value={currentHealthPoints}
+              max={maxHealthPerLevel}
+              readOnly
+              className="health-points-rating-tlou"
+              icon={<HeartFullIcon width={28} height={28} />}
+              emptyIcon={<HeartEmptyIcon width={28} height={28} style={{ opacity: 0.3 }} />}
+            />
              <Typography className="health-points-text-tlou">{`${currentHealthPoints} / ${maxHealthPerLevel}`}</Typography>
           </Box>
           
-          {/* ### SEÇÃO DO CABO DE GUERRA ATUALIZADA ### */}
           <Box className="status-item-tlou tug-of-war-tlou">
              <div className="tug-of-war-track-tlou">
                 <div className="track-end-cap-tlou">

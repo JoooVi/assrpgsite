@@ -6,11 +6,11 @@ body {
 
 .navbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Mantém para caso o conteúdo exceda */
   margin-left: auto;
   margin-right: auto;
   width: 100%;
-  max-width: 1230px;
+  max-width: 1230px; /* Mantém largura máxima */
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
@@ -19,83 +19,71 @@ body {
   border-bottom: 2px solid #7f8c8d;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
-  z-index: 2;
+  z-index: 1000; /* Aumentado para garantir que fica por cima */
+  position: relative; /* Necessário para o posicionamento absoluto do menu mobile */
 }
 
 .navbar-left,
-.navbar-center,
-.navbar-right {
+.navbar-center, /* Centro é para desktop */
+.navbar-right { /* Direita é para desktop */
   display: flex;
   align-items: center;
 }
 
 .navbar-left {
-  flex: 1;
+  flex: 1; /* Ocupa espaço disponível à esquerda */
+  justify-content: flex-start; /* Alinha logo à esquerda */
 }
 
+/* Estilos Desktop para .navbar-center */
 .navbar-center {
-  flex: 1;
+  flex: 2; /* Mais espaço para os links */
   justify-content: center; /* Centralizar os botões */
-  gap: 30px; /* Adicionado para espaçamento entre os links */
+  gap: 30px;
   text-align: center;
-  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-  max-height: 300px; /* Ajuste conforme necessário */
-  opacity: 1;
-}
-
-.navbar-center.active {
-  max-height: 300px; /* Ajuste conforme necessário */
-  opacity: 1;
-  transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
+  /* Removemos a lógica de max-height/opacity daqui (será usada apenas em mobile) */
 }
 
 .navbar-right {
-  flex: 1;
-  justify-content: flex-end;
+  flex: 1; /* Ocupa espaço disponível à direita */
+  justify-content: flex-end; /* Alinha conta/login à direita */
 }
 
-/* --- SEÇÃO MODIFICADA COM O NOVO ESTILO --- */
-
+/* Estilos dos links (mantidos como antes) */
 .navbar-link {
-  /* Estilos base do novo design */
-  color: var(--text-secondary, #bdc3c7); /* Usa a variável, com um fallback cinza */
+  color: var(--text-secondary, #bdc3c7);
   text-decoration: none;
   font-weight: 600;
-  font-size: 1rem; /* Equivalente a 16px, mas mais flexível */
+  font-size: 1rem;
   padding: 5px 10px;
   border-radius: 6px;
   transition: color 0.2s ease, background-color 0.2s ease;
-
-  /* IMPORTANTE: Adiciona position: relative para o efeito da linha funcionar */
-  position: relative; 
+  position: relative;
+  white-space: nowrap; /* Evita quebra de linha nos links */
 }
 
 .navbar-link:hover {
-  /* Efeito de hover do novo design */
   color: var(--text-primary, #ffffff);
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Novo: Cria o elemento da linha, inicialmente invisível */
 .navbar-link::after {
   content: '';
   position: absolute;
-  bottom: -5px; /* Posição da linha abaixo do texto */
+  bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
-  width: 0; /* Começa com largura zero */
+  width: 0;
   height: 2px;
-  background-color: var(--accent-primary, #3cdce7); /* Usa a variável de destaque */
+  background-color: var(--accent-primary, #3cdce7);
   transition: width 0.3s ease;
 }
 
-/* Novo: Faz a linha aparecer ao passar o mouse */
 .navbar-link:hover::after {
-  width: 100%; /* Expande a largura para 100% */
+  width: 100%;
 }
 
-/* --- FIM DA SEÇÃO MODIFICADA --- */
-
+/* Logo (mantido como antes) */
 .navbar-logo {
   display: flex;
   justify-content: center;
@@ -110,92 +98,128 @@ body {
 }
 
 .logo-image:hover {
-  transform: scale(1.05); /* Leve aumento no logo */
+  transform: scale(1.05);
 }
 
-/* Estilos do botão hambúrguer */
+/* --- ESTILOS DO BOTÃO HAMBÚRGUER (AJUSTADO) --- */
 .navbar-toggle {
-  display: none;
+  display: none; /* Escondido por padrão */
   flex-direction: column;
+  justify-content: space-around; /* Espaça as barras */
+  width: 30px; /* Tamanho do botão */
+  height: 25px; /* Tamanho do botão */
   cursor: pointer;
-  position: absolute;
-  top: 10px;
-  right: 20px;
+  background: none;
+  border: none;
+  padding: 0;
+  z-index: 1001; /* Acima da navbar mas abaixo do menu aberto */
 }
 
 .navbar-toggle .bar {
-  width: 25px;
+  width: 100%;
   height: 3px;
   background-color: #fff;
-  margin: 4px 0;
-  transition: 0.3s;
+  border-radius: 10px; /* Barras arredondadas */
+  transition: all 0.3s linear;
+  position: relative;
+  transform-origin: 1px; /* Ponto de rotação */
 }
 
-.navbar-toggle.open .bar:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+/* Animação para 'X' */
+.navbar.mobile-menu-open .navbar-toggle .bar:nth-child(1) {
+  transform: rotate(45deg) translate(1px, -1px);
 }
 
-.navbar-toggle.open .bar:nth-child(2) {
+.navbar.mobile-menu-open .navbar-toggle .bar:nth-child(2) {
   opacity: 0;
+  transform: translateX(20px); /* Desliza para fora */
 }
 
-.navbar-toggle.open .bar:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
+.navbar.mobile-menu-open .navbar-toggle .bar:nth-child(3) {
+  transform: rotate(-45deg) translate(1px, 0px);
+}
+/* --- FIM DOS ESTILOS DO HAMBÚRGUER --- */
+
+/* --- NOVO: Estilos da secção mobile para conta/login --- */
+.mobile-account-section {
+  display: none; /* Escondido por padrão (visível apenas no menu mobile) */
+  margin-top: 15px; /* Espaço acima */
+  padding-top: 15px; /* Espaço acima */
+  border-top: 1px solid rgba(255, 255, 255, 0.2); /* Linha divisória */
+  width: 100%; /* Ocupa a largura do menu */
+  text-align: center; /* Centraliza o conteúdo */
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 992px) { /* Ajustado o breakpoint para mais cedo */
+
+  /* Em mobile, a barra principal mantém-se horizontal */
   .navbar {
-    flex-direction: column;
-    align-items: flex-start;
+    /* Removemos flex-direction: column */
+    align-items: center; /* Mantém alinhamento vertical */
+    padding: 10px 15px; /* Ajuste de padding */
   }
 
+  /* Esconde os links do centro e a conta da direita na barra principal */
   .navbar-center {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    text-align: center;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
+    display: none; /* Esconde a versão desktop */
   }
-
-  .navbar-center.active {
-    max-height: 300px;
-    opacity: 1;
-  }
-
-  .navbar-left,
   .navbar-right {
-    flex: none;
-    margin-bottom: 10px;
+    display: none; /* Esconde a versão desktop */
   }
 
-  .logo-image {
-    max-width: 120px;
-    margin: 0 auto; /* Centraliza a imagem */
-  }
-
-  .navbar-link {
-    font-size: 16px;
-    margin: 5px 0;
-  }
-
-  .navbar-link:hover {
-    background-color: #67110e;
-  }
-
+  /* Mostra o botão hambúrguer */
   .navbar-toggle {
     display: flex;
   }
 
-  .navbar-right {
-    display: none; /* Esconder em dispositivos móveis */
+  /* Estiliza o .navbar-center quando está ativo (menu dropdown) */
+  .navbar-center.active {
+    display: flex; /* Torna visível */
+    flex-direction: column; /* Links em coluna */
+    align-items: center; /* Centraliza os links */
+    position: absolute; /* Posicionamento abaixo da barra */
+    top: 100%; /* Começa logo abaixo da navbar */
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.9); /* Fundo sólido escuro */
+    padding: 20px 0; /* Espaçamento vertical */
+    border-top: 1px solid #7f8c8d; /* Linha superior */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3); /* Sombra */
+    /* Animação suave */
+    max-height: calc(100vh - 70px); /* Altura máxima (altura da viewport menos a navbar) */
+    opacity: 1;
+    overflow-y: auto; /* Permite scroll se houver muitos links */
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  }
+
+  /* Ajusta o espaçamento dos links no menu mobile */
+  .navbar-center.active .navbar-link {
+    margin: 10px 0; /* Espaçamento vertical */
+    width: 80%; /* Largura dos links */
+    text-align: center;
+  }
+  
+  /* Remove o efeito da linha no hover em mobile */
+  .navbar-center.active .navbar-link::after {
+    display: none;
+  }
+
+  /* Mostra a secção de conta/login DENTRO do menu mobile */
+  .navbar-center.active .mobile-account-section {
+    display: block; /* Ou flex, dependendo do conteúdo */
+  }
+
+  /* Ajusta o tamanho do logo em mobile */
+  .logo-image {
+    max-width: 120px;
+    max-height: 50px; /* Ajuste altura se necessário */
   }
 }
 
-@media (min-width: 769px) {
-  .navbar-right {
-    display: flex; /* Mostrar em dispositivos maiores */
+/* Esconde a versão mobile da conta em desktop */
+@media (min-width: 993px) {
+  .mobile-account-section {
+    display: none;
   }
 }

@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Box, Typography, List, ListItem, ListItemText, CircularProgress } from "@mui/material";
+import React from "react";
+// --- ALTERAÇÃO: Removemos Chip e Avatar ---
+import { Box, Typography, List, ListItemText, CircularProgress } from "@mui/material"; 
 import { motion, AnimatePresence } from "framer-motion";
+import { formatDistanceToNowStrict } from 'date-fns'; // For better timestamps
+import { ptBR } from 'date-fns/locale';        // For Portuguese timestamps
 
-// --- Dice Assets (Completo, certifique-se de que está igual ao CharacterSheet.js) ---
+// --- Dice Assets (Permanece igual) ---
 const dados = {
   d6: {
     1: [], 2: [],
@@ -38,137 +41,147 @@ const dados = {
 };
 // --- END Dice Assets ---
 
-// NOVA FUNÇÃO DE TRADUÇÃO (COPIADA DO CharacterSheet.js)
+// --- Translation Function (Permanece igual) ---
 const translateKey = (key) => {
   const translations = {
-    health: "Saúde",
-    Agility: "Agilidade",
-    agility: "Agilidade",
-    Perception: "Percepção",
-    perception: "Percepção",
-    Strength: "Força",
-    strength: "Força",
-    Current: "Atual",
-    current: "Atual",
-    collapse: "Colapso",
-    preCollapse: "pré-Colapso",
-    postCollapse: "Pós-Colapso",
-    Intelligence: "Inteligência",
-    Potency: "Potencia",
-    potency: "Potencia",
-    Influence: "Influência",
-    influence: "Influência",
-    Resolution: "Resolução",
-    resolution: "Resolução",
-    Knowledge: "Conhecimento",
-    knowledge: "Conhecimento",
-    Practices: "Práticas",
-    practices: "Práticas",
-    Instincts: "Instintos",
-    instincts: "Instintos",
-    Sagacity: "Sagacidade",
-    sagacity: "Sagacidade",
-    infiltration: "Infiltração",
-    Reaction: "Reação",
-    reaction: "Reação",
-    Agrarian: "Agrario", // Tradução para Agrarian
-    agrarian: "Agrario",
-    Biological: "Biologico", // Tradução para Biological
-    biological: "Biologico",
-    Exact: "Exato", // Tradução para Exact
-    exact: "Exato",
-    Medicine: "Medicina", // Tradução para Medicine
-    medicine: "Medicina",
-    Social: "Social", // Tradução para Social
-    social: "Social",
-    Artistic: "Artistico", // Tradução para Artistic
-    artistic: "Artistico",
-    Sports: "Esportivas", // Tradução para Sports
-    sports: "Esportivas",
-    Tools: "Ferramentas", // Tradução para Tools
-    tools: "Ferramentas",
-    Crafts: "Oficios", // Tradução para Crafts
-    crafts: "Oficios",
-    Weapons: "Armas", // Tradução para Weapons
-    weapons: "Armas",
-    Vehicles: "Veiculos", // Tradução para Vehicles
-    vehicles: "Veiculos",
-    Infiltration: "Infiltração", // Tradução para Infiltration
+    // Coloque TODAS as suas traduções aqui...
+    health: "Saúde", Agility: "Agilidade", agility: "Agilidade", Perception: "Percepção",
+    perception: "Percepção", Strength: "Força", strength: "Força", Current: "Atual",
+    current: "Atual", collapse: "Colapso", preCollapse: "pré-Colapso", postCollapse: "Pós-Colapso",
+    Intelligence: "Inteligência", Potency: "Potência", potency: "Potência", Influence: "Influência",
+    influence: "Influência", Resolution: "Resolução", resolution: "Resolução", Knowledge: "Conhecimento",
+    knowledge: "Conhecimento", Practices: "Práticas", practices: "Práticas", Instincts: "Instintos",
+    instincts: "Instintos", Sagacity: "Sagacidade", sagacity: "Sagacidade", infiltration: "Infiltração",
+    Reaction: "Reação", reaction: "Reação", Agrarian: "Agrario", agrarian: "Agrario",
+    Biological: "Biologico", biological: "Biologico", Exact: "Exato", exact: "Exato",
+    Medicine: "Medicina", medicine: "Medicina", Social: "Social", social: "Social",
+    Artistic: "Artistico", artistic: "Artistico", Sports: "Esportivas", sports: "Esportivas",
+    Tools: "Ferramentas", tools: "Ferramentas", Crafts: "Oficios", crafts: "Oficios",
+    Weapons: "Armas", weapons: "Armas", Vehicles: "Veiculos", vehicles: "Veiculos",
+    Infiltration: "Infiltração", geography: "Geografia", Geography: "Geografia",
+    security: "Segurança", Security: "Segurança", biology: "Biologia", Biology: "Biologia",
+    erudition: "Erudição", Erudition: "Erudição", engineering: "Engenharia", Engineering: "Engenharia",
+    athletics: "Atletismo", Athletics: "Atletismo", expression: "Expressão", Expression: "Expressão",
+    stealth: "Furtividade", Stealth: "Furtividade", crafting: "Manufaturas", Crafting: "Manufaturas",
+    survival: "Sobrevivência", Survival: "Sobrevivência",
   };
-
   return translations[key] || key;
 };
+// --- END Translation Function ---
 
+// --- ALTERAÇÃO: Removemos o componente DieResultDisplay daqui ---
 
+// --- Main RecentRollsFeed Component ---
 const RecentRollsFeed = ({ rolls }) => {
-
   if (!rolls || rolls.length === 0) {
-    return <Typography variant="body2" sx={{ color: '#ccc' }}>Nenhuma rolagem recente.</Typography>;
+    return <Typography variant="body2" sx={{ color: '#aaa', fontStyle: 'italic', p: 2 }}>Nenhuma rolagem recente.</Typography>;
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    exit: { opacity: 0, x: -50, transition: { duration: 0.3 } },
-    highlighted: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
-    subtle: { opacity: 0.6, y: 0, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: (i) => ({
+        // --- ALTERAÇÃO: Opacidade padronizada para melhor leitura ---
+        opacity: i === 0 ? 1 : 0.7, // Mais recente = 100%, antigos = 70%
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.4, delay: i * 0.05, ease: "easeOut" }
+    }),
+    exit: { opacity: 0, x: -30, transition: { duration: 0.2 } },
   };
 
   return (
-    <List sx={{ maxHeight: 300, overflow: 'auto', p: 0 }}>
+    <List sx={{ maxHeight: 400, overflow: 'auto', p: 1, bgcolor: 'rgba(0,0,0,0.1)', borderRadius: 1 }}>
       <AnimatePresence initial={false}>
-        {rolls.map((roll, index) => (
-          <motion.div
-            key={roll._id || roll.timestamp || index}
-            variants={itemVariants}
-            initial="hidden"
-            animate={index === 0 ? "highlighted" : "subtle"}
-            exit="exit"
-            layout
-            style={{
-                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                paddingBottom: 8,
-                marginBottom: 8
-            }}
-          >
-            <ListItemText
-              primary={
-                <Typography variant="subtitle2" sx={{ color: '#eee', fontWeight: 'bold' }}>
-                  <strong>{roll.rollerName || 'Mestre'}</strong> rolou: {translateKey(roll.formula) || translateKey(roll.skill) || 'Dados'} {/* APLICA TRADUÇÃO AQUI */}
-                </Typography>
-              }
-              secondary={
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', mt: 0.5 }}>
-                  {(roll.roll || []).map((dieResult, i) => (
-                    <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 1, mb: 1 }}>
-                      <Typography variant="caption" sx={{ color: '#bbb' }}>
-                          D{dieResult.face === 6 ? 6 : (dieResult.face === 10 ? 10 : 12)}
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {(dieResult.result || []).length > 0 ? (
-                          dieResult.result.map((imgSrc, j) => (
-                            <img
-                              key={j}
-                              src={imgSrc}
-                              alt="symbol"
-                              style={{ width: '20px', height: '20px', margin: '1px' }}
-                              onError={(e) => { e.target.onerror = null; e.target.src = "/path/to/default-image.png"; }}
-                            />
-                          ))
-                        ) : (
-                          <Typography variant="body2" sx={{ color: '#f00' }}>{dieResult.face}</Typography>
-                        )}
+        {rolls.map((roll, index) => {
+           // --- ALTERAÇÃO: Removemos a função getDieType ---
+
+           const timeAgo = roll.timestamp ? formatDistanceToNowStrict(new Date(roll.timestamp), { addSuffix: true, locale: ptBR }) : '';
+
+          return (
+            <motion.div
+              key={roll._id || roll.timestamp || index}
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              custom={index}
+              layout
+              style={{
+                  borderBottom: '1px solid rgba(255,255,255,0.1)',
+                  paddingBottom: 12,
+                  marginBottom: 12,
+                  // --- ALTERAÇÃO: Cor de fundo da rolagem mais recente ---
+                  backgroundColor: index === 0 ? '#21364bff' : 'transparent', // Destaque #517daaff
+                  borderRadius: '4px',
+                  padding: '8px'
+              }}
+            >
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                     <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                        <strong>{roll.rollerName || 'Mestre'}</strong> rolou: {translateKey(roll.formula) || translateKey(roll.skill) || 'Dados'}
+                     </Typography>
+                     <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
+                        {timeAgo}
+                     </Typography>
+                  </Box>
+                }
+                secondary={
+                  // --- ALTERAÇÃO: Substituímos DieResultDisplay pelo novo layout ---
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    {(roll.roll || []).map((dieResult, i) => (
+                      <Box
+                        key={i}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          p: 1,
+                          bgcolor: 'rgba(0, 0, 0, 0.3)', // Fundo escuro para o dado
+                          borderRadius: 1,
+                          minWidth: '55px' // Largura mínima
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 'bold' }}>
+                          {/* Agora usamos dieResult.sides, que é mais preciso */}
+                          (d{dieResult.sides || '?'}) 
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', minHeight: '30px', alignItems: 'center' }}>
+                          {dieResult.result.length > 0 ? (
+                            dieResult.result.map((imgSrc, j) => (
+                              <img
+                                key={j}
+                                src={imgSrc}
+                                alt="symbol"
+                                style={{ width: "25px", height: "25px", margin: "2px" }} // Tamanho padronizado
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "/path/to/default-image.png";
+                                }}
+                              />
+                            ))
+                          ) : (
+                            // Padronizado para H6, igual ao Snackbar
+                            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }}>
+                              {dieResult.face}
+                            </Typography>
+                          )}
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
-                </Box>
-              }
-            />
-          </motion.div>
-        ))}
+                    ))}
+                  </Box>
+                  // --- FIM DA ALTERAÇÃO ---
+                }
+                sx={{ m: 0 }}
+              />
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
     </List>
   );
 };
+// --- END Main Component ---
 
 export default RecentRollsFeed;

@@ -22,6 +22,23 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete"; // Importar DeleteIcon
 import AssimilationsModal from "./AssimilationsModal"; // Importar AssimilationsModal
 
+// --- NOVO: Estilos reutilizáveis para componentes escuros ---
+const darkTextFieldStyles = {
+  '& .MuiInputBase-input': { color: '#fff' },
+  '& .MuiInputLabel-root': { color: '#ccc' },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: '#888' },
+    '&:hover fieldset': { borderColor: '#fff' },
+  },
+  // Para o <select native>
+  '& .MuiNativeSelect-icon': { color: '#ccc' },
+  '& option': {
+    backgroundColor: '#1e1e1e',
+    color: '#e0e0e0',
+  }
+};
+// --- FIM DOS ESTILOS ---
+
 const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { // Receber props
   const { userAssimilations } = useSelector((state) => state.assimilations);
   const dispatch = useDispatch();
@@ -119,10 +136,22 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
         Criar Nova Assimilação
       </Button>
 
-      {/* Dialog para criar nova assimilação */}
-      <Dialog open={createDialogOpen} onClose={handleCreateClose}>
-        <DialogTitle>Criar Nova Assimilação</DialogTitle>
-        <DialogContent>
+      {/* --- ALTERADO: Dialog para criar nova assimilação estilizado --- */}
+      <Dialog 
+        open={createDialogOpen} 
+        onClose={handleCreateClose}
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', 
+            color: '#e0e0e0', 
+            border: '1px solid #4a4a4a' 
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
+          Criar Nova Assimilação
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
           <TextField
             label="Nome"
             name="name"
@@ -131,6 +160,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={newAssimilation.name}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Descrição"
@@ -142,6 +172,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={newAssimilation.description}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Categoria"
@@ -151,6 +182,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={newAssimilation.category}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Custo em Sucessos"
@@ -161,6 +193,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={newAssimilation.successCost}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Custo em Adaptações"
@@ -171,6 +204,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={newAssimilation.adaptationCost}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Custo em Pressão"
@@ -181,6 +215,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={newAssimilation.pressureCost}
             onChange={handleNewChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             select
@@ -194,15 +229,16 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
               native: true,
             }}
             required
+            sx={darkTextFieldStyles} // Aplicado
           >
-            <option value="" disabled>Selecione</option>
-            <option value="copas">Copas</option>
-            <option value="ouros">Ouros</option>
-            <option value="espadas">Espadas</option>
+            <option value="" disabled style={{ backgroundColor: '#1e1e1e' }}></option>
+            <option value="copas" style={{ backgroundColor: '#1e1e1e' }}>Copas</option>
+            <option value="ouros" style={{ backgroundColor: '#1e1e1e' }}>Ouros</option>
+            <option value="espadas" style={{ backgroundColor: '#1e1e1e' }}>Espadas</option>
           </TextField>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCreateClose} color="secondary">
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
+          <Button onClick={handleCreateClose} sx={{ color: '#ccc' }}> {/* Alterado */}
             Cancelar
           </Button>
           <Button onClick={handleCreateAssimilation} color="primary">
@@ -220,12 +256,23 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
         onItemSelect={handleEditOpen}
       />
 
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom sx={{ color: '#ffffff', mt: 2 }}> {/* Alterado */}
         Minhas Assimilações
       </Typography>
   {userAssimilations.length > 0 ? (
     userAssimilations.map((assimilation) => (
-      <Accordion key={assimilation._id}>
+      // --- ALTERADO: Accordion Estilizado ---
+      <Accordion 
+        key={assimilation._id}
+        sx={{
+          bgcolor: '#2a2d30', 
+          color: '#e0e0e0',
+          border: '1px solid #4a4a4a',
+          '& .MuiAccordionSummary-expandIconWrapper .MuiSvgIcon-root': {
+            color: '#ccc', // Cor do ícone
+          }
+        }}
+      >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls={`panel-${assimilation._id}-content`}
@@ -233,7 +280,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             >
               <Typography>{assimilation.name}</Typography>
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails sx={{ borderTop: '1px solid #4a4a4a' }}> {/* Alterado */}
               <Typography>
                 <strong>Descrição:</strong> {assimilation.description}
               </Typography>
@@ -287,9 +334,22 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
         <Typography>Você ainda não criou nenhuma Assimilação.</Typography>
       )}
 
-      <Dialog open={editOpen} onClose={handleEditClose}>
-        <DialogTitle>Editar Assimilação</DialogTitle>
-        <DialogContent>
+      {/* --- ALTERADO: Dialog de Edição Estilizado --- */}
+      <Dialog 
+        open={editOpen} 
+        onClose={handleEditClose}
+        PaperProps={{
+          sx: {
+            bgcolor: '#1e1e1e', 
+            color: '#e0e0e0', 
+            border: '1px solid #4a4a4a' 
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
+          Editar Assimilação
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
           <TextField
             label="Nome"
             name="name"
@@ -298,6 +358,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={selectedAssimilation?.name || ""}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Descrição"
@@ -307,6 +368,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={selectedAssimilation?.description || ""}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Categoria"
@@ -316,6 +378,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={selectedAssimilation?.category || ""}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Custo em Sucessos"
@@ -326,6 +389,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={selectedAssimilation?.successCost || 0}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Custo em Adaptações"
@@ -336,6 +400,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={selectedAssimilation?.adaptationCost || 0}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             label="Custo em Pressão"
@@ -346,6 +411,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
             value={selectedAssimilation?.pressureCost || 0}
             onChange={handleChange}
             required
+            sx={darkTextFieldStyles} // Aplicado
           />
           <TextField
             select
@@ -359,16 +425,17 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => { /
               native: true,
             }}
             required
+            sx={darkTextFieldStyles} // Aplicado
           >
-            <option value="" disabled>
+            <option value="" disabled style={{ backgroundColor: '#1e1e1e' }}>
             </option>
-            <option value="copas">Copas</option>
-            <option value="ouros">Ouros</option>
-            <option value="espadas">Espadas</option>
+            <option value="copas" style={{ backgroundColor: '#1e1e1e' }}>Copas</option>
+            <option value="ouros" style={{ backgroundColor: '#1e1e1e' }}>Ouros</option>
+            <option value="espadas" style={{ backgroundColor: '#1e1e1e' }}>Espadas</option>
           </TextField>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} color="secondary">
+        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
+          <Button onClick={handleEditClose} sx={{ color: '#ccc' }}> {/* Alterado */}
             Cancelar
           </Button>
           <Button onClick={handleSaveEdit} color="primary">
