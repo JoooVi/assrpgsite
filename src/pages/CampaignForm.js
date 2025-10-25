@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // useState em vez de React.useState
+import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -16,12 +16,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AppTheme from "../theme/AppTheme";
 import "./CampaignForm.css";
-// --- NOVO: Importações para o input de ficheiro ---
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
-// --- FIM DAS NOVAS IMPORTAÇÕES ---
 
-// --- NOVO: Estilização para o input de ficheiro escondido ---
+// --- Input escondido para upload de imagem ---
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
   clipPath: 'inset(50%)',
@@ -33,13 +31,9 @@ const VisuallyHiddenInput = styled('input')({
   whiteSpace: 'nowrap',
   width: 1,
 });
-// --- FIM DA ESTILIZAÇÃO ---
 
-
-// Define os passos (mantido)
 const steps = ["Informações Básicas", "Configurações Adicionais"];
 
-// Função getStepContent atualizada
 function getStepContent(step, campaign, handleInputChange, handleFileChange, selectedFileName, errors) {
   switch (step) {
     case 0:
@@ -55,7 +49,7 @@ function getStepContent(step, campaign, handleInputChange, handleFileChange, sel
             onChange={handleInputChange}
             error={!!errors.name}
             helperText={errors.name}
-            sx={{ mb: 2 }} // Adiciona margem inferior
+            sx={{ mb: 2 }}
           />
           <TextField
             label="Descrição da Campanha"
@@ -69,17 +63,16 @@ function getStepContent(step, campaign, handleInputChange, handleFileChange, sel
             onChange={handleInputChange}
             error={!!errors.description}
             helperText={errors.description}
-            sx={{ mb: 2 }} // Adiciona margem inferior
+            sx={{ mb: 2 }}
           />
-          {/* --- NOVO: Campo de Upload de Imagem --- */}
           <Button
             component="label"
             role={undefined}
             variant="outlined"
             tabIndex={-1}
             startIcon={<CloudUploadIcon />}
-            fullWidth // Ocupa a largura toda
-            sx={{ mb: 1, color: '#ccc', borderColor: '#888' }} // Estilo escuro
+            fullWidth
+            sx={{ mb: 1, color: '#ccc', borderColor: '#888' }}
           >
             Carregar Imagem da Capa (Opcional)
             <VisuallyHiddenInput type="file" name="coverImage" onChange={handleFileChange} accept="image/*" />
@@ -89,9 +82,9 @@ function getStepContent(step, campaign, handleInputChange, handleFileChange, sel
               Ficheiro selecionado: {selectedFileName}
             </Typography>
           )}
-          {/* --- FIM DO CAMPO DE UPLOAD --- */}
         </div>
       );
+
     case 1:
       return (
         <div className="step fade-in">
@@ -103,7 +96,7 @@ function getStepContent(step, campaign, handleInputChange, handleFileChange, sel
             value={campaign.inviteCode}
             onChange={handleInputChange}
             helperText="Um código para jogadores entrarem na sua campanha."
-             sx={{ mb: 2 }} // Adiciona margem inferior
+            sx={{ mb: 2 }}
           />
           <TextField
             label="Regras da Casa (opcional)"
@@ -118,6 +111,7 @@ function getStepContent(step, campaign, handleInputChange, handleFileChange, sel
           />
         </div>
       );
+
     default:
       throw new Error("Unknown step");
   }
@@ -131,10 +125,9 @@ export default function CampaignForm() {
     inviteCode: "",
     houseRules: "",
   });
-  // --- NOVO: Estado para guardar o ficheiro de imagem ---
+
   const [coverImageFile, setCoverImageFile] = useState(null);
-  const [selectedFileName, setSelectedFileName] = useState(""); // Para mostrar o nome do ficheiro
-  // --- FIM DO NOVO ESTADO ---
+  const [selectedFileName, setSelectedFileName] = useState("");
 
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState("");
@@ -147,11 +140,8 @@ export default function CampaignForm() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCampaign({
-      ...campaign,
-      [name]: value,
-    });
-    // Validação básica (mantida)
+    setCampaign({ ...campaign, [name]: value });
+
     if (steps[activeStep] === "Informações Básicas") {
       const requiredFields = ["name", "description"];
       if (requiredFields.includes(name) && !value) {
@@ -162,7 +152,6 @@ export default function CampaignForm() {
     }
   };
 
-  // --- NOVA: Função para lidar com a seleção do ficheiro ---
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setCoverImageFile(e.target.files[0]);
@@ -172,28 +161,23 @@ export default function CampaignForm() {
       setSelectedFileName("");
     }
   };
-  // --- FIM DA NOVA FUNÇÃO ---
-
 
   const validateStep = () => {
-    // Validação (mantida, mas só valida campos de texto)
-     let isValid = true;
-     let newErrors = {};
+    let isValid = true;
+    let newErrors = {};
 
-     // Verifica apenas os campos obrigatórios do passo atual
-     if (activeStep === 0) {
-       if (!campaign.name) { isValid = false; newErrors.name = "Nome é obrigatório."; }
-       if (!campaign.description) { isValid = false; newErrors.description = "Descrição é obrigatória."; }
-     }
-     // Adicionar validações para outros passos se necessário
+    if (activeStep === 0) {
+      if (!campaign.name) { isValid = false; newErrors.name = "Nome é obrigatório."; }
+      if (!campaign.description) { isValid = false; newErrors.description = "Descrição é obrigatória."; }
+    }
 
-     setErrors(newErrors);
-     return isValid;
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleNext = () => {
     if (validateStep()) {
-      setActiveStep(activeStep + 1);
+      setActiveStep((prev) => prev + 1);
       setError("");
     } else {
       setError("Por favor, preencha todos os campos obrigatórios.");
@@ -201,15 +185,19 @@ export default function CampaignForm() {
   };
 
   const handleBack = () => {
-    setActiveStep(activeStep - 1);
+    setActiveStep((prev) => prev - 1);
     setError("");
   };
 
-  // --- handleSubmit ATUALIZADO para usar FormData ---
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Previne recarregamento da página
+    e.preventDefault();
 
-    // Validação final antes de enviar
+    // Segurança extra — só permite envio no último passo
+    if (activeStep !== steps.length - 1) {
+      console.warn("Tentativa de submit fora do último passo. Ignorado.");
+      return;
+    }
+
     if (!validateStep()) {
       setError("Por favor, preencha todos os campos obrigatórios antes de criar.");
       return;
@@ -224,40 +212,28 @@ export default function CampaignForm() {
     setError("");
     setSuccess(false);
 
-    // 1. Criar um objeto FormData
     const formData = new FormData();
+    formData.append("name", campaign.name);
+    formData.append("description", campaign.description);
+    formData.append("inviteCode", campaign.inviteCode);
+    formData.append("houseRules", campaign.houseRules);
 
-    // 2. Adicionar os campos de texto ao FormData
-    formData.append('name', campaign.name);
-    formData.append('description', campaign.description);
-    formData.append('inviteCode', campaign.inviteCode);
-    formData.append('houseRules', campaign.houseRules);
-    // O 'master' é adicionado pelo backend via 'protect' middleware, não precisa enviar
-
-    // 3. Adicionar o ficheiro de imagem (se existir)
     if (coverImageFile) {
-      // O nome 'coverImage' DEVE corresponder ao usado em upload.single('coverImage') no backend
-      formData.append('coverImage', coverImageFile);
+      formData.append("coverImage", coverImageFile);
     }
 
     try {
-      // 4. Enviar o FormData em vez do objeto JSON
       const response = await axios.post(
         "https://assrpgsite-be-production.up.railway.app/api/campaigns",
-        formData, // Envia FormData
+        formData,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            // IMPORTANTE: Não defina 'Content-Type' manualmente.
-            // O navegador definirá 'multipart/form-data' automaticamente com o boundary correto.
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setSuccess(true);
       console.log("Campanha criada:", response.data);
-      // Navega para a lista após sucesso
-       setTimeout(() => navigate(`/campaigns`), 1000); // Pequeno delay para mostrar msg de sucesso
-
+      setTimeout(() => navigate(`/campaigns`), 1000);
     } catch (err) {
       setError("Erro ao criar campanha. Verifique os dados e tente novamente.");
       console.error("Erro completo:", err.response?.data || err.message);
@@ -265,11 +241,8 @@ export default function CampaignForm() {
       setLoading(false);
     }
   };
-  // --- FIM DO handleSubmit ATUALIZADO ---
 
-
-  return (
-    // --- ALTERADO: Aplicado estilo escuro ao Card e Fundo ---
+    return (
     <AppTheme>
       <CssBaseline />
       <Box
@@ -277,60 +250,57 @@ export default function CampaignForm() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          py: 4, // Padding vertical
-          bgcolor: '#161616', // Fundo da página escuro
-          minHeight: '100vh',
+          py: 4,
+          bgcolor: "#161616",
+          minHeight: "100vh",
         }}
       >
-        <Card sx={{
+        <Card
+          sx={{
             maxWidth: 800,
-            width: "90%", // Usar percentagem para responsividade
-            bgcolor: '#1e1e1e', // Fundo do card escuro
-            color: '#e0e0e0', // Texto claro
-            border: '1px solid #4a4a4a' // Borda
-        }}>
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}> {/* Padding responsivo */}
-            <Typography component="h1" variant="h4" align="center" sx={{ color: '#ffffff', mb: 3 }}>
+            width: "90%",
+            bgcolor: "#1e1e1e",
+            color: "#e0e0e0",
+            border: "1px solid #4a4a4a",
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            <Typography component="h1" variant="h4" align="center" sx={{ color: "#ffffff", mb: 3 }}>
               Criar Nova Campanha
             </Typography>
+
             <Stepper activeStep={activeStep} sx={{ pt: 1, pb: 4 }}>
               {steps.map((label) => (
                 <Step key={label}>
-                   {/* Estilo escuro para o Stepper */}
-                  <StepLabel StepIconProps={{ sx: { color: '#666', '&.Mui-active': { color: 'primary.main' }, '&.Mui-completed': { color: 'primary.main' } } }}>
-                     <Typography sx={{ color: '#ccc' }}>{label}</Typography>
+                  <StepLabel
+                    StepIconProps={{
+                      sx: {
+                        color: "#666",
+                        "&.Mui-active": { color: "primary.main" },
+                        "&.Mui-completed": { color: "primary.main" },
+                      },
+                    }}
+                  >
+                    <Typography sx={{ color: "#ccc" }}>{label}</Typography>
                   </StepLabel>
                 </Step>
               ))}
             </Stepper>
-            
-            {/* O formulário agora chama handleSubmit no submit, não no botão */}
-            <form onSubmit={handleSubmit}>
-              {/* Passa as novas props para getStepContent */}
+
+            {/* 🔒 NÃO usamos mais onSubmit — controle total via botão */}
+            <div>
               {getStepContent(activeStep, campaign, handleInputChange, handleFileChange, selectedFileName, errors)}
 
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between", // Alterado para espaçar
-                  mt: 3,
-                }}
-              >
-                {/* Botão Voltar */}
-                <Button
-                    onClick={handleBack}
-                    disabled={activeStep === 0 || loading} // Desativa se estiver no primeiro passo ou carregando
-                    sx={{ color: '#ccc' }}
-                >
+              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+                <Button onClick={handleBack} disabled={activeStep === 0 || loading} sx={{ color: "#ccc" }}>
                   <ChevronLeftRoundedIcon /> Voltar
                 </Button>
 
-                {/* Botão Próximo/Criar */}
                 {activeStep === steps.length - 1 ? (
                   <Button
                     variant="contained"
                     color="primary"
-                    type="submit" // Agora é do tipo submit
+                    onClick={handleSubmit} // ✅ Agora é manual, não por submit automático
                     disabled={loading}
                   >
                     {loading ? "Criando..." : "Criar Campanha"}
@@ -340,19 +310,21 @@ export default function CampaignForm() {
                     variant="contained"
                     onClick={handleNext}
                     disabled={loading}
+                    type="button" // evita qualquer submit implícito
                   >
                     Próximo <ChevronRightRoundedIcon />
                   </Button>
                 )}
               </Box>
-            </form>
+            </div>
+
             {error && (
-              <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography color="error" sx={{ mt: 2, textAlign: "center" }}>
                 {error}
               </Typography>
             )}
             {success && (
-              <Typography color="success.main" sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography color="success.main" sx={{ mt: 2, textAlign: "center" }}>
                 Campanha criada com sucesso! Redirecionando...
               </Typography>
             )}
@@ -360,6 +332,5 @@ export default function CampaignForm() {
         </Card>
       </Box>
     </AppTheme>
-     // --- FIM DA ALTERAÇÃO ---
   );
 }
