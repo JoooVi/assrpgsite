@@ -5,6 +5,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StarIcon from '@mui/icons-material/Star';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const InventoryGrid = ({
   title,
@@ -14,6 +16,7 @@ const InventoryGrid = ({
   onEdit,
   onDelete,
   onUse,
+  onQualityChange,
   location,
   styles,
   qualityLevels,
@@ -36,10 +39,25 @@ const InventoryGrid = ({
         continue;
       }
 
-      let slotsNeeded = itemDetails.slots || 1;
-      if (itemDetails.modifiers?.includes("Pequeno")) { slotsNeeded = 0; }
-      else if (slotsNeeded < 1) { slotsNeeded = 1; }
-      if (itemDetails.modifiers?.includes("Pesado")) { slotsNeeded += 1; }
+      // --- INÍCIO DA CORREÇÃO ---
+
+      // 1. Pega o valor base. Usa '?? 1' (Nullish Coalescing)
+      //    Isso aceita 0, mas trata 'null' ou 'undefined' como 1.
+      let slotsNeeded = itemDetails.slots ?? 1;
+
+      // 2. Modificador "Pequeno" SOBRESCREVE tudo e força 0.
+      if (itemDetails.modifiers?.includes("Pequeno")) {
+        slotsNeeded = 0;
+      } else {
+        // 3. Se NÃO for "Pequeno", aplica "Pesado" (adicionando 1)
+        if (itemDetails.modifiers?.includes("Pesado")) {
+          slotsNeeded += 1;
+        }
+      }
+      // A lógica 'else if (slotsNeeded < 1)' foi removida.
+      
+      // --- FIM DA CORREÇÃO ---
+
 
        if (slotIndex + slotsNeeded > totalSlots) {
          for (let k = slotIndex; k < totalSlots; k++) {
@@ -62,6 +80,22 @@ const InventoryGrid = ({
                      { (itemDetails.isConsumable || itemDetails.resourceType) && invItem.quantity > 0 && (
                          <IconButton size="small" onClick={() => onUse(invItem)}> <PlayArrowIcon fontSize="inherit"/> </IconButton>
                      )}
+                     {onQualityChange && (
+                   <>
+                     <Tooltip title="Diminuir Qualidade">
+                       {/* Desabilita se a qualidade já for 0 */}
+                       <IconButton size="small" onClick={() => onQualityChange(invItem, invItem.quality - 1)} disabled={invItem.quality <= 0}>
+                         <RemoveCircleOutlineIcon fontSize="inherit" />
+                       </IconButton>
+                     </Tooltip>
+                     <Tooltip title="Aumentar Qualidade">
+                       {/* Desabilita se a qualidade já for 6 */}
+                       <IconButton size="small" onClick={() => onQualityChange(invItem, invItem.quality + 1)} disabled={invItem.quality >= 6}>
+                         <AddCircleOutlineIcon fontSize="inherit" />
+                       </IconButton>
+                     </Tooltip>
+                   </>
+               )}
                  </Box>
               </Box>
             </Tooltip>

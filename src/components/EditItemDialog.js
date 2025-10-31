@@ -24,6 +24,20 @@ import CharacteristicsMenu from "./CharacteristicsMenu";
 const scarcityLevels = { 0: 'Abundante', 1: 'Pedra', 2: 'Comum', 3: 'Incomum', 4: 'Atípico', 5: 'Raro', 6: 'Quase Extinto' };
 const resourceTypes = ['agua', 'comida', 'combustivel', 'pecas'];
 
+// --- NOVO ---
+// Adicionado mapa de qualidades para o <Select>
+const qualityLevels = {
+  0: "Quebrado",
+  1: "Defeituoso",
+  2: "Comprometido",
+  3: "Padrão",
+  4: "Reforçado",
+  5: "Superior",
+  6: "Obra-Prima",
+};
+// --- FIM NOVO ---
+
+
 const EditItemDialog = ({ editItem, onClose, onSave }) => {
   const [editedData, setEditedData] = useState(null);
   const [showCharacteristicsMenu, setShowCharacteristicsMenu] = useState(false);
@@ -38,6 +52,10 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
             type: sourceItemData.type || 'Desconhecido',
             category: sourceItemData.category ?? 3,
             slots: sourceItemData.slots ?? 1,
+            // --- NOVO ---
+            // Lê a qualidade da INSTÂNCIA (invItemData), não do sourceItemData
+            quality: editItem.invItemData.quality ?? 3, 
+            // --- FIM NOVO ---
             modifiers: sourceItemData.modifiers || [],
             isArtefato: sourceItemData.isArtefato || false,
             resourceType: sourceItemData.resourceType || null,
@@ -62,7 +80,16 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
       let newValue;
       if (type === 'checkbox') { newValue = checked; }
       else if (name === 'modifiers') { newValue = value.split(',').map(m => m.trim()).filter(m => m); }
-      else if (['slots', 'quality', 'category'].includes(name)) { newValue = parseInt(value) || 0; }
+      else if (name === 'slots') { 
+         const parsedValue = parseInt(value);
+         newValue = isNaN(parsedValue) ? 0 : parsedValue;
+      }
+      // --- ALTERADO ---
+      // Adicionado 'quality' à lista de campos numéricos
+      else if (['quality', 'category'].includes(name)) { 
+          newValue = parseInt(value) || 0;
+      }
+      // --- FIM ALTERADO ---
       else { newValue = value; }
       if (name === 'type' && !['Recurso', 'Consumivel'].includes(newValue)) { return { ...prev, type: newValue, resourceType: null, isConsumable: false }; }
       if (name === 'resourceType' && value === 'nenhum') { return { ...prev, resourceType: null }; }
@@ -77,6 +104,7 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
 
   const handleSaveChanges = () => {
     if (editedData && editItem && editItem.invItemData) {
+      // Passa o 'editedData' completo, que agora inclui a 'quality'
       onSave(editItem.invItemData, editedData);
       onClose();
     } else {
@@ -96,16 +124,28 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <TextField name="name" label="Nome" value={editedData.name} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} />
-            <TextField name="type" label="Tipo" value={editedData.type} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Ex: Equipamento, Arma, Vestimenta, Mochila, Recurso, Consumivel, Artefato" FormHelperTextProps={{ sx: helperTextStyles }} />
+            
+            {/* --- NOVO: Campo de Qualidade --- */}
+            <FormControl fullWidth margin="dense" size="small" required sx={selectStyles}>
+              <InputLabel sx={inputLabelStyles}>Qualidade</InputLabel>
+              <Select name="quality" label="Qualidade" value={editedData.quality} onChange={handleChange}>
+                {Object.entries(qualityLevels).map(([value, name]) => (<MenuItem key={value} value={parseInt(value)}>{name}</MenuItem>))}
+              </Select>
+            </FormControl>
+            {/* --- FIM NOVO --- */}
+            
             <FormControl fullWidth margin="dense" size="small" required sx={selectStyles}>
               <InputLabel sx={inputLabelStyles}>Categoria (Escassez)</InputLabel>
               <Select name="category" label="Categoria (Escassez)" value={editedData.category} onChange={handleChange}>
                 {Object.entries(scarcityLevels).map(([value, name]) => (<MenuItem key={value} value={parseInt(value)}>{name}</MenuItem>))}
               </Select>
             </FormControl>
+            
+            <TextField name="type" label="Tipo" value={editedData.type} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Ex: Equipamento, Arma, Vestimenta, Mochila, Recurso, Consumivel, Artefato" FormHelperTextProps={{ sx: helperTextStyles }} />
             <TextField name="slots" label="Slots Ocupados (Base)" type="number" value={editedData.slots} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Valor base. 'Pesado' adiciona +1. 'Pequeno' = 0." FormHelperTextProps={{ sx: helperTextStyles }} />
             <TextField name="modifiers" label="Modificadores (separados por vírgula)" value={editedData.modifiers?.join(', ') || ''} onChange={handleChange} fullWidth margin="dense" size="small" sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Ex: Espaçoso:2, Pesado, Isento, Pequeno" FormHelperTextProps={{ sx: helperTextStyles }} />
           </Grid>
+          {/* O restante do Grid (lado direito) continua igual */}
           <Grid item xs={12} md={6}>
              <Box sx={{ border: '1px solid #444', borderRadius: '4px', p: 1.5, mb: 2 }}>
                 <Typography variant="body2" sx={{ color: '#aaa', mb: 1 }}>Flags:</Typography>
@@ -154,6 +194,7 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
   );
 };
 
+// Constantes de estilo (permanecem iguais)
 const textFieldStyles = { '& .MuiInputBase-input': { color: '#fff' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#888' }, '&:hover fieldset': { borderColor: '#fff' }, '&.Mui-focused fieldset': { borderColor: '#90caf9' }, }, };
 const inputLabelStyles = { color: '#ccc' };
 const inputBaseStyles = { color: '#fff' };

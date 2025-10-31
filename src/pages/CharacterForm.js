@@ -81,7 +81,6 @@ const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview
       <option value="preCollapse">Pré-Colapso</option>
       <option value="collapse">Colapso</option>
       <option value="postCollapse">Pós-Colapso</option>
-      <option value="current">Atual</option>
     </TextField>
   </div>
 );
