@@ -1003,6 +1003,18 @@ const CharacterSheet = () => {
                 />
               </div>
 
+              <div className={styles.inputGroup}>
+                <span className={styles.label}>Evento Marcante</span>
+                <input
+                  className={styles.inputField}
+                  placeholder="Trauma ou evento chave..."
+                  value={character.event || ""}
+                  onChange={(e) =>
+                    handleInputChange("strikingEvent", e.target.value)
+                  }
+                />
+              </div>
+
               {/* === MUDANÇA AQUI: INPUT VIROU SELECT === */}
               <div className={styles.inputGroup}>
                 <span className={styles.label}>Geração</span>

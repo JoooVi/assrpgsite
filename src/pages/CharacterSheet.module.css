@@ -1344,3 +1344,29 @@
   from { opacity: 0; transform: translate(-50%, -20px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* LINHA 1: Dados Pessoais (Agora com 4 Colunas) */
+.headerInfoRow {
+  display: grid;
+  /* Antes: 2fr 1fr 1fr 
+     Agora: 1fr (Nome) | 1.2fr (Evento) | 0.6fr (Geração) | 0.8fr (Ocupação)
+  */
+  grid-template-columns: 1fr 1.2fr 0.6fr 0.8fr; 
+  gap: 10px;
+  width: 100%;
+}
+
+/* Ajuste para telas médias (Tablets/Laptops pequenos) */
+@media (max-width: 1024px) {
+  .headerInfoRow {
+    /* Quebra em 2 linhas com 2 colunas cada se a tela apertar */
+    grid-template-columns: 1fr 1fr; 
+  }
+}
+
+/* Mobile (Mantém empilhado) */
+@media (max-width: 768px) {
+  .headerInfoRow {
+    grid-template-columns: 1fr;
+  }
+}
