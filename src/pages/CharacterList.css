@@ -1,73 +1,88 @@
-/* Arquivo: CharacterList.css (Versão 6 - Efeito de Fundo Sutil) */
+/* --- START OF FILE CharacterList.css --- */
 
-@keyframes fadeIn {
+/* Importando fontes do tema: Orbitron (Títulos) e Rajdhani (Texto técnico) */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap');
+
+/* Animação suave de entrada */
+@keyframes fadeInData {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.98);
+    transform: translateY(20px);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
+/* Container Principal */
 .characterListContainer {
   width: 100%;
-  max-width: 1300px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  /* Espaço no topo para não ficar atrás da navbar fixa */
+  padding: 110px 20px 40px 20px;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
+/* Cabeçalho (Título + Botão Criar) */
 .listHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   margin-bottom: 40px;
-  padding: 0 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
 }
 
 .listHeader h1 {
   color: #fff;
   font-family: 'Orbitron', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
+.listHeader h1 span {
+  color: #ff3333; /* Vermelho Nero */
+}
+
+/* Grid onde ficam os cards */
 .characterGrid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 45px;
+  gap: 30px;
+  justify-content: flex-start; /* Alinha à esquerda */
 }
 
+/* ========================================================= */
+/* O CARD DO PERSONAGEM (Estilo ID Card / HUD) */
+/* ========================================================= */
 .characterCard {
-  width: 210px;
-  height: 285px;
-  background: #222;
-  border-radius: 16px;
-  cursor: pointer;
+  width: 230px;       
+  height: 330px;      
+  background: #080808; /* Fundo muito escuro caso a imagem falhe */
+  border-radius: 6px;  /* Cantos levemente suaves */
   position: relative;
-  overflow: hidden;
+  overflow: hidden;    /* Garante que nada saia do card */
+  cursor: pointer;
   
-  border: 1px solid #444;
-  box-shadow: 
-    0 0 0 1px #1a1a1a,
-    inset 0 2px 8px rgba(0, 0, 0, 0.6),
-    0 4px 10px rgba(0, 0, 0, 0.5);
-
-  animation: fadeIn 0.5s ease-out forwards;
-  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+  /* Borda padrão sutil */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  animation: fadeInData 0.6s ease-out forwards;
 }
 
-.characterCard:hover {
-  transform: translateY(-10px) scale(1.05);
-  border-color: #aaa;
-  box-shadow: 
-    0 0 0 1px #1a1a1a,
-    inset 0 2px 8px rgba(0, 0, 0, 0.6),
-    0 10px 40px rgba(170, 170, 170, 0.2);
-}
-
+/* --- A IMAGEM --- */
 .cardImageContainer {
   width: 100%;
   height: 100%;
@@ -79,83 +94,80 @@
 .cardImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease-out;
+  object-fit: cover;    /* Cobre todo o espaço */
+  object-position: top center; /* FOCA NO ROSTO (Parte de cima) */
+  transition: transform 0.5s ease, filter 0.3s ease;
+  
+  /* Look inicial levemente "apagado" para destacar quando passa o mouse */
+  filter: brightness(0.85) grayscale(20%);
 }
 
-.characterCard:hover .cardImage {
-  transform: scale(1.1);
-}
-
-.characterCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 75%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: skewX(-25deg);
-  transition: left 0.9s cubic-bezier(0.23, 1, 0.32, 1);
-  z-index: 1;
-}
-
-.characterCard:hover::before {
-  left: 120%;
-}
-
-/* === EFEITO DE FUNDO DO TEXTO SUTIL E REFINADO === */
+/* --- TEXTO SOBRE A IMAGEM --- */
 .cardInfo {
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 0;
-  
-  /* ALTERADO: Padding vertical drasticamente reduzido para diminuir a altura da faixa */
-  padding: 10px 20px 12px 20px;
-  text-align: left;
-  
-  /* ALTERADO: Gradiente mais suave e curto, focado na base */
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
-  
-  /* REMOVIDO: O backdrop-filter foi removido para um visual mais limpo */
-  
-  transform: translateY(0);
-  transition: transform 0.4s ease;
+  width: 100%;
+  /* Gradiente preto transparente: Permite ler o texto sem tampar o desenho */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+  padding: 50px 15px 15px 15px; /* Padding top alto para o gradiente subir suave */
   z-index: 2;
+  transition: transform 0.3s ease;
 }
-
 
 .characterName {
   font-family: 'Orbitron', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.15rem; 
   font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 4px 0;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 1);
-  letter-spacing: 0.5px;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
 .characterSubtitle {
-  font-size: 0.8rem;
-  color: #b8b8b8;
-  margin: 0;
-  font-weight: 400;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+  color: #bbb;
+  margin-top: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
+/* ========================================================= */
+/* INTERAÇÃO HOVER (Ao passar o mouse) */
+/* ========================================================= */
 
+.characterCard:hover {
+  transform: translateY(-6px); /* Levanta o card */
+  border-color: transparent;   /* Remove a borda cinza externa */
+  
+  /* Borda interna brilhante (Inset) - Fica muito mais moderno */
+  box-shadow: 
+    inset 0 0 0 2px #ff3333,
+    0 15px 30px rgba(0, 0, 0, 0.8);
+}
+
+.characterCard:hover .cardImage {
+  transform: scale(1.08); /* Zoom suave */
+  filter: brightness(1) grayscale(0%); /* Imagem fica nítida e colorida */
+}
+
+/* Ícones de Ação (Lixeira / TV) */
 .cardHoverActions {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 12px;
+  right: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  opacity: 0;
+  gap: 8px;
+  opacity: 0; /* Invisível por padrão */
   transform: translateX(10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 3;
+  transition: all 0.3s ease;
+  z-index: 10;
 }
 
 .characterCard:hover .cardHoverActions {
@@ -163,90 +175,75 @@
   transform: translateX(0);
 }
 
+/* Estilo dos botõezinhos flutuantes */
 .actionIcon {
-  background-color: rgba(0, 0, 0, 0.7) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  transition: all 0.2s ease !important;
+  background-color: rgba(0, 0, 0, 0.6) !important; /* Vidro escuro */
+  backdrop-filter: blur(4px);
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px !important;
 }
 
 .actionIcon:hover {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.1);
+  background-color: #ff3333 !important; /* Vermelho ao passar o mouse */
+  border-color: #ff3333 !important;
+  color: white !important;
 }
 
-/* =========================================== */
-/* ESTILOS PARA TELA DE NENHUM PERSONAGEM      */
-/* =========================================== */
-
-/* Container principal que ocupa a tela e centraliza o conteúdo */
+/* ========================================================= */
+/* TELA DE "NENHUM PERSONAGEM" (Empty State) */
+/* ========================================================= */
 .noCharacters {
   width: 100%;
-  min-height: 60vh; /* Garante altura suficiente para centralizar verticalmente */
+  min-height: 60vh;
   display: flex;
-  justify-content: center; /* Centraliza o box na horizontal */
-  align-items: center;     /* Centraliza o box na vertical */
+  justify-content: center;
+  align-items: center;
   padding: 20px;
 }
 
-/* O box com a mensagem */
 .noCharactersBox {
   max-width: 500px;
   width: 100%;
-  display: flex;         /* Usar flexbox para alinhar o conteúdo interno */
-  flex-direction: column;/* Empilha o texto e o botão */
-  align-items: center;   /* Centraliza tudo dentro do box */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   padding: 40px;
-  background: var(--card-bg, rgba(10, 25, 47, 0.75)); /* Usa a variável de cor do seu tema */
-  border: 1px solid var(--border-color, rgb(21, 28, 41));
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.5s ease-out;
+  
+  /* Glassmorphism Escuro */
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #ff3333; /* Topo vermelho */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
 }
 
-/* Estilo para os textos */
 .noCharactersText {
-  color: #a8b2d1;
-  text-align: center; /* Garante alinhamento caso o texto quebre a linha */
+  color: #ccc;
+  font-family: 'Rajdhani', sans-serif !important;
 }
 
-/* Espaçamento entre os elementos de texto e o botão */
-.noCharactersBox .MuiTypography-h5 {
-  margin-bottom: 8px !important;
-}
-
-.noCharactersBox .MuiTypography-body1 {
-  margin-bottom: 24px !important;
-}
-
-/* === Responsividade === */
-@media (max-width: 900px) {
-  .characterCard {
-    width: 180px;
-    height: 240px;
+/* ========================================================= */
+/* RESPONSIVIDADE (Mobile) */
+/* ========================================================= */
+@media (max-width: 1024px) {
+  .characterGrid {
+    justify-content: center; /* Centraliza cards em telas médias */
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .listHeader {
     flex-direction: column;
-    gap: 20px;
-    margin-bottom: 30px;
+    align-items: center;
+    gap: 15px;
+    text-align: center;
   }
-}
-
-@media (max-width: 540px) {
-    .characterGrid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    .characterCard {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 7 / 9.5;
-    }
-    .characterName { font-size: 1.1rem; }
-    .characterSubtitle { font-size: 0.75rem; }
-    .cardInfo { padding: 10px 15px; }
+  
+  .characterCard {
+    width: 100%;
+    max-width: 300px; /* Card maior no celular para ver bem */
+  }
 }

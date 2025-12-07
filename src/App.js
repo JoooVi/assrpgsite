@@ -29,9 +29,10 @@ import CampaignForm from "./pages/CampaignForm";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import EditProfilePage from "./pages/EditProfilePage";
 
-// --- IMPORTAÇÕES AJUSTADAS ---
-import CampaignLobby from "./components/CampaignLobby"; // Assumindo que o arquivo está em 'src/pages/'
-import CampaignSheet from "./pages/CampaignSheet"; // Rota para o Escudo do Mestre
+// --- IMPORTAÇÕES DE CAMPANHA ---
+import CampaignLobby from "./components/CampaignLobby";
+import CampaignSheet from "./pages/CampaignSheet";
+import RefugeDashboard from "./pages/RefugeDashboard"; 
 
 import "./App.css";
 import "@fontsource/roboto/300.css";
@@ -75,7 +76,7 @@ const AppContent = () => {
             <Route path="/campaigns" element={isAuthenticated ? <PageTransition><CampaignList /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             <Route path="/create-campaign" element={isAuthenticated ? <PageTransition><CampaignForm /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
             
-            {/* --- NOVAS ROTAS DA CAMPANHA --- */}
+            {/* --- ROTAS DA CAMPANHA --- */}
             <Route
               path="/campaign-lobby/:id"
               element={isAuthenticated ? <PageTransition><CampaignLobby /></PageTransition> : <PageTransition><LoginPage /></PageTransition>}
@@ -84,6 +85,11 @@ const AppContent = () => {
               path="/campaign-sheet/:id"
               element={isAuthenticated ? <PageTransition><CampaignSheet /></PageTransition> : <PageTransition><LoginPage /></PageTransition>}
             />
+            <Route
+              path="/campaign/:id/refuge"
+              element={isAuthenticated ? <PageTransition><RefugeDashboard /></PageTransition> : <PageTransition><LoginPage /></PageTransition>}
+            />
+
           </Routes>
         </AnimatePresence>
       </main>

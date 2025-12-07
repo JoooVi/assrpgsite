@@ -1,0 +1,270 @@
+/* --- Tema Base --- */
+:root {
+  --bg-dark: #0e0e0e;
+  --bg-panel: #161616;
+  --bg-input: #1f1f1f;
+  --border: #333333;
+  --accent-red: #b71c1c;
+  --accent-hover: #d32f2f;
+  --text-main: #e0e0e0;
+  --text-dim: #9ca3af;
+  --discord-color: #5865F2;
+  --font-tech: 'Roboto Condensed', sans-serif;
+  --nav-height: 80px;
+}
+
+/* Container Principal */
+.profileContainer {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-tech);
+  min-height: 100vh;
+  padding: calc(var(--nav-height) + 40px) 20px 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Cartão Central */
+.contentCard {
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  position: relative;
+}
+
+/* --- Cabeçalho do Perfil --- */
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 30px;
+  background: linear-gradient(180deg, #1f1f1f 0%, #161616 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  /* Detalhe estético lateral */
+  border-left: 4px solid var(--accent-red);
+}
+
+.avatarWrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 4px; /* Mais quadrado, estilo tech */
+  overflow: hidden;
+  border: 3px solid #333;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.profileName {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.profileBio {
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.editBtn {
+  background-color: transparent;
+  border: 1px solid #555;
+  color: var(--text-main);
+  padding: 8px 16px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+  /* Alinha à direita ou topo em desktop */
+  align-self: flex-start; 
+}
+
+.editBtn:hover {
+  border-color: var(--text-main);
+  background-color: rgba(255,255,255,0.05);
+}
+
+/* --- Navegação de Abas (Tabs) --- */
+.tabsContainer {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background-color: #1a1a1a;
+}
+
+.tabBtn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 15px;
+  color: var(--text-dim);
+  font-family: var(--font-tech);
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+}
+
+.tabBtn.active {
+  color: #fff;
+  border-bottom-color: var(--accent-red);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tabBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* --- Conteúdo das Abas --- */
+.tabPanel {
+  min-height: 300px;
+  /* Não coloca padding aqui, deixa o filho decidir se quer padding ou full-width */
+}
+
+.contentBox {
+  padding: 30px;
+}
+
+/* Títulos de Seção Interna */
+.sectionTitle {
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  color: var(--text-main);
+}
+
+/* Card Discord */
+.discordContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.accountLinked {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2ecc71; /* Verde */
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  width: 100%;
+}
+
+.discordBtn {
+  background-color: var(--discord-color);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.discordBtn:hover {
+  background-color: #4752c4;
+}
+
+/* Loading */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  background-color: var(--bg-dark);
+  color: #fff;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-left-color: var(--accent-red);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Responsividade */
+@media (max-width: 600px) {
+  .profileHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .editBtn {
+    align-self: center;
+    width: 100%;
+  }
+
+  .tabsContainer {
+    flex-direction: row; /* Mantém linha, mas permite scroll se precisar ou encolhe fonte */
+    overflow-x: auto;
+  }
+  
+  .tabBtn {
+    padding: 12px 5px;
+    font-size: 0.8rem;
+  }
+}

@@ -1,28 +1,22 @@
-// src/pages/CharacterPortraitPage.js - VERSÃO ATUALIZADA COM OVERLAYS DE MACHUCADOS
+// src/pages/CharacterPortraitPage.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
-import {
-  Box,
-  Typography,
-  Paper,
-  CircularProgress,
-  Rating,
-} from "@mui/material";
 import "./CharacterPortraitPage.css";
+
+// SVG Components
 import { ReactComponent as HeartFullIcon } from '../assets/icons/heart-full.svg';
 import { ReactComponent as HeartEmptyIcon } from '../assets/icons/heart-empty.svg';
 
-// Importa as imagens de overlay de machucados
+// Images
 import bruisedOverlay from '../assets/damage_overlays/escoriado.png';
 import laceratedOverlay from '../assets/damage_overlays/lacerado.png';
 import injuredOverlay from '../assets/damage_overlays/ferido.png';
 import brokenOverlay from '../assets/damage_overlays/arrebentado.png';
 import incapacitatedOverlay from '../assets/damage_overlays/incapacitado.png';
-// --- FIM DA IMPORTAÇÃO ---
 
-// Helper com os nomes e descrições dos 6 Níveis de Saúde
+// Helpers
 const healthLevelDetails = {
     6: { name: "Saudável" },
     5: { name: "Escoriado" },
@@ -33,50 +27,35 @@ const healthLevelDetails = {
 };
 
 const healthLevelColors = {
-    6: "#4caf50", // Verde (Saudável)
-    5: "#fdd835", // Amarelo (Escoriado)
-    4: "#fb8c00", // Laranja (Lacerado)
-    3: "#f44336", // Vermelho Claro (Ferido)
-    2: "#d32f2f", // Vermelho (Arrebentado)
-    1: "#b71c1c", // Vermelho Escuro (Incapacitado)
+    6: "#4caf50", 5: "#fdd835", 4: "#fb8c00", 3: "#f44336", 2: "#d32f2f", 1: "#b71c1c",
 };
 
-// --- NOVO: MAPA DE OVERLAYS DE DANO ---
 const damageOverlays = {
-    6: null, // Ou null/"" se não quiser um overlay para saudável
-    5: bruisedOverlay,
-    4: laceratedOverlay,
-    3: injuredOverlay,
-    2: brokenOverlay,
-    1: incapacitatedOverlay,
+    6: null,
+    5: bruisedOverlay, 4: laceratedOverlay, 3: injuredOverlay, 
+    2: brokenOverlay, 1: incapacitatedOverlay,
 };
-// --- FIM DO NOVO MAPA ---
 
-// --- COMPONENTES DOS ÍCONES SVG PARA O CABO DE GUERRA ---
-const TrackIcon = ({ color, isFilled }) => {
-    const fillColor = isFilled ? color : 'none';
-    const strokeColor = color;
-    return (
-      <svg width="32" height="19" viewBox="0 0 40 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 0L0 12L20 24L40 12Z" fill={fillColor} stroke={strokeColor} strokeWidth="2.5" />
-      </svg>
-    );
-};
+// Componentes Visuais (Tracks e Círculos)
+const TrackIcon = ({ color, isFilled }) => (
+  <svg width="24" height="14" viewBox="0 0 40 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 0L0 12L20 24L40 12Z" fill={isFilled ? color : 'none'} stroke={color} strokeWidth="3" />
+  </svg>
+);
   
 const DeterminationCircle = ({ level }) => (
-    <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 44 44" style={{filter: 'drop-shadow(0 2px 4px #000)'}}>
         <circle cx="22" cy="22" r="20" stroke="#a73c39" strokeWidth="4" fill="#1a1a1a" /> 
-        <text x="50%" y="50%" textAnchor="middle" dy=".3em" fill="#fff" fontSize="20" fontWeight="bold">{level}</text>
+        <text x="50%" y="50%" textAnchor="middle" dy=".3em" fill="#fff" fontSize="18" fontWeight="bold" fontFamily="Roboto">{level}</text>
     </svg>
 );
 
 const AssimilationCircle = ({ level }) => (
-    <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+    <svg width="40" height="40" viewBox="0 0 44 44" style={{filter: 'drop-shadow(0 2px 4px #000)'}}>
         <circle cx="22" cy="22" r="20" stroke="#3b4766" strokeWidth="4" fill="#1a1a1a" />
-        <text x="50%" y="50%" textAnchor="middle" dy=".3em" fill="#fff" fontSize="20" fontWeight="bold">{level}</text>
+        <text x="50%" y="50%" textAnchor="middle" dy=".3em" fill="#fff" fontSize="18" fontWeight="bold" fontFamily="Roboto">{level}</text>
     </svg>
 );
-
 
 const FETCH_INTERVAL = 2500;
 
@@ -84,12 +63,8 @@ const CharacterPortraitPage = () => {
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const [animationState, setAnimationState] = useState("idle");
-  const [animatedRoll, setAnimatedRoll] = useState(null);
-  const [lastSeenRollTimestamp, setLastSeenRollTimestamp] = useState(null);
-
+  // Poll de dados
   const fetchCharacterData = useCallback(async () => {
     if (!id) return;
     try {
@@ -99,20 +74,17 @@ const CharacterPortraitPage = () => {
       setCharacter(response.data);
     } catch (err) {
       console.error("Polling error:", err);
-      if (!character) {
-        setError("Falha ao buscar dados do personagem.");
-      }
     } finally {
       if (loading) setLoading(false);
     }
-  }, [id, character, loading]);
+  }, [id, loading]);
 
   useEffect(() => {
+    // Adiciona classes ao body para transparência
     document.documentElement.classList.add("portrait-html-active");
     document.body.classList.add("portrait-body-active");
     
     fetchCharacterData();
-    
     const intervalId = setInterval(fetchCharacterData, FETCH_INTERVAL);
     
     return () => {
@@ -120,104 +92,117 @@ const CharacterPortraitPage = () => {
       document.body.classList.remove("portrait-body-active");
       clearInterval(intervalId);
     };
-  }, [fetchCharacterData])
-
-  useEffect(() => {
-    const lastRoll = character?.lastRoll;
-    if (lastRoll?.timestamp && lastRoll.timestamp !== lastSeenRollTimestamp) {
-      // ... (código de animação de dados)
-    }
-  }, [character?.lastRoll, lastSeenRollTimestamp]);
-
+  }, [fetchCharacterData]);
 
   if (loading || !character) {
     return (
-      <Box className="loading-container">
-        <CircularProgress sx={{ color: "#FFF" }} />
-      </Box>
+      <div className="loading-container">
+        <div className="custom-spinner"></div>
+      </div>
     );
   }
 
+  // Cálculos de Status
   const currentHealthLevel = character.currentHealthLevel || 6;
   const currentHealthInfo = healthLevelDetails[currentHealthLevel] || { name: "Desconhecido" };
-  const currentHealthPoints = character.healthLevels ? character.healthLevels[6 - currentHealthLevel] : 0;
+  // Cálculo simplificado assumindo array ou lógica fixa. Se healthLevels for array de pontos:
+  // (Nota: Ajuste aqui conforme sua lógica exata de index do backend. Se healthLevels[0] é o atual ou o max.)
+  const currentHealthPoints = character.healthLevels ? character.healthLevels[6 - currentHealthLevel] : 0; 
+  
+  // Exemplo de Max: Soma instintos + base. Se já vem calculado, use direto.
   const maxHealthPerLevel = 1 + (character.instincts?.potency || 0) + (character.instincts?.resolution || 0);
 
   const { determinationLevel, determinationPoints, assimilationLevel, assimilationPoints } = character;
-  const colorDet = "#a73c39";
-  const colorAss = "#3b4766";
-  const detTrackIcons = Array.from({ length: determinationLevel }, (_, i) => i + 1);
-  const assTrackIcons = Array.from({ length: assimilationLevel }, (_, i) => i + 1);
-
-  // --- NOVO: SELECIONA O OVERLAY CORRETO ---
+  
   const currentDamageOverlay = damageOverlays[currentHealthLevel];
-  // --- FIM DO NOVO ---
+
+  // Renderizar corações manualmente (Substitui Rating)
+  const renderHearts = () => {
+      const hearts = [];
+      for (let i = 1; i <= maxHealthPerLevel; i++) {
+          if (i <= currentHealthPoints) {
+              hearts.push(<HeartFullIcon key={i} width={30} height={30} fill="#9e1818" className="health-heart-icon" />);
+          } else {
+              hearts.push(<HeartEmptyIcon key={i} width={30} height={30} fill="rgba(255,255,255,0.2)" className="health-heart-icon" />);
+          }
+      }
+      return hearts;
+  };
 
   return (
-    <Box className="live-portrait-wrapper">
-      <Paper className="character-portrait-container-tlou" elevation={0}>
-        <Box className="portrait-avatar-section-tlou">
+    <div className="live-portrait-wrapper">
+      <div className="character-portrait-container-tlou">
+        
+        {/* --- Avatar & Dano --- */}
+        <div className="portrait-avatar-section-tlou">
           <img
             src={character.avatar || "/default-avatar.png"}
-            alt={`${character.name || "Sobrevivente"} avatar`}
+            alt="Character Avatar"
             className="portrait-avatar-image-tlou"
           />
-          {/* --- NOVO: OVERLAY DE MACHUCADO --- */}
           {currentDamageOverlay && (
             <img 
               src={currentDamageOverlay} 
-              alt="Damage Overlay" 
+              alt="Overlay Dano" 
               className="portrait-damage-overlay-tlou"
             />
           )}
-          {/* --- FIM DO NOVO --- */}
-        </Box>
-        <Box className="status-section-tlou">
-          <Typography variant="h5" className="character-name-tlou">
-            {character.name || "Sobrevivente Desconhecido"}
-          </Typography>
+        </div>
 
-          <Box className="status-item-tlou health-tlou">
-            <Typography 
+        {/* --- Stats --- */}
+        <div className="status-section-tlou">
+          <h1 className="character-name-tlou">
+            {character.name || "Sobrevivente"}
+          </h1>
+
+          {/* Saúde */}
+          <div className="status-item-tlou health-tlou">
+            <span 
               className="health-status-tlou"
-              sx={{ color: healthLevelColors[currentHealthLevel] || '#FFF' }}
+              style={{ color: healthLevelColors[currentHealthLevel] || '#FFF' }}
             >
               STATUS: {currentHealthInfo.name.toUpperCase()}
-            </Typography>
+            </span>
 
-            <Rating
-              name="health-portrait"
-              value={currentHealthPoints}
-              max={maxHealthPerLevel}
-              readOnly
-              className="health-points-rating-tlou"
-              icon={<HeartFullIcon width={28} height={28} />}
-              emptyIcon={<HeartEmptyIcon width={28} height={28} style={{ opacity: 0.3 }} />}
-            />
-             <Typography className="health-points-text-tlou">{`${currentHealthPoints} / ${maxHealthPerLevel}`}</Typography>
-          </Box>
+            {/* Corações Customizados */}
+            <div className="health-hearts-container">
+               {renderHearts()}
+            </div>
+            
+            <span className="health-points-text-tlou">
+                {`${currentHealthPoints} / ${maxHealthPerLevel}`}
+            </span>
+          </div>
           
-          <Box className="status-item-tlou tug-of-war-tlou">
+          {/* Cabo de Guerra */}
+          <div className="status-item-tlou tug-of-war-tlou">
              <div className="tug-of-war-track-tlou">
-                <div className="track-end-cap-tlou">
+                <div title="Determinação">
                     <DeterminationCircle level={determinationLevel} />
                 </div>
+                
                 <div className="track-icons-container-tlou">
-                    {detTrackIcons.map((i) => (
-                        <TrackIcon key={`det-${i}`} color={colorDet} isFilled={i <= determinationPoints} />
+                    {/* Tracks de Determinação */}
+                    {Array.from({ length: determinationLevel }, (_, i) => (
+                        <TrackIcon key={`det-${i}`} color="#a73c39" isFilled={i + 1 <= determinationPoints} />
                     ))}
-                    {assTrackIcons.map((i) => (
-                        <TrackIcon key={`ass-${i}`} color={colorAss} isFilled={i <= assimilationPoints} />
+                    {/* Divisor Visual (Opcional) */}
+                    <div style={{width:'2px', height:'20px', background:'rgba(255,255,255,0.2)'}}></div>
+                    {/* Tracks de Assimilação */}
+                    {Array.from({ length: assimilationLevel }, (_, i) => (
+                        <TrackIcon key={`ass-${i}`} color="#3b4766" isFilled={i + 1 <= assimilationPoints} />
                     ))}
                 </div>
-                <div className="track-end-cap-tlou">
+
+                <div title="Assimilação">
                     <AssimilationCircle level={assimilationLevel} />
                 </div>
             </div>
-          </Box>
-        </Box>
-      </Paper>
-    </Box>
+          </div>
+
+        </div>
+      </div>
+    </div>
   );
 };
 

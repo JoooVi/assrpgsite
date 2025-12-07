@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Box, Paper, Typography, TextField, Button, Avatar, Divider, Tabs, Tab } from '@mui/material';
 import api from '../api';
 import { updateUser, logout } from '../redux/slices/authSlice';
 
-// Importa apenas os arquivos CSS necessários para o layout
-import "./ProfilePage.css"; 
-import "./EditProfilePage.css";
+// Importa o novo CSS Module
+import styles from "./EditProfilePage.module.css";
 
 const EditProfilePage = () => {
     const { user, token } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const [tab, setTab] = useState(0);
+    const [activeTab, setActiveTab] = useState(0); // 0: Profile, 1: Account
 
-    // Estados dos formulários (sem alterações aqui)
+    // Form States
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
     const [twitter, setTwitter] = useState('');
     const [twitch, setTwitch] = useState('');
+    
+    // Avatar
     const [avatar, setAvatar] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState('');
+
+    // Senha & Danger
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,11 +36,10 @@ const EditProfilePage = () => {
             setBio(user.bio || '');
             setTwitter(user.socials?.twitter || '');
             setTwitch(user.socials?.twitch || '');
-            setAvatarPreview(user.avatar || '');
+            setAvatarPreview(user.avatar || '/placeholder-avatar.png'); // Placeholder caso não tenha avatar
         }
     }, [user]);
 
-    // Funções de handle (sem alterações na lógica)
     const handleAvatarChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -54,21 +55,18 @@ const EditProfilePage = () => {
         formData.append('bio', bio);
         formData.append('socials[twitter]', twitter);
         formData.append('socials[twitch]', twitch);
-        if (avatar) {
-            formData.append('avatar', avatar);
-        }
+        if (avatar) formData.append('avatar', avatar);
 
         try {
-        // Não precisa mais do objeto 'config' manual para o token!
-        // Apenas o header 'Content-Type' pode ser necessário, mas o axios geralmente o define
-        const { data } = await api.put('/profile', formData, {
-             headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        dispatch(updateUser(data));
-        alert('Perfil atualizado com sucesso!');
-        navigate('/perfil');
-    } catch (error) {
-        alert('Erro ao atualizar o perfil.');
+            const { data } = await api.put('/profile', formData, {
+                 headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            dispatch(updateUser(data));
+            alert('Perfil atualizado com sucesso!');
+            navigate('/perfil'); // Retorna ao perfil, mas pode ajustar a rota correta aqui
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao atualizar o perfil.');
         }
     };
     
@@ -76,112 +74,156 @@ const EditProfilePage = () => {
         e.preventDefault();
         if (newPassword !== confirmPassword) return alert('As novas senhas não coincidem.');
         try {
-            // --- CORREÇÃO AQUI ---
-            const config = { 
-                headers: { 
-                    Authorization: `Bearer ${token}` // Adicionado o token
-                } 
-            };
-            await api.post('/profile/change-password', { currentPassword, newPassword }, config);
+            await api.post('/profile/change-password', 
+                { currentPassword, newPassword }, 
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             alert('Senha alterada com sucesso!');
             setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
         } catch (error) {
-            alert('Erro ao alterar a senha. Verifique sua senha atual.');
+            alert('Erro ao alterar senha. Verifique a senha atual.');
         }
     };
 
     const handleDeleteAccount = async () => {
-        if (window.confirm('TEM CERTEZA? Esta ação é irreversível.')) {
+        if (!deletePassword) return alert("Digite sua senha para confirmar.");
+        if (window.confirm('TEM CERTEZA? Esta ação é irreversível e apagará todos os seus dados.')) {
             try {
-                // --- CORREÇÃO AQUI ---
-                const config = { 
-                    headers: { 
-                        Authorization: `Bearer ${token}` // Adicionado o token
-                    }, 
+                await api.delete('/profile/delete-account', { 
+                    headers: { Authorization: `Bearer ${token}` }, 
                     data: { password: deletePassword } 
-                };
-                await api.delete('/profile/delete-account', config);
-                alert('Conta deletada com sucesso.');
+                });
+                alert('Conta deletada.');
                 dispatch(logout());
                 navigate('/login');
             } catch (error) {
-                alert('Erro ao deletar a conta. Senha incorreta.');
+                alert('Erro ao deletar conta. Senha incorreta.');
             }
         }
     };
 
-    // Objeto de estilo para os TextFields para evitar repetição
-    const textFieldStyles = {
-        '& .MuiInputBase-input': { color: '#fff' },
-        '& .MuiInputLabel-root': { color: '#a0a0a0' },
-        '& .MuiInputLabel-root.Mui-focused': { color: '#fff' },
-        '& .MuiOutlinedInput-root': {
-            '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-            '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.6)' },
-            '&.Mui-focused fieldset': { borderColor: '#fff' },
-        },
-        mb: 2
-    };
-
     return (
-        <Box className="profile-page-container">
-            <Paper className="profile-paper" elevation={3}>
-                <Typography variant="h4" component="h1" className="profile-title" gutterBottom>
-                    Editar Perfil
-                </Typography>
+        <div className={styles.editContainer}>
+            <div className={styles.panel}>
+                <h1 className={styles.title}>Editar Perfil</h1>
                 
-                <Box sx={{ borderBottom: 1, borderColor: 'rgba(255, 255, 255, 0.2)' }}>
-                    <Tabs 
-                        value={tab} 
-                        onChange={(e, newValue) => setTab(newValue)} 
-                        centered
-                        textColor="inherit" // Deixa o texto do Tab branco
-                        sx={{ '& .MuiTabs-indicator': { backgroundColor: '#fff' } }} // Deixa a linha indicadora branca
+                {/* Abas de Navegação */}
+                <div className={styles.tabsNav}>
+                    <button 
+                        className={`${styles.tabBtn} ${activeTab === 0 ? styles.active : ''}`} 
+                        onClick={() => setActiveTab(0)}
                     >
-                        <Tab label="Personalizar Perfil" sx={{ color: '#fff' }} />
-                        <Tab label="Gerenciamento da Conta" sx={{ color: '#fff' }} />
-                    </Tabs>
-                </Box>
+                        Perfil Público
+                    </button>
+                    <button 
+                        className={`${styles.tabBtn} ${activeTab === 1 ? styles.active : ''}`} 
+                        onClick={() => setActiveTab(1)}
+                    >
+                        Conta & Segurança
+                    </button>
+                </div>
 
-                {/* Aba de Personalização */}
-                {tab === 0 && (
-                    <Box component="form" onSubmit={handleProfileSubmit} sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                            <Avatar src={avatarPreview} sx={{ width: 80, height: 80 }} />
-                            <Button variant="outlined" component="label" sx={{ color: '#fff', borderColor: '#fff' }}>
-                                Trocar Avatar
-                                <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
-                            </Button>
-                        </Box>
-                        <TextField fullWidth label="Nome" value={name} onChange={(e) => setName(e.target.value)} sx={textFieldStyles} />
-                        <TextField fullWidth multiline rows={3} label="Biografia" value={bio} onChange={(e) => setBio(e.target.value)} sx={textFieldStyles} />
-                        <TextField fullWidth label="Twitter (URL)" value={twitter} onChange={(e) => setTwitter(e.target.value)} sx={textFieldStyles} />
-                        <TextField fullWidth label="Twitch (URL)" value={twitch} onChange={(e) => setTwitch(e.target.value)} sx={textFieldStyles} />
-                        <Button type="submit" variant="contained" color="primary">Salvar Alterações</Button>
-                    </Box>
+                {/* --- ABA 0: Perfil Público --- */}
+                {activeTab === 0 && (
+                    <form className={styles.formSection} onSubmit={handleProfileSubmit}>
+                        
+                        {/* Seção Avatar */}
+                        <div className={styles.avatarSection}>
+                            <img src={avatarPreview} alt="Avatar" className={styles.avatarPreview} />
+                            <div>
+                                <label htmlFor="avatarInput" className={styles.uploadBtn}>
+                                    Alterar Avatar
+                                </label>
+                                <input 
+                                    id="avatarInput" 
+                                    type="file" 
+                                    accept="image/*" 
+                                    hidden 
+                                    onChange={handleAvatarChange} 
+                                />
+                                <div style={{fontSize:'0.75rem', color:'#777', marginTop:'5px'}}>
+                                    Recomendado: 500x500px
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Campos de Texto */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Nome de Agente</label>
+                            <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Biografia</label>
+                            <textarea 
+                                className={styles.textarea} 
+                                value={bio} 
+                                onChange={(e) => setBio(e.target.value)} 
+                                placeholder="Conte um pouco sobre você..."
+                            />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Link do Twitter / X</label>
+                            <input className={styles.input} value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="https://x.com/usuario" />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Link da Twitch</label>
+                            <input className={styles.input} value={twitch} onChange={(e) => setTwitch(e.target.value)} placeholder="https://twitch.tv/usuario" />
+                        </div>
+
+                        <button type="submit" className={`${styles.btn} ${styles.primaryBtn}`}>Salvar Alterações</button>
+                    </form>
                 )}
 
-                {/* Aba de Gerenciamento */}
-                {tab === 1 && (
-                    <Box sx={{ p: 3 }}>
-                        <Typography variant="h6">Alterar Senha</Typography>
-                        <Box component="form" onSubmit={handlePasswordSubmit} sx={{ mb: 4, mt: 2 }}>
-                            <TextField type="password" fullWidth label="Senha Atual" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} sx={textFieldStyles} />
-                            <TextField type="password" fullWidth label="Nova Senha" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} sx={textFieldStyles} />
-                            <TextField type="password" fullWidth label="Confirmar Nova Senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} sx={textFieldStyles} />
-                            <Button type="submit" variant="contained">Alterar Senha</Button>
-                        </Box>
-                        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
-                        <Box className="danger-zone">
-                            <Typography variant="h6" className="danger-zone-title">Zona de Perigo</Typography>
-                            <Typography>Para deletar sua conta, digite sua senha e clique no botão. Esta ação não pode ser desfeita.</Typography>
-                            <TextField type="password" fullWidth label="Sua Senha" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} sx={{...textFieldStyles, my: 2}} />
-                            <Button variant="contained" color="error" onClick={handleDeleteAccount}>Deletar Minha Conta</Button>
-                        </Box>
-                    </Box>
+                {/* --- ABA 1: Conta & Segurança --- */}
+                {activeTab === 1 && (
+                    <div className={styles.formSection}>
+                        
+                        <form onSubmit={handlePasswordSubmit}>
+                            <h3 className={styles.subTitle}>Alterar Senha</h3>
+                            <div className={styles.formGroup} style={{marginBottom:'15px'}}>
+                                <label className={styles.label}>Senha Atual</label>
+                                <input type="password" className={styles.input} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                            </div>
+                            <div className={styles.formGroup} style={{marginBottom:'15px'}}>
+                                <label className={styles.label}>Nova Senha</label>
+                                <input type="password" className={styles.input} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                            </div>
+                            <div className={styles.formGroup} style={{marginBottom:'20px'}}>
+                                <label className={styles.label}>Confirmar Nova Senha</label>
+                                <input type="password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                            </div>
+                            <button type="submit" className={styles.btn}>Atualizar Senha</button>
+                        </form>
+
+                        <div className={styles.divider}></div>
+
+                        <div className={styles.dangerZone}>
+                            <h3 className={styles.dangerTitle}>Zona de Perigo</h3>
+                            <p className={styles.dangerDesc}>
+                                A exclusão da conta é permanente e removerá todos os seus personagens e homebrews do sistema.
+                            </p>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label} style={{color:'#ff8a80'}}>Digite sua senha para confirmar</label>
+                                <input 
+                                    type="password" 
+                                    className={styles.input} 
+                                    value={deletePassword} 
+                                    onChange={(e) => setDeletePassword(e.target.value)} 
+                                    style={{borderColor: '#b71c1c'}}
+                                />
+                            </div>
+                            <button type="button" className={`${styles.btn} ${styles.dangerBtn}`} onClick={handleDeleteAccount}>
+                                Deletar Minha Conta
+                            </button>
+                        </div>
+                    </div>
                 )}
-            </Paper>
-        </Box>
+
+            </div>
+        </div>
     );
 };
 

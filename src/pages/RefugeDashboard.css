@@ -1,0 +1,243 @@
+/* --- RefugeDashboard.css --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Roboto+Condensed:wght@400;700&display=swap');
+
+/* === LAYOUT E FUNDO === */
+.refuge-container {
+  min-height: 100vh;
+  padding: 100px 20px 60px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: 'Rajdhani', sans-serif;
+  color: #dcdcdc;
+  position: relative;
+}
+
+/* Fundo Fixo (Base/Bunker) */
+.refuge-container::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: -1;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(10, 10, 10, 0.9)), 
+                    url('https://images.unsplash.com/photo-1590625321528-724dc0f3689f?q=80&w=2070&auto=format&fit=crop'); /* Bunker Texture */
+  background-size: cover;
+  background-position: center;
+}
+
+/* PAINEL PRINCIPAL */
+.refuge-panel {
+  width: 100%;
+  max-width: 1400px;
+  background: rgba(12, 12, 12, 0.95);
+  border: 1px solid #333;
+  border-top: 4px solid #8a1c18;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  padding: 0; /* Padding interno controlado pelos filhos */
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* === HEADER (IMAGEM DA BASE) === */
+.refuge-header {
+  position: relative;
+  height: 250px;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 2px solid #8a1c18;
+  display: flex;
+  align-items: flex-end;
+  padding: 30px;
+}
+
+.refuge-header::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to top, #0c0c0c 0%, rgba(0,0,0,0.4) 100%);
+}
+
+.header-content {
+  position: relative; z-index: 2; width: 100%;
+  display: flex; justify-content: space-between; align-items: flex-end;
+}
+
+.refuge-title {
+  font-family: 'Orbitron'; font-size: 3rem; color: #fff; text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(0,0,0,0.8); margin: 0; letter-spacing: 2px;
+}
+
+.refuge-location {
+  color: #ccc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-top: 5px;
+}
+
+.cycle-badge {
+  background: #8a1c18; color: #fff; padding: 5px 15px; font-family: 'Orbitron';
+  font-size: 0.9rem; margin-left: 15px; border: 1px solid #ff3333;
+}
+
+/* === BARRA DE STATUS (STATS) === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  padding: 20px;
+  background: #111;
+  border-bottom: 1px solid #333;
+}
+
+.stat-box {
+  background: #080808;
+  border: 1px solid #333;
+  padding: 10px;
+  text-align: center;
+  position: relative;
+}
+
+.stat-label {
+  font-family: 'Roboto Condensed'; color: #888; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.stat-value-container {
+  display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px;
+}
+
+.stat-value { font-family: 'Orbitron'; font-size: 1.8rem; color: #fff; }
+.stat-value.morale { color: #ffd700; }
+.stat-value.defense { color: #3cdce7; }
+.stat-value.danger { color: #ff3333; }
+
+.btn-stat-mini {
+  width: 20px; height: 20px; border-radius: 50%; border: 1px solid #444; background: #222;
+  color: #888; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-stat-mini:hover { border-color: #fff; color: #fff; }
+
+/* === ABAS DE NAVEGAÇÃO === */
+.refuge-tabs {
+  display: flex;
+  background: #0a0a0a;
+  border-bottom: 1px solid #333;
+}
+
+.refuge-tab {
+  flex: 1;
+  padding: 15px;
+  background: transparent;
+  color: #666;
+  border: none;
+  border-right: 1px solid #222;
+  cursor: pointer;
+  font-family: 'Orbitron';
+  font-size: 1rem;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.refuge-tab:hover { background: #151515; color: #aaa; }
+.refuge-tab.active { background: #1a1a1a; color: #fff; border-bottom: 3px solid #8a1c18; }
+
+/* === CONTEÚDO DAS ABAS === */
+.tab-content { padding: 30px; }
+
+/* RECURSOS */
+.resource-section-title {
+  color: #8a1c18; font-family: 'Orbitron'; border-bottom: 1px dashed #444; padding-bottom: 5px; margin: 20px 0 15px 0; font-size: 1.2rem;
+}
+
+.resource-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;
+}
+
+.resource-card {
+  background: #111; border: 1px solid #333; padding: 15px; text-align: center; transition: all 0.2s;
+}
+.resource-card:hover { border-color: #555; background: #161616; }
+
+.res-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+.res-name { font-family: 'Orbitron'; font-size: 1rem; color: #ddd; }
+.res-control { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 10px 0; }
+.res-val { font-family: 'Orbitron'; font-size: 1.5rem; font-weight: bold; }
+.res-meta { font-size: 0.8rem; color: #666; }
+
+/* CONSTRUÇÕES E PROJETOS */
+.build-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+.build-card {
+  background: #151515; border: 1px solid #333; border-left: 3px solid #444; padding: 20px; position: relative;
+}
+.build-card h4 { margin: 0 0 5px 0; font-family: 'Orbitron'; color: #fff; }
+.build-card .type { font-size: 0.8rem; color: #3cdce7; text-transform: uppercase; display: block; margin-bottom: 10px; }
+.build-card p { font-size: 0.9rem; color: #aaa; line-height: 1.4; }
+
+/* SALA DE GUERRA (Ameaças) */
+.war-room-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+.threat-card {
+  background: rgba(40, 10, 10, 0.3); border: 1px solid rgba(255, 50, 50, 0.3); padding: 15px; position: relative; margin-bottom: 15px;
+}
+.threat-title { color: #ff5252; font-family: 'Orbitron'; margin-bottom: 5px; font-size: 1.1rem; }
+.threat-desc { color: #ff8a8a; font-size: 0.9rem; margin-bottom: 15px; }
+
+/* Barras de Progresso */
+.nero-progress { height: 10px; background: #000; border: 1px solid #444; border-radius: 5px; overflow: hidden; }
+.nero-bar { height: 100%; transition: width 0.3s; }
+.nero-bar.red { background: #ff5252; }
+.nero-bar.blue { background: #3cdce7; }
+
+/* LOGS */
+.log-list { display: flex; flex-direction: column; gap: 0; border: 1px solid #333; background: #080808; max-height: 500px; overflow-y: auto; }
+.log-item { padding: 12px 20px; border-bottom: 1px solid #222; font-size: 0.95rem; }
+.log-item:last-child { border-bottom: none; }
+.log-item.crise { color: #ff5252; border-left: 3px solid #ff5252; background: rgba(255, 0, 0, 0.05); }
+.log-time { float: right; font-size: 0.8rem; color: #555; }
+
+/* === BOTÕES === */
+.btn-nero {
+  padding: 10px 20px; font-family: 'Roboto Condensed'; font-weight: bold; text-transform: uppercase;
+  background: #222; border: 1px solid #444; color: #ccc; cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;
+}
+.btn-nero:hover { background: #333; color: #fff; border-color: #666; }
+
+.btn-primary { background: #8a1c18; color: #fff; border-color: #500; }
+.btn-primary:hover { background: #a0201c; box-shadow: 0 0 15px rgba(138,28,24,0.4); }
+
+.btn-float-right { float: right; margin-bottom: 20px; }
+
+.btn-icon-danger {
+  background: transparent; border: none; color: #666; cursor: pointer; position: absolute; top: 10px; right: 10px;
+}
+.btn-icon-danger:hover { color: #ff5252; }
+
+/* TOAST */
+.nero-toast {
+  position: fixed; bottom: 30px; right: 30px; background: #111; border-left: 4px solid #3cdce7;
+  color: #fff; padding: 15px 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); font-family: 'Orbitron'; z-index: 3000;
+}
+
+/* MODAL (Reutilizável) */
+.nero-modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(5px); }
+.nero-modal { background: #151515; border: 1px solid #444; border-top: 3px solid #8a1c18; width: 100%; max-width: 700px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+.nero-modal-header { padding: 20px; border-bottom: 1px solid #333; font-family: 'Orbitron'; color: #fff; font-size: 1.2rem; }
+.nero-modal-body { padding: 20px; }
+.nero-modal-footer { padding: 20px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px; background: #111; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; color: #888; margin-bottom: 5px; font-family: 'Roboto Condensed'; font-weight: bold; font-size: 0.9rem; }
+.nero-input, .nero-textarea, .nero-select {
+  width: 100%; background: #080808; border: 1px solid #444; padding: 10px; color: #fff; font-family: 'Rajdhani'; font-size: 1rem; box-sizing: border-box;
+}
+.nero-input:focus, .nero-textarea:focus, .nero-select:focus { outline: none; border-color: #8a1c18; }
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .war-room-grid { grid-template-columns: 1fr; }
+  .refuge-header { height: 200px; padding: 20px; }
+  .refuge-title { font-size: 2rem; }
+  .stats-bar { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .refuge-tabs { flex-direction: column; }
+  .header-content { flex-direction: column; align-items: flex-start; gap: 20px; }
+}

@@ -1,5 +1,7 @@
-import React from 'react';
-import { Box, Typography, Tooltip, IconButton } from '@mui/material';
+/* InventoryGrid.js - Com Drag and Drop */
+import React, { useState } from 'react';
+
+// Ícones (Mantidos para visual)
 import ShareIcon from '@mui/icons-material/Share';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,137 +19,155 @@ const InventoryGrid = ({
   onDelete,
   onUse,
   onQualityChange,
-  location,
-  styles,
-  qualityLevels,
+  location, // 'corpo' ou 'mochila'
+  // Novos Props para Drag and Drop
+  onDragStartItem, 
+  onDropItem, 
+  
+  styles = {}, 
+  qualityLevels = {}, 
   placeholders = [],
 }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // --- Funções de Drag & Drop da Grade ---
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Necessário para permitir o Drop
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    // Chama a função do pai dizendo "Soltaram algo AQUI (nesta location)"
+    if (onDropItem) onDropItem(location); 
+  };
+
+  // --- Renderização dos Slots ---
   const renderedSlots = [];
   let itemIndex = 0;
 
+  // Estilo Inline Botões
+  const actionBtnStyle = {
+    background: 'transparent', border: 'none', cursor: 'pointer',
+    color: '#ccc', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+  };
+
   for (let slotIndex = 0; slotIndex < totalSlots; slotIndex++) {
+    // 1. TENTA RENDERIZAR UM ITEM
     if (itemIndex < items.length) {
       const invItem = items[itemIndex];
       const itemDetails = invItem?.itemData || invItem?.item;
 
       if (!invItem || !itemDetails) {
-        console.warn("Item de inventário inválido ou sem dados:", invItem);
-        renderedSlots.push(
-          <Box className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`invalid-${slotIndex}`} />
-        );
+        renderedSlots.push(<div className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`corrupt-${slotIndex}`} />);
         itemIndex++;
         continue;
       }
 
-      // --- INÍCIO DA CORREÇÃO ---
-
-      // 1. Pega o valor base. Usa '?? 1' (Nullish Coalescing)
-      //    Isso aceita 0, mas trata 'null' ou 'undefined' como 1.
       let slotsNeeded = itemDetails.slots ?? 1;
+      if (itemDetails.modifiers?.includes("Pequeno")) slotsNeeded = 0;
+      else if (itemDetails.modifiers?.includes("Pesado")) slotsNeeded += 1;
 
-      // 2. Modificador "Pequeno" SOBRESCREVE tudo e força 0.
-      if (itemDetails.modifiers?.includes("Pequeno")) {
-        slotsNeeded = 0;
-      } else {
-        // 3. Se NÃO for "Pequeno", aplica "Pesado" (adicionando 1)
-        if (itemDetails.modifiers?.includes("Pesado")) {
-          slotsNeeded += 1;
+      if (slotIndex + slotsNeeded > totalSlots) {
+        for (let k = slotIndex; k < totalSlots; k++) {
+          renderedSlots.push(<div className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`fill-${k}`} />);
         }
+        break;
       }
-      // A lógica 'else if (slotsNeeded < 1)' foi removida.
+
+      // ITEM CONTEÚDO (Pequeno ou Normal)
+      const isSmall = slotsNeeded === 0;
       
-      // --- FIM DA CORREÇÃO ---
-
-
-       if (slotIndex + slotsNeeded > totalSlots) {
-         for (let k = slotIndex; k < totalSlots; k++) {
-             renderedSlots.push( <Box className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`final-empty-${k}`} /> );
-         }
-         break;
-       }
-
-      if (slotsNeeded === 0) {
-           renderedSlots.push(
-            <Tooltip
-              title={`${itemDetails.name} (Qualidade: ${qualityLevels[invItem.quality] || 'N/A'}) - Pequeno (0 Slots)`}
-              key={`inv-${itemDetails.originalItemId || itemDetails._id || itemDetails.name}-small-${itemIndex}`}
-            >
-              <Box className={`${styles.inventorySlot} ${styles.filledSlot}`} sx={{ position: 'relative' }}>
-                 <img src={itemDetails.icon || '/icons/default_item.svg'} alt={itemDetails.name} className={styles.inventoryItemIcon} style={{ opacity: 0.8 }}/>
-                 <Box className={styles.slotActions}>
-                    <IconButton size="small" onClick={() => onEdit(invItem)}> <EditIcon fontSize="inherit"/> </IconButton>
-                    <IconButton size="small" onClick={() => onDelete(invItem)}> <DeleteIcon fontSize="inherit"/> </IconButton>
-                     { (itemDetails.isConsumable || itemDetails.resourceType) && invItem.quantity > 0 && (
-                         <IconButton size="small" onClick={() => onUse(invItem)}> <PlayArrowIcon fontSize="inherit"/> </IconButton>
-                     )}
-                     {onQualityChange && (
-                   <>
-                     <Tooltip title="Diminuir Qualidade">
-                       {/* Desabilita se a qualidade já for 0 */}
-                       <IconButton size="small" onClick={() => onQualityChange(invItem, invItem.quality - 1)} disabled={invItem.quality <= 0}>
-                         <RemoveCircleOutlineIcon fontSize="inherit" />
-                       </IconButton>
-                     </Tooltip>
-                     <Tooltip title="Aumentar Qualidade">
-                       {/* Desabilita se a qualidade já for 6 */}
-                       <IconButton size="small" onClick={() => onQualityChange(invItem, invItem.quality + 1)} disabled={invItem.quality >= 6}>
-                         <AddCircleOutlineIcon fontSize="inherit" />
-                       </IconButton>
-                     </Tooltip>
-                   </>
-               )}
-                 </Box>
-              </Box>
-            </Tooltip>
-          );
-          itemIndex++;
-          slotIndex--;
-          continue;
-      }
-
       renderedSlots.push(
-        <Tooltip
-          title={`${itemDetails.name} (Qualidade: ${qualityLevels[invItem.quality] || 'N/A'}${itemDetails.description ? ` | ${itemDetails.description}` : ''})`}
-          key={`inv-${itemDetails.originalItemId || itemDetails._id || itemDetails.name}-${slotIndex}`}
+        <div 
+          className={`${styles.inventorySlot} ${styles.filledSlot}`} 
+          key={`item-${invItem._id || itemIndex}`}
+          title={`${itemDetails.name} ${isSmall ? '(Pequeno)' : ''}`}
+          // PROPRIEDADES DE ARRASTAR
+          draggable={true}
+          onDragStart={() => onDragStartItem && onDragStartItem(invItem)}
+          // Estilo de Grid
+          style={{ 
+            gridColumn: isSmall ? 'span 1' : `span ${slotsNeeded}`,
+            border: isSmall ? '1px dashed #b71c1c' : undefined
+          }}
         >
-          <Box
-            className={`${styles.inventorySlot} ${styles.filledSlot}`}
-            sx={{ gridColumn: `span ${slotsNeeded}`, position: 'relative' }}
-          >
-            <img src={itemDetails.icon || '/icons/default_item.svg'} alt={itemDetails.name} className={styles.inventoryItemIcon} />
-            {itemDetails.isArtefato && (<StarIcon sx={{ position: 'absolute', top: 4, left: 4, color: '#FFD700', fontSize: '1rem', filter: 'drop-shadow(0 0 2px black)' }} />)}
-            {invItem.quantity > 1 && (<Typography sx={{ position: 'absolute', bottom: 2, right: 4, color: '#FFF', fontSize: '0.8rem', fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: '4px', padding: '0 4px', }}> x{invItem.quantity} </Typography>)}
-            <Box className={styles.slotActions}>
-               <Tooltip title={location === 'corpo' ? 'Mover para Mochila' : 'Mover para Corpo'}><IconButton size="small" onClick={() => onMove(invItem, location === 'corpo' ? 'mochila' : 'corpo')}><ShareIcon fontSize="inherit" sx={{ transform: location === 'corpo' ? 'rotate(90deg)' : 'rotate(-90deg)' }} /></IconButton></Tooltip>
-               <Tooltip title="Editar"><IconButton size="small" onClick={() => onEdit(invItem)}><EditIcon fontSize="inherit" /></IconButton></Tooltip>
-               <Tooltip title="Excluir"><IconButton size="small" onClick={() => onDelete(invItem)}><DeleteIcon fontSize="inherit" /></IconButton></Tooltip>
-               { (itemDetails.isConsumable || itemDetails.resourceType) && invItem.quantity > 0 && (<Tooltip title={`Usar ${itemDetails.name} (${invItem.quantity})`}><IconButton size="small" onClick={() => onUse(invItem)}><PlayArrowIcon fontSize="inherit" /></IconButton></Tooltip>)}
-            </Box>
-          </Box>
-        </Tooltip>
+          <img 
+            src={itemDetails.icon || '/icons/default.svg'} 
+            alt={itemDetails.name} 
+            className={styles.inventoryItemIcon}
+            style={{ opacity: itemDetails.isArtefato ? 0.9 : 1 }}
+          />
+
+          {itemDetails.isArtefato && <StarIcon style={{ position: 'absolute', top: 3, left: 3, color: '#ffd700', fontSize:'14px', filter: 'drop-shadow(0 0 2px black)' }} />}
+          
+          {/* Badge Quantidade */}
+          {invItem.quantity > 1 && (
+            <span style={{ position:'absolute', bottom:2, right:4, fontSize:'0.75rem', fontWeight:'bold', color: '#fff', textShadow: '0 0 3px black' }}>
+                x{invItem.quantity}
+            </span>
+          )}
+
+          {/* Painel Ações */}
+          <div className={styles.slotActions}>
+             <button style={actionBtnStyle} onClick={() => onMove(invItem, location === 'corpo' ? 'mochila' : 'corpo')} title="Mover">
+                <ShareIcon fontSize="small" style={{transform: location === 'corpo' ? 'rotate(90deg)' : 'rotate(-90deg)'}} />
+             </button>
+             
+             <button style={actionBtnStyle} onClick={() => onEdit(invItem)} title="Editar"><EditIcon fontSize="small"/></button>
+             
+             {onQualityChange && (
+                 <div style={{display:'flex', flexDirection:'column'}}>
+                     <button style={{...actionBtnStyle, padding:0}} disabled={invItem.quality<=0} onClick={()=>onQualityChange(invItem, invItem.quality-1)}><RemoveCircleOutlineIcon style={{fontSize: 16}}/></button>
+                     <button style={{...actionBtnStyle, padding:0}} disabled={invItem.quality>=6} onClick={()=>onQualityChange(invItem, invItem.quality+1)}><AddCircleOutlineIcon style={{fontSize: 16}}/></button>
+                 </div>
+             )}
+
+             <button style={{...actionBtnStyle, color: '#d32f2f'}} onClick={() => onDelete(invItem)} title="Descartar"><DeleteIcon fontSize="small"/></button>
+
+             {(itemDetails.isConsumable || itemDetails.resourceType) && (
+                 <button style={{...actionBtnStyle, color: '#4caf50'}} onClick={()=>onUse(invItem)} title="Usar"><PlayArrowIcon fontSize="small"/></button>
+             )}
+          </div>
+        </div>
       );
 
-      slotIndex += slotsNeeded - 1;
+      if(!isSmall) slotIndex += slotsNeeded - 1;
       itemIndex++;
+
     } else {
-      const placeholder = placeholders[slotIndex];
-      if (location === 'corpo' && placeholder) {
-          renderedSlots.push(
-            <Tooltip title={`Slot Vazio: ${placeholder.type}`} key={`placeholder-${location}-${slotIndex}`}>
-              <Box className={`${styles.inventorySlot} ${styles.emptySlot}`}> <img src={placeholder.icon} alt={placeholder.type} className={styles.placeholderIcon} /> </Box>
-            </Tooltip>
-          );
-      } else {
-        renderedSlots.push( <Box className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`empty-${location}-${slotIndex}`} /> );
-      }
+      // 2. SLOT VAZIO (Placeholder)
+      const placeholderInfo = placeholders[slotIndex]; 
+      renderedSlots.push(
+        <div className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`empty-${slotIndex}`}>
+           {placeholderInfo && placeholderInfo.icon && (
+               <img src={placeholderInfo.icon} alt="" style={{ width:'50%', height:'50%', objectFit:'contain', opacity: 0.15, filter: 'grayscale(100%)' }} />
+           )}
+        </div>
+      );
     }
   }
 
+  // --- RENDER FINAL ---
   return (
-    <Box>
-      {title && <Typography variant="subtitle1" className={styles.gridTitle}>{title}</Typography>}
-      <Box className={styles.inventoryGridContainer}>{renderedSlots}</Box>
-    </Box>
+    <div>
+      {title && <h4 className={styles.gridTitle} style={{marginTop:20, marginBottom:8, color:'#eee', borderLeft:'3px solid #b71c1c', paddingLeft:8, textTransform:'uppercase'}}>{title}</h4>}
+      
+      {/* O Container principal recebe os eventos de Drop */}
+      <div 
+        className={`${styles.inventoryGridContainer} ${isDragOver ? styles.dragOver : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {renderedSlots}
+      </div>
+    </div>
   );
 };
 

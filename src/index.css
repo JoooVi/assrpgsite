@@ -1,66 +1,68 @@
-/* index.css CORRIGIDO PARA CROSSFADE REAL */
+/* index.css ATUALIZADO */
 
-/* 1. Estilos do Body (apenas o básico) */
-body {
+/* Garantir que html e body ocupem tudo */
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #050505; /* Fallback: Fundo preto caso a imagem falhe */
+}
+
+body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
-  /* O fundo preto serve como segurança, caso algo falhe */
-  background-color: black;
+  position: relative; /* Necessário para posicionar o fundo */
 }
 
-/* 2. Camadas de Fundo (aqui acontece a mágica) */
-body::before,
-body::after {
-  content: '';
+/* 
+   === SOLUÇÃO DO FUNDO FIXO GLOBAL ===
+   Isso cria uma camada "papel de parede" que fica travada na tela.
+   Não importa o quanto você rolar a página, a imagem não mexe e não corta.
+*/
+body::before {
+  content: "";
+  position: fixed; /* Segredo: Posição fixa em relação à janela, não ao texto */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1; /* Fica bem atrás de tudo */
+  
+  /* Sua Imagem */
+  background-image: url('ass.png'); 
+  background-size: cover; /* Cobre tudo sem distorcer */
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* Opcional: Um overlay escuro leve para melhorar a leitura do texto em cima da imagem */
+  /* background-color: rgba(0, 0, 0, 0.6); 
+     background-blend-mode: overlay; */
+}
+
+/* 2. PARTICULAS (Firefly) */
+#firefly-canvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* Coloca as camadas atrás de todo o conteúdo */
-  
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  z-index: -5; /* Fica na frente da imagem de fundo, mas atrás do conteúdo do site */
+  pointer-events: none; /* Garante que não bloqueie cliques */
 }
 
-/* 3. Definindo a animação das imagens */
-@keyframes imageSlideshow {
-  0% { background-image: url('lab1.png'); }
-  20% { background-image: url('lab2.png'); }
-  40% { background-image: url('lab3.png'); }
-  60% { background-image: url('lab4.png'); }
-  80% { background-image: url('lab5.png'); }
-  100% { background-image: url('lab6.png'); } /* Volta para a primeira */
+/* 3. Container da Aplicação (React Root) */
+#root {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1; /* Conteúdo fica acima de tudo */
 }
 
-/* 4. Definindo a animação de opacidade (o crossfade) */
-@keyframes crossfadeOpacity {
-  0% { opacity: 1; }
-  10% { opacity: 1; } /* Segura a imagem visível */
-  50% { opacity: 0; } /* Desaparece suavemente */
-  92% { opacity: 0; } /* Permanece invisível */
-  100% { opacity: 1; } /* Reaparece para o próximo ciclo */
-}
-
-/* 5. Aplicando as animações às camadas */
-
-body::before {
-  /* Altere de 25s para 50s aqui */
-  animation: imageSlideshow 100s linear infinite, crossfadeOpacity 50s linear infinite;
-}
-
-body::after {
-  /* E altere de 25s para 50s aqui também */
-  animation: imageSlideshow 100s linear infinite;
-}
-
-/* O restante do seu CSS continua igual */
+/* Estilos gerais mantidos */
 code {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif,

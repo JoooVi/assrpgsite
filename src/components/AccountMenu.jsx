@@ -8,10 +8,9 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-import Settings from "@mui/icons-material/Settings"; // Ícone de Configurações
+import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 
-// Recebe 'handleLogout' e 'user' como props
 export default function AccountMenu({ handleLogout, user }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -20,44 +19,36 @@ export default function AccountMenu({ handleLogout, user }) {
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   const handleProfileClick = () => {
-    navigate("/perfil"); // Leva para a página de visualização
+    navigate("/perfil");
     handleClose();
   };
-
-  // 1. Criar uma função específica para navegar para a página de edição
   const handleSettingsClick = () => {
-    navigate("/edit-profile"); // Leva para a nova página de edição
+    navigate("/edit-profile");
     handleClose();
   };
 
   return (
     <React.Fragment>
       <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>
-        <Tooltip title="Configurações da Conta">
+        <Tooltip title="Minha Conta">
           <IconButton
             onClick={handleClick}
             size="small"
-            sx={{ ml: 25, width: 33, height: 33 }}
+            // --- AJUSTE: Removi 'ml: 25' e deixei automático. 
+            // O CSS da navbar cuida do espaçamento (justify-content: flex-end).
+            sx={{ ml: 1 }} 
             aria-controls={open ? "account-menu" : undefined}
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
           >
             <Avatar
-              sx={{
-                width: 33,
-                height: 33,
-                "& .MuiAvatar-img": {
-                  // Target the internal img tag
-                  objectFit: "cover",
-                },
-              }}
+              sx={{ width: 40, height: 40, border: '2px solid rgba(255,255,255,0.2)' }}
               src={user?.avatar}
+              alt={user?.name}
             >
               {user?.name?.charAt(0).toUpperCase()}
             </Avatar>
@@ -74,25 +65,30 @@ export default function AccountMenu({ handleLogout, user }) {
           elevation: 0,
           sx: {
             overflow: "visible",
-            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.5))",
             mt: 1.5,
-            "& .MuiAvatar-root": {
+            bgcolor: '#1a1a1a', // Fundo Dark
+            color: '#fff',      // Texto Claro
+            border: '1px solid #333',
+            '& .MuiAvatar-root': {
               width: 32,
               height: 32,
               ml: -0.5,
               mr: 1,
             },
-            "&::before": {
+            '&:before': {
               content: '""',
-              display: "block",
-              position: "absolute",
+              display: 'block',
+              position: 'absolute',
               top: 0,
               right: 14,
               width: 10,
               height: 10,
-              bgcolor: "background.paper",
-              transform: "translateY(-50%) rotate(45deg)",
+              bgcolor: '#1a1a1a',
+              transform: 'translateY(-50%) rotate(45deg)',
               zIndex: 0,
+              borderLeft: '1px solid #333',
+              borderTop: '1px solid #333',
             },
           },
         }}
@@ -102,27 +98,21 @@ export default function AccountMenu({ handleLogout, user }) {
         <MenuItem onClick={handleProfileClick}>
           <Avatar src={user?.avatar} /> Perfil
         </MenuItem>
-
-        <Divider />
-
-        {/* 2. Adicionar o novo MenuItem para "Configurações" */}
+        
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+        
         <MenuItem onClick={handleSettingsClick}>
           <ListItemIcon>
-            <Settings fontSize="small" />
+            <Settings fontSize="small" sx={{ color: '#aaa' }} />
           </ListItemIcon>
           Configurações
         </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            handleLogout();
-          }}
-        >
+        
+        <MenuItem onClick={() => { handleClose(); handleLogout(); }}>
           <ListItemIcon>
-            <Logout fontSize="small" />
+            <Logout fontSize="small" sx={{ color: '#d32f2f' }} />
           </ListItemIcon>
-          Sair
+          <span style={{ color: '#d32f2f' }}>Sair</span>
         </MenuItem>
       </Menu>
     </React.Fragment>

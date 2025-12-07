@@ -1,354 +1,158 @@
+/* ConflictTracker.js */
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Box,
-  Typography,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Divider,
-} from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { FaPlus, FaTrash, FaTimes, FaSkull, FaBullseye } from 'react-icons/fa';
+import styles from '../pages/CampaignSheet.module.css'; 
 
-// --- Estilos Reutilizáveis para Tema Escuro ---
-const darkTextFieldStyles = {
-  '& .MuiInputBase-input': { color: '#fff' },
-  '& .MuiInputLabel-root': { color: '#ccc' },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#888' },
-    '&:hover fieldset': { borderColor: '#fff' },
-  },
-  '& .MuiFormHelperText-root': { color: '#aaa' }
-};
-
-const darkSelectStyles = {
-  '& .MuiInputBase-input': { color: '#fff' },
-  '& .MuiInputLabel-root': { color: '#ccc' },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#888' },
-    '&:hover fieldset': { borderColor: '#fff' },
-  },
-  '& .MuiSvgIcon-root': { color: '#ccc' }
-};
-// --- FIM DOS ESTILOS ---
-
-// Estruturas de dados iniciais (para quando o Mestre adiciona um novo)
-const newObjectiveTemplate = {
-  name: '',
-  type: 'principal',
-  cost: 10,
-  progress: 0, // Campo para o painel de ação
-};
-
-const newThreatTemplate = {
-  name: '',
-  diceFormula: '3d10',
-  activations: [
-    { name: '', type: 'C', cost: 3, progress: 0 },
-  ],
-};
-
-const newActivationTemplate = {
-  name: '',
-  type: 'C',
-  cost: 3,
-  progress: 0,
-};
-
-// --- Componente Principal ---
+// Templates
+const newObjectiveTemplate = { name: '', type: 'principal', cost: 10, progress: 0 };
+const newThreatTemplate = { name: '', diceFormula: '3d10', activations: [{ name: '', type: 'C', cost: 3, progress: 0 }] };
+const newActivationTemplate = { name: '', type: 'C', cost: 3, progress: 0 };
 
 const ConflictTracker = ({ open, onClose, onStartConflict }) => {
-  const [objectives, setObjectives] = useState([
-    { ...newObjectiveTemplate, name: 'Objetivo Principal' },
-  ]);
-  const [threats, setThreats] = useState([
-    { ...newThreatTemplate, name: 'Ameaça Padrão' },
-  ]);
+  const [objectives, setObjectives] = useState([{ ...newObjectiveTemplate, name: 'Objetivo Principal' }]);
+  const [threats, setThreats] = useState([{ ...newThreatTemplate, name: 'Ameaça Padrão' }]);
   const [conditions, setConditions] = useState('');
 
-  // --- Funções de Gestão dos Objetivos ---
-  const handleObjectiveChange = (index, field, value) => {
-    const updated = [...objectives];
-    updated[index][field] = value;
-    setObjectives(updated);
-  };
+  // Handlers (iguais ao anterior)
+  const handleObjectiveChange = (i, f, v) => { const u = [...objectives]; u[i][f] = v; setObjectives(u); };
+  const addObjective = () => setObjectives([...objectives, { ...newObjectiveTemplate }]);
+  const removeObjective = (i) => setObjectives(objectives.filter((_, idx) => idx !== i));
 
-  const addObjective = () => {
-    setObjectives([...objectives, { ...newObjectiveTemplate }]);
-  };
+  const handleThreatChange = (i, f, v) => { const u = [...threats]; u[i][f] = v; setThreats(u); };
+  const addThreat = () => setThreats([...threats, { ...newThreatTemplate }]);
+  const removeThreat = (i) => setThreats(threats.filter((_, idx) => idx !== i));
 
-  const removeObjective = (index) => {
-    const updated = objectives.filter((_, i) => i !== index);
-    setObjectives(updated);
-  };
-
-  // --- Funções de Gestão das Ameaças ---
-  const handleThreatChange = (tIndex, field, value) => {
-    const updated = [...threats];
-    updated[tIndex][field] = value;
-    setThreats(updated);
-  };
-
-  const addThreat = () => {
-    setThreats([...threats, { ...newThreatTemplate }]);
-  };
-
-  const removeThreat = (tIndex) => {
-    const updated = threats.filter((_, i) => i !== tIndex);
-    setThreats(updated);
-  };
-
-  // --- Funções de Gestão das Ativações (dentro das Ameaças) ---
-  const handleActivationChange = (tIndex, aIndex, field, value) => {
-    const updatedThreats = [...threats];
-    updatedThreats[tIndex].activations[aIndex][field] = value;
-    setThreats(updatedThreats);
-  };
-
-  const addActivation = (tIndex) => {
-    const updatedThreats = [...threats];
-    updatedThreats[tIndex].activations.push({ ...newActivationTemplate });
-    setThreats(updatedThreats);
-  };
-
-  const removeActivation = (tIndex, aIndex) => {
-    const updatedThreats = [...threats];
-    updatedThreats[tIndex].activations = updatedThreats[
-      tIndex
-    ].activations.filter((_, i) => i !== aIndex);
-    setThreats(updatedThreats);
-  };
+  const handleActivationChange = (ti, ai, f, v) => { const u = [...threats]; u[ti].activations[ai][f] = v; setThreats(u); };
+  const addActivation = (ti) => { const u = [...threats]; u[ti].activations.push({ ...newActivationTemplate }); setThreats(u); };
+  const removeActivation = (ti, ai) => { const u = [...threats]; u[ti].activations = u[ti].activations.filter((_, idx) => idx !== ai); setThreats(u); };
   
-  // --- Função para Iniciar ---
-  const handleStart = () => {
-    // Passa os dados configurados de volta para o CampaignSheet
-    onStartConflict({ objectives, threats, conditions }); 
-    onClose(); // Fecha o modal
-  };
+  const handleStart = () => { onStartConflict({ objectives, threats, conditions }); onClose(); };
+
+  if (!open) return null;
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      PaperProps={{
-        sx: {
-          bgcolor: '#1e1e1e',
-          color: '#e0e0e0',
-          border: '1px solid #4a4a4a',
-        },
-      }}
-    >
-      <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
-        Preparar Ficha de Conflito
-      </DialogTitle>
-      
-      <DialogContent sx={{ paddingTop: '20px !important' }}>
+    <div className="nero-modal-overlay" style={{
+        position:'fixed', top:0, left:0, right:0, bottom:0,
+        background:'rgba(0,0,0,0.95)', zIndex:2000, display:'flex', justifyContent:'center', alignItems:'center',
+        backdropFilter: 'blur(8px)'
+    }}>
+      <div className={styles.shieldColumn} style={{
+          width:'95%', maxWidth:'900px', height:'90vh', 
+          background:'#0a0a0a', border:'1px solid #333', borderTop:'3px solid #8a1c18',
+          display:'flex', flexDirection:'column', boxShadow: '0 0 50px rgba(0,0,0,0.8)'
+      }}>
         
-        {/* --- Secção de OBJETIVOS (Jogadores) --- */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ color: '#fff', mb: 1 }}>
-            Objetivos (dos Infectados)
-          </Typography>
-          {objectives.map((obj, index) => (
-            <Box 
-              key={index} 
-              sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                alignItems: 'center', 
-                mb: 2, 
-                p: 2, 
-                border: '1px dashed #4a4a4a', 
-                borderRadius: 1 
-              }}
-            >
-              <TextField
-                label="Nome do Objetivo"
-                value={obj.name}
-                onChange={(e) => handleObjectiveChange(index, 'name', e.target.value)}
-                sx={darkTextFieldStyles}
-                fullWidth
-              />
-              <FormControl sx={{ ...darkSelectStyles, minWidth: 150 }}>
-                <InputLabel>Tipo</InputLabel>
-                <Select
-                  label="Tipo"
-                  value={obj.type}
-                  onChange={(e) => handleObjectiveChange(index, 'type', e.target.value)}
-                  MenuProps={{ PaperProps: { sx: { bgcolor: '#2a2d30', color: '#e0e0e0' }}}}
-                >
-                  <MenuItem value="principal">Principal</MenuItem>
-                  <MenuItem value="secundario">Secundário</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField
-                label="Custo (A)"
-                type="number"
-                value={obj.cost}
-                onChange={(e) => handleObjectiveChange(index, 'cost', parseInt(e.target.value) || 0)}
-                sx={{ ...darkTextFieldStyles, width: 120 }}
-              />
-              <IconButton onClick={() => removeObjective(index)} sx={{ color: '#ff8a8a' }}>
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Box>
-          ))}
-          <Button
-            startIcon={<AddCircleOutlineIcon />}
-            onClick={addObjective}
-            variant="outlined"
-            sx={{ color: '#ccc', borderColor: '#888' }}
-          >
-            Adicionar Objetivo
-          </Button>
-        </Box>
+        {/* HEADER */}
+        <div className={styles.columnHeader} style={{display:'flex', justifyContent:'space-between', padding:'20px', background:'#111'}}>
+          <span style={{fontFamily:'Orbitron', fontSize:'1.2rem', color:'#fff'}}>CONFIGURAR CENA DE CONFLITO</span>
+          <button onClick={onClose} style={{background:'transparent', border:'none', color:'#888', cursor:'pointer'}}><FaTimes size={20}/></button>
+        </div>
+        
+        {/* BODY */}
+        <div className={styles.scrollableContent} style={{padding:'30px', overflowY:'auto'}}>
+            
+            {/* OBJETIVOS */}
+            <div style={{marginBottom:'40px'}}>
+                <h4 style={{color:'#ddd', borderBottom:'1px solid #333', paddingBottom:'10px', marginBottom:'20px', display:'flex', alignItems:'center', gap:'10px'}}>
+                    <FaBullseye style={{color:'#3cdce7'}}/> OBJETIVOS (JOGADORES)
+                </h4>
+                
+                {objectives.map((obj, index) => (
+                    <div key={index} style={{
+                        display:'grid', gridTemplateColumns:'3fr 1.5fr 1fr auto', gap:'15px', marginBottom:'15px', alignItems:'end',
+                        background:'#111', padding:'15px', border:'1px solid #222', borderRadius:'4px'
+                    }}>
+                        <div>
+                            <label className={styles.commandLabel}>DESCRIÇÃO</label>
+                            <input type="text" className={styles.diceInput} value={obj.name} onChange={e => handleObjectiveChange(index, 'name', e.target.value)} placeholder="Ex: Hackear o Terminal" />
+                        </div>
+                        <div>
+                            <label className={styles.commandLabel}>TIPO</label>
+                            <select className={styles.neroSelect} value={obj.type} onChange={e => handleObjectiveChange(index, 'type', e.target.value)} style={{height:'42px'}}>
+                                <option value="principal">Principal</option>
+                                <option value="secundario">Secundário</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className={styles.commandLabel}>CUSTO</label>
+                            <input type="number" className={styles.diceInput} value={obj.cost} onChange={e => handleObjectiveChange(index, 'cost', Number(e.target.value))} style={{textAlign:'center'}} />
+                        </div>
+                        <button onClick={() => removeObjective(index)} className={styles.btnTrash} title="Remover"><FaTrash size={18}/></button>
+                    </div>
+                ))}
+                
+                <button className={styles.btnAdd} onClick={addObjective}><FaPlus/> ADICIONAR OBJETIVO</button>
+            </div>
 
-        <Divider sx={{ borderColor: '#4a4a4a', my: 3 }} />
+            {/* AMEAÇAS */}
+            <div style={{marginBottom:'40px'}}>
+                <h4 style={{color:'#ff3333', borderBottom:'1px solid #333', paddingBottom:'10px', marginBottom:'20px', display:'flex', alignItems:'center', gap:'10px'}}>
+                    <FaSkull/> AMEAÇAS (MESTRE)
+                </h4>
+                
+                {threats.map((threat, tIndex) => (
+                    <div key={tIndex} style={{background:'#111', padding:'20px', border:'1px solid #333', marginBottom:'20px', borderLeft:'3px solid #8a1c18'}}>
+                        <div style={{display:'flex', gap:'15px', marginBottom:'20px', alignItems:'end'}}>
+                            <div style={{flex:3}}>
+                                <label className={styles.commandLabel}>NOME DA AMEAÇA</label>
+                                <input type="text" className={styles.diceInput} value={threat.name} onChange={e => handleThreatChange(tIndex, 'name', e.target.value)} placeholder="Ex: Guarda de Elite" />
+                            </div>
+                            <div style={{flex:1}}>
+                                <label className={styles.commandLabel}>DADOS</label>
+                                <input type="text" className={styles.diceInput} value={threat.diceFormula} onChange={e => handleThreatChange(tIndex, 'diceFormula', e.target.value)} placeholder="3d10" style={{textAlign:'center'}} />
+                            </div>
+                            <button onClick={() => removeThreat(tIndex)} className={styles.btnTrash} title="Remover"><FaTrash size={20}/></button>
+                        </div>
 
-        {/* --- Secção de AMEAÇAS (Mestre) --- */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ color: '#fff', mb: 1 }}>
-            Ameaças (do Assimilador)
-          </Typography>
-          {threats.map((threat, tIndex) => (
-            <Box 
-              key={tIndex} 
-              sx={{ 
-                mb: 2, 
-                p: 2, 
-                border: '1px solid #4a4a4a', 
-                borderRadius: 1, 
-                bgcolor: '#2a2d30' 
-              }}
-            >
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2}}>
-                <TextField
-                  label="Nome da Ameaça"
-                  value={threat.name}
-                  onChange={(e) => handleThreatChange(tIndex, 'name', e.target.value)}
-                  sx={darkTextFieldStyles}
-                  fullWidth
+                        {/* ATIVAÇÕES */}
+                        <div style={{paddingLeft:'20px', borderLeft:'1px dashed #444', marginLeft:'5px'}}>
+                            <label className={styles.commandLabel} style={{marginBottom:'15px', color:'#888'}}>ATIVAÇÕES ESPECIAIS:</label>
+                            
+                            {threat.activations.map((act, aIndex) => (
+                                <div key={aIndex} style={{display:'grid', gridTemplateColumns:'3fr 1.5fr 1fr auto', gap:'10px', marginBottom:'10px', alignItems:'center'}}>
+                                    <input type="text" className={styles.diceInput} value={act.name} onChange={e => handleActivationChange(tIndex, aIndex, 'name', e.target.value)} placeholder="Nome da Habilidade" style={{fontSize:'0.9rem', padding:'8px', marginBottom:0}}/>
+                                    <select className={styles.neroSelect} value={act.type} onChange={e => handleActivationChange(tIndex, aIndex, 'type', e.target.value)} style={{fontSize:'0.9rem', padding:'8px', height:'35px'}}>
+                                        <option value="C">C (Desfavorável)</option>
+                                        <option value="A">A (Favorável)</option>
+                                    </select>
+                                    <input type="number" className={styles.diceInput} value={act.cost} onChange={e => handleActivationChange(tIndex, aIndex, 'cost', Number(e.target.value))} style={{fontSize:'0.9rem', padding:'8px', textAlign:'center', marginBottom:0}}/>
+                                    <button onClick={() => removeActivation(tIndex, aIndex)} className={styles.btnTrash} style={{padding:'5px'}}><FaTimes size={16}/></button>
+                                </div>
+                            ))}
+                            
+                            <button className={styles.btnAdd} onClick={() => addActivation(tIndex)} style={{fontSize:'0.8rem', padding:'5px', marginTop:'10px', width:'auto', display:'inline-flex'}}>
+                                <FaPlus style={{marginRight:'5px'}}/> NOVA ATIVAÇÃO
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                
+                <button className={styles.btnAdd} onClick={addThreat}><FaPlus/> NOVA AMEAÇA</button>
+            </div>
+
+            {/* CONDICIONANTES */}
+            <div>
+                <h4 style={{color:'#fff', borderBottom:'1px dashed #333', paddingBottom:'5px', marginBottom:'15px'}}>CONDICIONANTES / REGRAS DE CENA</h4>
+                <textarea 
+                    className={styles.notesArea} 
+                    rows="3" 
+                    value={conditions} 
+                    onChange={e => setConditions(e.target.value)} 
+                    placeholder="Regras especiais da cena..."
+                    style={{background:'#111', border:'1px solid #333'}}
                 />
-                <TextField
-                  label="Fórmula de Dados"
-                  value={threat.diceFormula}
-                  onChange={(e) => handleThreatChange(tIndex, 'diceFormula', e.target.value)}
-                  sx={{ ...darkTextFieldStyles, width: 150 }}
-                  helperText="Ex: 5d10"
-                />
-                <IconButton onClick={() => removeThreat(tIndex)} sx={{ color: '#ff8a8a' }}>
-                  <DeleteOutlineIcon />
-                </IconButton>
-              </Box>
+            </div>
 
-              {/* --- Sub-secção de Ativações da Ameaça --- */}
-              <Typography variant="body1" sx={{ color: '#ccc', mb: 1, ml: 1 }}>
-                Ativações da Ameaça:
-              </Typography>
-              {threat.activations.map((act, aIndex) => (
-                <Box 
-                  key={aIndex} 
-                  sx={{ 
-                    display: 'flex', 
-                    gap: 2, 
-                    alignItems: 'center', 
-                    mb: 1, 
-                    ml: 2 
-                  }}
-                >
-                  <TextField
-                    label="Nome da Ativação"
-                    value={act.name}
-                    onChange={(e) => handleActivationChange(tIndex, aIndex, 'name', e.target.value)}
-                    sx={darkTextFieldStyles}
-                    fullWidth
-                    size="small"
-                  />
-                  <FormControl sx={{ ...darkSelectStyles, minWidth: 150 }} size="small">
-                    <InputLabel>Tipo</InputLabel>
-                    <Select
-                      label="Tipo"
-                      value={act.type}
-                      onChange={(e) => handleActivationChange(tIndex, aIndex, 'type', e.target.value)}
-                      MenuProps={{ PaperProps: { sx: { bgcolor: '#2a2d30', color: '#e0e0e0' }}}}
-                    >
-                      <MenuItem value="C">Desfavorável (C)</MenuItem>
-                      <MenuItem value="A">Favorável (A)</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <TextField
-                    label="Custo"
-                    type="number"
-                    value={act.cost}
-                    onChange={(e) => handleActivationChange(tIndex, aIndex, 'cost', parseInt(e.target.value) || 0)}
-                    sx={{ ...darkTextFieldStyles, width: 100 }}
-                    size="small"
-                  />
-                  <IconButton onClick={() => removeActivation(tIndex, aIndex)} sx={{ color: '#ff8a8a' }} size="small">
-                    <DeleteOutlineIcon />
-                  </IconButton>
-                </Box>
-              ))}
-              <Button
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => addActivation(tIndex)}
-                variant="outlined"
-                size="small"
-                sx={{ color: '#ccc', borderColor: '#888', ml: 2, mt: 1 }}
-              >
-                Adicionar Ativação
-              </Button>
-            </Box>
-          ))}
-          <Button
-            startIcon={<AddCircleOutlineIcon />}
-            onClick={addThreat}
-            variant="outlined"
-            sx={{ color: '#ccc', borderColor: '#888' }}
-          >
-            Adicionar Ameaça
-          </Button>
-        </Box>
-        
-        <Divider sx={{ borderColor: '#4a4a4a', my: 3 }} />
+        </div>
 
-        {/* --- Secção de Condicionantes --- */}
-        <Box>
-            <Typography variant="h6" sx={{ color: '#fff', mb: 1 }}>
-                Condicionantes
-            </Typography>
-            <TextField
-                label="Regras Especiais da Cena"
-                value={conditions}
-                onChange={(e) => setConditions(e.target.value)}
-                multiline
-                rows={3}
-                sx={darkTextFieldStyles}
-                fullWidth
-                helperText="Ex: O telhado desaba em 5 turnos. Ações de 'Furtividade' custam +1 Pressão (C)."
-            />
-        </Box>
-        
-      </DialogContent>
-      <DialogActions sx={{ borderTop: '1px solid #4a4a4a', p: 2 }}>
-        <Button onClick={onClose} sx={{ color: '#ccc' }}>
-          Cancelar
-        </Button>
-        <Button onClick={handleStart} variant="contained" color="primary">
-          Iniciar Conflito
-        </Button>
-      </DialogActions>
-    </Dialog>
+        {/* FOOTER */}
+        <div style={{padding:'20px', borderTop:'1px solid #222', display:'flex', justifyContent:'flex-end', gap:'15px', background:'#151515'}}>
+            <button onClick={onClose} className={styles.btnCancel}>CANCELAR</button>
+            <button onClick={handleStart} className={styles.btnCommand}>INICIAR CONFLITO</button>
+        </div>
+
+      </div>
+    </div>
   );
 };
 

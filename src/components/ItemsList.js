@@ -1,371 +1,317 @@
+/* ItemsList.js */
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CircularProgress,
-  Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
-import ShareIcon from "@mui/icons-material/Share";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchItems,
-  createItem,
-  updateItem,
-  deleteItem,
+import { 
+  fetchItems, 
+  createItem, 
+  updateItem, 
+  deleteItem 
 } from "../redux/slices/itemsSlice";
+import { 
+  FaPlus, 
+  FaEdit, 
+  FaShareAlt, 
+  FaTrash, 
+  FaChevronDown, 
+  FaChevronUp 
+} from "react-icons/fa";
 
-// --- NOVO: Estilos reutilizáveis para componentes escuros ---
-const darkTextFieldStyles = {
-  '& .MuiInputBase-input': { color: '#fff' },
-  '& .MuiInputLabel-root': { color: '#ccc' },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#888' },
-    '&:hover fieldset': { borderColor: '#fff' },
-  },
-  '& .MuiFormHelperText-root': { color: '#aaa' } // Helper text
+// Mapeamento de categorias (Escassez)
+const scarcityLevels = {
+  0: 'Abundante',
+  1: 'Pedra',
+  2: 'Comum',
+  3: 'Incomum',
+  4: 'Atípico',
+  5: 'Raro',
+  6: 'Quase Extinto'
 };
 
-const darkSelectStyles = {
-  '& .MuiInputBase-input': { color: '#fff' },
-  '& .MuiInputLabel-root': { color: '#ccc' }, // Label do FormControl
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#888' },
-    '&:hover fieldset': { borderColor: '#fff' },
-  },
-  '& .MuiSvgIcon-root': { color: '#ccc' },
-  '& .MuiInputLabel-root.Mui-focused': { color: 'primary.main' } // Label focado
-};
-// --- FIM DOS ESTILOS ---
-
-const ItemsList = ({ onShare }) => {
+const ItemsList = ({ items, onShare, currentUserId }) => {
   const dispatch = useDispatch();
   const { token, user } = useSelector((state) => state.auth);
-  const {
-    loading,
-    error,
-    items: storeItems,
-  } = useSelector((state) => state.items);
 
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [editOpen, setEditOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-
-
-  const scarcityLevels = {
-    0: 'Abundante',
-    1: 'Pedra',
-    2: 'Comum',
-    3: 'Incomum',
-    4: 'Atípico',
-    5: 'Raro',
-    6: 'Quase Extinto'
-  };
-
-  const [newItem, setNewItem] = useState({
-    name: "",
-    type: "Equipamento",
-    category: 1, // Escassez
-    description: "",
-    quality: 3,
-    // --- ALTERADO: Adaptado para o novo modelo de item ---
-    slots: 1,
-    modifiers: [],
-    // --- FIM DA ALTERAÇÃO ---
-    characteristics: { points: 0, details: [] },
-    isCustom: true,
-  });
-
+  // Garante que os itens estejam carregados ao montar o componente
   useEffect(() => {
     if (token && user) {
       dispatch(fetchItems());
     }
   }, [dispatch, token, user]);
 
-  const handleEditOpen = (item) => {
-    setSelectedItem(JSON.parse(JSON.stringify(item)));
-    setEditOpen(true);
+  // --- ESTADOS ---
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+
+  const initialForm = {
+    name: "",
+    type: "Equipamento",
+    category: 1, // Escassez
+    description: "",
+    quality: 3,
+    slots: 1,
+    modifiers: [], // Array no estado interno
+    characteristics: { points: 0, details: [] },
+    isCustom: true,
   };
+  const [formData, setFormData] = useState(initialForm);
+  
+  // Estado auxiliar para o input de texto dos modificadores (separados por vírgula)
+  const [modifiersInput, setModifiersInput] = useState("");
 
-  const handleEditClose = () => {
-    setSelectedItem(null);
-    setEditOpen(false);
-  };
+  // --- HANDLERS ---
 
-  const handleSaveEdit = () => {
-    dispatch(
-      updateItem({
-        id: selectedItem._id,
-        data: selectedItem,
-      })
-    );
-    handleEditClose();
-  };
-
-  const handleCreateOpen = () => setCreateOpen(true);
-  const handleCreateClose = () => setCreateOpen(false);
-
-  const handleCreateItem = async () => {
-    if (!token || !user) {
-      console.error("Token ou usuário ausente");
-      return;
-    }
-    try {
-      await dispatch(
-        createItem({
-          ...newItem,
-          createdBy: user._id,
-        })
-      ).unwrap();
-      handleCreateClose();
-    } catch (error) {
-      console.error("Erro ao criar item:", error);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "points") {
-      setSelectedItem((prev) => ({
-        ...prev,
-        characteristics: { ...prev.characteristics, points: Number(value) },
-      }));
-    // --- NOVO: Lógica para lidar com o campo de modificadores ---
-    } else if (name === "modifiers") {
-      setSelectedItem((prev) => ({
-        ...prev,
-        modifiers: value.split(',').map(m => m.trim()),
-      }));
-    // --- FIM DA ALTERAÇÃO ---
+  const handleOpenModal = (item = null) => {
+    if (item) {
+      // Modo Edição
+      setEditingItem(item);
+      setFormData(item);
+      // Converte array de modificadores para string para exibir no input
+      setModifiersInput(item.modifiers ? item.modifiers.join(", ") : "");
     } else {
-      setSelectedItem((prev) => ({
-        ...prev,
-        [name]:
-          name === "slots" || // alterado de weight
-          name === "quality" ||
-          name === "currentUses" ||
-          name === "category"
-            ? Number(value)
-            : value,
-      }));
+      // Modo Criação
+      setEditingItem(null);
+      setFormData(initialForm);
+      setModifiersInput("");
     }
+    setModalOpen(true);
   };
 
-  const handleNewChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "points") {
-      setNewItem((prev) => ({
-        ...prev,
-        characteristics: { ...prev.characteristics, points: Number(value) },
-      }));
-    // --- NOVO: Lógica para lidar com o campo de modificadores ---
-    } else if (name === "modifiers") {
-      setNewItem((prev) => ({
-        ...prev,
-        modifiers: value.split(',').map(m => m.trim()),
-      }));
-    // --- FIM DA ALTERAÇÃO ---
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setFormData(initialForm);
+    setModifiersInput("");
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name.trim()) return alert("Nome é obrigatório.");
+
+    // Processa a string de modificadores de volta para array
+    const processedModifiers = modifiersInput.split(',').map(s => s.trim()).filter(s => s !== "");
+
+    const payload = { 
+      ...formData, 
+      modifiers: processedModifiers,
+      createdBy: currentUserId 
+    };
+
+    if (editingItem) {
+      dispatch(updateItem({ id: editingItem._id, data: payload }));
     } else {
-      setNewItem((prev) => ({
-        ...prev,
-        [name]:
-          name === "slots" || // alterado de weight
-          name === "quality" ||
-          name === "currentUses" ||
-          name === "category"
-            ? Number(value)
-            : value,
-      }));
+      dispatch(createItem(payload));
     }
+    handleCloseModal();
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Tem certeza que deseja excluir este item?")) {
+    if (window.confirm("ATENÇÃO: Deseja excluir este Item permanentemente?")) {
       dispatch(deleteItem(id));
     }
   };
 
-  const userItems = storeItems.filter((item) => {
-    return item?.isCustom === true && item?.createdBy === user?._id;
-  });
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
 
   return (
-    <Box>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleCreateOpen}
-        startIcon={<AddIcon />}
-        sx={{ mb: 2 }}
+    <div>
+      {/* Botão Criar */}
+      <button 
+        className="btn-nero btn-primary" 
+        onClick={() => handleOpenModal()} 
+        style={{ marginBottom: '20px' }}
       >
-        Criar Novo Item
-      </Button>
+        <FaPlus /> CRIAR NOVO ITEM
+      </button>
 
-      {loading && <CircularProgress />}
-      {error && (
-        <Alert severity="error">{error.message || "Ocorreu um erro"}</Alert>
-      )}
+      {/* Lista de Cards */}
+      <div className="hb-list">
+        {(!items || items.length === 0) && (
+          <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic', marginTop: '20px' }}>
+            Nenhum item customizado encontrado.
+          </p>
+        )}
 
-      <Typography variant="h6" gutterBottom sx={{ color: '#ffffff', mt: 2 }}> {/* Alterado */}
-        Meus Itens Customizados
-      </Typography>
-      {userItems.length > 0 ? (
-        userItems.map((item) => (
-          // --- ALTERADO: Accordion Estilizado ---
-          <Accordion 
-            key={item._id}
-            sx={{
-              bgcolor: '#2a2d30', 
-              color: '#e0e0e0',
-              border: '1px solid #4a4a4a',
-              '& .MuiAccordionSummary-expandIconWrapper .MuiSvgIcon-root': {
-                color: '#ccc', // Cor do ícone
-              }
-            }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>{item.name}</Typography>
-            </AccordionSummary>
-            <AccordionDetails sx={{ borderTop: '1px solid #4a4a4a' }}> {/* Alterado */}
-              <Typography variant="body2"><strong>Tipo:</strong> {item.type}</Typography>
-              <Typography variant="body2"><strong>Descrição:</strong> {item.description}</Typography>
-              <Typography variant="body2"><strong>Escassez:</strong> {scarcityLevels[item.category] || item.category}</Typography>
-              <Typography variant="body2"><strong>Qualidade:</strong> {item.quality}</Typography>
-              {/* --- ALTERADO: Exibindo slots e modifiers --- */}
-              <Typography variant="body2"><strong>Slots Ocupados:</strong> {item.slots}</Typography>
-              <Typography variant="body2"><strong>Modificadores:</strong> {item.modifiers?.join(', ') || 'Nenhum'}</Typography>
-              {/* --- FIM DA ALTERAÇÃO --- */}
-              <Typography variant="body2"><strong>Pontos de Característica:</strong> {item.characteristics?.points || 0}</Typography>
-              <Box sx={{ mt: 2 }}>
-                <Button variant="outlined" startIcon={<EditIcon />} onClick={() => handleEditOpen(item)} sx={{ mr: 1 }}>Editar</Button>
-                <Button variant="contained" color="secondary" startIcon={<ShareIcon />} onClick={() => onShare(item)} sx={{ mr: 1 }}>Compartilhar</Button>
-                <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => handleDelete(item._id)}>Excluir</Button>
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        ))
-      ) : (
-        <Typography>Você ainda não criou nenhum item.</Typography>
-      )}
-
-      {/* --- ALTERADO: Modal de Criação Estilizado --- */}
-      <Dialog 
-        open={createOpen} 
-        onClose={handleCreateClose}
-        PaperProps={{
-          sx: {
-            bgcolor: '#1e1e1e', 
-            color: '#e0e0e0', 
-            border: '1px solid #4a4a4a' 
-          }
-        }}
-      >
-        <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
-          Criar Novo Item
-        </DialogTitle>
-        <DialogContent sx={{ paddingTop: '20px !important' }}>
-          <TextField label="Nome" name="name" fullWidth margin="normal" value={newItem.name} onChange={handleNewChange} required sx={darkTextFieldStyles} />
-          <TextField label="Tipo" name="type" fullWidth margin="normal" value={newItem.type} onChange={handleNewChange} required sx={darkTextFieldStyles} />
-          
-          <FormControl fullWidth margin="normal" required sx={darkSelectStyles}>
-            <InputLabel id="category-select-label">Categoria (Escassez)</InputLabel>
-            <Select 
-              labelId="category-select-label" 
-              id="category-select" 
-              name="category" 
-              value={newItem.category} 
-              label="Categoria (Escassez)" 
-              onChange={handleNewChange}
-              MenuProps={{ // Estilo do dropdown
-                PaperProps: {
-                  sx: { bgcolor: '#2a2d30', color: '#e0e0e0' }
-                }
-              }}
-            >
-              {Object.entries(scarcityLevels).map(([value, name]) => (<MenuItem key={value} value={parseInt(value)}>{name}</MenuItem>))}
-            </Select>
-          </FormControl>
-
-          <TextField label="Slots Ocupados" name="slots" type="number" fullWidth margin="normal" value={newItem.slots} onChange={handleNewChange} required helperText="1 para padrão, 2 para Pesado, 0 para pequeno" sx={darkTextFieldStyles} />
-          <TextField label="Modificadores (separados por vírgula)" name="modifiers" fullWidth margin="normal" value={newItem.modifiers.join(', ')} onChange={handleNewChange} helperText="Ex: Espaçoso, Isento, Pesado" sx={darkTextFieldStyles} />
-          <TextField label="Descrição" name="description" fullWidth multiline rows={4} margin="normal" value={newItem.description} onChange={handleNewChange} required sx={darkTextFieldStyles} />
-          <TextField label="Qualidade" name="quality" type="number" fullWidth margin="normal" value={newItem.quality} onChange={handleNewChange} required helperText="Padrão = 3" sx={darkTextFieldStyles} />
-          <TextField label="Pontos de Características" name="points" type="number" fullWidth margin="normal" value={newItem.characteristics.points} onChange={handleNewChange} sx={darkTextFieldStyles} />
-        </DialogContent>
-        <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
-          <Button onClick={handleCreateClose} sx={{ color: '#ccc' }}>Cancelar</Button>
-          <Button onClick={handleCreateItem} color="primary">Criar</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* --- ALTERADO: Modal de Edição Estilizado --- */}
-      {selectedItem && (
-        <Dialog 
-          open={editOpen} 
-          onClose={handleEditClose}
-          PaperProps={{
-            sx: {
-              bgcolor: '#1e1e1e', 
-              color: '#e0e0e0', 
-              border: '1px solid #4a4a4a' 
-            }
-          }}
-        >
-          <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a', color: '#ffffff' }}>
-            Editar Item
-          </DialogTitle>
-          <DialogContent sx={{ paddingTop: '20px !important' }}>
-            <TextField label="Nome" name="name" fullWidth margin="normal" value={selectedItem.name} onChange={handleChange} required sx={darkTextFieldStyles} />
-            <TextField label="Tipo" name="type" fullWidth margin="normal" value={selectedItem.type} onChange={handleChange} required sx={darkTextFieldStyles} />
+        {items && items.map((item) => (
+          <div key={item._id} className="hb-card">
             
-            <FormControl fullWidth margin="normal" required sx={darkSelectStyles}>
-              <InputLabel id="edit-category-select-label">Categoria (Escassez)</InputLabel>
-              <Select 
-                labelId="edit-category-select-label" 
-                id="edit-category-select" 
-                name="category" 
-                value={selectedItem.category} 
-                label="Categoria (Escassez)" 
-                onChange={handleChange}
-                MenuProps={{ // Estilo do dropdown
-                  PaperProps: {
-                    sx: { bgcolor: '#2a2d30', color: '#e0e0e0' }
-                  }
-                }}
-              >
-                {Object.entries(scarcityLevels).map(([value, name]) => (<MenuItem key={value} value={parseInt(value)}>{name}</MenuItem>))}
-              </Select>
-            </FormControl>
+            {/* Header do Card */}
+            <div className="hb-card-header" onClick={() => toggleExpand(item._id)}>
+              <span className="hb-card-title">{item.name}</span>
+              {expandedId === item._id ? (
+                <FaChevronUp className="hb-card-icon open" />
+              ) : (
+                <FaChevronDown className="hb-card-icon" />
+              )}
+            </div>
 
-            <TextField label="Slots Ocupados" name="slots" type="number" fullWidth margin="normal" value={selectedItem.slots} onChange={handleChange} required helperText="1 para padrão, 2 para Pesado, 0 para pequeno" sx={darkTextFieldStyles} />
-            <TextField label="Modificadores (separados por vírgula)" name="modifiers" fullWidth margin="normal" value={selectedItem.modifiers?.join(', ') || ''} onChange={handleChange} helperText="Ex: Espaçoso, Isento, Pesado" sx={darkTextFieldStyles} />
-            <TextField label="Descrição" name="description" fullWidth multiline rows={4} margin="normal" value={selectedItem.description} onChange={handleChange} required sx={darkTextFieldStyles} />
-            <TextField label="Qualidade" name="quality" type="number" fullWidth margin="normal" value={selectedItem.quality} onChange={handleChange} required sx={darkTextFieldStyles} />
-            <TextField label="Pontos de Características" name="points" type="number" fullWidth margin="normal" value={selectedItem.characteristics.points} onChange={handleChange} sx={darkTextFieldStyles} />
-          </DialogContent>
-          <DialogActions sx={{ borderTop: '1px solid #4a4a4a' }}>
-            <Button onClick={handleEditClose} sx={{ color: '#ccc' }}>Cancelar</Button>
-            <Button onClick={handleSaveEdit} color="primary">Salvar</Button>
-          </DialogActions>
-        </Dialog>
+            {/* Corpo do Card */}
+            {expandedId === item._id && (
+              <div className="hb-card-body">
+                <div className="hb-info-row">
+                  <span className="hb-label">TIPO:</span> 
+                  <span className="hb-value">{item.type}</span>
+                </div>
+                
+                <div className="hb-info-row">
+                  <span className="hb-label">ESCASSEZ:</span> 
+                  <span className="hb-value">{scarcityLevels[item.category] || item.category}</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', margin: '10px 0' }}>
+                    <div className="hb-info-row">
+                        <span className="hb-label">QUALIDADE:</span> <span className="hb-value">{item.quality}</span>
+                    </div>
+                    <div className="hb-info-row">
+                        <span className="hb-label">SLOTS:</span> <span className="hb-value">{item.slots}</span>
+                    </div>
+                </div>
+
+                <div className="hb-info-row">
+                  <span className="hb-label">MODIFICADORES:</span> 
+                  <span className="hb-value">{item.modifiers && item.modifiers.length > 0 ? item.modifiers.join(', ') : '-'}</span>
+                </div>
+
+                <div className="hb-info-row">
+                  <span className="hb-label">PONTOS CARACT.:</span> 
+                  <span className="hb-value">{item.characteristics?.points || 0}</span>
+                </div>
+
+                <div className="hb-info-row">
+                  <span className="hb-label">DESCRIÇÃO:</span> 
+                  <span className="hb-value">{item.description}</span>
+                </div>
+
+                <div className="hb-actions">
+                  <button className="btn-nero btn-secondary" onClick={() => handleOpenModal(item)}>
+                    <FaEdit /> EDITAR
+                  </button>
+                  <button className="btn-nero btn-secondary" onClick={() => onShare(item)}>
+                    <FaShareAlt /> COMPARTILHAR
+                  </button>
+                  <button className="btn-nero btn-danger" onClick={() => handleDelete(item._id)}>
+                    <FaTrash /> EXCLUIR
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Modal Unificado */}
+      {modalOpen && (
+        <div className="nero-modal-overlay" onClick={(e) => { if (e.target.className === 'nero-modal-overlay') handleCloseModal() }}>
+          <div className="nero-modal">
+            <div className="nero-modal-header">
+              {editingItem ? "EDITAR ITEM" : "CRIAR NOVO ITEM"}
+            </div>
+            
+            <div className="nero-modal-body">
+              <div className="form-group">
+                <label>NOME</label>
+                <input 
+                  type="text" 
+                  className="nero-input" 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  placeholder="Ex: Rifle de Precisão"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>TIPO</label>
+                <input 
+                  type="text" 
+                  className="nero-input" 
+                  value={formData.type} 
+                  onChange={(e) => setFormData({...formData, type: e.target.value})} 
+                  placeholder="Ex: Equipamento, Arma, Consumível"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>CATEGORIA (ESCASSEZ)</label>
+                <select 
+                  className="nero-select" 
+                  value={formData.category} 
+                  onChange={(e) => setFormData({...formData, category: Number(e.target.value)})}
+                >
+                  {Object.entries(scarcityLevels).map(([val, label]) => (
+                    <option key={val} value={val}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>SLOTS</label>
+                  <input 
+                    type="number" 
+                    className="nero-input" 
+                    value={formData.slots} 
+                    onChange={(e) => setFormData({...formData, slots: Number(e.target.value)})} 
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>QUALIDADE</label>
+                  <input 
+                    type="number" 
+                    className="nero-input" 
+                    value={formData.quality} 
+                    onChange={(e) => setFormData({...formData, quality: Number(e.target.value)})} 
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>MODIFICADORES (SEPARAR POR VÍRGULA)</label>
+                <input 
+                  type="text" 
+                  className="nero-input" 
+                  value={modifiersInput} 
+                  onChange={(e) => setModifiersInput(e.target.value)} 
+                  placeholder="Ex: Pesado, Ruidoso, Frágil"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>PONTOS DE CARACTERÍSTICA (OPCIONAL)</label>
+                <input 
+                  type="number" 
+                  className="nero-input" 
+                  value={formData.characteristics?.points || 0} 
+                  onChange={(e) => setFormData({
+                      ...formData, 
+                      characteristics: { ...formData.characteristics, points: Number(e.target.value) }
+                  })} 
+                />
+              </div>
+
+              <div className="form-group">
+                <label>DESCRIÇÃO</label>
+                <textarea 
+                  className="nero-textarea" 
+                  rows="3" 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                  placeholder="Detalhes sobre o item..."
+                />
+              </div>
+            </div>
+
+            <div className="nero-modal-footer">
+              <button className="btn-nero btn-secondary" onClick={handleCloseModal}>
+                CANCELAR
+              </button>
+              <button className="btn-nero btn-primary" onClick={handleSubmit}>
+                SALVAR
+              </button>
+            </div>
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 };
 

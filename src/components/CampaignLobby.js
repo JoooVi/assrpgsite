@@ -1,55 +1,24 @@
+/* CampaignLobby.js */
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Alert,
-  Grid,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Tooltip,
-  IconButton,
-  Snackbar, // Adicionado
-  Fade,     // Adicionad
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import ShieldIcon from "@mui/icons-material/Shield";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import GroupAddIcon from "@mui/icons-material/GroupAdd";
-import DeleteIcon from "@mui/icons-material/Delete";
-import LiveTvIcon from "@mui/icons-material/LiveTv";
-import { styled } from '@mui/material/styles'; // Adicionado
+import "./CampaignLobby.css";
 
-import "./CampaignLobby.css"; // Mantém o CSS
+// Ícones
+import { 
+  FaShieldAlt, FaHome, FaUserPlus, FaUserFriends, FaEdit, 
+  FaTv, FaTrash, FaEye, FaCheck, FaTimes, FaExclamationTriangle 
+} from "react-icons/fa";
 
-// Estilo para input escondido
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
-});
-
-// Define o caminho para uma imagem padrão (SUBSTITUA PELO SEU CAMINHO REAL)
-const DEFAULT_COVER_IMAGE = "/images/default-campaign-cover.jpg";
+// Constantes
+const DEFAULT_COVER_IMAGE = "https://images.unsplash.com/photo-1626262846282-e36214878a1a?q=80&w=1000&auto=format&fit=crop";
 
 const CampaignLobby = () => {
   const { id: campaignId } = useParams();
   const { user, token } = useSelector((state) => state.auth);
+  
+  // --- ESTADOS ---
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,14 +28,19 @@ const CampaignLobby = () => {
   const [openCharModal, setOpenCharModal] = useState(false);
   const [availableChars, setAvailableChars] = useState([]);
 
-  // Estados e Ref para upload da capa
+  // Upload e Feedback
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
-  const [showEditButton, setShowEditButton] = useState(false);
+  
+  // Sistema de Notificação Customizado (Substitui Snackbar)
+  const [toast, setToast] = useState({ open: false, msg: "", type: "success" });
 
+  const showToast = (msg, type = "success") => {
+    setToast({ open: true, msg, type });
+    setTimeout(() => setToast({ open: false, msg: "", type: "success" }), 4000);
+  };
+
+  // --- FETCH DATA ---
   const fetchCampaignData = useCallback(async () => {
     if (!token) {
       setError("Autenticação necessária.");
@@ -76,31 +50,27 @@ const CampaignLobby = () => {
     try {
       setLoading(true);
       setError(null);
-      const campaignResponse = await axios.get(
+      const res = await axios.get(
         `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const campaignData = campaignResponse.data;
-      setCampaign(campaignData);
-      // Verificação segura do ID do mestre
-      setIsMaster(user && campaignData.master && (campaignData.master._id || campaignData.master) === user._id);
+      const data = res.data;
+      setCampaign(data);
+      
+      // Verifica Mestre
+      setIsMaster(user && data.master && (data.master._id || data.master) === user._id);
 
-      // Construir a URL da imagem
-      let imageUrl = null;
-      if (campaignData.coverImage) {
-        if (campaignData.coverImage.startsWith('http')) {
-          imageUrl = campaignData.coverImage;
-        } else {
-          // Ajusta a base da URL se necessário
-          imageUrl = `https://assrpgsite-be-production.up.railway.app/${campaignData.coverImage.replace(/\\/g, '/')}`;
-        }
+      // URL da Imagem
+      let img = data.coverImage;
+      if (img && !img.startsWith("http")) {
+        img = `https://assrpgsite-be-production.up.railway.app/${img.replace(/\\/g, "/")}`;
       }
-      setCoverImageUrl(imageUrl || DEFAULT_COVER_IMAGE);
+      setCoverImageUrl(img || DEFAULT_COVER_IMAGE);
 
     } catch (err) {
-      setError("Falha ao carregar os dados da campanha.");
-      console.error("Erro fetchCampaignData:", err.response?.data || err.message);
+      setError("Falha ao carregar dados da campanha.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -110,17 +80,18 @@ const CampaignLobby = () => {
     fetchCampaignData();
   }, [fetchCampaignData]);
 
-  // Função para lidar com a seleção e upload da nova imagem da capa
+  // --- HANDLERS ---
+
+  // Upload Capa
   const handleCoverImageChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    event.target.value = null; // Reset input
+    event.target.value = null; 
     setIsUploading(true);
-    setSnackbarOpen(false);
 
     const formData = new FormData();
-    formData.append('coverImage', file);
+    formData.append("coverImage", file);
 
     try {
       const response = await axios.put(
@@ -129,43 +100,28 @@ const CampaignLobby = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      let newImageUrl = response.data.coverImage;
-      if (newImageUrl && !newImageUrl.startsWith('http')) {
-         newImageUrl = `https://assrpgsite-be-production.up.railway.app/${newImageUrl.replace(/\\/g, '/')}`;
+      let newUrl = response.data.coverImage;
+      if (newUrl && !newUrl.startsWith("http")) {
+        newUrl = `https://assrpgsite-be-production.up.railway.app/${newUrl.replace(/\\/g, "/")}`;
       }
-      setCoverImageUrl(newImageUrl || DEFAULT_COVER_IMAGE);
-
-      setSnackbarMessage("Capa da campanha atualizada com sucesso!");
-      setSnackbarSeverity("success");
+      setCoverImageUrl(newUrl || DEFAULT_COVER_IMAGE);
+      showToast("Capa atualizada com sucesso!", "success");
 
     } catch (err) {
-      console.error("Erro ao atualizar a capa:", err.response?.data || err.message);
-      setSnackbarMessage(err.response?.data?.message || "Erro ao atualizar a capa.");
-      setSnackbarSeverity("error");
+      console.error(err);
+      showToast("Erro ao atualizar capa.", "error");
     } finally {
       setIsUploading(false);
-      setSnackbarOpen(true);
     }
   };
 
-  // Aciona o clique no input escondido
   const handleEditCoverClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    if (fileInputRef.current) fileInputRef.current.click();
   };
 
-  // Fecha o Snackbar
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
-  // Abre modal para adicionar personagem
+  // Personagens
   const handleOpenCharModal = async () => {
-     try {
+    try {
       const res = await axios.get(
         "https://assrpgsite-be-production.up.railway.app/api/characters/available",
         { headers: { Authorization: `Bearer ${token}` } }
@@ -173,187 +129,218 @@ const CampaignLobby = () => {
       setAvailableChars(res.data);
       setOpenCharModal(true);
     } catch (err) {
-      console.error("Erro ao buscar personagens:", err.response?.data || err.message);
-      alert("Erro ao buscar seus personagens disponíveis.");
+      showToast("Erro ao buscar personagens.", "error");
     }
   };
 
-  // Adiciona personagem à campanha
   const handleAddCharacter = async (characterId) => {
-     try {
+    try {
       await axios.post(
         `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/add-character`,
         { characterId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOpenCharModal(false);
-      fetchCampaignData(); // Recarrega dados
+      fetchCampaignData();
+      showToast("Agente adicionado à operação.");
     } catch (err) {
-      console.error("Erro ao adicionar personagem:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Erro ao adicionar o personagem.");
+      showToast("Erro ao adicionar agente.", "error");
     }
   };
 
-  // Copia código de convite
-  const handleInvite = () => {
-      if (campaign?.inviteCode) {
-      navigator.clipboard.writeText(campaign.inviteCode).then(
-        () => alert(`Código de Convite copiado:\n\n${campaign.inviteCode}`),
-        () => alert(`Não foi possível copiar. O código é: ${campaign.inviteCode}`)
-      );
-    } else {
-      alert("Esta campanha não possui um código de convite.");
-    }
-  };
-
-  // Remove personagem da campanha
   const handleRemoveCharacter = async (characterId, characterName) => {
-      if (window.confirm(`Remover "${characterName}" da campanha?`)) {
+    if (window.confirm(`Remover "${characterName}" da campanha?`)) {
       try {
         await axios.post(
           `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/remove-character`,
           { characterId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        fetchCampaignData(); // Recarrega dados
+        fetchCampaignData();
+        showToast("Agente removido.");
       } catch (err) {
-        alert(err.response?.data?.message || "Erro ao remover o personagem.");
+        showToast("Erro ao remover agente.", "error");
       }
     }
   };
 
-  // Renderização condicional para loading, erro e campanha não encontrada
+  const handleInvite = () => {
+    if (campaign?.inviteCode) {
+      navigator.clipboard.writeText(campaign.inviteCode).then(
+        () => showToast(`Código copiado: ${campaign.inviteCode}`),
+        () => alert(`Código: ${campaign.inviteCode}`)
+      );
+    } else {
+      showToast("Sem código de convite.", "error");
+    }
+  };
+
+  // --- RENDER ---
+
   if (loading) return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: 'center', minHeight: 'calc(100vh - 80px)' }}>
-        <CircularProgress />
-      </Box>
+    <div className="lobby-page" style={{ alignItems: 'center' }}>
+      <h2 style={{color: '#fff', fontFamily: 'Orbitron'}}>CARREGANDO OPERAÇÃO...</h2>
+    </div>
   );
-  if (error) return <Alert severity="error" sx={{ m: 3 }}>{error}</Alert>;
-  if (!campaign) return <Alert severity="warning" sx={{ m: 3 }}>Campanha não encontrada.</Alert>;
 
-  // Renderização principal
+  if (error || !campaign) return (
+    <div className="lobby-page" style={{ alignItems: 'center' }}>
+      <div className="lobby-panel" style={{textAlign: 'center', maxWidth: '500px'}}>
+        <FaExclamationTriangle style={{fontSize: '3rem', color: '#ff3333', marginBottom: '20px'}}/>
+        <h2>ACESSO NEGADO / ERRO</h2>
+        <p>{error || "Campanha não encontrada."}</p>
+        <Link to="/campaigns" className="btn-nero btn-secondary" style={{marginTop: '20px'}}>VOLTAR</Link>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="lobbyPageContainer">
-      <div className="mainContent">
-        {/* Grid de Ações */}
-        <Grid container spacing={1} className="actionsGrid">
-           {isMaster && (
-            <Grid item className="actionsGridItem">
-              <Button component={Link} to={`/campaign-sheet/${campaignId}`} variant="outlined" className="actionButton" startIcon={<ShieldIcon />}>
-                Escudo do Mestre
-              </Button>
-            </Grid>
+    <div className="lobby-page">
+      <div className="lobby-panel">
+        
+        {/* BARRA DE AÇÕES */}
+        <div className="lobby-actions">
+          {isMaster && (
+            <Link to={`/campaign-sheet/${campaignId}`} className="btn-nero btn-primary">
+              <FaShieldAlt /> ESCUDO DO MESTRE
+            </Link>
           )}
-          <Grid item className="actionsGridItem">
-            <Button onClick={handleOpenCharModal} variant="outlined" className="actionButton" startIcon={<PersonAddIcon />}>
-              Adicionar Personagem
-            </Button>
-          </Grid>
-          <Grid item className="actionsGridItem">
-            <Button onClick={handleInvite} variant="outlined" className="actionButton" startIcon={<GroupAddIcon />}>
-              Convidar Jogadores
-            </Button>
-          </Grid>
-        </Grid>
-
-        {/* Header com Imagem Editável */}
-        <div className="lobbyHeader">
-          {/* Container da Imagem */}
-          {coverImageUrl && (
-            <Box
-              className="lobbyCoverImageContainer"
-              onMouseEnter={() => setShowEditButton(true)}
-              onMouseLeave={() => setShowEditButton(false)}
-            >
-              <Box component="img" src={coverImageUrl} alt={`Capa da campanha ${campaign.name}`} className="lobbyCoverImage" />
-              <VisuallyHiddenInput type="file" ref={fileInputRef} onChange={handleCoverImageChange} accept="image/*" disabled={isUploading} />
-              {isMaster && (
-                  <Fade in={showEditButton || isUploading} timeout={300}>
-                      <IconButton className="editCoverButton" onClick={handleEditCoverClick} disabled={isUploading} aria-label="Alterar imagem da capa">
-                          {isUploading ? <CircularProgress size={24} color="inherit" /> : <EditIcon />}
-                      </IconButton>
-                  </Fade>
-              )}
-            </Box>
-          )}
-          {/* Nome e Descrição */}
-          <Typography variant="h3" className="campaignName"> {campaign.name} </Typography>
-          <Typography variant="subtitle1" sx={{ color: '#b0c4de !important' }}> {campaign.description} </Typography>
+          <Link to={`/campaign/${campaignId}/refuge`} className="btn-nero btn-secondary">
+            <FaHome /> REFÚGIO
+          </Link>
+          <button onClick={handleOpenCharModal} className="btn-nero btn-secondary">
+            <FaUserPlus /> ADICIONAR AGENTE
+          </button>
+          <button onClick={handleInvite} className="btn-nero btn-secondary">
+            <FaUserFriends /> CONVIDAR
+          </button>
         </div>
 
-        {/* Seção de Personagens */}
-        <div className="characterSection">
-          <Typography variant="h5" className="characterSectionTitle"> Personagens na Campanha </Typography>
-          <List>
+        {/* HEADER DA CAMPANHA */}
+        <div className="lobby-header">
+          {/* Capa com Upload */}
+          <div className="cover-container">
+            <img src={coverImageUrl} alt="Capa" className="cover-image" />
+            
+            {isMaster && (
+              <div className="edit-cover-overlay" onClick={handleEditCoverClick}>
+                <div className="btn-edit-cover">
+                  <FaEdit /> {isUploading ? "ENVIANDO..." : "ALTERAR CAPA"}
+                </div>
+              </div>
+            )}
+            
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleCoverImageChange} 
+              accept="image/*" 
+              style={{display: 'none'}} 
+            />
+          </div>
+
+          <h1 className="lobby-title">{campaign.name}</h1>
+          <p className="lobby-desc">{campaign.description}</p>
+        </div>
+
+        {/* LISTA DE PERSONAGENS */}
+        <div className="character-section">
+          <h3 className="char-section-title">AGENTES ATIVOS</h3>
+          
+          <div className="char-list">
             {campaign.players && campaign.players.filter(p => p.character).length > 0 ? (
-                campaign.players.filter(p => p.character).map((playerEntry) => {
-                  const character = playerEntry.character;
-                  const ownerName = playerEntry.user?.name || "Jogador Desconhecido";
-                  const characterOwnerId = character?.userId;
+              campaign.players.filter(p => p.character).map((playerEntry) => {
+                const char = playerEntry.character;
+                const ownerName = playerEntry.user?.name || "Desconhecido";
+                const isOwner = user && char.userId === user._id;
 
-                  if (!character?._id) return null; // Pula se personagem inválido
+                if (!char?._id) return null;
 
-                  return (
-                    <ListItem key={character._id} className="characterListItem">
-                      <ListItemText primary={character.name || "Nome Indefinido"} secondary={`Jogador: ${ownerName}`} />
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'wrap' }}> {/* Adicionado flexWrap */}
-                         <Button component={Link} to={character._id ? `/character-sheet/${character._id}` : '#'} target="_blank" variant="outlined" size="small" className="actionButton" disabled={!character._id}>
-                          Ver Ficha
-                        </Button>
-                        <Tooltip title="Abrir Retrato para Live">
-                          <IconButton component={Link} to={character._id ? `/character-portrait/${character._id}` : '#'} target="_blank" rel="noopener noreferrer" size="small" sx={{ color: "#87CEFA" }} disabled={!character._id}>
-                            <LiveTvIcon fontSize="small"/>
-                          </IconButton>
-                        </Tooltip>
-                        {(isMaster || (user && characterOwnerId && user._id === characterOwnerId)) && (
-                          <Tooltip title="Remover da Campanha">
-                            <IconButton size="small" onClick={() => handleRemoveCharacter(character._id, character.name || "Personagem")} sx={{ color: "#ff8a8a", "&:hover": { backgroundColor: "rgba(255, 138, 138, 0.1)", }, }} disabled={!character._id}>
-                              <DeleteIcon fontSize="small"/>
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    </ListItem>
-                  );
-                })
+                return (
+                  <div key={char._id} className="char-row">
+                    <div className="char-info">
+                      <h4>{char.name}</h4>
+                      <span>JOGADOR: {ownerName.toUpperCase()}</span>
+                    </div>
+                    
+                    <div className="char-actions">
+                      <Link 
+                        to={`/character-sheet/${char._id}`} 
+                        target="_blank" 
+                        className="btn-icon-small view"
+                        title="Ver Ficha"
+                      >
+                        <FaEye />
+                      </Link>
+                      
+                      <Link 
+                        to={`/character-portrait/${char._id}`} 
+                        target="_blank" 
+                        className="btn-icon-small view"
+                        title=" Portrait Stream"
+                      >
+                        <FaTv />
+                      </Link>
+
+                      {(isMaster || isOwner) && (
+                        <button 
+                          className="btn-icon-small delete" 
+                          onClick={() => handleRemoveCharacter(char._id, char.name)}
+                          title="Remover da Campanha"
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
             ) : (
-              <ListItem>
-                <ListItemText primary="Nenhum personagem adicionado à campanha ainda." sx={{ color: '#a8b2d1', fontStyle: 'italic' }}/>
-              </ListItem>
+              <div className="empty-msg">NENHUM AGENTE REGISTRADO NESTA OPERAÇÃO.</div>
             )}
-          </List>
+          </div>
         </div>
-      </div> {/* Fim do mainContent */}
 
-      {/* Modal Adicionar Personagem */}
-      <Dialog open={openCharModal} onClose={() => setOpenCharModal(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Selecione um Personagem</DialogTitle>
-        <DialogContent>
-          <List>
-            {availableChars.length > 0 ? (
-              availableChars.map((char) => (
-                <ListItem key={char._id} secondaryAction={ <Button edge="end" onClick={() => handleAddCharacter(char._id)} variant="contained" size="small"> Adicionar </Button> } sx={{ paddingRight: '96px' }}>
-                  <ListItemText primary={char.name} secondary={char.occupation || "Sem ocupação"} />
-                </ListItem>
-              ))
-            ) : (
-              <Typography sx={{ textAlign: 'center', fontStyle: 'italic', color: 'text.secondary', p: 2 }}> Você não possui personagens disponíveis fora de campanhas. </Typography>
-            )}
-          </List>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenCharModal(false)}>Cancelar</Button>
-        </DialogActions>
-      </Dialog>
+      </div>
 
-      {/* Snackbar para feedback */}
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      {/* MODAL DE ADICIONAR PERSONAGEM */}
+      {openCharModal && (
+        <div className="nero-modal-overlay" onClick={(e) => { if(e.target.className==='nero-modal-overlay') setOpenCharModal(false) }}>
+          <div className="nero-modal">
+            <div className="nero-modal-header">SELECIONAR AGENTE PARA A MISSÃO</div>
+            <div className="nero-modal-content">
+              {availableChars.length > 0 ? (
+                availableChars.map(char => (
+                  <div key={char._id} className="char-select-item">
+                    <div>
+                      <strong style={{display:'block', color:'#fff', fontFamily:'Orbitron'}}>{char.name}</strong>
+                      <span style={{color:'#888', fontSize:'0.8rem'}}>{char.occupation || "Sem ocupação"}</span>
+                    </div>
+                    <button className="btn-nero btn-primary" style={{padding:'5px 15px', fontSize:'0.8rem'}} onClick={() => handleAddCharacter(char._id)}>
+                      ADICIONAR
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p style={{padding:'20px', textAlign:'center', color:'#888'}}>Você não possui agentes disponíveis fora de missão.</p>
+              )}
+            </div>
+            <div className="nero-modal-actions">
+              <button className="btn-nero btn-secondary" onClick={() => setOpenCharModal(false)}>FECHAR</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-    </div> // Fim do lobbyPageContainer
+      {/* TOAST NOTIFICATION (Feedback Visual) */}
+      {toast.open && (
+        <div className={`nero-toast ${toast.type}`}>
+          {toast.type === 'success' ? <FaCheck /> : <FaTimes />}
+          {toast.msg}
+        </div>
+      )}
+
+    </div>
   );
 };
 

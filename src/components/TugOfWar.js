@@ -1,243 +1,126 @@
-// src/components/TugOfWar.js - VERSÃO CORRIGIDA
-
+/* TugOfWar.js */
 import React from 'react';
-// CORREÇÃO 2: Adicionar 'Slider' à lista de imports do Material-UI
-import { Box, Typography, Button, Paper, Slider } from '@mui/material';
 import axios from 'axios';
-import styles from '../styles/TugOfWar.module.css';
+// Reutiliza estilos se possível, ou inline para simplicidade
+// Ícones SVG Inline para não depender de arquivos externos
 
-// --- COMPONENTES DOS ÍCONES SVG (Sem alterações) ---
-const TrackIcon = ({ color, isFilled, onClick, isClickable }) => {
-  const fillColor = isFilled ? color : 'none';
-  const strokeColor = color;
-
-  return (
-    <svg 
-      width="40" 
-      height="24" 
-      viewBox="0 0 40 24" 
-      xmlns="http://www.w3.org/2000/svg"
-      onClick={onClick}
-      className={isClickable ? styles.clickableIcon : ''}
-    >
-      <path 
-        d="M20 0L0 12L20 24L40 12Z"
-        fill={fillColor} 
-        stroke={strokeColor} 
-        strokeWidth="2.5"
-      />
-    </svg>
-  );
-};
-
-const DeterminationCircle = ({ level }) => (
-    <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="22" cy="22" r="20" stroke="#a73c39" strokeWidth="4" fill="#fdfaf5" /> 
-        <text x="50%" y="50%" textAnchor="middle" dy=".3em" fill="#a73c39" fontSize="20" fontWeight="bold">{level}</text>
-    </svg>
+const TrackIcon = ({ color, isFilled, onClick, isClickable }) => (
+  <svg 
+    width="30" height="20" viewBox="0 0 40 24" 
+    style={{ cursor: isClickable ? 'pointer' : 'default', opacity: isFilled ? 1 : 0.3, transition:'opacity 0.2s' }}
+    onClick={onClick}
+  >
+    <path d="M20 0L0 12L20 24L40 12Z" fill={color} stroke={color} strokeWidth="1" />
+  </svg>
 );
 
-const AssimilationCircle = ({ level }) => (
-    <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="22" cy="22" r="20" stroke="#3b4766" strokeWidth="4" fill="#fdfaf5" />
-        <text x="50%" y="50%" textAnchor="middle" dy=".3em" fill="#3b4766" fontSize="20" fontWeight="bold">{level}</text>
-    </svg>
+const LevelCircle = ({ level, color }) => (
+    <div style={{
+        width:'40px', height:'40px', borderRadius:'50%', border:`3px solid ${color}`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        color: color, fontWeight:'bold', fontSize:'1.2rem', fontFamily:'Orbitron'
+    }}>
+        {level}
+    </div>
 );
-
 
 const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
-  const TOTAL_LEVELS = 10; // Valor fixo
+  const TOTAL = 10;
 
-  // CORREÇÃO 1: A função handleLevelChange foi movida para DENTRO do componente
-  // para que tenha acesso a 'isReadOnly', 'character', 'setCharacter' e 'saveStateToBackend'.
-  const handleLevelChange = (event, newDeterminationLevel) => {
+  const handleSliderChange = (e) => {
     if (isReadOnly || !character) return;
-    const detLevel = parseInt(newDeterminationLevel, 10);
-    const assLevel = TOTAL_LEVELS - detLevel;
-    const updatedState = {
+    const detLevel = parseInt(e.target.value, 10);
+    const assLevel = TOTAL - detLevel;
+    
+    const updated = {
       ...character,
       determinationLevel: detLevel,
       assimilationLevel: assLevel,
-      determinationPoints: detLevel,
+      determinationPoints: detLevel, // Reseta pontos ao mudar nível
       assimilationPoints: assLevel,
     };
-    setCharacter(updatedState);
-    saveStateToBackend(updatedState);
+    
+    setCharacter(updated);
+    saveState(updated);
   };
 
-  const saveStateToBackend = async (updatedState) => {
+  const saveState = async (updated) => {
     if (isReadOnly) return;
     try {
-      const token = localStorage.getItem("token");
-      const apiState = {
-        determinationLevel: updatedState.determinationLevel,
-        determinationPoints: updatedState.determinationPoints,
-        assimilationLevel: updatedState.assimilationLevel,
-        assimilationPoints: updatedState.assimilationPoints,
-      }
       await axios.put(
         `https://assrpgsite-be-production.up.railway.app/api/characters/${character._id}/tugofwar`,
-        apiState,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+            determinationLevel: updated.determinationLevel, determinationPoints: updated.determinationPoints,
+            assimilationLevel: updated.assimilationLevel, assimilationPoints: updated.assimilationPoints
+        },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
-    } catch (error) {
-      console.error("Erro ao salvar o estado de Determinação/Assimilação:", error);
-    }
+    } catch (error) { console.error("Erro ao salvar", error); }
   };
 
-  const handleSetPoints = (type, value) => {
-    if (isReadOnly || !character) return;
-    
-    let updatedState = { ...character };
-
-    if (type === 'determination') {
-        const newPoints = value === character.determinationPoints ? value - 1 : value;
-        updatedState.determinationPoints = newPoints;
-
-        if (newPoints <= 0 && character.determinationLevel > 0) {
-            updatedState.determinationLevel -= 1;
-            updatedState.assimilationLevel += 1;
-            updatedState.determinationPoints = updatedState.determinationLevel;
-            updatedState.assimilationPoints = updatedState.assimilationLevel;
-            alert("Você gastou seu último ponto de Determinação e seu Nível caiu!");
-        }
-    } else if (type === 'assimilation') {
-        const newPoints = value === character.assimilationPoints ? value - 1 : value;
-        updatedState.assimilationPoints = newPoints;
-    }
-    
-    setCharacter(updatedState);
-    saveStateToBackend(updatedState);
+  const handlePointClick = (type, index) => {
+      if (isReadOnly) return;
+      let updated = { ...character };
+      
+      if (type === 'det') {
+          // Lógica de toggle: Se clicar no atual, diminui 1. Se clicar em outro, define aquele.
+          updated.determinationPoints = index === character.determinationPoints ? index - 1 : index;
+      } else {
+          updated.assimilationPoints = index === character.assimilationPoints ? index - 1 : index;
+      }
+      
+      setCharacter(updated);
+      saveState(updated);
   };
 
-  const handleConvertDetToAss = () => {
-    if (isReadOnly || character.determinationPoints < 2) return;
-
-    const newDetPoints = character.determinationPoints - 2;
-    const newAssPoints = Math.min(character.assimilationLevel, character.assimilationPoints + 1);
-
-    const updatedState = {
-      ...character,
-      determinationPoints: newDetPoints,
-      assimilationPoints: newAssPoints,
-    };
-
-    setCharacter(updatedState);
-    saveStateToBackend(updatedState);
-  };
-
-  const renderTrack = () => {
-    const trackItems = [];
-    const colorDet = "#a73c39";
-    const colorAss = "#3b4766";
-
-    for (let i = 1; i <= character.determinationLevel; i++) {
-        const isFilled = i <= character.determinationPoints;
-        trackItems.push(
-            <TrackIcon 
-                key={`det-${i}`} 
-                color={colorDet}
-                isFilled={isFilled}
-                onClick={() => handleSetPoints('determination', i)}
-                isClickable={!isReadOnly}
-            />
-        );
-    }
-
-    for (let i = 1; i <= character.assimilationLevel; i++) {
-        const isFilled = i <= character.assimilationPoints;
-        trackItems.push(
-            <TrackIcon 
-                key={`ass-${i}`} 
-                color={colorAss}
-                isFilled={isFilled}
-                onClick={() => handleSetPoints('assimilation', i)}
-                isClickable={!isReadOnly}
-            />
-        );
-    }
-
-    return (
-      <div className={styles.track}>
-        <div className={styles.trackEndCap}>
-            <DeterminationCircle level={character.determinationLevel} />
-        </div>
-        <div className={styles.trackIconsContainer}>
-            {trackItems}
-        </div>
-        <div className={styles.trackEndCap}>
-            <AssimilationCircle level={character.assimilationLevel} />
-        </div>
-      </div>
-    );
+  // Renderiza ícones
+  const renderIcons = (count, currentPoints, color, type) => {
+      let icons = [];
+      for(let i=1; i<=count; i++) {
+          icons.push(
+              <TrackIcon key={i} color={color} isFilled={i <= currentPoints} onClick={() => handlePointClick(type, i)} isClickable={!isReadOnly} />
+          );
+      }
+      return icons;
   };
 
   return (
-    <Paper elevation={0} className={styles.container}
-      sx={{ bgcolor: '#1e1e1e' }}>
-      <Typography variant="h6" gutterBottom sx={{ color: '#ccc' }} className={styles.title}>
-        Assimilação & Determinação
-      </Typography>
+    <div style={{background:'#111', padding:'20px', border:'1px solid #333', borderRadius:'4px'}}>
+      <h3 style={{color:'#ccc', fontFamily:'Orbitron', textAlign:'center', marginTop:0}}>Cabo de Guerra</h3>
       
-      {renderTrack()}
-
-      {!isReadOnly && (
-        <Box sx={{ padding: '16px 24px', textAlign: 'center' }}>
-            <Typography sx={{ color: '#ccc' }} variant="overline">Ajustar Níveis</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography sx={{ color: '#a73c39', fontWeight: 'bold' }}>Determinação</Typography>
-                <Slider
-                    aria-label="Ajuste de Níveis"
-                    value={character.determinationLevel || 0}
-                    onChange={handleLevelChange}
-                    min={0}
-                    max={TOTAL_LEVELS}
-                    sx={{
-                        color: '#a73c39',
-                        '& .MuiSlider-thumb': {
-                            backgroundColor: '#a73c39',
-                        },
-                        '& .MuiSlider-track': {
-                            border: 'none',
-                        },
-                        '& .MuiSlider-rail': {
-                            opacity: 0.5,
-                            backgroundColor: '#3b4766',
-                        },
-                    }}
-                />
-                <Typography sx={{ color: '#4b5a80ff', fontWeight: 'bold' }}>Assimilação</Typography>
-            </Box>
-        </Box>
-      )}
-      
-      <div className={styles.controlsContainer}>
-        <div className={styles.controlSection}>
-          <Typography variant="h6" sx={{ color: '#ccc' }} className={styles.pointsText}>
-            <strong>{character.determinationPoints}</strong>
-            <span className={styles.levelText}> Pontos de Determinação</span>
-          </Typography>
-        </div>
-        <div className={styles.controlSection}>
-          <Typography variant="h6" sx={{ color: '#ccc' }} className={styles.pointsText}>
-            <strong>{character.assimilationPoints}</strong>
-            <span className={styles.levelText}> Pontos de Assimilação</span>
-          </Typography>
-        </div>
+      {/* Visualizador de Trilhas */}
+      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px', marginBottom:'20px'}}>
+          <LevelCircle level={character.determinationLevel} color="#a73c39" />
+          <div style={{flex:1, display:'flex', justifyContent:'center', flexWrap:'wrap', gap:'2px'}}>
+             {renderIcons(character.determinationLevel, character.determinationPoints, "#a73c39", 'det')}
+          </div>
+          <div style={{width:'2px', height:'30px', background:'#333'}}></div>
+          <div style={{flex:1, display:'flex', justifyContent:'center', flexWrap:'wrap', gap:'2px'}}>
+             {renderIcons(character.assimilationLevel, character.assimilationPoints, "#3b4766", 'ass')}
+          </div>
+          <LevelCircle level={character.assimilationLevel} color="#3b4766" />
       </div>
 
+      {/* Slider de Ajuste (Só se não for ReadOnly) */}
       {!isReadOnly && (
-        <div className={styles.conversionSection}>
-          <Button
-            variant="contained"
-            onClick={handleConvertDetToAss}
-            disabled={character.determinationPoints < 2}
-          >
-            Converter 2 DET p/ 1 Ponto de ASS
-          </Button>
-        </div>
+          <div style={{background:'#080808', padding:'10px', borderTop:'1px dashed #333'}}>
+              <div style={{display:'flex', justifyContent:'space-between', color:'#888', fontSize:'0.8rem', marginBottom:'5px'}}>
+                  <span>DETERMINAÇÃO</span>
+                  <span>ASSIMILAÇÃO</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" max="10" 
+                value={character.determinationLevel} 
+                onChange={handleSliderChange}
+                style={{
+                    width:'100%', appearance:'none', height:'6px', background:'linear-gradient(90deg, #a73c39, #3b4766)',
+                    outline:'none', borderRadius:'3px'
+                }}
+              />
+          </div>
       )}
-    </Paper>
+    </div>
   );
 };
 

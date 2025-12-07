@@ -1,247 +1,1346 @@
-/* Estilo base */
+/* --- Cores e Tipografia (Tema Nero) --- */
+:root {
+  --bg-dark: #0e0e0e;       /* Fundo geral (muito escuro) */
+  --bg-panel: #161616;      /* Fundo dos cartões/paineis */
+  --bg-input: #1f1f1f;      /* Fundo dos inputs */
+  --border: #333333;        /* Cor das bordas padrão */
+  --border-focus: #555555;  /* Borda ao focar */
+  --accent-red: #b71c1c;    /* Vermelho principal */
+  --accent-hover: #d32f2f;  /* Vermelho mais claro (hover) */
+  --text-main: #e0e0e0;     /* Texto principal (branco sujo) */
+  --text-dim: #9ca3af;      /* Texto secundário (cinza) */
+  --font-tech: 'Roboto Condensed', 'Segoe UI', sans-serif;
+  
+  /* Variáveis de Layout */
+  --navbar-height-desktop: 80px;
+  --navbar-height-mobile: 70px;
+}
+
+/* Reset básico para o componente */
+.characterSheet * {
+  box-sizing: border-box;
+}
+
 .characterSheet {
-  padding: 20px;
-  background-color: #161616; /* Fundo cinza escuro */
-  color: #fff; /* Texto branco */
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-tech);
+  
+  /* --- CORREÇÃO NAVBAR: Compensa a altura fixa da navbar --- */
+  padding-top: calc(var(--navbar-height-desktop) + 40px);
+  padding-bottom: 70px;
+  padding-left: 20px;
+  padding-right: 20px;
+
+  /* --- CORREÇÃO FOOTER: Ocupa no mínimo a tela toda --- */
+  min-height: 150vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.characterHeader {
-  padding: 20px;
-  margin-bottom: 20px;
-  background-color: #1e1e1e;
-  color: #ccc;
-  border-radius: 8px;
-  align-items: center;
-  max-width: 1100px;
-  width: 100%; /* Certifique-se de que o cabeçalho ocupe toda a largura disponível */
-}
-
-.characterBody {
-  display: flex;
-  justify-content: center; /* Centraliza os elementos no eixo horizontal */
-  gap: 20px;
+  
+  /* Previne sobreposição lateral no mobile */
   width: 100%;
-  flex-direction: row;
-  flex-wrap: wrap; /* Permite que os elementos "quebrem" de linha quando a tela for pequena */
+  overflow-x: hidden;
 }
 
-.leftColumn,
-.rightColumn,
-.centerColumn {
-  color: #ccc; 
-  padding: 20px;
-  margin: 5px;
-  flex: 1;
-  max-width: 400px; /* Certifique-se de que os elementos não fiquem muito largos */
-}
-
-.rightColumn {
-  max-width: 600px;
-}
-
-.centerColumn {
-  max-width: 450px;
-}
-
-/* Ajustes para telas menores */
-@media (max-width: 768px) {
-  .characterBody {
-    flex-direction: column; /* Muda para coluna em telas menores */
-    align-items: center; /* Alinha os elementos ao centro */
-  }
-
-  .leftColumn,
-  .rightColumn,
-  .centerColumn {
-    max-width: 100%; /* Garante que os elementos ocupem toda a largura disponível */
-  }
-
-  .characterHeader {
-    max-width: 100%; /* Garante que o cabeçalho ocupe toda a largura disponível */
-  }
-}
-
-.instinctItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
+/* --- Layout Grid/Flex --- */
+.container {
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  /* Garante que o container estique para empurrar o footer se o conteúdo for pouco */
+  flex: 1; 
 }
 
-.healthBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  width: 100%;
-}
-
-.skillItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  width: 100%;
-}
-
-.loadingIndicator,
-.errorMessage {
-  text-align: center;
-}
-
-.kofiButtonContainer {
-  position: fixed; /* Posicionamento fixo na tela */
-  bottom: 20px; /* Distância da parte inferior da tela */
-  right: 20px; /* Distância da parte direita da tela */
-  z-index: 1000; /* Garante que ele fique sobre outros elementos */
-}
-
-/* --- Container Principal do Inventário --- */
-.inventoryContainer {
-  background-color: #1e1e1e; /* Fundo principal, um cinza bem escuro */
-  color: #c7c7c7;
-  padding: 16px;
+/* Cabeçalho */
+.headerPanel {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 24px;
   border-radius: 4px;
-  border: 1px solid #4a4a4a;
-  max-width: 900px; /* Largura máxima para a tela */
-  margin: 20px auto;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-  font-family: 'Roboto Condensed', sans-serif; /* Uma fonte mais compacta, se você a tiver */
-}
-
-/* --- Cabeçalho --- */
-.inventoryHeader {
+  margin-bottom: 24px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #4a4a4a;
-}
-
-.headerTitle {
-  font-weight: bold;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 1.5rem;
-}
-
-.capacityDisplay {
-  background-color: #121212;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: #a0a0a0;
-  border: 1px solid #333;
-}
-
-/* --- Abas de Navegação (Tabs) --- */
-.tabsContainer {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #4a4a4a;
-}
-/* Estilos para aplicar via 'sx' prop no Material-UI */
-
-
-/* --- Títulos dos Grids (Acesso Rápido / Mochila) --- */
-.gridTitle {
-  color: #b0b0b0;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  font-size: 1rem;
-  font-weight: bold;
-  padding-left: 10px;
-  border-left: 3px solid #b71c1c; /* Detalhe em vermelho escuro */
-}
-
-/* --- Container do Grid (para Corpo e Mochila) --- */
-.inventoryGridContainer {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 10px;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  min-height: 100px;
-  border: 1px solid #333;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.inventorySlot {
+  flex-wrap: wrap;
+  gap: 24px;
   position: relative;
-  height: 150px; /* <-- ADICIONADO (Ajuste o valor 100px se necessário) */
-  background-color: #2a2d30;
-  border: 1px solid #1a1a1a;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-left: 5px solid var(--accent-red);
+}
+
+/* Estrutura de colunas principal */
+.mainLayout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  width: 100%;
+}
+
+.colLeft {
+  flex: 1;
+  min-width: 400px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
   border-radius: 4px;
+  padding: 20px;
+}
+
+.colCenter {
+  flex: 1.5;
+  min-width: 350px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.colRight {
+  flex: 2;
+  min-width: 350px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+}
+
+/* --- Responsividade Ajustada --- */
+@media (max-width: 960px) {
+  .characterSheet {
+     /* Ajusta o padding para a altura menor da navbar mobile */
+     padding-top: calc(var(--navbar-height-mobile) + 30px);
+  }
+  
+  .mainLayout {
+    flex-direction: column;
+  }
+  
+}
+
+/* --- Componentes de UI (Inputs, Labels, Avatars...) --- */
+
+.headerInputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  flex-grow: 1;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.inputField, .selectField {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 10px;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.inputField:focus, .selectField:focus {
+  outline: none;
+  border-color: var(--accent-red);
+  background-color: #252525;
+}
+
+/* Avatar */
+.avatarContainer {
+  width: 150px;
+  height: 150px;
+  position: relative;
+  flex-shrink: 0;
+  border: 3px solid #333;
+  border-radius: 2px;
+  overflow: hidden;
+  background: #000;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarEditOverlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  cursor: pointer;
+}
+
+.avatarContainer:hover .avatarEditOverlay {
+  opacity: 1;
+}
+
+/* Títulos */
+.sectionTitle {
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 10px;
+  color: var(--text-main);
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Lista de Items */
+.rowItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.rowItem:hover {
+  border-color: #333;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.itemName {
+  flex: 1;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+.itemName:hover {
+  color: var(--accent-red);
+}
+
+.smallInput {
+  width: 50px;
+  text-align: center;
+  padding: 6px;
+  background: #111;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 3px;
+}
+
+.selectInputWrapper {
+  flex: 1.5;
+}
+
+.rollBtn {
+  background-color: #333;
+  border: none;
+  border-radius: 3px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-  /* O 'width' será determinado automaticamente pelo grid */
+  color: #fff;
+  transition: background 0.2s;
+}
+.rollBtn:hover:not(:disabled) {
+  background-color: var(--accent-red);
+}
+.rollBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.inventorySlot:hover {
-  border-color: #c79100; /* Destaque em âmbar ao passar o mouse */
-  background-color: #3f4347;
+/* Saúde */
+.healthRow {
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 8px;
 }
 
-/* Slot Vazio */
+.healthHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.healthName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.healthNameActive {
+  color: var(--accent-red);
+  text-shadow: 0 0 5px rgba(183, 28, 28, 0.5);
+}
+
+.heartContainer {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap; /* Para telas pequenas, corações quebram linha */
+}
+
+.heartIcon {
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.heartIcon:hover {
+  transform: scale(1.1);
+}
+
+/* Tabs & Paineis Direitos */
+.tabsContainer {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  flex: 1;
+  white-space: nowrap; /* Evita quebra de texto ruim */
+}
+
+.tabBtn:hover {
+  background-color: rgba(255,255,255,0.02);
+  color: var(--text-main);
+}
+
+.tabBtn.active {
+  color: var(--text-main);
+  border-bottom-color: var(--accent-red);
+}
+
+.customDiceArea {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+.customDiceRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mainBtn {
+  background-color: var(--accent-red);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.mainBtn:hover {
+  background-color: var(--accent-hover);
+}
+
+.notesArea {
+  width: 100%;
+  min-height: 200px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 16px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* Inventário Customizado */
+.inventoryBox {
+  margin-top: 10px;
+}
+.inventoryHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+
+/* Modais Custom */
+.modalBackdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalPanel {
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+  width: 90%;
+  max-width: 500px;
+  padding: 0;
+  border-radius: 4px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+/* --- INVENTÁRIO (GRIDS E SLOTS) --- */
+
+/* O Container da Grade */
+.inventoryGridContainer {
+  display: grid;
+  /* Cria 3 colunas de tamanho igual */
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  margin-bottom: 20px;
+}
+
+/* Slot Base (Quadrado) */
+.inventorySlot {
+  /* Mantém aspecto quadrado ou altura mínima */
+  min-height: 100px; 
+  aspect-ratio: 1 / 1; 
+  position: relative;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid transparent;
+}
+
+/* Estilo do Slot Vazio */
 .emptySlot {
-  opacity: 0.5;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  /* Efeito de hachura sutil para indicar vazio */
+  background-image: linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.2) 75%, rgba(0,0,0,0.2)), 
+                    linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.2) 75%, rgba(0,0,0,0.2));
+  background-position: 0 0, 10px 10px;
+  background-size: 20px 20px;
 }
 
-/* Slot Preenchido */
+/* Estilo do Slot Preenchido */
 .filledSlot {
-  background-color: #383c40;
-  border: 1px solid #5a5e62;
+  background-color: #2a2d30;
+  border: 1px solid #4a4a4a;
+  cursor: pointer;
+  overflow: hidden; /* Garante que nada saia do slot */
+}
+
+.filledSlot:hover {
+  border-color: #b71c1c; /* Borda vermelha ao passar o mouse */
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 /* Ícone do item dentro do slot */
 .inventoryItemIcon {
-  width: 75%;
-  height: 75%;
+  width: 70%;
+  height: 70%;
   object-fit: contain;
-  filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  transition: transform 0.2s;
 }
 
-/* Ícone de placeholder para slots de acesso rápido vazios */
-.placeholderIcon {
-  width: 60%;
-  height: 60%;
-  object-fit: contain;
-  opacity: 0.2;
-  filter: grayscale(100%);
-}
-
-/* Ações (botões) que aparecem no hover */
+/* Container de Ações (Aparece ao passar o mouse) */
 .slotActions {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85); /* Fundo escuro semi-transparente */
   display: flex;
-  flex-direction: column;
-  opacity: 0;
-  transition: opacity 0.2s;
-  background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 0 4px 0 4px;
-  padding: 2px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap; /* Permite que os botões quebrem linha se for pequeno */
+  gap: 8px;
+  
+  opacity: 0; /* Invisível por padrão */
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  border-radius: 4px;
 }
 
-.inventorySlot:hover .slotActions {
+/* Ao passar o mouse no slot preenchido, mostra as ações */
+.filledSlot:hover .slotActions {
   opacity: 1;
 }
 
-.slotActions button {
-  color: #d0d0d0;
-  padding: 2px;
-  min-width: 0;
+.filledSlot:hover .inventoryItemIcon {
+  transform: scale(1.05);
 }
 
+/* Estilização para Texto de Título da Grade (Opcional se InventoryGrid usar gridTitle) */
+.gridTitle {
+  font-weight: bold;
+  color: #fff;
+  text-transform: uppercase;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  padding-left: 8px;
+  border-left: 4px solid #b71c1c;
+  letter-spacing: 1px;
+}
+
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modalHeader {
+  background-color: #111;
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modalTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  color: var(--text-main);
+}
+.closeBtn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.modalContent {
+  padding: 20px;
+  color: #ccc;
+  line-height: 1.6;
+}
+.modalActions {
+  padding: 15px 20px;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.historyItem {
+  background: rgba(255,255,255,0.03);
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 3px;
+  border-left: 2px solid #555;
+}
+.historyItem:last-child {
+  border-left-color: var(--accent-red);
+  background: rgba(255,255,255,0.06);
+}
+
+/* Loader / Mensagem Erro */
+.loaderBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  color: #fff;
+  flex-direction: column;
+  padding-top: 80px; /* Compensação da navbar até no loader */
+  background-color: var(--bg-dark);
+}
+
+/* --- Cores e Tipografia (Tema Nero) --- */
+:root {
+  --bg-dark: #0e0e0e;
+  --bg-panel: #161616;
+  --bg-input: #1f1f1f;
+  --border: #333333;
+  --border-focus: #555555;
+  --accent-red: #b71c1c;
+  --accent-hover: #d32f2f;
+  --text-main: #e0e0e0;
+  --text-dim: #9ca3af;
+  --font-tech: 'Roboto Condensed', 'Segoe UI', sans-serif;
+  
+  --navbar-height-desktop: 80px;
+  --navbar-height-mobile: 70px;
+}
+
+/* Reset */
+.characterSheet * {
+  box-sizing: border-box;
+}
+
+/* Container Principal */
+.characterSheet {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-tech);
+  
+  /* Espaçamento do Navbar */
+  padding-top: calc(var(--navbar-height-desktop) + 30px);
+  padding-bottom: 120px; /* Espaço extra embaixo para não cobrir o rodapé com o botão flutuante */
+  padding-left: 20px;
+  padding-right: 20px;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+/* --- Cabeçalho (Header) --- */
+.headerPanel {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  border-left: 5px solid var(--accent-red);
+}
+
+.headerInputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  flex-grow: 1;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.inputField, .selectField {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 8px 10px;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.inputField:focus, .selectField:focus {
+  outline: none;
+  border-color: var(--accent-red);
+}
+
+.label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Avatar */
+.avatarContainer {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  flex-shrink: 0;
+  border: 3px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarEditOverlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  cursor: pointer;
+}
+.avatarContainer:hover .avatarEditOverlay { opacity: 1; }
+
+/* --- Colunas --- */
+.mainLayout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.colLeft, .colCenter, .colRight {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 15px;
+}
+
+.colLeft { flex: 1.4; min-width: 340px; }
+.colCenter { flex: 1.5; min-width: 370px; }
+.colRight { flex: 2.0; min-width: 380px; }
+
+/* Títulos */
+.sectionTitle {
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #222;
+  padding-bottom: 5px;
+  color: var(--text-main);
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Listas */
+.rowItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+.rowItem:hover { background-color: rgba(255,255,255,0.06); }
+
+.itemName {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.itemName:hover { color: var(--accent-red); }
+
+.smallInput {
+  width: 45px;
+  text-align: center;
+  padding: 5px;
+  background: #111;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 3px;
+}
+
+.selectInputWrapper { flex: 1.2; }
+
+.rollBtn {
+  background-color: #333;
+  border: none;
+  border-radius: 3px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #fff;
+}
+.rollBtn:hover:not(:disabled) { background-color: var(--accent-red); }
+
+/* Vida / Saúde */
+.healthRow {
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 6px;
+}
+.healthHeader {
+  display: flex; justify-content: space-between; margin-bottom: 4px; cursor: pointer;
+}
+.healthNameActive { color: var(--accent-red); font-weight: bold; }
+.heartContainer { display: flex; gap: 4px; flex-wrap: wrap; }
+.heartIcon:hover { transform: scale(1.15); cursor: pointer; }
+
+/* Grid e Tabs */
+.customDiceArea {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+.customDiceRow { display: flex; gap: 8px; align-items: center; }
+
+.tabsContainer { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
+.tabBtn {
+  background: none; border: none; padding: 10px; color: var(--text-dim);
+  font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; flex: 1;
+  text-transform: uppercase; font-size: 0.85rem;
+}
+.tabBtn:hover { color: #fff; }
+.tabBtn.active { color: #fff; border-bottom-color: var(--accent-red); }
+
+.mainBtn {
+  background-color: var(--accent-red); color: #fff; border: none; padding: 0 15px; height: 36px;
+  font-weight: bold; cursor: pointer; border-radius: 2px; text-transform: uppercase;
+}
+.mainBtn:hover { background-color: var(--accent-hover); }
+
+/* Inventário Box */
+.inventoryBox { margin-top: 10px; }
+.inventoryHeaderFlex {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;
+}
+.notesArea {
+  width: 100%; min-height: 200px; background-color: var(--bg-input);
+  border: 1px solid var(--border); color: #fff; padding: 10px; resize: vertical;
+}
+
+/* GRIDS */
+.inventoryGridContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  margin-bottom: 20px;
+}
+
+.inventorySlot {
+  min-height: 90px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #333;
+  background-color: #121212;
+}
+
+.emptySlot {
+  background-image: radial-gradient(#222 15%, transparent 16%);
+  background-size: 10px 10px;
+  opacity: 0.5;
+}
+
+.filledSlot {
+  background-color: #262626;
+  border-color: #444;
+  cursor: pointer;
+  overflow: hidden;
+}
+.filledSlot:hover { border-color: var(--accent-red); }
+
+.inventoryItemIcon { width: 70%; height: 70%; object-fit: contain; }
+
+.slotActions {
+  position: absolute; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.85);
+  display: flex; justify-content: center; align-items: center; gap: 5px;
+  opacity: 0; transition: opacity 0.2s; z-index: 5;
+}
+.filledSlot:hover .slotActions { opacity: 1; }
+
+.gridTitle {
+  font-weight: bold; color: #fff; margin-top: 10px; margin-bottom: 5px;
+  border-left: 3px solid var(--accent-red); padding-left: 10px; text-transform: uppercase;
+}
+
+/* --- Drag and Drop Visuals --- */
+
+/* Quando estiver arrastando um item */
+.inventorySlot.dragging {
+  opacity: 0.4;
+  border: 1px dashed #666;
+}
+
+/* Quando passar o item por cima de uma grade válida (Highlight) */
+.inventoryGridContainer.dragOver {
+  background-color: rgba(183, 28, 28, 0.2); /* Fundo avermelhado leve */
+  border-color: var(--accent-red);
+  box-shadow: 0 0 15px rgba(183, 28, 28, 0.4);
+}
+
+/* ------------------------------------------- */
+/*  ELEMENTOS FLUTUANTES (FIXOS NA TELA)       */
+/* ------------------------------------------- */
+
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modais Centralizados */
+.modalBackdrop {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.85);
+  backdrop-filter: blur(2px);
+  z-index: 11000;
+  display: flex; justify-content: center; align-items: center;
+}
+.modalPanel {
+  background: #1a1a1a;
+  width: 90%; max-width: 500px;
+  border: 1px solid #444;
+  box-shadow: 0 0 40px #000;
+  border-radius: 4px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modalHeader { padding: 15px; border-bottom: 1px solid #333; display:flex; justify-content:space-between; align-items: center; background: #111; }
+.modalContent { padding: 20px; color: #ccc; line-height: 1.5; }
+.modalActions { padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; background: #111; }
+.closeBtn { background:none; border:none; color:#888; font-size:1.5rem; cursor:pointer; }
+
+.loaderBox { display: flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; color:#fff; }
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .mainLayout { flex-direction: column; }
+  .colLeft, .colCenter, .colRight { min-width: 100%; }
+  .toastContainer { bottom: 95px; width: 90%; right: 5%; left: 5%; }
+  .historyPopover { bottom: 95px; width: 90%; right: 5%; }
+}
+
+/* --- CABEÇALHO APRIMORADO (VERSÃO COMPACTA) --- */
+.headerPanel {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 20px; /* Reduzido de 24px */
+  border-radius: 4px;
+  margin-bottom: 20px; /* Reduzido de 24px */
+  display: flex;
+  gap: 20px; /* Reduzido de 30px */
+  align-items: flex-start;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-left: 5px solid var(--accent-red);
+}
+
+.avatarContainer {
+  width: 140px; 
+  height: 140px; 
+  flex-shrink: 0;
+  border: 3px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+}
+.avatarContainer:hover { border-color: var(--accent-red); }
+
+.avatarImg { width: 100%; height: 100%; object-fit: cover; }
+
+.avatarEditOverlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.3s; cursor: pointer;
+}
+.avatarContainer:hover .avatarEditOverlay { opacity: 1; }
+
+/* Wrapper Principal */
+.headerInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Reduzido de 20px: Distância entre linha Info e Propósitos */
+  flex: 1;
+  width: 100%;
+}
+
+/* LINHA 1: Dados Pessoais (3 Colunas) */
+.headerInfoRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px; /* Reduzido de 15px: Distância horizontal */
+  width: 100%;
+}
+
+/* LINHA 2: Propósitos (4 Colunas) */
+.headerPurposeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr; 
+  /* Separei gap horizontal e vertical para controlar melhor */
+  column-gap: 10px; 
+  row-gap: 8px; /* << AQUI: Distância entre a linha de cima e a de baixo ficou bem menor */
+  
+  width: 100%;
+  padding-top: 0px; /* Reduzido de 15px */
+  border-top: 1px dashed #333;
+}
+
+/* --- RESPONSIVIDADE DO HEADER --- */
+@media (max-width: 1200px) {
+  /* Em telas médias, quebra para 2x2 */
+  .headerPurposeRow {
+    grid-template-columns: 1fr 1fr;
+    /* Com row-gap de 8px, eles ficam pertinho um em cima do outro */
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile */
+  .headerPanel { flex-direction: column; align-items: center; }
+  .avatarContainer { width: 120px; height: 120px; }
+  .headerInfoRow { grid-template-columns: 1fr; gap: 8px; }
+  .headerPurposeRow { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* --- CSS CORRIGIDO PARA ELEMENTOS FLUTUANTES --- */
+
+/* 1. Botão Redondo do Histórico (Fixo no canto inferior direito) */
+.fabHistory {
+  position: fixed; /* Garante que fique preso na TELA, não na página */
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--accent-red);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.1);
+  z-index: 10000; /* Z-index bem alto para ficar acima de tudo */
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.fabHistory:hover {
+  transform: scale(1.1);
+  background-color: var(--accent-hover);
+}
+
+/* 2. Janela de Histórico (Pop-over) */
+.historyPopover {
+  position: fixed; /* Fixo na tela */
+  bottom: 100px;   /* Logo acima do botão (30px bottom + 60px height + 10px gap) */
+  right: 30px;     /* Alinhado com o botão */
+  width: 320px;
+  max-height: 50vh; /* Ocupa no máximo 50% da altura da tela */
+  overflow-y: auto; /* Permite scroll dentro da caixinha se tiver muita coisa */
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 12px;
+  z-index: 10000;
+  box-shadow: 0 5px 30px rgba(0,0,0,0.9);
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Item individual do histórico */
+.historyItem {
+  background: rgba(255,255,255,0.05);
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 3px solid #555;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.historyItem:first-child { /* O item mais recente (se a lista estiver invertida) */
+  border-left-color: var(--accent-red);
+  background: rgba(183, 28, 28, 0.1);
+}
+
+/* --- TOAST REESTRUTURADO --- */
+
+.toastContainer {
+  position: fixed !important;
+  bottom: 110px !important;
+  right: 30px !important;
+  
+  width: 340px; /* Um pouco mais largo para caber nomes longos */
+  background-color: #1a1a1a;
+  color: white;
+  
+  border: 1px solid #444;
+  border-left: 5px solid var(--accent-red);
+  border-radius: 6px;
+  
+  padding: 0; /* Padding controlado pelos filhos agora */
+  overflow: hidden; /* Garante que nada saia da caixa */
+  
+  box-shadow: 0 5px 30px rgba(0,0,0,0.95);
+  z-index: 100000;
+  animation: slideInRight 0.3s ease-out;
+  cursor: pointer;
+}
+
+/* Cabeçalho do Toast (Onde fica o título) */
+.toastHeader {
+  background-color: rgba(255,255,255,0.05);
+  padding: 10px 15px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.toastLabel {
+  font-weight: bold;
+  font-size: 0.8rem;
+  color: var(--accent-red);
+  letter-spacing: 1px;
+}
+
+.toastTitle {
+  font-size: 0.95rem;
+  color: #ddd;
+  font-weight: 600;
+  
+  /* Lógica para cortar texto muito longo (Ex: Assimilação...) */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  max-width: 200px;
+}
+
+/* Container dos Dados */
+.toastDiceContainer {
+  padding: 15px;
+  display: flex;
+  flex-wrap: wrap; /* Permite quebrar linha se tiver muitos dados */
+  gap: 8px;
+  justify-content: flex-end; /* Alinha os dados à direita */
+  max-height: 300px; /* Limite de altura se tiver 50 dados */
+  overflow-y: auto;
+}
+
+/* Caixinha individual de cada dado */
+.toastDieBox {
+  background: rgba(0,0,0,0.3);
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  min-width: 45px;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.toastDieType {
+  font-size: 0.65rem;
+  color: #777;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.toastDieValue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+/* --- HISTÓRICO DE ROLAGENS (REFORMULADO) --- */
+
+/* Janela Flutuante */
+.historyPopover {
+  position: fixed !important;
+  bottom: 100px !important;
+  right: 30px !important;
+  
+  width: 340px;
+  max-height: 60vh; /* Altura máxima maior */
+  
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-left: 4px solid var(--accent-red);
+  border-radius: 6px;
+  
+  display: flex;
+  flex-direction: column;
+  
+  z-index: 99999;
+  box-shadow: 0 5px 30px rgba(0,0,0,0.95);
+  animation: slideInUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Cabeçalho do Histórico */
+.historyHeader {
+  padding: 12px 15px;
+  background-color: rgba(255,255,255,0.05);
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.historyTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: #ddd;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.clearBtn:hover { color: var(--accent-red); }
+
+/* Lista de Itens (Scrollável) */
+.historyList {
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Item Individual */
+.historyItem {
+  background-color: rgba(0,0,0,0.3);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 10px;
+  transition: background 0.2s;
+}
+
+.historyItem:hover {
+  background-color: rgba(255,255,255,0.02);
+  border-color: #555;
+}
+
+/* Linha Superior do Item (Nome e Hora) */
+.histTopRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.histSkillName {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #ccc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.histTime {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+/* Grid de Dados (Miniatura) */
+.histDiceGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Caixinha do Dado Individual */
+.histDie {
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 3px;
+  min-width: 32px;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.histDieType {
+  font-size: 0.55rem;
+  color: #555;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.histDieVal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #eee;
+}
+
+.histImg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+/* Animações Auxiliares */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

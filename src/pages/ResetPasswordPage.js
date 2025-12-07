@@ -1,9 +1,9 @@
+/* ResetPasswordPage.js */
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import "../styles/auth.css";
+
+import styles from './CampaignForm.css'; // Reutilizando o CSS do CampaignForm
 
 const ResetPasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -17,7 +17,7 @@ const ResetPasswordPage = () => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem');
+      setError('AS SENHAS NÃO CONFEREM.');
       return;
     }
 
@@ -27,48 +27,69 @@ const ResetPasswordPage = () => {
         password
       });
       
-      setMessage(response.data.message);
+      setMessage("SENHA REDEFINIDA COM SUCESSO. REDIRECIONANDO...");
+      setError('');
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao redefinir senha');
+      setError(err.response?.data?.message || 'ERRO AO REDEFINIR SENHA.');
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
-        <h2 className="auth-title">Redefinir Senha</h2>
-        <form onSubmit={handleSubmit} className="auth-form">
-          <TextField
-            type="password"
-            label="Nova Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            type="password"
-            label="Confirmar Senha"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            fullWidth
-            margin="normal"
-          />
-          <Button 
+    <div className="campaign-form-page" style={{ alignItems: 'center' }}> 
+      {/* Reutilizando o container do CampaignForm para pegar o fundo fixo e layout */}
+      
+      <div className="nero-form-card" style={{ maxWidth: '450px', padding: '40px' }}>
+        <h2 className="form-title" style={{ fontSize: '1.5rem', marginBottom: '30px' }}>
+          REDEFINIR CREDENCIAIS
+        </h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group" style={{ marginBottom: '20px' }}>
+            <label style={{ fontFamily: 'Roboto Condensed', color: '#888', fontWeight: 'bold' }}>NOVA SENHA</label>
+            <input
+              type="password"
+              className="nero-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div className="form-group" style={{ marginBottom: '30px' }}>
+            <label style={{ fontFamily: 'Roboto Condensed', color: '#888', fontWeight: 'bold' }}>CONFIRMAR SENHA</label>
+            <input
+              type="password"
+              className="nero-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button 
             type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
+            className="btn-nero btn-primary"
+            style={{ width: '100%', justifyContent: 'center' }}
           >
-            Redefinir Senha
-          </Button>
-          {message && <p style={{ color: "green" }}>{message}</p>}
-          {error && <p style={{ color: "red" }}>{error}</p>}
+            ATUALIZAR ACESSO
+          </button>
+
+          {message && (
+            <div style={{ marginTop: '20px', color: '#4caf50', textAlign: 'center', fontFamily: 'Orbitron', fontSize: '0.9rem' }}>
+              {message}
+            </div>
+          )}
+          
+          {error && (
+            <div style={{ marginTop: '20px', color: '#bd2c2c', textAlign: 'center', fontFamily: 'Orbitron', fontSize: '0.9rem', fontWeight: 'bold' }}>
+              {error}
+            </div>
+          )}
         </form>
       </div>
     </div>

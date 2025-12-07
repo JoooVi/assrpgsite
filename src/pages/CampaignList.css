@@ -1,223 +1,199 @@
-/* Container principal (mantido) */
+/* --- CampaignList.css --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap');
+
+/* Container Principal */
 .campaignList {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 20px;
+  padding: 120px 20px 60px 20px; /* Espaço para navbar */
   width: 100%;
-}
-
-/* Título da página (mantido) */
-.campaignList h2 {
-  color: #fff;
-  margin-bottom: 20px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2.1rem;
-  letter-spacing: 2px;
-}
-
-/* Container dos cards (mantido) */
-.campaignCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); /* Mantido o minmax */
-  gap: 30px;
-  width: 100%;
-  max-width: 1300px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Card individual da campanha --- ALTERADO --- */
+/* Título */
+.campaignList h2 {
+  color: #fff;
+  margin-bottom: 40px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(138, 28, 24, 0.6);
+  border-bottom: 2px solid #333;
+  padding-bottom: 15px;
+  width: 100%;
+  text-align: left;
+}
+
+/* Grid de Cards */
+.campaignCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 30px;
+  width: 100%;
+}
+
+/* --- CARD DE CAMPANHA (ESTILO ARQUIVO/MISSÃO) --- */
 .campaignCard {
-  display: flex; /* USA FLEXBOX */
-  flex-direction: column; /* IMAGEM EM CIMA, CONTEÚDO EM BAIXO */
-  /* min-height: 160px; /* REMOVIDO - A altura será definida pelo conteúdo + imagem */
-  background: rgba(28, 37, 54, 0.85);
-  border: 1px solid #2a3b5a;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-left: 4px solid #8a1c18; /* Identidade Nero */
   transition: all 0.3s ease;
   opacity: 0;
   animation: fadeIn 0.5s ease-out forwards;
-  overflow: hidden; /* IMPORTANTE: Para cortar a imagem nos cantos arredondados */
-  /* padding: 0; /* REMOVIDO - Padding vai para contentPane */
+  position: relative;
+  overflow: hidden;
+  height: 100%;
 }
-
-/* --- NOVO: Estilo para a imagem da capa --- */
-.campaignCardImage {
-  width: 100%; /* Ocupa toda a largura */
-  height: 140px; /* Altura fixa (ajusta se quiseres) */
-  object-fit: cover; /* Cobre o espaço sem distorcer */
-  /* border-bottom: 1px solid #2a3b5a; /* Linha divisória opcional */
-}
-/* --- FIM DO NOVO ESTILO --- */
 
 .campaignCard:hover {
-  border-color: rgba(76, 134, 255, 0.5);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
   transform: translateY(-5px);
+  border-color: #666;
+  border-left-color: #ff3333;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 
-/* ContentPane --- ALTERADO --- */
+/* Imagem da Capa */
+.campaignCardImage {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-bottom: 1px solid #333;
+  filter: grayscale(80%) brightness(0.7); /* Look sombrio inicial */
+  transition: all 0.4s ease;
+}
+
+.campaignCard:hover .campaignCardImage {
+  filter: grayscale(0%) brightness(1); /* Ganha vida no hover */
+}
+
+/* Conteúdo do Card */
 .contentPane {
-  flex-grow: 1; /* Ocupa o espaço restante abaixo da imagem */
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 25px; /* ADICIONADO o padding que estava no card */
+  padding: 20px;
 }
 
-/* Estilos internos (mantidos) */
 .campaignInfo {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .campaignName {
   font-family: 'Orbitron', sans-serif !important;
   font-weight: 700 !important;
   color: #fff;
-  margin-bottom: 12px !important;
-  font-size: 1.2rem !important;
+  margin-bottom: 10px !important;
+  font-size: 1.3rem !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.infoText {
-  color: #b0c4de;
-  font-size: 0.95rem !important;
-  margin-bottom: 5px;
+/* Dados da campanha (Mestre, Jogadores) */
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #333;
+  padding: 8px 0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  color: #aaa;
 }
 
+.infoLabel { text-transform: uppercase; font-weight: bold; font-size: 0.85rem; color: #666; }
+.infoValue { color: #ddd; font-weight: 600; }
+
+.status-active { color: #4caf50; text-shadow: 0 0 5px rgba(76, 175, 80, 0.4); }
+.status-inactive { color: #f44336; }
+
+/* Botões de Ação */
 .cardActions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(176, 196, 222, 0.2);
+  margin-top: auto;
   padding-top: 15px;
-  margin-top: 15px; /* Adicionado espaço acima das ações */
+  gap: 10px;
 }
 
-.actionButton {
-  color: #b0c4de !important;
-  border-color: rgba(176, 196, 222, 0.3) !important;
-  font-family: 'Orbitron', sans-serif !important;
+.btn-open {
+  flex: 1;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #444;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  padding: 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
 }
 
-.actionButton:hover {
-  background-color: rgba(76, 134, 255, 0.1) !important;
-  border-color: #4c86ff !important;
-  color: #fff !important;
+.btn-open:hover {
+  background: #8a1c18;
+  border-color: #ff3333;
 }
 
-.deleteButton {
-  color: #b0c4de !important;
+.btn-delete {
+  background: transparent;
+  border: 1px solid #333;
+  color: #666;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.deleteButton:hover {
-  color: #ff8a8a !important;
-  background-color: rgba(255, 100, 100, 0.1) !important;
+.btn-delete:hover {
+  color: #ff3333;
+  border-color: #ff3333;
+  background: rgba(255, 0, 0, 0.1);
 }
 
-/* Animação e outras seções (mantidos) */
+/* --- ESTADOS VAZIOS E LOADING --- */
+.noCampaigns, .loadingIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  width: 100%;
+}
+
+.noCampaignsBox {
+  background: rgba(10, 10, 10, 0.9);
+  border: 1px solid #333;
+  border-top: 3px solid #8a1c18;
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+}
+
+.noCampaignsText {
+  color: #ccc !important;
+  font-family: 'Rajdhani', sans-serif !important;
+}
+
+/* Animação */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.noCampaigns, .loadingIndicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 60vh;
-    color: #fff;
-}
-
-.noCampaignsText {
-    margin-bottom: 20px !important;
-}
-
-/* Responsividade (mantida - apenas ajusta colunas do grid) */
+/* Responsividade */
 @media (max-width: 768px) {
-    .campaignCards {
-        grid-template-columns: 1fr;
-    }
-    /* Opcional: Reduzir minmax para telas menores */
-     .campaignCards {
-         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Reduzido o minmax */
-     }
-}
-
-/* Opcional: Breakpoint menor para 1 coluna */
-@media (max-width: 480px) {
-    .campaignCards {
-        grid-template-columns: 1fr;
-        gap: 20px; /* Menos gap */
-    }
-     .campaignCardImage {
-         height: 120px; /* Imagem menor */
-     }
-      .contentPane {
-          padding: 15px; /* Menos padding */
-      }
-      .campaignName {
-          font-size: 1.1rem !important;
-      }
-      .infoText {
-          font-size: 0.9rem !important;
-      }
-
-      /* DENTRO DE @media (max-width: 600px) */
-
-    /* Grid de Ações: Centralizado e com wrap */
-    .actionsGrid {
-        justify-content: center !important;
-        flex-wrap: wrap;
-        gap: 10px; /* Aumenta o gap ligeiramente */
-    }
-    .actionsGridItem {
-        /* --- ALTERADO --- */
-        /* width: calc(50% - 8px); /* REMOVIDO - Deixa o flex decidir */
-        flex-basis: auto; /* Permite largura natural */
-        flex-grow: 1; /* Permite crescer até um limite */
-        max-width: 250px; /* LIMITE MÁXIMO para não esticar demais */
-        display: flex; /* Mantém flex */
-        justify-content: center; /* CENTRALIZA o botão dentro do item */
-         /* --- FIM DA ALTERAÇÃO --- */
-    }
-    .actionsGridItem .MuiButton-root {
-        /* --- ALTERADO --- */
-        /* width: 100%; /* REMOVIDO - Não força largura total */
-        /* --- FIM DA ALTERAÇÃO --- */
-        justify-content: center;
-        font-size: 0.75rem !important;
-        padding: 6px 10px !important; /* Ajustado padding */
-        white-space: nowrap; /* Evita quebra de linha no texto do botão */
-    }
-     /* Remove a regra do last-child ímpar, pois não é mais necessária */
-     /* .actionsGridItem:last-child:nth-child(odd) { ... } REMOVIDO */
-
-     /* ... (restante das regras mobile) ... */
-
-     /* Layout do ListItem em mobile (Botões "Ver Ficha", etc.) */
-    .characterListItem {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-    .characterListItem .MuiListItemText-root {
-        margin-right: 0;
-        width: 100%;
-    }
-     .characterListItem .MuiBox-root { /* Container dos botões Ver Ficha, etc. */
-         width: 100%;
-         justify-content: flex-start; /* Mantém à esquerda */
-         gap: 10px !important;
-         /* --- ADICIONADO: Permite quebrar linha se necessário --- */
-         flex-wrap: wrap;
-     }
-      /* Garante que os botões não estiquem */
-      .characterListItem .MuiButton-root,
-      .characterListItem .MuiIconButton-root {
-          padding: 6px 10px !important;
-          /* --- ADICIONADO: Impede crescimento excessivo --- */
-          flex-grow: 0;
-          flex-shrink: 0;
-      }
+  .campaignCards {
+    grid-template-columns: 1fr;
+  }
+  .campaignList h2 {
+    font-size: 1.5rem;
+  }
 }

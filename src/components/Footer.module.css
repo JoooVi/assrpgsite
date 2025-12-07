@@ -1,9 +1,33 @@
+/* --- Footer.module.css --- */
+
+/* Import pode ser redundante se já estiver no index ou Navbar, mas garante funcionamento isolado */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&display=swap');
+
 .footerContainer {
-  background-color: #000000;
-  color: #fff;
+  background: linear-gradient(to top, #000000 0%, #0a0a0a 100%);
+  color: #cfcfcf; /* Texto levemente cinza para contraste */
   text-align: left;
-  padding: 1rem 2rem; /* Reduz o padding geral */
+  padding: 3rem 2rem 2rem 2rem;
   margin-top: auto;
+  font-family: 'Rajdhani', sans-serif;
+  
+  /* Borda superior tática */
+  border-top: 3px solid #8a1c18; 
+  position: relative;
+}
+
+/* Detalhe visual (pequena tag no topo do footer) */
+.footerContainer::before {
+  content: "SYSTEM_END // NERO_IND";
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background-color: #8a1c18;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 0 8px;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .footerWrapper {
@@ -15,58 +39,149 @@
 
 .footerLinksContainer {
   display: flex;
-  flex-wrap: wrap; /* Links se ajustam automaticamente */
-  gap: 1rem; /* Espaçamento entre colunas */
-  justify-content: flex-start; /* Alinha os links à esquerda */
-  margin-bottom: 0.5rem; /* Reduz o espaço entre os links e o divisor */
-  font-size: small;
+  flex-wrap: wrap;
+  gap: 2rem; /* Mais espaço entre colunas */
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
 .footerLinksRow {
   display: flex;
-  flex-direction: column; /* Cada "linha" de links é uma coluna */
-  max-width: 150px; /* Limita a largura de cada coluna */
-  gap: 0.5rem; /* Reduz o espaçamento entre os links dentro da coluna */
+  flex-direction: column;
+  min-width: 150px;
+  gap: 0.8rem;
 }
 
 .links {
-  color: #fff;
-  padding: 0.1rem 0; /* Espaçamento reduzido */
+  color: #a0a0a0;
+  padding: 0.2rem 0;
   text-decoration: none;
-  transition: color 0.3s;
+  transition: all 0.3s ease;
+  display: inline-block;
+  font-weight: 500;
+  position: relative;
 }
 
+/* Efeito de "Seleção" ao passar o mouse */
 .links:hover {
-  color: #67110e;
+  color: #ff3333; /* Vermelho vivo */
+  transform: translateX(5px); /* Move levemente para direita */
+  text-shadow: 0 0 8px rgba(255, 51, 51, 0.4);
+}
+
+.links::before {
+  content: ">";
+  opacity: 0;
+  margin-right: 5px;
+  color: #8a1c18;
+  transition: opacity 0.3s;
+}
+
+.links:hover::before {
+  opacity: 1;
 }
 
 .iconLinksContainer {
   display: flex;
-  justify-content: flex-end; /* Ícones alinhados à direita */
-  gap: 0.5rem;
-  margin-top: 0.5rem; /* Reduz o espaço entre os ícones e os links */
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
 .icon {
-  width: 20px; /* Ícones menores */
-  height: 20px;
-  transition: transform 0.3s;
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+  filter: grayscale(100%) opacity(0.7); /* Ícones apagados por padrão */
 }
 
 .icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.2);
+  filter: grayscale(0%) opacity(1); /* Cor original e brilho no hover */
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
 }
 
 .divider {
-  margin: 1rem 0; /* Reduz o espaço ao redor do divisor */
-  border-top: 1px solid #fff;
+  margin: 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); /* Profundidade na linha */
 }
 
 .footerTextContainer {
-  margin-top: 0.5rem; /* Aproxima o texto do divisor */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  opacity: 0.6;
 }
 
 .footerText {
-  font-size: 0.8rem; /* Texto menor */
-  margin: 0.2rem 0;
+  font-size: 0.85rem;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+/* Responsividade do Footer */
+@media (max-width: 768px) {
+  .footerLinksContainer {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .iconLinksContainer {
+    justify-content: flex-start; /* Alinha ícones à esquerda no mobile */
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .footerContainer::before {
+    display: none; /* Esconde a tag superior em telas pequenas */
+  }
+}
+
+.footerContainer {
+  /* Fundo preto que se funde com o final da Home */
+  background-color: #000000;
+  color: #cfcfcf;
+  text-align: left;
+  padding: 3rem 2rem 2rem 2rem;
+  margin-top: auto;
+  font-family: 'Rajdhani', sans-serif;
+  position: relative;
+
+  /* --- MUDANÇA AQUI: Removemos o border-top sólido --- */
+  border-top: none; 
+
+  /* Adicionamos uma sombra subindo para misturar com a imagem de cima */
+  box-shadow: 0 -30px 40px rgba(0, 0, 0, 1);
+}
+
+/* --- NOVO EFEITO: Linha de "Laser" que desaparece nas pontas --- */
+/* Isso cria uma linha vermelha sutil apenas no centro, muito mais elegante */
+.footerContainer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%; /* Começa 10% da esquerda */
+  width: 80%; /* Ocupa 80% da tela (não toca as bordas) */
+  height: 1px; /* Linha fina */
+  
+  /* Gradiente: Transparente -> Vermelho -> Transparente */
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(138, 28, 24, 0.8) 50%, 
+    transparent 100%
+  );
+  
+  /* Um leve brilho na linha */
+  box-shadow: 0 0 10px rgba(138, 28, 24, 0.5);
+  opacity: 0.7;
+}
+
+/* --- REMOVENDO A ETIQUETA FLUTUANTE --- */
+/* Aquela tag "SYSTEM_END" estava perdida no layout, melhor tirar */
+.footerContainer::before {
+  display: none;
 }

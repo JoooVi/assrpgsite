@@ -1,36 +1,35 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./HomePage.css"; // Estilos da página inicial
-import Button from "@mui/material/Button";
+import "./HomePage.css"; 
 
 const HomePage = () => {
-  console.log("HomePage renderizada");
   return (
-    <div className="homepage-container">
+    // Se a imagem de fundo for dinâmica, coloque: style={{ backgroundImage: `url(${suaImagem})` }}
+    <div className="homepage-container" style={{backgroundImage: "url('/caminho/para/sua/imagem-de-fundo.jpg')"}}>
+      
       <div className="homepage-content">
-        <h1 className="homepage-title">NERO INDUSTRIES</h1>
-        <p className="homepage-description">
-        Bem-vindo ao Sistema de Recrutamento da Nero Industries. Sua sobrevivência é nossa prioridade. Complete seu cadastro e torne-se parte da solução.
-        </p>
+        <h1 className="homepage-title">
+          NERO <span className="title-highlight">INDUSTRIES</span>
+        </h1>
+        
+        <div className="homepage-description">
+          <p className="status-label">
+            // STATUS DO SISTEMA: <span className="status-alert">CRÍTICO</span>
+          </p>
+          <p style={{margin: 0, lineHeight: '1.6'}}>
+            Bem-vindo ao Sistema de Recrutamento. Sua sobrevivência é nossa prioridade. 
+            Complete seu cadastro e torne-se parte da solução.
+          </p>
+        </div>
+        
         <div className="homepage-links">
-          <Button
-            component={Link}
-            to="/register"
-            variant="contained"
-            style={{ backgroundColor: "#67110e", color: "#fff" }}
-            className="homepage-link"
-          >
+          <Link to="/register" className="btn-home btn-primary">
             Cadastrar
-          </Button>
-          <Button
-            component={Link}
-            to="/login"
-            variant="contained"
-            style={{ backgroundColor: "#67110e", color: "#fff" }}
-            className="homepage-link"
-          >
-            Entrar
-          </Button>
+          </Link>
+          
+          <Link to="/login" className="btn-home btn-secondary">
+            Acessar Sistema
+          </Link>
         </div>
       </div>
     </div>

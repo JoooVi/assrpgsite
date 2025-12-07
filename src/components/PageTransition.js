@@ -1,18 +1,20 @@
 import { motion } from 'framer-motion';
 
-
 const animationVariants = {
   initial: {
     opacity: 0,
-    y: 20, // Começa 20px para baixo
+    scale: 0.98, // Começa levemente menor (fundo)
+    filter: 'blur(8px)', // Começa desfocado
   },
   animate: {
     opacity: 1,
-    y: 0, // Move para a posição original
+    scale: 1, // Tamanho normal
+    filter: 'blur(0px)', // Foca a imagem
   },
   exit: {
     opacity: 0,
-    y: -20, // Sai 20px para cima
+    scale: 1.02, // Aumenta um pouco ao sair (vem para frente)
+    filter: 'blur(8px)',
   },
 };
 
@@ -23,7 +25,9 @@ const PageTransition = ({ children }) => {
       initial="initial"
       animate="animate"
       exit="exit"
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
+      // Usamos 'easeOut' para entrada rápida e saída suave
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      style={{ width: '100%' }} // Garante que não quebre o layout
     >
       {children}
     </motion.div>

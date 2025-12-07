@@ -1,37 +1,21 @@
+/* src/components/AssimilationsModal.js */
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllAssimilations } from "../redux/slices/assimilationsSlice";
-import {
-  Modal,
-  Backdrop,
-  Fade,
-  Box,
-  Typography,
-  Button,
-  TextField,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Divider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import AddIcon from "@mui/icons-material/Add";
+import { FaSearch, FaTimes, FaPlus, FaChevronDown, FaChevronUp, FaFilter } from "react-icons/fa";
+import "../pages/Homebrews.css";
 
 const AssimilationsModal = ({
   open,
   handleClose,
-  title,
-  onItemSelect,
-  onCreateNewAssimilation,
+  onItemSelect
 }) => {
   const dispatch = useDispatch();
-  const { allAssimilations, userAssimilations, loading } = useSelector(
-    (state) => state.assimilations
-  );
+  const { allAssimilations, userAssimilations, loading } = useSelector((state) => state.assimilations);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     if (open) {
@@ -39,207 +23,141 @@ const AssimilationsModal = ({
     }
   }, [dispatch, open]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [expanded, setExpanded] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  // Combinar e Remover Duplicatas
+  const combined = [...allAssimilations, ...userAssimilations].reduce((acc, current) => {
+      const x = acc.find(item => item._id === current._id);
+      if (!x) { return acc.concat([current]); }
+      return acc;
+  }, []);
 
-  // Combinar assimilações do sistema e do usuário
-  const combinedAssimilations = [
-    ...allAssimilations,
-    ...userAssimilations
-  ].filter((item, index, self) =>
-    self.findIndex((t) => t._id === item._id) === index
-  );
+  // Categorias únicas para o filtro
+  const categories = [...new Set(combined.map(item => item.category))].filter(Boolean);
 
-  // Extrair categorias da lista combinada
-  const categories = [
-    ...new Set(combinedAssimilations.map((item) => item.category)),
-  ].filter(Boolean);
+  // Filtragem
+  const filtered = combined
+      .filter(item => !selectedCategory || item.category === selectedCategory)
+      .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleAccordionChange = (index) => (event, isExpanded) => {
-    setExpanded(isExpanded ? index : null);
+  // --- CORES DAS CARTAS ---
+  const getEvolutionStyle = (type) => {
+      const t = type ? type.toLowerCase() : "";
+      
+      if (t === 'copas') {
+          return { color: '#ff5252' }; // Vermelho
+      }
+      if (t === 'espadas' || t === 'inoportuna') {
+          return { color: '#4c86ff' }; // Azul
+      }
+      if (t === 'paus' || t === 'singular') {
+          return { color: '#d05ce3' }; // Roxo (Paus/Singular)
+      }
+      if (t === 'ouros' || t === 'adaptativa') {
+          // Mescla (Gradiente)
+          return { 
+            background: "linear-gradient(to right, #ff5252, #4c86ff)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            display: "inline-block",
+            fontWeight: "bold"
+          };
+      }
+      return { color: '#eee' }; // Padrão
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const handleCategoryChange = (event) => {
-    setSelectedCategory(event.target.value);
-  };
-
-  // Filtrar a lista combinada
-  const displayedAssimilations = combinedAssimilations
-    .filter((item) => !selectedCategory || item.category === selectedCategory)
-    .filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  if (!open) return null;
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      closeAfterTransition
-      BackdropComponent={Backdrop}
-      BackdropProps={{ timeout: 500 }}
-    >
-      <Fade in={open}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "80%",
-            maxWidth: 900,
-            height: "80%",
-            bgcolor: "#1e1e2f",
-            borderRadius: "8px",
-            p: 3,
-            boxShadow: 24,
-            color: "white",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Typography variant="h6" mb={2}>
-            {title}
-          </Typography>
-          <Box
-            sx={{
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-              bgcolor: "#1e1e2f",
-              pb: 2,
-            }}
-          >
-            <FormControl
-              fullWidth
-              variant="outlined"
-              margin="normal"
-              sx={{
-                "& .MuiInputLabel-root": { color: "#bbb" },
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "#38394a",
-                  color: "white",
-                  "& fieldset": { borderColor: "#555" },
-                  "&:hover fieldset": { borderColor: "#777" },
-                  "&.Mui-focused fieldset": { borderColor: "#aaa" },
-                },
-                "& .MuiSelect-icon": { color: "white" },
-              }}
-            >
-              <InputLabel>Categoria</InputLabel>
-              <Select
-                value={selectedCategory}
-                onChange={handleCategoryChange}
-                label="Categoria"
-              >
-                <MenuItem value="">
-                  <em>Todas</em>
-                </MenuItem>
-                {categories.map((category, index) => (
-                  <MenuItem key={index} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+    <div className="nero-modal-overlay" onClick={(e) => e.target.className === 'nero-modal-overlay' && handleClose()}>
+      <div className="nero-modal">
+          <div className="nero-modal-header">
+             <span>SELECIONAR ASSIMILAÇÃO</span>
+             <button onClick={handleClose} style={{background:'transparent', border:'none', color:'#666', cursor:'pointer'}}><FaTimes size={18}/></button>
+          </div>
 
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              sx={{
-                mb: 3,
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "#292a3a",
-                  color: "white",
-                },
-              }}
-            />
-          </Box>
-          <Box sx={{ flexGrow: 1, overflow: "auto", mb: 2 }}>
-            {loading ? (
-              <Typography>Carregando...</Typography>
-            ) : displayedAssimilations.length > 0 ? (
-              displayedAssimilations.map((item, index) => (
-                <Accordion
-                  key={item._id}
-                  expanded={expanded === index}
-                  onChange={handleAccordionChange(index)}
-                  sx={{ bgcolor: "transparent", color: "white", mt: 1 }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        width: "100%",
-                      }}
-                    >
-                      <Typography variant="body1" fontWeight="bold">
-                        {item.name}
-                        <Typography variant="caption" sx={{ ml: 1, color: '#888' }}>
-                          ({item.isCustom ? 'Personalizada' : 'Sistema'})
-                        </Typography>
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="secondary"
-                        startIcon={<AddIcon />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onItemSelect(item);
-                        }}
-                      >
-                        Adicionar
-                      </Button>
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography variant="body2">
-                      <strong>Descrição:</strong> {item.description}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Categoria:</strong> {item.category}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Custo de Sucesso:</strong> {item.successCost}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Custo de Adaptação:</strong> {item.adaptationCost}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Custo de Pressão:</strong> {item.pressureCost}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Tipo de Evolução:</strong> {item.evolutionType}
-                    </Typography>
-                    <Divider sx={{ my: 1, bgcolor: "#444" }} />
-                  </AccordionDetails>
-                </Accordion>
-              ))
-            ) : (
-              <Typography>Nenhuma assimilação encontrada.</Typography>
-            )}
-          </Box>
-          <Button
-            fullWidth
-            variant="contained"
-            color="secondary"
-            onClick={handleClose}
-          >
-            Fechar
-          </Button>
-        </Box>
-      </Fade>
-    </Modal>
+          <div className="nero-modal-body">
+              <div style={{display:'flex', gap:'10px', marginBottom:'20px'}}>
+                   <div style={{position:'relative', flex:1}}>
+                        <FaSearch style={{position:'absolute', left:'10px', top:'12px', color:'#666'}}/>
+                        <input 
+                            className="nero-input" 
+                            placeholder="Buscar..." 
+                            value={searchTerm} 
+                            onChange={(e)=>setSearchTerm(e.target.value)} 
+                            style={{paddingLeft:'35px'}}
+                        />
+                   </div>
+                   <div style={{position:'relative', width:'150px'}}>
+                       <FaFilter style={{position:'absolute', left:'10px', top:'12px', color:'#666'}}/>
+                       <select 
+                            className="nero-select" 
+                            value={selectedCategory} 
+                            onChange={(e)=>setSelectedCategory(e.target.value)}
+                            style={{paddingLeft:'30px'}}
+                        >
+                            <option value="">TODAS</option>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                       </select>
+                   </div>
+              </div>
+
+              {loading ? <div style={{textAlign:'center', color:'#fff'}}>Carregando dados...</div> : (
+                 <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+                     {filtered.map((item) => (
+                         <div key={item._id} className={`hb-card ${expandedId === item._id ? 'expanded' : ''}`} style={{background:'#121212'}}>
+                             
+                             {/* HEADER */}
+                             <div className="hb-card-header" onClick={() => setExpandedId(expandedId===item._id?null:item._id)} style={{padding:'12px'}}>
+                                 <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                                     
+                                     {/* NOME + COR */}
+                                     <span className="hb-card-title" style={getEvolutionStyle(item.evolutionType)}>
+                                        {item.name}
+                                     </span>
+                                     
+                                     {/* BADGE HOMEBREW */}
+                                     {item.isCustom && (
+                                        <span style={{
+                                            fontSize:'0.6rem',
+                                            background:'#222',
+                                            border:'1px solid #444',
+                                            color:'#aaa',
+                                            padding:'2px 6px',
+                                            borderRadius:'3px',
+                                            fontFamily: 'Orbitron',
+                                            letterSpacing: '1px'
+                                        }}>
+                                            HB
+                                        </span>
+                                     )}
+                                 </div>
+
+                                 <span style={{fontSize:'0.8rem', color:'#666', textTransform:'uppercase'}}>
+                                    {item.evolutionType}
+                                 </span>
+                             </div>
+
+                             {/* DETALHES */}
+                             {expandedId === item._id && (
+                                 <div className="hb-card-body">
+                                     <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'10px', textAlign:'center', background:'rgba(255,255,255,0.03)', padding:'10px'}}>
+                                          <div><span className="hb-label" style={{display:'block', fontSize:'0.7rem'}}>SUCESSO</span><span style={{fontFamily:'Orbitron', fontSize:'1.2rem', color:'#4caf50'}}>{item.successCost}</span></div>
+                                          <div><span className="hb-label" style={{display:'block', fontSize:'0.7rem'}}>ADAPT</span><span style={{fontFamily:'Orbitron', fontSize:'1.2rem', color:'#2196f3'}}>{item.adaptationCost}</span></div>
+                                          <div><span className="hb-label" style={{display:'block', fontSize:'0.7rem'}}>PRESSÃO</span><span style={{fontFamily:'Orbitron', fontSize:'1.2rem', color:'#ff9800'}}>{item.pressureCost}</span></div>
+                                     </div>
+                                     <div className="hb-desc-box">{item.description}</div>
+                                     <button className="btn-nero btn-primary" onClick={() => onItemSelect(item)} style={{marginTop:'10px', width:'100%', justifyContent:'center'}}>
+                                        <FaPlus/> SELECIONAR
+                                     </button>
+                                 </div>
+                             )}
+                         </div>
+                     ))}
+                 </div>
+              )}
+          </div>
+          <div className="nero-modal-footer"><button className="btn-nero" onClick={handleClose}>FECHAR</button></div>
+      </div>
+    </div>
   );
 };
 

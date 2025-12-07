@@ -1,187 +1,117 @@
+/* src/components/CharacteristicsModal.js */
 import React, { useState } from "react";
-import {
-  Modal,
-  Backdrop,
-  Fade,
-  Box,
-  Typography,
-  Button,
-  TextField,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Divider,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import AddIcon from "@mui/icons-material/Add";
 import { useSelector } from "react-redux";
+import { FaSearch, FaTimes, FaPlus, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import "../pages/Homebrews.css"; // Garante que os estilos .nero-* funcionem
 
 const CharacteristicsModal = ({
   open,
   handleClose,
   title,
-  items = [], // Características padrão
-  homebrewItems = [], // Características personalizadas
+  items = [], // Características do sistema passadas como prop
+  homebrewItems = [], // Personalizadas passadas como prop (opcional)
   onItemSelect,
   onCreateNewHomebrew,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [expanded, setExpanded] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
-  const { characterTraits, loading, error } = useSelector(
-    (state) => state.characteristics
-  );
   const user = useSelector((state) => state.auth.user);
+  
+  // Se as props vierem vazias, tenta pegar do Redux (safety check)
+  const { characterTraits = [] } = useSelector((state) => state.characteristics);
 
-  const handleAccordionChange = (id) => (event, isExpanded) => {
-    setExpanded(isExpanded ? id : null);
+  // Lógica de Combinação de Listas
+  const traitsPool = items.length > 0 ? items : characterTraits;
+  
+  // Junta listas se homebrewItems for passado, ou filtra do pool principal
+  let displayList = [...traitsPool];
+  if (homebrewItems.length > 0) {
+      displayList = [...displayList, ...homebrewItems];
+  }
+  
+  // Remover duplicatas e filtrar por busca
+  const filteredList = displayList
+    .filter((item, index, self) => self.findIndex(t => t._id === item._id) === index) // Unique
+    .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const toggleExpand = (id) => {
+      setExpandedId(expandedId === id ? null : id);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  // Combinar características padrão e personalizadas
-  const allCharacteristics = [
-    ...items.map(item => ({ ...item, isCustom: false })), // Forçar flag isCustom
-    ...homebrewItems.map(item => ({ ...item, isCustom: true })) // Garantir consistência
-  ];
-
-  // Combinar e filtrar características
-  const filteredCharacteristics = allCharacteristics.filter(
-    (char) => !char.isCustom || char.createdBy === user._id
-  );
-
-  // Aplicar filtro de busca
-  const displayedCharacteristics = filteredCharacteristics.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (!open) return null;
 
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      closeAfterTransition
-      BackdropComponent={Backdrop}
-      BackdropProps={{ timeout: 500 }}
-    >
-      <Fade in={open}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "80%",
-            maxWidth: 900,
-            height: "80%",
-            bgcolor: "#1e1e2f",
-            borderRadius: "8px",
-            p: 3,
-            boxShadow: 24,
-            color: "white",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Typography variant="h6" mb={2}>
-            {title}
-          </Typography>
+    <div className="nero-modal-overlay" onClick={(e) => e.target.className === 'nero-modal-overlay' && handleClose()}>
+      <div className="nero-modal">
+        {/* HEADER */}
+        <div className="nero-modal-header">
+          <span style={{display:'flex', alignItems:'center', gap:'10px'}}>
+            SELECIONAR CARACTERÍSTICA
+          </span>
+          <button onClick={handleClose} style={{background:'transparent', border:'none', color:'#888', cursor:'pointer'}}>
+              <FaTimes size={18}/>
+          </button>
+        </div>
 
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Buscar..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: "#292a3a",
-                color: "white",
-              },
-            }}
-          />
+        {/* BODY */}
+        <div className="nero-modal-body">
+            {/* BARRA DE BUSCA */}
+            <div style={{position:'relative', marginBottom:'20px'}}>
+                <FaSearch style={{position:'absolute', left:'10px', top:'12px', color:'#666'}}/>
+                <input 
+                    type="text" 
+                    className="nero-input" 
+                    placeholder="Buscar característica..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{paddingLeft:'35px'}}
+                />
+            </div>
 
-          <Box sx={{ flexGrow: 1, overflow: "auto", mb: 2 }}>
-            {loading ? (
-              <Typography>Carregando...</Typography>
-            ) : displayedCharacteristics.length > 0 ? (
-              displayedCharacteristics.map((item) => (
-                <Accordion
-                  key={item._id}
-                  expanded={expanded === item._id}
-                  onChange={handleAccordionChange(item._id)}
-                  sx={{
-                    bgcolor: "transparent",
-                    color: "white",
-                    mt: 1,
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        color: "white",
-                      }}
-                    >
-                      <Typography variant="body1" fontWeight="bold">
-                        {item.name}
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="secondary"
-                        startIcon={<AddIcon />}
-                        onClick={() => onItemSelect(item)}
-                      >
-                        Adicionar
-                      </Button>
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Typography variant="body2">
-                      <strong>Descrição:</strong> {item.description}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Categoria:</strong> {item.category}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Pontos de Custo:</strong> {item.pointsCost}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Personalizado:</strong>{" "}
-                      {item.isCustom ? "Sim" : "Não"}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Criado por:</strong>{" "}
-                      {item.createdBy?.name || "Sistema"}
-                    </Typography>
-                    <Divider sx={{ my: 1, bgcolor: "#444" }} />
-                  </AccordionDetails>
-                </Accordion>
-              ))
-            ) : (
-              <Typography>Nenhuma característica encontrada.</Typography>
-            )}
-          </Box>
+            {/* LISTA DE ITENS */}
+            <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+                {filteredList.map((item) => (
+                    <div key={item._id} className={`hb-card ${expandedId === item._id ? 'expanded' : ''}`} style={{background:'#121212'}}>
+                        
+                        <div className="hb-card-header" onClick={() => toggleExpand(item._id)} style={{padding:'12px'}}>
+                             <span className="hb-card-title">{item.name}</span>
+                             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                                 {item.isCustom && <span style={{fontSize:'0.7rem', background:'#333', padding:'2px 6px', borderRadius:'2px', color:'#aaa'}}>Homebrew</span>}
+                                 {expandedId === item._id ? <FaChevronUp size={12}/> : <FaChevronDown size={12}/>}
+                             </div>
+                        </div>
 
-          <Box sx={{ mt: "auto" }}>
-            <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleClose}
-            >
-              Fechar
-            </Button>
-          </Box>
-        </Box>
-      </Fade>
-    </Modal>
+                        {expandedId === item._id && (
+                            <div className="hb-card-body">
+                                <div className="hb-info-row"><span className="hb-label">CATEGORIA</span> {item.category}</div>
+                                <div className="hb-info-row"><span className="hb-label">CUSTO</span> {item.pointsCost} Pts</div>
+                                <div className="hb-desc-box">{item.description}</div>
+                                
+                                <button 
+                                    className="btn-nero btn-primary" 
+                                    style={{marginTop:'15px', width:'100%', justifyContent:'center'}}
+                                    onClick={() => onItemSelect(item)}
+                                >
+                                    <FaPlus/> ADICIONAR
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ))}
+                {filteredList.length === 0 && <p style={{textAlign:'center', color:'#666'}}>Nenhuma característica encontrada.</p>}
+            </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="nero-modal-footer">
+           {/* Botão opcional para criar nova direto daqui se quiser implementar depois */}
+           <div style={{flex:1}}></div> 
+           <button className="btn-nero" onClick={handleClose}>FECHAR</button>
+        </div>
+
+      </div>
+    </div>
   );
 };
 

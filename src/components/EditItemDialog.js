@@ -1,42 +1,97 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Typography,
-  Grid,
-  Select,
-  List,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Checkbox,
-  FormControlLabel,
-  Box,
-} from "@mui/material";
+// O componente de CharacteristicsMenu precisa ser compatível ou removido se usar MUI
+// Assumindo que ele ainda use MUI, podemos deixá-lo encapsulado ou refatorar depois.
+// Se quiser remover MUI de TUDO, CharacteristicsMenu também precisará de atenção.
 import CharacteristicsMenu from "./CharacteristicsMenu";
 
-const scarcityLevels = { 0: 'Abundante', 1: 'Pedra', 2: 'Comum', 3: 'Incomum', 4: 'Atípico', 5: 'Raro', 6: 'Quase Extinto' };
+// --- DADOS ESTÁTICOS ---
+const scarcityLevels = { 
+  0: 'Abundante', 1: 'Pedra', 2: 'Comum', 
+  3: 'Incomum', 4: 'Atípico', 5: 'Raro', 6: 'Quase Extinto' 
+};
+
+const qualityLevels = {
+  0: "Quebrado", 1: "Defeituoso", 2: "Comprometido", 
+  3: "Padrão", 4: "Reforçado", 5: "Superior", 6: "Obra-Prima",
+};
+
 const resourceTypes = ['agua', 'comida', 'combustivel', 'pecas'];
 
-// --- NOVO ---
-// Adicionado mapa de qualidades para o <Select>
-const qualityLevels = {
-  0: "Quebrado",
-  1: "Defeituoso",
-  2: "Comprometido",
-  3: "Padrão",
-  4: "Reforçado",
-  5: "Superior",
-  6: "Obra-Prima",
+// --- ESTILOS CSS INLINE (PARA SUBSTITUIR MUI RAPIDAMENTE) ---
+// Em um projeto real, moveria para .module.css
+const styles = {
+  overlay: {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    backdropFilter: 'blur(3px)'
+  },
+  modal: {
+    backgroundColor: '#161616', border: '1px solid #444',
+    width: '90%', maxWidth: '800px', maxHeight: '90vh',
+    overflowY: 'auto', borderRadius: '4px',
+    boxShadow: '0 10px 40px rgba(0,0,0,1)', color: '#e0e0e0',
+    fontFamily: '"Roboto Condensed", sans-serif',
+    animation: 'fadeIn 0.2s ease-out'
+  },
+  header: {
+    padding: '16px 24px', borderBottom: '1px solid #333',
+    fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: '#111'
+  },
+  body: {
+    padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '20px'
+  },
+  column: {
+    flex: 1, minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '15px'
+  },
+  footer: {
+    padding: '16px 24px', borderTop: '1px solid #333',
+    display: 'flex', justifyContent: 'flex-end', gap: '10px',
+    backgroundColor: '#111'
+  },
+  label: {
+    display: 'block', fontSize: '0.8rem', color: '#9ca3af', 
+    fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px'
+  },
+  input: {
+    width: '100%', padding: '10px', backgroundColor: '#1f1f1f',
+    border: '1px solid #333', borderRadius: '3px', color: '#fff',
+    fontSize: '0.95rem', fontFamily: 'inherit',
+    boxSizing: 'border-box' // Importante para não quebrar layout
+  },
+  select: {
+    width: '100%', padding: '10px', backgroundColor: '#1f1f1f',
+    border: '1px solid #333', borderRadius: '3px', color: '#fff',
+    fontSize: '0.95rem', cursor: 'pointer'
+  },
+  checkboxContainer: {
+    display: 'flex', alignItems: 'center', gap: '10px',
+    padding: '10px', border: '1px solid #333', borderRadius: '4px',
+    backgroundColor: '#1a1a1a'
+  },
+  btn: {
+    padding: '10px 20px', border: 'none', borderRadius: '3px',
+    cursor: 'pointer', fontWeight: 'bold', textTransform: 'uppercase',
+    fontSize: '0.9rem', transition: '0.2s'
+  },
+  btnPrimary: {
+    backgroundColor: '#b71c1c', color: '#fff',
+  },
+  btnSecondary: {
+    backgroundColor: 'transparent', color: '#bbb', border: '1px solid #444'
+  },
+  flagsBox: {
+    padding: '15px', border: '1px solid #444', borderRadius: '4px',
+    backgroundColor: 'rgba(255,255,255,0.02)'
+  },
+  charList: {
+    maxHeight: '150px', overflowY: 'auto', 
+    backgroundColor: '#111', border: '1px solid #333', padding: '10px',
+    listStyle: 'none', marginTop: '5px'
+  }
 };
-// --- FIM NOVO ---
-
 
 const EditItemDialog = ({ editItem, onClose, onSave }) => {
   const [editedData, setEditedData] = useState(null);
@@ -45,28 +100,25 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
   useEffect(() => {
     if (editItem && editItem.invItemData) {
       const sourceItemData = editItem.invItemData.itemData || editItem.invItemData.item;
+      
       if (sourceItemData) {
-        const initialData = {
+        setEditedData({
             originalItemId: sourceItemData.originalItemId || editItem.invItemData.item?._id || null,
             name: sourceItemData.name || 'Nome Desconhecido',
             type: sourceItemData.type || 'Desconhecido',
             category: sourceItemData.category ?? 3,
             slots: sourceItemData.slots ?? 1,
-            // --- NOVO ---
-            // Lê a qualidade da INSTÂNCIA (invItemData), não do sourceItemData
-            quality: editItem.invItemData.quality ?? 3, 
-            // --- FIM NOVO ---
+            // A qualidade vem da instância do inventário
+            quality: editItem.invItemData.quality ?? 3,
             modifiers: sourceItemData.modifiers || [],
             isArtefato: sourceItemData.isArtefato || false,
             resourceType: sourceItemData.resourceType || null,
             isConsumable: sourceItemData.isConsumable || false,
             description: sourceItemData.description || "",
             characteristics: sourceItemData.characteristics ? JSON.parse(JSON.stringify(sourceItemData.characteristics)) : { points: 0, details: [] },
-        };
-        setEditedData(initialData);
+        });
       } else {
-         console.error("Item de inventário não contém dados válidos ('itemData' ou 'item')", editItem.invItemData);
-         setEditedData(null);
+         console.error("Dados inválidos no item");
          onClose();
       }
     } else {
@@ -74,114 +126,160 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
     }
   }, [editItem, onClose]);
 
-  const handleChange = (event) => {
-    const { name, value, type, checked } = event.target;
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
     setEditedData((prev) => {
-      let newValue;
-      if (type === 'checkbox') { newValue = checked; }
-      else if (name === 'modifiers') { newValue = value.split(',').map(m => m.trim()).filter(m => m); }
-      else if (name === 'slots') { 
-         const parsedValue = parseInt(value);
-         newValue = isNaN(parsedValue) ? 0 : parsedValue;
+      let newValue = value;
+
+      if (type === 'checkbox') newValue = checked;
+      else if (name === 'modifiers') newValue = value.split(',').map(m => m.trim());
+      else if (['slots', 'quality', 'category'].includes(name)) newValue = parseInt(value) || 0;
+
+      // Lógicas específicas de Reset
+      if (name === 'type' && !['Recurso', 'Consumivel'].includes(newValue)) {
+          return { ...prev, type: newValue, resourceType: null, isConsumable: false };
       }
-      // --- ALTERADO ---
-      // Adicionado 'quality' à lista de campos numéricos
-      else if (['quality', 'category'].includes(name)) { 
-          newValue = parseInt(value) || 0;
+      if (name === 'resourceType' && value === 'nenhum') {
+          return { ...prev, resourceType: null };
       }
-      // --- FIM ALTERADO ---
-      else { newValue = value; }
-      if (name === 'type' && !['Recurso', 'Consumivel'].includes(newValue)) { return { ...prev, type: newValue, resourceType: null, isConsumable: false }; }
-      if (name === 'resourceType' && value === 'nenhum') { return { ...prev, resourceType: null }; }
+
       return { ...prev, [name]: newValue };
     });
   };
 
-  const handleCharacteristicsChange = (updatedCharacteristicsData) => {
-     setEditedData(prev => ({ ...prev, characteristics: updatedCharacteristicsData }));
+  const handleCharacteristicsChange = (newChars) => {
+     setEditedData(prev => ({ ...prev, characteristics: newChars }));
      setShowCharacteristicsMenu(false);
   };
 
-  const handleSaveChanges = () => {
-    if (editedData && editItem && editItem.invItemData) {
-      // Passa o 'editedData' completo, que agora inclui a 'quality'
+  const handleSave = () => {
+    if (editedData) {
       onSave(editItem.invItemData, editedData);
       onClose();
-    } else {
-      console.error("Dados inválidos para salvar:", editItem, editedData);
-      alert("Erro: Não foi possível salvar as alterações.");
     }
   };
 
-  if (!editItem || !editedData) {
-    return null;
-  }
+  if (!editItem || !editedData) return null;
 
   return (
-    <Dialog open={true} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { bgcolor: '#1e1e1e', color: '#fff', border: '1px solid #4a4a4a' } }}>
-      <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a' }}> Editar Item: {editedData.name} </DialogTitle>
-      <DialogContent sx={{ paddingTop: '20px !important' }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <TextField name="name" label="Nome" value={editedData.name} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} />
-            
-            {/* --- NOVO: Campo de Qualidade --- */}
-            <FormControl fullWidth margin="dense" size="small" required sx={selectStyles}>
-              <InputLabel sx={inputLabelStyles}>Qualidade</InputLabel>
-              <Select name="quality" label="Qualidade" value={editedData.quality} onChange={handleChange}>
-                {Object.entries(qualityLevels).map(([value, name]) => (<MenuItem key={value} value={parseInt(value)}>{name}</MenuItem>))}
-              </Select>
-            </FormControl>
-            {/* --- FIM NOVO --- */}
-            
-            <FormControl fullWidth margin="dense" size="small" required sx={selectStyles}>
-              <InputLabel sx={inputLabelStyles}>Categoria (Escassez)</InputLabel>
-              <Select name="category" label="Categoria (Escassez)" value={editedData.category} onChange={handleChange}>
-                {Object.entries(scarcityLevels).map(([value, name]) => (<MenuItem key={value} value={parseInt(value)}>{name}</MenuItem>))}
-              </Select>
-            </FormControl>
-            
-            <TextField name="type" label="Tipo" value={editedData.type} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Ex: Equipamento, Arma, Vestimenta, Mochila, Recurso, Consumivel, Artefato" FormHelperTextProps={{ sx: helperTextStyles }} />
-            <TextField name="slots" label="Slots Ocupados (Base)" type="number" value={editedData.slots} onChange={handleChange} fullWidth margin="dense" size="small" required sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Valor base. 'Pesado' adiciona +1. 'Pequeno' = 0." FormHelperTextProps={{ sx: helperTextStyles }} />
-            <TextField name="modifiers" label="Modificadores (separados por vírgula)" value={editedData.modifiers?.join(', ') || ''} onChange={handleChange} fullWidth margin="dense" size="small" sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} helperText="Ex: Espaçoso:2, Pesado, Isento, Pequeno" FormHelperTextProps={{ sx: helperTextStyles }} />
-          </Grid>
-          {/* O restante do Grid (lado direito) continua igual */}
-          <Grid item xs={12} md={6}>
-             <Box sx={{ border: '1px solid #444', borderRadius: '4px', p: 1.5, mb: 2 }}>
-                <Typography variant="body2" sx={{ color: '#aaa', mb: 1 }}>Flags:</Typography>
-                <Grid container spacing={1}>
-                    <Grid item xs={12} sm={4}> <FormControlLabel control={<Checkbox name="isArtefato" checked={editedData.isArtefato} onChange={handleChange} sx={checkboxStyles}/>} label="Artefato" sx={{ color: '#ccc' }}/> </Grid>
-                    <Grid item xs={12} sm={4}> <FormControlLabel control={<Checkbox name="isConsumable" checked={editedData.isConsumable} onChange={handleChange} sx={checkboxStyles}/>} label="Consumível" sx={{ color: '#ccc' }} /> </Grid>
-                    <Grid item xs={12} sm={4}>
-                        <FormControl size="small" fullWidth sx={selectStyles}>
-                          <InputLabel sx={inputLabelStyles}>Tipo Recurso</InputLabel>
-                          <Select name="resourceType" label="Tipo Recurso" value={editedData.resourceType || 'nenhum'} onChange={handleChange}>
-                             <MenuItem value="nenhum">Nenhum</MenuItem>
-                             {resourceTypes.map(type => <MenuItem key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</MenuItem>)}
-                          </Select>
-                        </FormControl>
-                    </Grid>
-                </Grid>
-             </Box>
-            <TextField name="description" label="Descrição" value={editedData.description} onChange={handleChange} fullWidth margin="dense" size="small" multiline rows={4} sx={textFieldStyles} InputLabelProps={{ sx: inputLabelStyles }} InputProps={{ sx: inputBaseStyles }} />
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="h6" sx={{ color: '#ccc' }}> Características (Pontos: {editedData.characteristics?.points ?? 0}) </Typography>
-              {(editedData.characteristics?.details?.length ?? 0) > 0 ? (
-                <List dense sx={{ maxHeight: 150, overflow: 'auto', mb: 1 }}>
-                  {editedData.characteristics.details.map((char, index) => (
-                    <ListItem key={index} disablePadding> <ListItemText primary={char.name} secondary={`Custo: ${char.cost}`} primaryTypographyProps={{ sx: { color: '#fff' } }} secondaryTypographyProps={{ sx: { color: '#bbb' } }} /> </ListItem>
-                  ))}
-                </List>
-              ) : ( <Typography variant="body2" sx={{ color: '#888', fontStyle: 'italic', mb: 1 }}>Nenhuma característica.</Typography> )}
-              <Button variant="outlined" color="primary" size="small" onClick={() => setShowCharacteristicsMenu(true)} sx={{ color: '#90caf9', borderColor: '#90caf9' }}> Gerenciar </Button>
-            </Box>
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions sx={{ borderTop: '1px solid #4a4a4a', padding: '16px 24px' }}>
-        <Button onClick={onClose} sx={{ color: '#ccc' }}> Cancelar </Button>
-        <Button onClick={handleSaveChanges} color="primary" variant="contained"> Salvar Alterações </Button>
-      </DialogActions>
+    <div style={styles.overlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        
+        {/* Cabeçalho */}
+        <div style={styles.header}>
+          <span>EDITAR ITEM</span>
+          <button onClick={onClose} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:'1.5rem'}}>×</button>
+        </div>
+
+        {/* Corpo do Formulário */}
+        <div style={styles.body}>
+          
+          {/* Coluna Esquerda: Dados Básicos */}
+          <div style={styles.column}>
+            <div>
+                <label style={styles.label}>NOME</label>
+                <input style={styles.input} name="name" value={editedData.name} onChange={handleChange} />
+            </div>
+
+            <div style={{display: 'flex', gap: '10px'}}>
+                <div style={{flex: 1}}>
+                    <label style={styles.label}>QUALIDADE</label>
+                    <select style={styles.select} name="quality" value={editedData.quality} onChange={handleChange}>
+                        {Object.entries(qualityLevels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                </div>
+                <div style={{flex: 1}}>
+                    <label style={styles.label}>ESCASSEZ</label>
+                    <select style={styles.select} name="category" value={editedData.category} onChange={handleChange}>
+                        {Object.entries(scarcityLevels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label style={styles.label}>TIPO</label>
+                <input style={styles.input} name="type" value={editedData.type} onChange={handleChange} placeholder="Ex: Arma, Recurso..." />
+            </div>
+
+            <div style={{display: 'flex', gap: '10px'}}>
+                <div style={{flex:1}}>
+                    <label style={styles.label}>SLOTS</label>
+                    <input style={styles.input} type="number" name="slots" value={editedData.slots} onChange={handleChange} />
+                </div>
+                <div style={{flex:2}}>
+                    <label style={styles.label}>MODIFICADORES (Sep. Vírgula)</label>
+                    <input style={styles.input} name="modifiers" value={editedData.modifiers?.join(', ') || ''} onChange={handleChange} placeholder="Ex: Pesado, Pequeno" />
+                </div>
+            </div>
+          </div>
+
+          {/* Coluna Direita: Flags e Descrição */}
+          <div style={styles.column}>
+             
+             {/* FLAGS BOX */}
+             <div style={styles.flagsBox}>
+                <label style={styles.label}>CONFIGURAÇÕES</label>
+                <div style={{display:'flex', gap:'15px', flexWrap:'wrap', marginTop:'10px'}}>
+                    <label style={{color:'#ccc', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'}}>
+                        <input type="checkbox" name="isArtefato" checked={editedData.isArtefato} onChange={handleChange} /> 
+                        Artefato
+                    </label>
+                    <label style={{color:'#ccc', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'}}>
+                        <input type="checkbox" name="isConsumable" checked={editedData.isConsumable} onChange={handleChange} /> 
+                        Consumível
+                    </label>
+                </div>
+                
+                <div style={{marginTop:'10px'}}>
+                    <label style={styles.label}>RECURSO</label>
+                    <select style={{...styles.select, padding:'5px'}} name="resourceType" value={editedData.resourceType || 'nenhum'} onChange={handleChange}>
+                        <option value="nenhum">Nenhum</option>
+                        {resourceTypes.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                    </select>
+                </div>
+             </div>
+
+             <div>
+                <label style={styles.label}>DESCRIÇÃO</label>
+                <textarea 
+                    style={{...styles.input, resize: 'vertical', minHeight: '80px'}} 
+                    name="description" 
+                    value={editedData.description} 
+                    onChange={handleChange} 
+                />
+             </div>
+
+             {/* Características */}
+             <div style={{background:'#111', padding:'10px', borderRadius:'4px', border:'1px solid #333'}}>
+                <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
+                    <label style={styles.label}>CARACTERÍSTICAS (PTS: {editedData.characteristics?.points || 0})</label>
+                    <button style={{background:'none', border:'1px solid #555', color:'#aaa', fontSize:'0.7rem', cursor:'pointer', borderRadius:'2px'}} onClick={() => setShowCharacteristicsMenu(true)}>
+                        GERENCIAR
+                    </button>
+                </div>
+                
+                <ul style={{paddingLeft: '20px', margin: 0, color:'#ccc', fontSize:'0.9rem', maxHeight:'100px', overflowY:'auto'}}>
+                    {(editedData.characteristics?.details?.length > 0) ? 
+                        editedData.characteristics.details.map((c, i) => (
+                            <li key={i}>{c.name} <span style={{color:'#666', fontSize:'0.8em'}}>({c.cost})</span></li>
+                        )) 
+                    : <li style={{color:'#666', listStyle:'none'}}>Nenhuma</li>}
+                </ul>
+             </div>
+
+          </div>
+        </div>
+
+        {/* Rodapé com Ações */}
+        <div style={styles.footer}>
+          <button style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button>
+          <button style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar</button>
+        </div>
+
+      </div>
+
+      {/* Se houver modal interno, ele é renderizado aqui. O CSS do Menu pode precisar de ajuste se usar MUI. */}
       {showCharacteristicsMenu && (
         <CharacteristicsMenu
           open={showCharacteristicsMenu}
@@ -190,16 +288,8 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
           onChange={handleCharacteristicsChange}
         />
       )}
-    </Dialog>
+    </div>
   );
 };
-
-// Constantes de estilo (permanecem iguais)
-const textFieldStyles = { '& .MuiInputBase-input': { color: '#fff' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#888' }, '&:hover fieldset': { borderColor: '#fff' }, '&.Mui-focused fieldset': { borderColor: '#90caf9' }, }, };
-const inputLabelStyles = { color: '#ccc' };
-const inputBaseStyles = { color: '#fff' };
-const helperTextStyles = { color: '#aaa' };
-const checkboxStyles = { color: '#90caf9', '&.Mui-checked': { color: '#90caf9' } };
-const selectStyles = { '& .MuiSelect-select': { ...inputBaseStyles, paddingTop: '8.5px', paddingBottom: '8.5px' }, '& .MuiSvgIcon-root': { color: '#fff' }, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#888' }, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#fff' }, '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' }, };
 
 export default EditItemDialog;

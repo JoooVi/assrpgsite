@@ -1,48 +1,19 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-
-// Componentes do Material-UI
-import {
-  Button,
-  Typography,
-  Paper,
-  Box,
-  Divider,
-  CircularProgress,
-  Tabs,
-  Tab,
-  Avatar,
-} from "@mui/material";
 import { FaDiscord } from "react-icons/fa";
 
-// 1. IMPORTAR SEUS COMPONENTES DE PÁGINA
+// Importa os estilos CSS Module
+import styles from "./ProfilePage.module.css";
+
+// Importa os componentes internos
 import CharacterList from "./CharacterList";
 import Homebrews from "./Homebrews";
-
-import "./ProfilePage.css";
-
-// Componente para o painel de cada aba (sem alterações)
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && (
-        // Removido o padding 'p:3' daqui para que os componentes filhos controlem seu próprio espaçamento
-        <Box sx={{ pt: 3 }}>{children}</Box>
-      )}
-    </div>
-  );
-}
 
 const ProfilePage = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const [tab, setTab] = useState(0);
-
-  const handleTabChange = (event, newValue) => {
-    setTab(newValue);
-  };
+  const [activeTab, setActiveTab] = useState(0); // 0: Geral, 1: Chars, 2: Homebrew, 3: Campaign
 
   const handleLinkDiscord = () => {
     window.location.href =
@@ -51,105 +22,122 @@ const ProfilePage = () => {
 
   if (!user) {
     return (
-      <Box className="profile-loading-container">
-        <CircularProgress />
-        <Typography sx={{ mt: 2 }}>Carregando perfil...</Typography>
-      </Box>
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p>Carregando perfil do agente...</p>
+      </div>
     );
   }
 
+  // Lista de abas para facilitar renderização
+  const tabs = [
+    { label: "Visão Geral", id: 0, disabled: false },
+    { label: "Personagens", id: 1, disabled: false },
+    { label: "Homebrews", id: 2, disabled: false },
+    { label: "Campanhas (Beta)", id: 3, disabled: true },
+  ];
+
   return (
-    <Box className="profile-page-container">
-      <Paper className="profile-paper" elevation={3}>
-        <Box className="profile-header">
-          <Avatar
-            src={user.avatar || null}
-            sx={{ width: 100, height: 100, border: "2px solid #fff" }}
-          >
-            {user.name?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Box className="profile-header-info">
-            <Typography variant="h4" component="h1" className="profile-name">
-              {user.name}
-            </Typography>
-            <Typography variant="body2" className="profile-bio">
-              {user.bio || "Este agente ainda não adicionou uma biografia."}
-            </Typography>
-          </Box>
-          <Button
-            variant="outlined"
+    <div className={styles.profileContainer}>
+      <div className={styles.contentCard}>
+        
+        {/* CABEÇALHO DO PERFIL */}
+        <div className={styles.profileHeader}>
+          {/* Avatar */}
+          <div className={styles.avatarWrapper}>
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name} className={styles.avatarImg} />
+            ) : (
+              <span>{user.name?.charAt(0).toUpperCase()}</span>
+            )}
+          </div>
+
+          {/* Info + Botão */}
+          <div className={styles.profileInfo}>
+            <h1 className={styles.profileName}>{user.name}</h1>
+            <p className={styles.profileBio}>
+              {user.bio || "Este agente ainda não registrou dados biográficos no sistema."}
+            </p>
+          </div>
+
+          <button 
+            className={styles.editBtn} 
             onClick={() => navigate("/edit-profile")}
-            className="edit-profile-button"
           >
             Editar Perfil
-          </Button>
-        </Box>
+          </button>
+        </div>
 
-        {/* Abas de Navegação (removido o 'disabled') */}
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={tab}
-            onChange={handleTabChange}
-            centered
-            variant="fullWidth"
-          >
-            <Tab label="Visão Geral" />
-            <Tab label="Personagens" />
-            <Tab label="Homebrews" />
-            <Tab label="Campanhas" disabled />{" "}
-            {/* Deixei campanhas desabilitado por enquanto */}
-          </Tabs>
-        </Box>
+        {/* NAVEGAÇÃO (TABS) */}
+        <div className={styles.tabsContainer}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+              disabled={tab.disabled}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        {/* 2. CONTEÚDO DAS ABAS AGORA COM SEUS COMPONENTES REAIS */}
-        <TabPanel value={tab} index={0}>
-          <Box sx={{ p: 3 }}>
-            {" "}
-            {/* Adicionado padding interno para esta aba específica */}
-            <Typography variant="h6" gutterBottom>
-              Contas Vinculadas
-            </Typography>
-            {user.discordId ? (
-              <Box className="account-linked success">
-                <FaDiscord />
-                <Typography>Conta do Discord vinculada!</Typography>
-              </Box>
-            ) : (
-              <Box className="account-not-linked">
-                <Typography sx={{ mb: 2 }}>
-                  Vincule sua conta do Discord para login rápido.
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<FaDiscord />}
-                  onClick={handleLinkDiscord}
-                  sx={{
-                    backgroundColor: "#5865F2",
-                    "&:hover": { backgroundColor: "#4752C4" },
-                  }}
-                >
-                  Vincular Conta do Discord
-                </Button>
-              </Box>
-            )}
-          </Box>
-        </TabPanel>
+        {/* CONTEÚDO DAS ABAS */}
+        <div className={styles.tabPanel}>
+          
+          {/* Aba 0: Visão Geral */}
+          {activeTab === 0 && (
+            <div className={styles.contentBox}>
+              <h2 className={styles.sectionTitle}>Integrações do Sistema</h2>
+              
+              <div className={styles.discordContainer}>
+                {user.discordId ? (
+                  <div className={styles.accountLinked}>
+                    <FaDiscord size={24} />
+                    <span>Conta do Discord vinculada e sincronizada.</span>
+                  </div>
+                ) : (
+                  <>
+                    <p style={{color: '#ccc', marginBottom:'10px'}}>
+                      Vincule sua conta do Discord para login rápido e sincronização de dados.
+                    </p>
+                    <button
+                      className={styles.discordBtn}
+                      onClick={handleLinkDiscord}
+                    >
+                      <FaDiscord size={20} />
+                      Conectar Discord
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
-        <TabPanel value={tab} index={1}>
-          <CharacterList />
-        </TabPanel>
+          {/* Aba 1: Personagens */}
+          {activeTab === 1 && (
+            // CharacterList geralmente tem seu próprio container, não precisamos do contentBox padding aqui
+            // a não ser que o CharacterList seja 'cru'.
+            <CharacterList />
+          )}
 
-        <TabPanel value={tab} index={2}>
-          <Homebrews />
-        </TabPanel>
+          {/* Aba 2: Homebrews */}
+          {activeTab === 2 && (
+            <Homebrews />
+          )}
 
-        <TabPanel value={tab} index={3}>
-          <Typography sx={{ p: 3 }}>
-            A lista de campanhas do usuário aparecerá aqui no futuro.
-          </Typography>
-        </TabPanel>
-      </Paper>
-    </Box>
+          {/* Aba 3: Campanhas */}
+          {activeTab === 3 && (
+            <div className={styles.contentBox}>
+              <p style={{color:'#888', fontStyle:'italic'}}>
+                Módulo de Campanhas em desenvolvimento. Acesso restrito.
+              </p>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
   );
 };
 

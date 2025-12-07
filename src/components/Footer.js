@@ -3,6 +3,7 @@ import styles from "./Footer.module.css";
 import x from "../assets/twitter.png";
 import discord from "../assets/discord.png";
 import twitch from "../assets/twitch.png";
+
 const Footer = () => {
   return (
     <div className={styles.footerContainer}>
@@ -44,6 +45,32 @@ const Footer = () => {
 
         {/* Ícones sociais */}
         <div className={styles.iconLinksContainer}>
+          
+          {/* Link Wiki (Usando Emoji 📖) */}
+          <a
+            href="https://assimilacao.fandom.com/pt-br/wiki/Assimila%C3%A7%C3%A3o_Wiki"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.link}
+            title="Wiki do Assimilação RPG"
+            style={{ textDecoration: 'none' }} // Remove sublinhado padrão
+          >
+            {/* O span recebe a classe icon para ganhar a animação de hover/grayscale */}
+            <span 
+              className={styles.icon} 
+              style={{ 
+                fontSize: '24px', 
+                lineHeight: '1', 
+                display: 'inline-block',
+                cursor: 'pointer' 
+              }}
+              role="img" 
+              aria-label="Wiki"
+            >
+              📖
+            </span>
+          </a>
+
           <a
             href="https://discord.gg/tzrezdyzhs"
             target="_blank"
