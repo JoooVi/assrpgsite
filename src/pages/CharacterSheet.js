@@ -872,6 +872,26 @@ const CharacterSheet = () => {
     saveInventory(newState);
   };
 
+  // Função para salvar a edição do item (Características, Qualidade, etc)
+  const handleSaveEditedItem = (originalItem, newItemState) => {
+    // 1. Atualiza o array do inventário localmente
+    const updatedInventory = character.inventory.map((item) => {
+      // Compara se é o item que estava sendo editado (por referência de objeto)
+      if (item === originalItem) {
+        return newItemState;
+      }
+      return item;
+    });
+
+    // 2. Atualiza o estado e salva no Backend
+    const newState = { ...character, inventory: updatedInventory };
+    setCharacter(newState);
+    saveInventory(newState);
+    
+    // 3. Fecha o modal
+    setEditItem(null);
+  };
+
   const handleHealthChange = (index, value) => {
     const updatedLevels = [...character.healthLevels];
     updatedLevels[index] = value || 0;
@@ -1003,6 +1023,7 @@ const CharacterSheet = () => {
                 />
               </div>
 
+              {/* --- CAMPO CORRIGIDO: EVENTO MARCANTE --- */}
               <div className={styles.inputGroup}>
                 <span className={styles.label}>Evento Marcante</span>
                 <input
@@ -1010,7 +1031,8 @@ const CharacterSheet = () => {
                   placeholder="Trauma ou evento chave..."
                   value={character.event || ""}
                   onChange={(e) =>
-                    handleInputChange("strikingEvent", e.target.value)
+                    // MUDANÇA AQUI: De "strikingEvent" para "event"
+                    handleInputChange("event", e.target.value)
                   }
                 />
               </div>
@@ -1424,9 +1446,7 @@ const CharacterSheet = () => {
       <EditItemDialog
         editItem={editItem}
         onClose={() => setEditItem(null)}
-        onSave={(oldI, newI) => {
-          setEditItem(null);
-        }}
+        onSave={(originalItem, newItem) => handleSaveEditedItem(originalItem, newItem)}
       />
       {/* --- INICIO DA ÁREA FLUTUANTE (PORTAL) --- */}
       {ReactDOM.createPortal(
