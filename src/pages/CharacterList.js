@@ -48,7 +48,7 @@ const CharacterList = () => {
           setCharacters([]);
         } else {
           console.error("-> Token expirado, deslogar e logar novamente :b!! ", error);
-          setError("Falha ao recuperar dados dos agentes.");
+          setError("Token expirado, deslogar e logar novamente :b!!");
         }
       } finally {
         setLoading(false);
