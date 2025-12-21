@@ -133,6 +133,9 @@ const rollCustomDice = (formula) => {
 // TRADUÇÕES E CONFIGURAÇÕES
 // ------------------------------------------
 
+const knowledgeKeys = ["geography", "medicine", "security", "biology", "erudition", "engineering"];
+const practiceKeys = ["weapons", "athletics", "expression", "stealth", "crafting", "survival"];
+
 const translateKey = (key) => {
   const translations = {
     // Status e Labels
@@ -315,16 +318,11 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
 const SkillList = ({ title, id, addRollToHistory, character }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills?.skills || {});
-  const selectedInstinct = useSelector(
-    (state) => state.skills.selectedInstinct
-  );
+  const selectedInstinct = useSelector((state) => state.skills.selectedInstinct);
   const instincts = useSelector((state) => state.instincts.instincts);
-
+  
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedSkillDesc, setSelectedSkillDesc] = useState({
-    name: "",
-    desc: "",
-  });
+  const [selectedSkillDesc, setSelectedSkillDesc] = useState({ name: "", desc: "" });
   const [rollToastOpen, setRollToastOpen] = useState(false);
   const [currentRoll, setCurrentRoll] = useState(null);
 
@@ -340,9 +338,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
           const { knowledge = {}, practices = {} } = response.data;
           const combinedSkills = { ...knowledge, ...practices };
           dispatch(updateSkills(combinedSkills));
-        } catch (error) {
-          console.error("Error loading skills:", error);
-        }
+        } catch (error) { console.error("Error loading skills:", error); }
       };
       fetchInitialData();
       dispatch(fetchInstincts(id));
@@ -350,35 +346,32 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   }, [id, dispatch]);
 
   const handleRoll = async (key) => {
-    if (!selectedInstinct[key]) {
-      alert("Selecione um instinto!");
-      return;
-    }
-
-    const skillVal = parseInt(globalSkills[key]) || 0;
-    const instVal = parseInt(instincts[selectedInstinct[key]]) || 0;
-
-    const formulaParts = [];
-    if (skillVal > 0) formulaParts.push(`${skillVal}d6`);
-    if (instVal > 0) formulaParts.push(`${instVal}d10`);
-
-    const formula = formulaParts.join("+") || "0d0";
-    const result = rollCustomDice(formula);
-
-    const rollData = { skill: key, roll: result };
-    setCurrentRoll(rollData);
-    setRollToastOpen(true);
-    addRollToHistory(rollData);
+      if (!selectedInstinct[key]) { alert("Selecione um instinto!"); return; }
+      
+      const skillVal = parseInt(globalSkills[key]) || 0;
+      const instVal = parseInt(instincts[selectedInstinct[key]]) || 0;
+      
+      const formulaParts = [];
+      if(skillVal > 0) formulaParts.push(`${skillVal}d6`);
+      if(instVal > 0) formulaParts.push(`${instVal}d10`);
+      
+      const formula = formulaParts.join("+") || "0d0";
+      const result = rollCustomDice(formula); 
+      
+      const rollData = { skill: key, roll: result };
+      setCurrentRoll(rollData);
+      setRollToastOpen(true);
+      addRollToHistory(rollData);
   };
 
   const handleEditSkill = (key, val) => {
-    const newSkills = { ...globalSkills, [key]: parseInt(val) || 0 };
-    dispatch(updateSkills(newSkills));
-    dispatch(saveSkillsToBackend(id, newSkills));
+     const newSkills = { ...globalSkills, [key]: parseInt(val) || 0 };
+     dispatch(updateSkills(newSkills));
+     dispatch(saveSkillsToBackend(id, newSkills));
   };
 
   const openDesc = (key) => {
-    const descriptions = {
+      const descriptions = {
       geography: "Conhecimento sobre terrenos, mapas, rotas e ambientes naturais ou urbanos.",
       medicine: "Conhecimento sobre medicina, anatomia, tratamentos e primeiros socorros.",
       security: "Habilidade em sistemas de segurança, travas, vigilância e contra-inteligência.",
@@ -392,67 +385,89 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
       crafting: "Habilidades manuais para criar, modificar ou consertar itens, desde vestimentas a pequenas ferramentas.",
       survival: "Habilidade de encontrar recursos, rastrear, caçar e se virar em ambientes hostis.",
     };
-    setSelectedSkillDesc({
-      name: key,
-      desc: descriptions[key] || "Sem descrição.",
-    });
-    setModalOpen(true);
+      setSelectedSkillDesc({ name: key, desc: descriptions[key] || "Sem descrição." });
+      setModalOpen(true);
+  };
+
+  // Funções Auxiliares para Cor
+  const getSkillStyle = (key) => {
+      const k = key.toLowerCase();
+      // Conhecimento = Azul Ciano
+      if (knowledgeKeys.includes(k)) return { borderLeft: "4px solid #02425fff" };
+      // Prática = Laranja Vivo
+      if (practiceKeys.includes(k)) return { borderLeft: "4px solid #4e0202ff" };
+      // Padrão
+      return { borderLeft: "4px solid #444" };
+  };
+
+  const getSkillLabel = (key) => {
+      const k = key.toLowerCase();
+      if (knowledgeKeys.includes(k)) return "CONHECIMENTO";
+      if (practiceKeys.includes(k)) return "PRÁTICA";
+      return "";
   };
 
   return (
     <>
       <div className={styles.sectionTitle}>{translateKey(title)}</div>
+      
+      {/* Aqui fazemos o loop para mostrar as skills com a cor nova */}
       {Object.entries(globalSkills).map(([key, val]) => (
-        <div key={key} className={styles.rowItem}>
-          <div className={styles.itemName} onClick={() => openDesc(key)}>
-            {translateKey(key)}:
-          </div>
-          <input
-            type="number"
-            className={`${styles.inputField} ${styles.smallInput}`}
-            value={val}
-            onChange={(e) => handleEditSkill(key, e.target.value)}
-          />
-          <div className={styles.selectInputWrapper}>
-            <select
-              className={styles.selectField}
-              value={selectedInstinct[key] || ""}
-              onChange={(e) =>
-                dispatch(setSelectedInstinct({ [key]: e.target.value }))
-              }
-              style={{ padding: "4px" }}
+         <div 
+            key={key} 
+            className={styles.rowItem}
+            // APLICA A COR DA BORDA AQUI:
+            style={getSkillStyle(key)}
+         >
+            <div 
+               style={{flex: 1, display: 'flex', flexDirection: 'column', cursor:'pointer'}} 
+               onClick={() => openDesc(key)}
             >
-              <option value="" disabled>
-                Instinto
-              </option>
-              {Object.keys(instincts).map((i) => (
-                <option key={i} value={i}>
-                  {translateKey(i)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            className={styles.rollBtn}
-            onClick={() => handleRoll(key)}
-            disabled={!selectedInstinct[key]}
-            title="Rolar Teste"
-          >
-            <MeuIcone style={{ width: 20, height: 20 }} />
-          </button>
-        </div>
+                <div className={styles.itemName} style={{lineHeight: '1.2'}}>
+                    {translateKey(key)}
+                </div>
+                {/* TEXTO PEQUENO (Conhecimento/Prática) */}
+                <span style={{fontSize:'0.65rem', color:'#666', fontWeight:'bold', letterSpacing:'1px', textTransform:'uppercase'}}>
+                    {getSkillLabel(key)}
+                </span>
+            </div>
+            
+            <input 
+               type="number" className={`${styles.inputField} ${styles.smallInput}`} 
+               value={val} onChange={(e) => handleEditSkill(key, e.target.value)}
+            />
+            
+            <div className={styles.selectInputWrapper}>
+               <select 
+                  className={styles.selectField}
+                  value={selectedInstinct[key] || ""}
+                  onChange={(e) => dispatch(setSelectedInstinct({ [key]: e.target.value }))}
+                  style={{padding:'4px'}}
+               >
+                  <option value="" disabled>Instinto</option>
+                  {Object.keys(instincts).map(i => (
+                     <option key={i} value={i}>{translateKey(i)}</option>
+                  ))}
+               </select>
+            </div>
+            <button className={styles.rollBtn} onClick={() => handleRoll(key)} disabled={!selectedInstinct[key]} title="Rolar Teste">
+               <MeuIcone style={{width:20, height:20}} />
+            </button>
+         </div>
       ))}
-      <CustomModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={translateKey(selectedSkillDesc.name)}
+
+      <CustomModal 
+         open={modalOpen} 
+         onClose={() => setModalOpen(false)} 
+         title={translateKey(selectedSkillDesc.name)}
       >
-        <p>{selectedSkillDesc.desc}</p>
+         <p>{selectedSkillDesc.desc}</p>
       </CustomModal>
-      <CustomToast
-        open={rollToastOpen}
-        onClose={() => setRollToastOpen(false)}
-        rollResult={currentRoll}
+
+      <CustomToast 
+        open={rollToastOpen} 
+        onClose={() => setRollToastOpen(false)} 
+        rollResult={currentRoll} 
       />
     </>
   );
@@ -719,6 +734,27 @@ const CharacterSheet = () => {
   }, [character]);
 
   const slotsInfo = calculateSlots();
+
+  const getSkillColor = (key) => {
+      // Normalização para lowerCase para garantir match
+      const k = key.toLowerCase();
+      
+      // Conhecimento = Azulão / Cyan
+      if (knowledgeKeys.includes(k)) return "3px solid #00b0ff"; 
+      
+      // Prática = Laranja / Amarelo
+      if (practiceKeys.includes(k)) return "3px solid #ff9100";
+      
+      // Padrão (sem match) = Cinza
+      return "3px solid #444"; 
+  };
+
+  const getSkillTypeLabel = (key) => {
+      const k = key.toLowerCase();
+      if (knowledgeKeys.includes(k)) return "CONHECIMENTO"; 
+      if (practiceKeys.includes(k)) return "PRÁTICA";
+      return "";
+  }
 
   // HANDLERS E SAVE
   const saveInventory = async (newCharState) => {
