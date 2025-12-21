@@ -8,6 +8,8 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.9), rgba(10, 10, 10, 0.95)), 
+                    url('../assets/asssrpg.png');
   position: relative;
   font-family: 'Rajdhani', sans-serif;
   color: #dcdcdc;
