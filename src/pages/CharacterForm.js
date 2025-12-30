@@ -200,40 +200,80 @@ const Step5_Distribuicao = ({ character, handleInstinctChange, handleNestedChang
 const Step6_CaboDeGuerra = ({ character, handleTugOfWarChange }) => {
   const det = character.determinationLevel;
   const ass = character.assimilationLevel;
+
   return (
     <div className="fade-in">
-      <span className="section-label">Cabo de Guerra</span>
-      <div className="tug-display">
-         <div className={`stat-box ${det >= 5 ? 'active-blue' : ''}`}>
-             <span className="stat-label">DETERMINAÇÃO</span>
-             <span className="stat-num blue">{det}</span>
+      <span className="section-label" style={{ borderLeftColor: det > ass ? '#a73c39' : '#3b4766' }}>
+        Cabo de Guerra
+      </span>
+      
+      <div className="tug-display" style={{ gap: '10px' }}>
+         {/* LADO ESQUERDO: ASSIMILAÇÃO (Azul #3b4766) */}
+         <div className={`stat-box ${ass >= 5 ? 'active-blue-project' : ''}`}>
+             <span className="stat-label" style={{ fontSize: '0.7rem', color: '#666' }}>ASSIMILAÇÃO</span>
+             <span className="stat-num" style={{ color: '#3b4766', fontSize: '2.5rem', fontWeight: 'bold', display: 'block' }}>
+               {ass}
+             </span>
          </div>
-         <div style={{display:'flex', alignItems:'center', color:'#444', fontSize:'1.2rem', fontWeight:'bold'}}>VS</div>
-         <div className={`stat-box ${ass >= 5 ? 'active-red' : ''}`}>
-             <span className="stat-label">ASSIMILAÇÃO</span>
-             <span className="stat-num red">{ass}</span>
+
+         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#222', fontWeight: 'bold' }}>
+           VS
+         </div>
+
+         {/* LADO DIREITO: DETERMINAÇÃO (Vermelho #a73c39) */}
+         <div className={`stat-box ${det >= 5 ? 'active-red-project' : ''}`}>
+             <span className="stat-label" style={{ fontSize: '0.7rem', color: '#666' }}>DETERMINAÇÃO</span>
+             <span className="stat-num" style={{ color: '#a73c39', fontSize: '2.5rem', fontWeight: 'bold', display: 'block' }}>
+               {det}
+             </span>
          </div>
       </div>
-      <div style={{padding: '30px 0'}}>
+
+      <div className="range-wrapper">
+        <div className="range-limits">
+            <span className="limit-ass">Assimilado</span>
+            <span className="limit-det">Racional</span>
+        </div>
+        
         <input 
             type="range" 
             min="1" 
             max="9" 
+            step="1"
             value={det} 
             onChange={handleTugOfWarChange} 
             className="nero-range"
-            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()} 
         />
+        
+        <div style={{ 
+          textAlign: 'center', 
+          fontSize: '0.6rem', 
+          color: '#9c9393ff', 
+          marginTop: '15px', 
+          letterSpacing: '2px',
+          textTransform: 'uppercase'
+        }}>
+           Ajuste a influência da Assimilação sobre o personagem
+        </div>
       </div>
-      <div style={{textAlign:'center', color:'#888', fontSize:'0.9rem', border:'1px dashed #333', padding:'15px', background:'#0a0a0a'}}>
+
+      <div style={{
+        textAlign: 'center', 
+        color: det > ass ? '#a73c39' : '#3b4766', 
+        fontSize: '0.9rem', 
+        border: '1px solid #111', 
+        padding: '20px', 
+        background: '#050505',
+        borderRadius: '4px',
+        transition: 'color 0.3s ease'
+      }}>
           {det > ass 
-            ? "PERFIL ESTÁVEL: Foco em lógica e humanidade prevalece." 
-            : "PERFIL INSTÁVEL: Alto risco de corrupção pela Entidade detectado."}
+            ? "As emoções humanas ainda controlam a força deste corpo." 
+            : "A simbiose com a Assimilação se torna profunda. Seus sentidos transcendem o humano."}
       </div>
     </div>
   );
 };
-
 // --- COMPONENTE PRINCIPAL ---
 
 const initialEquipmentPacks = [

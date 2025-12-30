@@ -247,3 +247,113 @@
     max-width: 300px; /* Card maior no celular para ver bem */
   }
 }
+
+/* ========================================= */
+/*      CABO DE GUERRA - DESIGN PREMIUM      */
+/* ========================================= */
+
+.range-wrapper {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 4px;
+  padding: 30px 20px;
+  margin: 20px 0;
+  box-shadow: inset 0 0 20px #000;
+}
+
+.range-limits {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+.limit-ass { color: #3b4766; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+.limit-det { color: #a73c39; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+
+/* Reset do Input */
+input[type=range].nero-range {
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type=range].nero-range:focus {
+  outline: none;
+}
+
+/* --- PISTA (TRACK) --- */
+/* Chrome, Safari, Edge, Opera */
+input[type=range].nero-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid #000;
+  background: linear-gradient(to right, 
+    #3b4766 0%,      /* Azul Assimilação */
+    #1a1d26 30%,     /* Transição */
+    #111 50%,        /* Centro Neutro */
+    #3d1a19 70%,     /* Transição */
+    #a73c39 100%     /* Vermelho Determinação */
+  );
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Firefox */
+input[type=range].nero-range::-moz-range-track {
+  width: 100%; height: 14px; border-radius: 2px; border: 1px solid #000;
+  background: linear-gradient(to right, #3b4766 0%, #111 50%, #a73c39 100%);
+}
+
+/* --- BOTÃO (THUMB) --- */
+/* Chrome, Safari, Edge, Opera */
+input[type=range].nero-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 32px;
+  width: 18px;
+  background: #dcdcdc;
+  border: 2px solid #000;
+  border-radius: 2px;
+  margin-top: -10px; /* (Track Height / 2) - (Thumb Height / 2) */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+  cursor: grab;
+  /* Visual de "Grip" (ranhuras mecânicas) */
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, #ddd, #999);
+  background-size: 4px 100%, 100% 100%;
+}
+
+input[type=range].nero-range:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  background: #fff;
+  box-shadow: 0 0 15px rgba(167, 60, 57, 0.3);
+}
+
+/* Firefox */
+input[type=range].nero-range::-moz-range-thumb {
+  height: 32px; width: 18px; background: #dcdcdc; border: 2px solid #000; border-radius: 2px;
+  cursor: grab; box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+}
+
+/* --- ESTADOS DE BOX ATIVOS --- */
+.stat-box {
+  flex: 1;
+  padding: 15px;
+  background: #080808;
+  border: 1px solid #222;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.active-red-project { 
+  border-color: #a73c39 !important; 
+  box-shadow: 0 0 15px rgba(167, 60, 57, 0.1);
+  background: linear-gradient(to bottom, #110909, #080808) !important;
+}
+
+.active-blue-project { 
+  border-color: #3b4766 !important; 
+  box-shadow: 0 0 15px rgba(59, 71, 102, 0.1);
+  background: linear-gradient(to bottom, #090b11, #080808) !important;
+}
