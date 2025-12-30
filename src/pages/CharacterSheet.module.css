@@ -1370,3 +1370,100 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================= */
+/*       ELEMENTOS FLUTUANTES (HUD)          */
+/*  (Colados na tela independente do scroll) */
+/* ========================================= */
+
+/* Garante que o body não atrapalhe a fixação */
+:global(body) {
+  position: relative; 
+  /* Se tiver overflow:hidden no body, o scroll pode bugar. O ideal é deixar nativo. */
+}
+
+/* 1. Botão Flutuante (Histórico) */
+.fabHistory {
+  position: fixed !important; /* Força bruta */
+  bottom: 25px;    /* Distância de baixo da JANELA */
+  right: 25px;     /* Distância da direita da JANELA */
+  z-index: 2147483647; /* Máximo possível */
+  
+  width: 60px; 
+  height: 60px;
+  border-radius: 50%;
+  background-color: #b71c1c;
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+  cursor: pointer;
+  transition: transform 0.2s;
+  
+  /* Reset de transformações para garantir fixação */
+  transform: none; 
+}
+.fabHistory:hover {
+  transform: scale(1.05); /* Pequeno zoom no hover é seguro */
+}
+
+/* 2. Popover (Janela do Histórico) */
+.historyPopover {
+  position: fixed !important;
+  bottom: 95px; /* Logo acima do botão */
+  right: 25px;
+  z-index: 2147483646; /* Um pouco abaixo do botão, acima do resto */
+  
+  width: 320px;
+  max-height: 50vh;
+  overflow-y: auto;
+  
+  background-color: #161616;
+  border: 1px solid #444;
+  border-left: 4px solid #b71c1c;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.95);
+}
+
+/* 3. Toast (Resultado da Rolagem) */
+.toastContainer {
+  position: fixed !important;
+  /* Topo direito da TELA (HUD) */
+  top: 90px;  /* Abaixo da Navbar */
+  right: 25px; 
+  z-index: 2147483647;
+  
+  width: 300px;
+  background-color: rgba(22, 22, 22, 0.98);
+  border: 1px solid #444;
+  border-left: 4px solid #4caf50; /* Verde para sucesso, ou vermelho */
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.9);
+  
+  /* Animação simplificada */
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- Ajuste para Mobile --- */
+@media (max-width: 600px) {
+  /* No celular, Toast desce para perto do dedão, mas ACIMA do histórico */
+  .toastContainer {
+    top: auto;
+    bottom: 95px; 
+    right: 5%;
+    width: 90%;
+  }
+  
+  .historyPopover {
+    bottom: 95px; /* Mesma posição, eles vão se sobrepor se ambos abertos, mas OK */
+    width: 90%;
+    right: 5%;
+  }
+}

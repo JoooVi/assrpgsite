@@ -133,8 +133,22 @@ const rollCustomDice = (formula) => {
 // TRADUÇÕES E CONFIGURAÇÕES
 // ------------------------------------------
 
-const knowledgeKeys = ["geography", "medicine", "security", "biology", "erudition", "engineering"];
-const practiceKeys = ["weapons", "athletics", "expression", "stealth", "crafting", "survival"];
+const knowledgeKeys = [
+  "geography",
+  "medicine",
+  "security",
+  "biology",
+  "erudition",
+  "engineering",
+];
+const practiceKeys = [
+  "weapons",
+  "athletics",
+  "expression",
+  "stealth",
+  "crafting",
+  "survival",
+];
 
 const translateKey = (key) => {
   const translations = {
@@ -198,12 +212,34 @@ const translateKey = (key) => {
 };
 
 const healthLevelDetails = {
-  6: { name: "Saudável", description: "Recuperação ativa após repouso completo." },
-  5: { name: "Escoriado", description: "Recuperação ativa após repouso completo." },
-  4: { name: "Lacerado", description: "Ativa Recuperação após uma semana. Menos 1 em todos os testes." },
-  3: { name: "Ferido", description: "Ativa Recuperação após uma semana. Menos 1 em todos os testes." },
-  2: { name: "Arrebentado", description: "Incapaz de agir, mas mantém a consciência. Menos 2 em todos os testes." },
-  1: { name: "Incapacitado", description: "Inconsciente. Qualquer Ação com teste exige 2 de Adaptação para ativar." },
+  6: {
+    name: "Saudável",
+    description: "Recuperação ativa após repouso completo.",
+  },
+  5: {
+    name: "Escoriado",
+    description: "Recuperação ativa após repouso completo.",
+  },
+  4: {
+    name: "Lacerado",
+    description:
+      "Ativa Recuperação após uma semana. Menos 1 em todos os testes.",
+  },
+  3: {
+    name: "Ferido",
+    description:
+      "Ativa Recuperação após uma semana. Menos 1 em todos os testes.",
+  },
+  2: {
+    name: "Arrebentado",
+    description:
+      "Incapaz de agir, mas mantém a consciência. Menos 2 em todos os testes.",
+  },
+  1: {
+    name: "Incapacitado",
+    description:
+      "Inconsciente. Qualquer Ação com teste exige 2 de Adaptação para ativar.",
+  },
 };
 
 const qualityLevels = {
@@ -254,7 +290,7 @@ const CustomModal = ({ open, onClose, title, children }) => {
 
 const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
   if (!open) return null;
-  
+
   // Fecha automaticamente após 6s
   setTimeout(() => {
     if (open && onClose) onClose();
@@ -268,13 +304,29 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
       {/* Cabeçalho do Toast */}
       <div className={styles.toastHeader}>
         <span className={styles.toastLabel}>RESULTADO</span>
-        <span className={styles.toastTitle} title={displayData.skill ? translateKey(displayData.skill) : displayData.formula}>
-          {displayData.skill ? translateKey(displayData.skill) : displayData.formula || "Manual"}
+        <span
+          className={styles.toastTitle}
+          title={
+            displayData.skill
+              ? translateKey(displayData.skill)
+              : displayData.formula
+          }
+        >
+          {displayData.skill
+            ? translateKey(displayData.skill)
+            : displayData.formula || "Manual"}
         </span>
       </div>
 
       {displayData.effectMessage && (
-        <div style={{ color: "#4caf50", fontStyle: "italic", marginBottom: "8px", fontSize: "0.9rem" }}>
+        <div
+          style={{
+            color: "#4caf50",
+            fontStyle: "italic",
+            marginBottom: "8px",
+            fontSize: "0.9rem",
+          }}
+        >
           {displayData.effectMessage}
         </div>
       )}
@@ -284,9 +336,7 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
         {displayData.roll &&
           displayData.roll.map((die, i) => (
             <div key={i} className={styles.toastDieBox}>
-              <div className={styles.toastDieType}>
-                d{die.sides}
-              </div>
+              <div className={styles.toastDieType}>d{die.sides}</div>
               <div className={styles.toastDieValue}>
                 {die.result && die.result.length > 0 ? (
                   die.result.map((imgSrc, imgIndex) => (
@@ -294,11 +344,21 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
                       key={imgIndex}
                       src={imgSrc}
                       alt="dado"
-                      style={{ width: "28px", height: "28px", objectFit: "contain" }}
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        objectFit: "contain",
+                      }}
                     />
                   ))
                 ) : (
-                  <span style={{ fontSize: "1.4em", fontWeight: "bold", color: "#fff" }}>
+                  <span
+                    style={{
+                      fontSize: "1.4em",
+                      fontWeight: "bold",
+                      color: "#fff",
+                    }}
+                  >
                     {die.face}
                   </span>
                 )}
@@ -318,11 +378,16 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
 const SkillList = ({ title, id, addRollToHistory, character }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills?.skills || {});
-  const selectedInstinct = useSelector((state) => state.skills.selectedInstinct);
+  const selectedInstinct = useSelector(
+    (state) => state.skills.selectedInstinct
+  );
   const instincts = useSelector((state) => state.instincts.instincts);
-  
+
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedSkillDesc, setSelectedSkillDesc] = useState({ name: "", desc: "" });
+  const [selectedSkillDesc, setSelectedSkillDesc] = useState({
+    name: "",
+    desc: "",
+  });
   const [rollToastOpen, setRollToastOpen] = useState(false);
   const [currentRoll, setCurrentRoll] = useState(null);
 
@@ -338,7 +403,9 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
           const { knowledge = {}, practices = {} } = response.data;
           const combinedSkills = { ...knowledge, ...practices };
           dispatch(updateSkills(combinedSkills));
-        } catch (error) { console.error("Error loading skills:", error); }
+        } catch (error) {
+          console.error("Error loading skills:", error);
+        }
       };
       fetchInitialData();
       dispatch(fetchInstincts(id));
@@ -346,128 +413,170 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   }, [id, dispatch]);
 
   const handleRoll = async (key) => {
-      if (!selectedInstinct[key]) { alert("Selecione um instinto!"); return; }
-      
-      const skillVal = parseInt(globalSkills[key]) || 0;
-      const instVal = parseInt(instincts[selectedInstinct[key]]) || 0;
-      
-      const formulaParts = [];
-      if(skillVal > 0) formulaParts.push(`${skillVal}d6`);
-      if(instVal > 0) formulaParts.push(`${instVal}d10`);
-      
-      const formula = formulaParts.join("+") || "0d0";
-      const result = rollCustomDice(formula); 
-      
-      const rollData = { skill: key, roll: result };
-      setCurrentRoll(rollData);
-      setRollToastOpen(true);
-      addRollToHistory(rollData);
+    if (!selectedInstinct[key]) {
+      alert("Selecione um instinto!");
+      return;
+    }
+
+    const skillVal = parseInt(globalSkills[key]) || 0;
+    const instVal = parseInt(instincts[selectedInstinct[key]]) || 0;
+
+    const formulaParts = [];
+    if (skillVal > 0) formulaParts.push(`${skillVal}d6`);
+    if (instVal > 0) formulaParts.push(`${instVal}d10`);
+
+    const formula = formulaParts.join("+") || "0d0";
+    const result = rollCustomDice(formula);
+
+    const rollData = { skill: key, roll: result };
+    setCurrentRoll(rollData);
+    setRollToastOpen(true);
+    addRollToHistory(rollData);
   };
 
   const handleEditSkill = (key, val) => {
-     const newSkills = { ...globalSkills, [key]: parseInt(val) || 0 };
-     dispatch(updateSkills(newSkills));
-     dispatch(saveSkillsToBackend(id, newSkills));
+    const newSkills = { ...globalSkills, [key]: parseInt(val) || 0 };
+    dispatch(updateSkills(newSkills));
+    dispatch(saveSkillsToBackend(id, newSkills));
   };
 
   const openDesc = (key) => {
-      const descriptions = {
-      geography: "Conhecimento sobre terrenos, mapas, rotas e ambientes naturais ou urbanos.",
-      medicine: "Conhecimento sobre medicina, anatomia, tratamentos e primeiros socorros.",
-      security: "Habilidade em sistemas de segurança, travas, vigilância e contra-inteligência.",
+    const descriptions = {
+      geography:
+        "Conhecimento sobre terrenos, mapas, rotas e ambientes naturais ou urbanos.",
+      medicine:
+        "Conhecimento sobre medicina, anatomia, tratamentos e primeiros socorros.",
+      security:
+        "Habilidade em sistemas de segurança, travas, vigilância e contra-inteligência.",
       biology: "Conhecimento sobre fauna, flora, ecologia e ciências naturais.",
-      erudition: "Conhecimento sobre história, culturas, política e informações gerais do mundo pré e pós-colapso.",
-      engineering: "Habilidade com mecânica, eletrônica, construção e reparo de estruturas e equipamentos.",
+      erudition:
+        "Conhecimento sobre história, culturas, política e informações gerais do mundo pré e pós-colapso.",
+      engineering:
+        "Habilidade com mecânica, eletrônica, construção e reparo de estruturas e equipamentos.",
       weapons: "Habilidade com armas de fogo e combate corpo a corpo.",
-      athletics: "Habilidades envolvendo corrida, escalada, natação e outras proezas físicas.",
-      expression: "Capacidade de se comunicar efetivamente, seja por persuasão, intimidação, performance ou arte.",
-      stealth: "Habilidade de se mover silenciosamente, se esconder e passar despercebido.",
-      crafting: "Habilidades manuais para criar, modificar ou consertar itens, desde vestimentas a pequenas ferramentas.",
-      survival: "Habilidade de encontrar recursos, rastrear, caçar e se virar em ambientes hostis.",
+      athletics:
+        "Habilidades envolvendo corrida, escalada, natação e outras proezas físicas.",
+      expression:
+        "Capacidade de se comunicar efetivamente, seja por persuasão, intimidação, performance ou arte.",
+      stealth:
+        "Habilidade de se mover silenciosamente, se esconder e passar despercebido.",
+      crafting:
+        "Habilidades manuais para criar, modificar ou consertar itens, desde vestimentas a pequenas ferramentas.",
+      survival:
+        "Habilidade de encontrar recursos, rastrear, caçar e se virar em ambientes hostis.",
     };
-      setSelectedSkillDesc({ name: key, desc: descriptions[key] || "Sem descrição." });
-      setModalOpen(true);
+    setSelectedSkillDesc({
+      name: key,
+      desc: descriptions[key] || "Sem descrição.",
+    });
+    setModalOpen(true);
   };
 
   // Funções Auxiliares para Cor
   const getSkillStyle = (key) => {
-      const k = key.toLowerCase();
-      // Conhecimento = Azul Ciano
-      if (knowledgeKeys.includes(k)) return { borderLeft: "4px solid #02425fff" };
-      // Prática = Laranja Vivo
-      if (practiceKeys.includes(k)) return { borderLeft: "4px solid #4e0202ff" };
-      // Padrão
-      return { borderLeft: "4px solid #444" };
+    const k = key.toLowerCase();
+    // Conhecimento = Azul Ciano
+    if (knowledgeKeys.includes(k)) return { borderLeft: "4px solid #02425fff" };
+    // Prática = Laranja Vivo
+    if (practiceKeys.includes(k)) return { borderLeft: "4px solid #4e0202ff" };
+    // Padrão
+    return { borderLeft: "4px solid #444" };
   };
 
   const getSkillLabel = (key) => {
-      const k = key.toLowerCase();
-      if (knowledgeKeys.includes(k)) return "CONHECIMENTO";
-      if (practiceKeys.includes(k)) return "PRÁTICA";
-      return "";
+    const k = key.toLowerCase();
+    if (knowledgeKeys.includes(k)) return "CONHECIMENTO";
+    if (practiceKeys.includes(k)) return "PRÁTICA";
+    return "";
   };
 
   return (
     <>
       <div className={styles.sectionTitle}>{translateKey(title)}</div>
-      
+
       {/* Aqui fazemos o loop para mostrar as skills com a cor nova */}
       {Object.entries(globalSkills).map(([key, val]) => (
-         <div 
-            key={key} 
-            className={styles.rowItem}
-            // APLICA A COR DA BORDA AQUI:
-            style={getSkillStyle(key)}
-         >
-            <div 
-               style={{flex: 1, display: 'flex', flexDirection: 'column', cursor:'pointer'}} 
-               onClick={() => openDesc(key)}
+        <div
+          key={key}
+          className={styles.rowItem}
+          // APLICA A COR DA BORDA AQUI:
+          style={getSkillStyle(key)}
+        >
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              cursor: "pointer",
+            }}
+            onClick={() => openDesc(key)}
+          >
+            <div className={styles.itemName} style={{ lineHeight: "1.2" }}>
+              {translateKey(key)}
+            </div>
+            {/* TEXTO PEQUENO (Conhecimento/Prática) */}
+            <span
+              style={{
+                fontSize: "0.65rem",
+                color: "#666",
+                fontWeight: "bold",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+              }}
             >
-                <div className={styles.itemName} style={{lineHeight: '1.2'}}>
-                    {translateKey(key)}
-                </div>
-                {/* TEXTO PEQUENO (Conhecimento/Prática) */}
-                <span style={{fontSize:'0.65rem', color:'#666', fontWeight:'bold', letterSpacing:'1px', textTransform:'uppercase'}}>
-                    {getSkillLabel(key)}
-                </span>
-            </div>
-            
-            <input 
-               type="number" className={`${styles.inputField} ${styles.smallInput}`} 
-               value={val} onChange={(e) => handleEditSkill(key, e.target.value)}
-            />
-            
-            <div className={styles.selectInputWrapper}>
-               <select 
-                  className={styles.selectField}
-                  value={selectedInstinct[key] || ""}
-                  onChange={(e) => dispatch(setSelectedInstinct({ [key]: e.target.value }))}
-                  style={{padding:'4px'}}
-               >
-                  <option value="" disabled>Instinto</option>
-                  {Object.keys(instincts).map(i => (
-                     <option key={i} value={i}>{translateKey(i)}</option>
-                  ))}
-               </select>
-            </div>
-            <button className={styles.rollBtn} onClick={() => handleRoll(key)} disabled={!selectedInstinct[key]} title="Rolar Teste">
-               <MeuIcone style={{width:20, height:20}} />
-            </button>
-         </div>
+              {getSkillLabel(key)}
+            </span>
+          </div>
+
+          <input
+            type="number"
+            className={`${styles.inputField} ${styles.smallInput}`}
+            value={val}
+            onChange={(e) => handleEditSkill(key, e.target.value)}
+          />
+
+          <div className={styles.selectInputWrapper}>
+            <select
+              className={styles.selectField}
+              value={selectedInstinct[key] || ""}
+              onChange={(e) =>
+                dispatch(setSelectedInstinct({ [key]: e.target.value }))
+              }
+              style={{ padding: "4px" }}
+            >
+              <option value="" disabled>
+                Instinto
+              </option>
+              {Object.keys(instincts).map((i) => (
+                <option key={i} value={i}>
+                  {translateKey(i)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            className={styles.rollBtn}
+            onClick={() => handleRoll(key)}
+            disabled={!selectedInstinct[key]}
+            title="Rolar Teste"
+          >
+            <MeuIcone style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
       ))}
 
-      <CustomModal 
-         open={modalOpen} 
-         onClose={() => setModalOpen(false)} 
-         title={translateKey(selectedSkillDesc.name)}
+      <CustomModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={translateKey(selectedSkillDesc.name)}
       >
-         <p>{selectedSkillDesc.desc}</p>
+        <p>{selectedSkillDesc.desc}</p>
       </CustomModal>
 
-      <CustomToast 
-        open={rollToastOpen} 
-        onClose={() => setRollToastOpen(false)} 
-        rollResult={currentRoll} 
+      <CustomToast
+        open={rollToastOpen}
+        onClose={() => setRollToastOpen(false)}
+        rollResult={currentRoll}
       />
     </>
   );
@@ -507,12 +616,18 @@ const InstinctList = ({
 
   const showDesc = (key) => {
     const descs = {
-      reaction: "Instinto básico que mede a velocidade de reação do indivíduo. Geralmente, é usado em situações em que o personagem está em risco e precisa agir rapidamente ou em testes reflexivos em geral.",
-      perception: "Governa a capacidade sensorial do personagem, incluindo todos os sentidos e a atenção.",
-      sagacity: "Facilidade para entender e interpretar dados, explicações ou situações; agudeza de espírito; perspicácia, argúcia, astúcia.",
-      potency: "Capacidade de exercer pressão física do personagem, incluindo resistência a pressões físicas externas. Mede seu poder físico e elasticidade, relacionando seu sistema nervoso central com seu sistema muscular e ósseo.",
-      influence: "Sua capacidade de influenciar outras pessoas, seu magnetismo pessoal, carisma, escolha e cuidado com palavras e liderança.",
-      resolution: "Sua determinação física e mental, capacidade de resistir à pressão psicológica interna e externa.",
+      reaction:
+        "Instinto básico que mede a velocidade de reação do indivíduo. Geralmente, é usado em situações em que o personagem está em risco e precisa agir rapidamente ou em testes reflexivos em geral.",
+      perception:
+        "Governa a capacidade sensorial do personagem, incluindo todos os sentidos e a atenção.",
+      sagacity:
+        "Facilidade para entender e interpretar dados, explicações ou situações; agudeza de espírito; perspicácia, argúcia, astúcia.",
+      potency:
+        "Capacidade de exercer pressão física do personagem, incluindo resistência a pressões físicas externas. Mede seu poder físico e elasticidade, relacionando seu sistema nervoso central com seu sistema muscular e ósseo.",
+      influence:
+        "Sua capacidade de influenciar outras pessoas, seu magnetismo pessoal, carisma, escolha e cuidado com palavras e liderança.",
+      resolution:
+        "Sua determinação física e mental, capacidade de resistir à pressão psicológica interna e externa.",
     };
     setSelectedInstinctDesc({ key, desc: descs[key] || "Sem descrição." });
     setDescModalOpen(true);
@@ -736,25 +851,25 @@ const CharacterSheet = () => {
   const slotsInfo = calculateSlots();
 
   const getSkillColor = (key) => {
-      // Normalização para lowerCase para garantir match
-      const k = key.toLowerCase();
-      
-      // Conhecimento = Azulão / Cyan
-      if (knowledgeKeys.includes(k)) return "3px solid #00b0ff"; 
-      
-      // Prática = Laranja / Amarelo
-      if (practiceKeys.includes(k)) return "3px solid #ff9100";
-      
-      // Padrão (sem match) = Cinza
-      return "3px solid #444"; 
+    // Normalização para lowerCase para garantir match
+    const k = key.toLowerCase();
+
+    // Conhecimento = Azulão / Cyan
+    if (knowledgeKeys.includes(k)) return "3px solid #00b0ff";
+
+    // Prática = Laranja / Amarelo
+    if (practiceKeys.includes(k)) return "3px solid #ff9100";
+
+    // Padrão (sem match) = Cinza
+    return "3px solid #444";
   };
 
   const getSkillTypeLabel = (key) => {
-      const k = key.toLowerCase();
-      if (knowledgeKeys.includes(k)) return "CONHECIMENTO"; 
-      if (practiceKeys.includes(k)) return "PRÁTICA";
-      return "";
-  }
+    const k = key.toLowerCase();
+    if (knowledgeKeys.includes(k)) return "CONHECIMENTO";
+    if (practiceKeys.includes(k)) return "PRÁTICA";
+    return "";
+  };
 
   // HANDLERS E SAVE
   const saveInventory = async (newCharState) => {
@@ -923,7 +1038,7 @@ const CharacterSheet = () => {
     const newState = { ...character, inventory: updatedInventory };
     setCharacter(newState);
     saveInventory(newState);
-    
+
     // 3. Fecha o modal
     setEditItem(null);
   };
@@ -1444,46 +1559,54 @@ const CharacterSheet = () => {
         customRollResult={lastCustomRoll}
         onClose={() => setCustomToastOpen(false)}
       />
-      <ItemsModal
-        open={itemsModalOpen}
-        handleClose={() => setItemsModalOpen(false)}
-        items={inventoryItemsDB}
-        onItemSelect={handleAddItem}
-        onCreateNewHomebrew={() => {}}
-      />
-      <CharacteristicsModal
-        open={charsModalOpen}
-        handleClose={() => setCharsModalOpen(false)}
-        items={characteristicsDB}
-        onItemSelect={(trait) => {
-          const newState = {
-            ...character,
-            characteristics: [...(character.characteristics || []), trait],
-          };
-          setCharacter(newState);
-          saveInventory(newState);
-          setCharsModalOpen(false);
-        }}
-      />
-      <AssimilationsModal
-        open={assimsModalOpen}
-        handleClose={() => setAssimsModalOpen(false)}
-        items={assimilationsDB}
-        onItemSelect={(assim) => {
-          const newState = {
-            ...character,
-            assimilations: [...(character.assimilations || []), assim],
-          };
-          setCharacter(newState);
-          saveInventory(newState);
-          setAssimsModalOpen(false);
-        }}
-      />
-      <EditItemDialog
-        editItem={editItem}
-        onClose={() => setEditItem(null)}
-        onSave={(originalItem, newItem) => handleSaveEditedItem(originalItem, newItem)}
-      />
+      
+      {/* Envolva os modais existentes no final do arquivo com o ReactDOM.createPortal */}
+      {ReactDOM.createPortal(
+        <>
+          <ItemsModal
+            open={itemsModalOpen}
+            handleClose={() => setItemsModalOpen(false)}
+            items={inventoryItemsDB}
+            onItemSelect={handleAddItem}
+          />
+          <CharacteristicsModal
+            open={charsModalOpen}
+            handleClose={() => setCharsModalOpen(false)}
+            items={characteristicsDB}
+            onItemSelect={(trait) => {
+              const newState = {
+                ...character,
+                characteristics: [...(character.characteristics || []), trait],
+              };
+              setCharacter(newState);
+              saveInventory(newState);
+              setCharsModalOpen(false);
+            }}
+          />
+          <AssimilationsModal
+            open={assimsModalOpen}
+            handleClose={() => setAssimsModalOpen(false)}
+            items={assimilationsDB}
+            onItemSelect={(assim) => {
+              const newState = {
+                ...character,
+                assimilations: [...(character.assimilations || []), assim],
+              };
+              setCharacter(newState);
+              saveInventory(newState);
+              setAssimsModalOpen(false);
+            }}
+          />
+          <EditItemDialog
+            editItem={editItem}
+            onClose={() => setEditItem(null)}
+            onSave={(originalItem, newItem) =>
+              handleSaveEditedItem(originalItem, newItem)
+            }
+          />
+        </>,
+        document.body
+      )}
       {/* --- INICIO DA ÁREA FLUTUANTE (PORTAL) --- */}
       {ReactDOM.createPortal(
         <>
@@ -1507,8 +1630,8 @@ const CharacterSheet = () => {
               {/* Cabeçalho */}
               <div className={styles.historyHeader}>
                 <h4 className={styles.historyTitle}>Histórico Recente</h4>
-                <button 
-                  className={styles.clearBtn} 
+                <button
+                  className={styles.clearBtn}
                   onClick={() => setRollHistory([])}
                 >
                   Limpar
@@ -1518,7 +1641,14 @@ const CharacterSheet = () => {
               {/* Lista */}
               <div className={styles.historyList}>
                 {rollHistory.length === 0 && (
-                  <p style={{ color: "#555", textAlign: "center", fontStyle: "italic", fontSize: "0.9rem" }}>
+                  <p
+                    style={{
+                      color: "#555",
+                      textAlign: "center",
+                      fontStyle: "italic",
+                      fontSize: "0.9rem",
+                    }}
+                  >
                     Nenhuma rolagem feita.
                   </p>
                 )}
@@ -1528,17 +1658,21 @@ const CharacterSheet = () => {
                   .reverse()
                   .map((h, i) => (
                     <div key={i} className={styles.historyItem}>
-                      
                       {/* Título e Hora */}
                       <div className={styles.histTopRow}>
-                        <span 
+                        <span
                           className={styles.histSkillName}
                           title={h.skill ? translateKey(h.skill) : h.formula}
                         >
-                          {h.skill ? translateKey(h.skill) : h.formula || "Rolagem Manual"}
+                          {h.skill
+                            ? translateKey(h.skill)
+                            : h.formula || "Rolagem Manual"}
                         </span>
                         <span className={styles.histTime}>
-                          {new Date(h.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {new Date(h.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </span>
                       </div>
 
@@ -1546,16 +1680,18 @@ const CharacterSheet = () => {
                       <div className={styles.histDiceGrid}>
                         {h.roll.map((die, idx) => (
                           <div key={idx} className={styles.histDie}>
-                            <span className={styles.histDieType}>d{die.sides}</span>
+                            <span className={styles.histDieType}>
+                              d{die.sides}
+                            </span>
                             <div className={styles.histDieVal}>
                               {/* Lógica: Se tem array de imagens, mostra imagens. Senão mostra número. */}
                               {die.result && die.result.length > 0 ? (
                                 die.result.map((src, imgI) => (
-                                  <img 
-                                    key={imgI} 
-                                    src={src} 
-                                    alt="dado" 
-                                    className={styles.histImg} 
+                                  <img
+                                    key={imgI}
+                                    src={src}
+                                    alt="dado"
+                                    className={styles.histImg}
                                   />
                                 ))
                               ) : (
@@ -1565,7 +1701,6 @@ const CharacterSheet = () => {
                           </div>
                         ))}
                       </div>
-
                     </div>
                   ))}
               </div>

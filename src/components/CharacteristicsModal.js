@@ -1,38 +1,27 @@
-/* src/components/CharacteristicsModal.js */
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { FaSearch, FaTimes, FaPlus, FaChevronDown, FaChevronUp } from "react-icons/fa";
-import "../pages/Homebrews.css"; // Garante que os estilos .nero-* funcionem
+import "../pages/Homebrews.css"; 
 
 const CharacteristicsModal = ({
   open,
   handleClose,
-  title,
-  items = [], // Características do sistema passadas como prop
-  homebrewItems = [], // Personalizadas passadas como prop (opcional)
+  items = [], 
+  homebrewItems = [], 
   onItemSelect,
-  onCreateNewHomebrew,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedId, setExpandedId] = useState(null);
 
-  const user = useSelector((state) => state.auth.user);
-  
-  // Se as props vierem vazias, tenta pegar do Redux (safety check)
   const { characterTraits = [] } = useSelector((state) => state.characteristics);
-
-  // Lógica de Combinação de Listas
   const traitsPool = items.length > 0 ? items : characterTraits;
-  
-  // Junta listas se homebrewItems for passado, ou filtra do pool principal
   let displayList = [...traitsPool];
   if (homebrewItems.length > 0) {
       displayList = [...displayList, ...homebrewItems];
   }
   
-  // Remover duplicatas e filtrar por busca
   const filteredList = displayList
-    .filter((item, index, self) => self.findIndex(t => t._id === item._id) === index) // Unique
+    .filter((item, index, self) => self.findIndex(t => t._id === item._id) === index)
     .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const toggleExpand = (id) => {
@@ -41,73 +30,92 @@ const CharacteristicsModal = ({
 
   if (!open) return null;
 
+  // ESTILOS INLINE PARA GARANTIR FIXAÇÃO NA TELA (E não na página)
+  const overlayStyle = {
+    position: 'fixed', // O segredo: Fixado na janela
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    zIndex: 99999, // Garante que fica em cima de tudo, até da Navbar
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backdropFilter: 'blur(3px)'
+  };
+
+  const modalPanelStyle = {
+    width: '90%',
+    maxWidth: '500px',
+    backgroundColor: '#121212',
+    border: '1px solid #444',
+    borderRadius: '4px',
+    boxShadow: '0 0 50px rgba(0,0,0,1)',
+    display: 'flex',
+    flexDirection: 'column',
+    maxHeight: '85vh', // Não deixa estourar a altura da tela no mobile
+  };
+
   return (
-    <div className="nero-modal-overlay" onClick={(e) => e.target.className === 'nero-modal-overlay' && handleClose()}>
-      <div className="nero-modal">
+    <div style={overlayStyle} onClick={(e) => e.target === e.currentTarget && handleClose()}>
+      <div style={modalPanelStyle} className="nero-modal">
         {/* HEADER */}
-        <div className="nero-modal-header">
-          <span style={{display:'flex', alignItems:'center', gap:'10px'}}>
-            SELECIONAR CARACTERÍSTICA
-          </span>
-          <button onClick={handleClose} style={{background:'transparent', border:'none', color:'#888', cursor:'pointer'}}>
-              <FaTimes size={18}/>
-          </button>
+        <div className="nero-modal-header" style={{flexShrink: 0, display:'flex', justifyContent:'space-between', padding:'15px', borderBottom:'1px solid #333', background:'#1a1a1a'}}>
+          <span style={{fontWeight:'bold', color:'#fff'}}>SELECIONAR CARACTERÍSTICA</span>
+          <button onClick={handleClose} style={{background:'transparent', border:'none', color:'#888', cursor:'pointer'}}><FaTimes size={18}/></button>
         </div>
 
-        {/* BODY */}
-        <div className="nero-modal-body">
-            {/* BARRA DE BUSCA */}
+        {/* BODY COM SCROLL INTERNO */}
+        <div className="nero-modal-body" style={{padding:'20px', overflowY:'auto', flex: 1}}>
             <div style={{position:'relative', marginBottom:'20px'}}>
                 <FaSearch style={{position:'absolute', left:'10px', top:'12px', color:'#666'}}/>
                 <input 
                     type="text" 
                     className="nero-input" 
-                    placeholder="Buscar característica..." 
+                    placeholder="Buscar..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{paddingLeft:'35px'}}
+                    style={{paddingLeft:'35px', width:'100%', boxSizing:'border-box'}}
                 />
             </div>
 
-            {/* LISTA DE ITENS */}
             <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
                 {filteredList.map((item) => (
-                    <div key={item._id} className={`hb-card ${expandedId === item._id ? 'expanded' : ''}`} style={{background:'#121212'}}>
+                    <div key={item._id} className={`hb-card ${expandedId === item._id ? 'expanded' : ''}`} style={{background:'#1a1a1a', borderRadius:'4px'}}>
                         
                         <div className="hb-card-header" onClick={() => toggleExpand(item._id)} style={{padding:'12px'}}>
                              <span className="hb-card-title">{item.name}</span>
                              <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                                 {item.isCustom && <span style={{fontSize:'0.7rem', background:'#333', padding:'2px 6px', borderRadius:'2px', color:'#aaa'}}>Homebrew</span>}
+                                 {item.isCustom && <span style={{fontSize:'0.6rem', background:'#333', border:'1px solid #555', color:'#aaa', padding:'2px 5px', borderRadius:'2px'}}>HB</span>}
                                  {expandedId === item._id ? <FaChevronUp size={12}/> : <FaChevronDown size={12}/>}
                              </div>
                         </div>
 
                         {expandedId === item._id && (
-                            <div className="hb-card-body">
-                                <div className="hb-info-row"><span className="hb-label">CATEGORIA</span> {item.category}</div>
-                                <div className="hb-info-row"><span className="hb-label">CUSTO</span> {item.pointsCost} Pts</div>
-                                <div className="hb-desc-box">{item.description}</div>
+                            <div className="hb-card-body" style={{padding:'10px', background:'#222'}}>
+                                <div style={{marginBottom:'5px', color:'#ccc'}}><strong>Categoria:</strong> {item.category}</div>
+                                <div style={{marginBottom:'10px', color:'#ccc'}}><strong>Custo:</strong> {item.pointsCost}</div>
+                                <div style={{fontSize:'0.9rem', color:'#999', marginBottom:'15px', lineHeight:'1.4'}}>{item.description}</div>
                                 
                                 <button 
                                     className="btn-nero btn-primary" 
-                                    style={{marginTop:'15px', width:'100%', justifyContent:'center'}}
+                                    style={{width:'100%', padding:'10px'}}
                                     onClick={() => onItemSelect(item)}
                                 >
-                                    <FaPlus/> ADICIONAR
+                                    <FaPlus style={{marginRight:'5px'}}/> ADICIONAR
                                 </button>
                             </div>
                         )}
                     </div>
                 ))}
-                {filteredList.length === 0 && <p style={{textAlign:'center', color:'#666'}}>Nenhuma característica encontrada.</p>}
+                {filteredList.length === 0 && <p style={{textAlign:'center', color:'#666'}}>Nenhuma encontrada.</p>}
             </div>
         </div>
 
         {/* FOOTER */}
-        <div className="nero-modal-footer">
-           {/* Botão opcional para criar nova direto daqui se quiser implementar depois */}
-           <div style={{flex:1}}></div> 
-           <button className="btn-nero" onClick={handleClose}>FECHAR</button>
+        <div className="nero-modal-footer" style={{padding:'15px', borderTop:'1px solid #333', background:'#1a1a1a', flexShrink:0, display:'flex', justifyContent:'flex-end'}}>
+           <button className="btn-nero" onClick={handleClose} style={{padding:'8px 20px', background:'transparent', border:'1px solid #444', color:'#ccc'}}>FECHAR</button>
         </div>
 
       </div>
