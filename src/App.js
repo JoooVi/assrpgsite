@@ -3,7 +3,9 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { initializeAuth } from "./redux/slices/authSlice";
-
+import axios from "axios";
+import store from "./redux/store";
+import { logout } from "./redux/slices/authSlice";
 // Componentes de Layout
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -45,6 +47,48 @@ const AppContent = () => {
   const location = useLocation();
   const { isAuthenticated } = useSelector((state) => state.auth);
   const isPortraitRoute = location.pathname.startsWith('/character-portrait/');
+
+  axios.interceptors.response.use(
+  (response) => response, // Se a resposta for OK, não faz nada
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // OPA! O token expirou ou é inválido
+      console.warn("Token expirado. Deslogando...");
+      
+      // 1. Limpa o Redux
+      store.dispatch(logout()); 
+      
+      // 2. Limpa o localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      // 3. Manda para o login
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+axios.interceptors.response.use(
+  (response) => response, // Se a resposta for OK, não faz nada
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // OPA! O token expirou ou é inválido
+      console.warn("Token expirado. Deslogando...");
+      
+      // 1. Limpa o Redux
+      store.dispatch(logout()); 
+      
+      // 2. Limpa o localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      // 3. Manda para o login
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
