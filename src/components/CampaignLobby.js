@@ -6,18 +6,28 @@ import axios from "axios";
 import "./CampaignLobby.css";
 
 // Ícones
-import { 
-  FaShieldAlt, FaHome, FaUserPlus, FaUserFriends, FaEdit, 
-  FaTv, FaTrash, FaEye, FaCheck, FaTimes, FaExclamationTriangle 
+import {
+  FaShieldAlt,
+  FaHome,
+  FaUserPlus,
+  FaUserFriends,
+  FaEdit,
+  FaTv,
+  FaTrash,
+  FaEye,
+  FaCheck,
+  FaTimes,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 // Constantes
-const DEFAULT_COVER_IMAGE = "https://images.unsplash.com/photo-1626262846282-e36214878a1a?q=80&w=1000&auto=format&fit=crop";
+const DEFAULT_COVER_IMAGE =
+  "https://images.unsplash.com/photo-1626262846282-e36214878a1a?q=80&w=1000&auto=format&fit=crop";
 
 const CampaignLobby = () => {
   const { id: campaignId } = useParams();
   const { user, token } = useSelector((state) => state.auth);
-  
+
   // --- ESTADOS ---
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +41,7 @@ const CampaignLobby = () => {
   // Upload e Feedback
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   // Sistema de Notificação Customizado (Substitui Snackbar)
   const [toast, setToast] = useState({ open: false, msg: "", type: "success" });
 
@@ -57,17 +67,21 @@ const CampaignLobby = () => {
 
       const data = res.data;
       setCampaign(data);
-      
+
       // Verifica Mestre
-      setIsMaster(user && data.master && (data.master._id || data.master) === user._id);
+      setIsMaster(
+        user && data.master && (data.master._id || data.master) === user._id
+      );
 
       // URL da Imagem
       let img = data.coverImage;
       if (img && !img.startsWith("http")) {
-        img = `https://assrpgsite-be-production.up.railway.app/${img.replace(/\\/g, "/")}`;
+        img = `https://assrpgsite-be-production.up.railway.app/${img.replace(
+          /\\/g,
+          "/"
+        )}`;
       }
       setCoverImageUrl(img || DEFAULT_COVER_IMAGE);
-
     } catch (err) {
       setError("Falha ao carregar dados da campanha.");
       console.error(err);
@@ -87,7 +101,7 @@ const CampaignLobby = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    event.target.value = null; 
+    event.target.value = null;
     setIsUploading(true);
 
     const formData = new FormData();
@@ -102,11 +116,13 @@ const CampaignLobby = () => {
 
       let newUrl = response.data.coverImage;
       if (newUrl && !newUrl.startsWith("http")) {
-        newUrl = `https://assrpgsite-be-production.up.railway.app/${newUrl.replace(/\\/g, "/")}`;
+        newUrl = `https://assrpgsite-be-production.up.railway.app/${newUrl.replace(
+          /\\/g,
+          "/"
+        )}`;
       }
       setCoverImageUrl(newUrl || DEFAULT_COVER_IMAGE);
       showToast("Capa atualizada com sucesso!", "success");
-
     } catch (err) {
       console.error(err);
       showToast("Erro ao atualizar capa.", "error");
@@ -177,38 +193,61 @@ const CampaignLobby = () => {
 
   // --- RENDER ---
 
-  if (loading) return (
-    <div className="lobby-page" style={{ alignItems: 'center' }}>
-      <h2 style={{color: '#fff', fontFamily: 'Orbitron'}}>CARREGANDO OPERAÇÃO...</h2>
-    </div>
-  );
-
-  if (error || !campaign) return (
-    <div className="lobby-page" style={{ alignItems: 'center' }}>
-      <div className="lobby-panel" style={{textAlign: 'center', maxWidth: '500px'}}>
-        <FaExclamationTriangle style={{fontSize: '3rem', color: '#ff3333', marginBottom: '20px'}}/>
-        <h2>ACESSO NEGADO / ERRO</h2>
-        <p>{error || "Campanha não encontrada."}</p>
-        <Link to="/campaigns" className="btn-nero btn-secondary" style={{marginTop: '20px'}}>VOLTAR</Link>
+  if (loading)
+    return (
+      <div className="lobby-page" style={{ alignItems: "center" }}>
+        <h2 style={{ color: "#fff", fontFamily: "Orbitron" }}>
+          CARREGANDO OPERAÇÃO...
+        </h2>
       </div>
-    </div>
-  );
+    );
+
+  if (error || !campaign)
+    return (
+      <div className="lobby-page" style={{ alignItems: "center" }}>
+        <div
+          className="lobby-panel"
+          style={{ textAlign: "center", maxWidth: "500px" }}
+        >
+          <FaExclamationTriangle
+            style={{ fontSize: "3rem", color: "#ff3333", marginBottom: "20px" }}
+          />
+          <h2>ACESSO NEGADO / ERRO</h2>
+          <p>{error || "Campanha não encontrada."}</p>
+          <Link
+            to="/campaigns"
+            className="btn-nero btn-secondary"
+            style={{ marginTop: "20px" }}
+          >
+            VOLTAR
+          </Link>
+        </div>
+      </div>
+    );
 
   return (
     <div className="lobby-page">
       <div className="lobby-panel">
-        
         {/* BARRA DE AÇÕES */}
         <div className="lobby-actions">
           {isMaster && (
-            <Link to={`/campaign-sheet/${campaignId}`} className="btn-nero btn-primary">
+            <Link
+              to={`/campaign-sheet/${campaignId}`}
+              className="btn-nero btn-primary"
+            >
               <FaShieldAlt /> ESCUDO DO MESTRE
             </Link>
           )}
-          <Link to={`/campaign/${campaignId}/refuge`} className="btn-nero btn-secondary">
+          <Link
+            to={`/campaign/${campaignId}/refuge`}
+            className="btn-nero btn-secondary"
+          >
             <FaHome /> REFÚGIO
           </Link>
-          <button onClick={handleOpenCharModal} className="btn-nero btn-secondary">
+          <button
+            onClick={handleOpenCharModal}
+            className="btn-nero btn-secondary"
+          >
             <FaUserPlus /> ADICIONAR AGENTE
           </button>
           <button onClick={handleInvite} className="btn-nero btn-secondary">
@@ -221,21 +260,24 @@ const CampaignLobby = () => {
           {/* Capa com Upload */}
           <div className="cover-container">
             <img src={coverImageUrl} alt="Capa" className="cover-image" />
-            
+
             {isMaster && (
-              <div className="edit-cover-overlay" onClick={handleEditCoverClick}>
+              <div
+                className="edit-cover-overlay"
+                onClick={handleEditCoverClick}
+              >
                 <div className="btn-edit-cover">
                   <FaEdit /> {isUploading ? "ENVIANDO..." : "ALTERAR CAPA"}
                 </div>
               </div>
             )}
-            
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleCoverImageChange} 
-              accept="image/*" 
-              style={{display: 'none'}} 
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleCoverImageChange}
+              accept="image/*"
+              style={{ display: "none" }}
             />
           </div>
 
@@ -246,87 +288,170 @@ const CampaignLobby = () => {
         {/* LISTA DE PERSONAGENS */}
         <div className="character-section">
           <h3 className="char-section-title">AGENTES ATIVOS</h3>
-          
+
           <div className="char-list">
-            {campaign.players && campaign.players.filter(p => p.character).length > 0 ? (
-              campaign.players.filter(p => p.character).map((playerEntry) => {
-                const char = playerEntry.character;
-                const ownerName = playerEntry.user?.name || "Desconhecido";
-                const isOwner = user && char.userId === user._id;
+            {campaign.players &&
+            campaign.players.filter((p) => p.character).length > 0 ? (
+              campaign.players
+                .filter((p) => p.character)
+                .map((playerEntry) => {
+                  const char = playerEntry.character;
+                  const ownerName = playerEntry.user?.name || "Desconhecido";
+                  const isOwner = user && char.userId === user._id;
+                  const canView = !char.isPrivate || isOwner || isMaster;
 
-                if (!char?._id) return null;
+                  if (!char?._id) return null;
 
-                return (
-                  <div key={char._id} className="char-row">
-                    <div className="char-info">
-                      <h4>{char.name}</h4>
-                      <span>JOGADOR: {ownerName.toUpperCase()}</span>
-                    </div>
-                    
-                    <div className="char-actions">
-                      <Link 
-                        to={`/character-sheet/${char._id}`} 
-                        target="_blank" 
-                        className="btn-icon-small view"
-                        title="Ver Ficha"
+                  return (
+                    <div
+                      key={char._id}
+                      className="char-row"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "15px",
+                      }}
+                    >
+                      {/* EXIBIÇÃO DA IMAGEM */}
+                      <div
+                        className="char-avatar-mini"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "4px",
+                          overflow: "hidden",
+                          border: "1px solid #444",
+                        }}
                       >
-                        <FaEye />
-                      </Link>
-                      
-                      <Link 
-                        to={`/character-portrait/${char._id}`} 
-                        target="_blank" 
-                        className="btn-icon-small view"
-                        title=" Portrait Stream"
-                      >
-                        <FaTv />
-                      </Link>
+                        <img
+                          src={char.avatar || "URL_DE_PLACEHOLDER"}
+                          alt={char.name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </div>
+                      <div className="char-info">
+                        <h4>{char.name}</h4>
+                        <span>JOGADOR: {ownerName.toUpperCase()}</span>
+                      </div>
 
-                      {(isMaster || isOwner) && (
-                        <button 
-                          className="btn-icon-small delete" 
-                          onClick={() => handleRemoveCharacter(char._id, char.name)}
-                          title="Remover da Campanha"
+                      <div className="char-actions">
+                        {canView ? (
+                          // Se puder ver, mostra o link normal
+                          <Link
+                            to={`/character-sheet/${char._id}`}
+                            target="_blank"
+                            className="btn-icon-small view"
+                            title="Ver Ficha"
+                          >
+                            <FaEye />
+                          </Link>
+                        ) : (
+                          // Se for privada, mostra um cadeado cinza e não deixa clicar
+                          <span
+                            className="btn-icon-small"
+                            style={{ cursor: "not-allowed", opacity: 0.5 }}
+                            title="Ficha Privada"
+                          >
+                            <FaShieldAlt />
+                          </span>
+                        )}
+
+                        <Link
+                          to={`/character-portrait/${char._id}`}
+                          target="_blank"
+                          className="btn-icon-small view"
+                          title="Portrait Stream"
                         >
-                          <FaTrash />
-                        </button>
-                      )}
+                          <FaTv />
+                        </Link>
+
+                        {(isMaster || isOwner) && (
+                          <button
+                            className="btn-icon-small delete"
+                            onClick={() =>
+                              handleRemoveCharacter(char._id, char.name)
+                            }
+                            title="Remover da Campanha"
+                          >
+                            <FaTrash />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })
             ) : (
-              <div className="empty-msg">NENHUM AGENTE REGISTRADO NESTA OPERAÇÃO.</div>
+              <div className="empty-msg">
+                NENHUM AGENTE REGISTRADO NESTA OPERAÇÃO.
+              </div>
             )}
           </div>
         </div>
-
       </div>
 
       {/* MODAL DE ADICIONAR PERSONAGEM */}
       {openCharModal && (
-        <div className="nero-modal-overlay" onClick={(e) => { if(e.target.className==='nero-modal-overlay') setOpenCharModal(false) }}>
+        <div
+          className="nero-modal-overlay"
+          onClick={(e) => {
+            if (e.target.className === "nero-modal-overlay")
+              setOpenCharModal(false);
+          }}
+        >
           <div className="nero-modal">
-            <div className="nero-modal-header">SELECIONAR AGENTE PARA A MISSÃO</div>
+            <div className="nero-modal-header">
+              SELECIONAR AGENTE PARA A MISSÃO
+            </div>
             <div className="nero-modal-content">
               {availableChars.length > 0 ? (
-                availableChars.map(char => (
+                availableChars.map((char) => (
                   <div key={char._id} className="char-select-item">
                     <div>
-                      <strong style={{display:'block', color:'#fff', fontFamily:'Orbitron'}}>{char.name}</strong>
-                      <span style={{color:'#888', fontSize:'0.8rem'}}>{char.occupation || "Sem ocupação"}</span>
+                      <strong
+                        style={{
+                          display: "block",
+                          color: "#fff",
+                          fontFamily: "Orbitron",
+                        }}
+                      >
+                        {char.name}
+                      </strong>
+                      <span style={{ color: "#888", fontSize: "0.8rem" }}>
+                        {char.occupation || "Sem ocupação"}
+                      </span>
                     </div>
-                    <button className="btn-nero btn-primary" style={{padding:'5px 15px', fontSize:'0.8rem'}} onClick={() => handleAddCharacter(char._id)}>
+                    <button
+                      className="btn-nero btn-primary"
+                      style={{ padding: "5px 15px", fontSize: "0.8rem" }}
+                      onClick={() => handleAddCharacter(char._id)}
+                    >
                       ADICIONAR
                     </button>
                   </div>
                 ))
               ) : (
-                <p style={{padding:'20px', textAlign:'center', color:'#888'}}>Você não possui agentes disponíveis fora de missão.</p>
+                <p
+                  style={{
+                    padding: "20px",
+                    textAlign: "center",
+                    color: "#888",
+                  }}
+                >
+                  Você não possui agentes disponíveis fora de missão.
+                </p>
               )}
             </div>
             <div className="nero-modal-actions">
-              <button className="btn-nero btn-secondary" onClick={() => setOpenCharModal(false)}>FECHAR</button>
+              <button
+                className="btn-nero btn-secondary"
+                onClick={() => setOpenCharModal(false)}
+              >
+                FECHAR
+              </button>
             </div>
           </div>
         </div>
@@ -335,11 +460,10 @@ const CampaignLobby = () => {
       {/* TOAST NOTIFICATION (Feedback Visual) */}
       {toast.open && (
         <div className={`nero-toast ${toast.type}`}>
-          {toast.type === 'success' ? <FaCheck /> : <FaTimes />}
+          {toast.type === "success" ? <FaCheck /> : <FaTimes />}
           {toast.msg}
         </div>
       )}
-
     </div>
   );
 };

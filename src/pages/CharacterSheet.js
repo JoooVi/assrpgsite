@@ -35,6 +35,9 @@ import ArmaPlaceholder from "../assets/arma_placeholder.svg";
 import UtilidadePlaceholder from "../assets/utilidade_placeholder.svg";
 import ConsumivelPlaceholder from "../assets/consumivel_placeholder.svg";
 
+// Procure por volta da linha 25 e adicione:
+import LockIcon from "@mui/icons-material/Lock";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 // CSS Module
 import styles from "./CharacterSheet.module.css";
 
@@ -691,8 +694,8 @@ const InstinctList = ({
 const CharacterSheet = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
-  const { user } = useSelector((state) => state.auth);
-
+  const { user, token: reduxToken } = useSelector((state) => state.auth);
+  const token = reduxToken || localStorage.getItem("token");
   // Data State
   const [character, setCharacter] = useState(null);
   const [error, setError] = useState(null);
@@ -736,20 +739,35 @@ const CharacterSheet = () => {
     }
 
     const fetchCharacter = async () => {
-      try {
-        const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setCharacter(response.data);
-        setNotes(response.data.notes || "");
-      } catch (error) {
-        setError("Erro ao carregar a ficha.");
-        console.error(error);
+  try {
+    const response = await axios.get(
+      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setCharacter(response.data);
+    setNotes(response.data.notes || "");
+  } catch (error) {
+    // Se o servidor respondeu com um erro
+    if (error.response) {
+      const status = error.response.status;
+      const msg = error.response.data.message || "";
+
+      if (status === 403) {
+        setError("ACESSO NEGADO: Esta ficha é privada.");
+      } else if (status === 401) {
+        setError("SESSÃO EXPIRADA: Faça login novamente.");
+      } else {
+        setError(`ERRO ${status}: ${msg || "Falha ao carregar dados."}`);
       }
-    };
+    } else {
+      // Erro de rede ou servidor fora do ar
+      setError("ERRO DE REDE: Não foi possível conectar ao servidor.");
+    }
+    console.error("Erro detalhado:", error.response);
+  }
+};
     fetchCharacter();
-  }, [id]);
+  }, [id, token]); // Adicionei token aqui por boa prática, já que ele é usado dentro
 
   // Funções de Fetch Auxiliares
   const fetchInventoryItems = async () => {
@@ -919,6 +937,24 @@ const CharacterSheet = () => {
       } catch (err) {
         alert("Erro ao subir imagem.");
       }
+    }
+  };
+
+  const togglePrivacy = async () => {
+    try {
+      const newVal = !character.isPrivate;
+      // Usamos a mesma URL de "details" que você já tem no projeto
+      await axios.put(
+        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/details`,
+        { isPrivate: newVal },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Atualiza o estado local para o botão refletir a mudança na hora
+      setCharacter({ ...character, isPrivate: newVal });
+    } catch (err) {
+      console.error("Erro ao mudar privacidade", err);
+      alert("Falha ao atualizar privacidade.");
     }
   };
 
@@ -1131,6 +1167,27 @@ const CharacterSheet = () => {
       <div className={styles.container}>
         {/* Header Panel */}
         <div className={styles.headerPanel}>
+          <button
+            onClick={togglePrivacy}
+            className={`${styles.privacyToggle} ${
+              character.isPrivate ? styles.isLocked : ""
+            }`}
+            title={
+              character.isPrivate
+                ? "Ficha Privada (Apenas Mestre e Você)"
+                : "Ficha Pública (Todos na Campanha podem ver)"
+            }
+          >
+            {character.isPrivate ? (
+              <LockIcon fontSize="small" />
+            ) : (
+              <LockOpenIcon fontSize="small" />
+            )}
+            <span className={styles.privacyLabel}>
+              {character.isPrivate ? "PRIVADA" : "PÚBLICA"}
+            </span>
+          </button>
+
           <div className={styles.avatarContainer}>
             {character.avatar ? (
               <img
@@ -1163,7 +1220,6 @@ const CharacterSheet = () => {
           </div>
 
           <div className={styles.headerInputs}>
-            {/* Linha 1: Dados Vitais (Nome, Geração, Ocupação) */}
             <div className={styles.headerInfoRow}>
               <div className={styles.inputGroup}>
                 <span className={styles.label}>Nome</span>
@@ -1559,7 +1615,7 @@ const CharacterSheet = () => {
         customRollResult={lastCustomRoll}
         onClose={() => setCustomToastOpen(false)}
       />
-      
+
       {/* Envolva os modais existentes no final do arquivo com o ReactDOM.createPortal */}
       {ReactDOM.createPortal(
         <>
