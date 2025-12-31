@@ -422,8 +422,8 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     const instVal = parseInt(instincts[selectedInstinct[key]]) || 0;
 
     const formulaParts = [];
-    if (skillVal > 0) formulaParts.push(`${skillVal}d6`);
-    if (instVal > 0) formulaParts.push(`${instVal}d10`);
+    if (skillVal > 0) formulaParts.push(`${skillVal}d10`);
+    if (instVal > 0) formulaParts.push(`${instVal}d6`);
 
     const formula = formulaParts.join("+") || "0d0";
     const result = rollCustomDice(formula);
@@ -1375,7 +1375,7 @@ const CharacterSheet = () => {
               <div className={styles.customDiceRow}>
                 <input
                   className={styles.inputField}
-                  placeholder="Ex: 1d6+2d8"
+                  placeholder="Ex: 1d6+2d10"
                   value={customDiceFormula}
                   onChange={(e) => setCustomDiceFormula(e.target.value)}
                 />
