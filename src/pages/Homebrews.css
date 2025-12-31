@@ -248,3 +248,30 @@
   .hb-tabs { flex-direction: column; }
   .hb-title { font-size: 1.8rem; }
 }
+
+/* Container do Requisito destacado */
+.trait-requirement-badge {
+    background: rgba(255, 0, 0, 0.08); /* Fundo laranja âmbar muito sutil */
+    border-left: 3px solid #ff0000; /* Linha lateral vibrante */
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 0.85rem;
+    color: #eee;
+    display: flex;
+    align-items: center;
+}
+
+.trait-requirement-badge strong {
+    color: #ff0000; /* Texto REQUISITO em destaque */
+    margin-right: 5px;
+}
+
+/* Texto da descrição principal */
+.trait-description-text {
+    color: #aaa;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding-left: 5px;
+    border-left: 1px solid #333; /* Uma linha discreta para separar do badge */
+}
