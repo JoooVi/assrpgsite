@@ -1059,13 +1059,21 @@ const CharacterSheet = () => {
     saveInventory(newState);
   };
 
-  // Função para salvar a edição do item (Características, Qualidade, etc)
+
   const handleSaveEditedItem = (originalItem, newItemState) => {
     // 1. Atualiza o array do inventário localmente
     const updatedInventory = character.inventory.map((item) => {
       // Compara se é o item que estava sendo editado (por referência de objeto)
       if (item === originalItem) {
-        return newItemState;
+        // CORREÇÃO: Mesclamos os dados novos mantendo a estrutura original (slotLocation, etc)
+        return {
+          ...item, // Mantém slotLocation, currentUses, _id, etc.
+          quality: newItemState.quality, // Atualiza a qualidade na raiz do objeto
+          itemData: {
+            ...(item.itemData || {}), // Mantém dados antigos do itemData que não foram editados
+            ...newItemState // Sobrescreve com os novos dados (name, type, slots, description...)
+          }
+        };
       }
       return item;
     });
