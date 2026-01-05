@@ -1,7 +1,7 @@
-/* InventoryGrid.js - Com Drag and Drop */
+/* InventoryGrid.js - Otimizado para Responsividade */
 import React, { useState } from 'react';
 
-// Ícones (Mantidos para visual)
+// Ícones
 import ShareIcon from '@mui/icons-material/Share';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,19 +20,15 @@ const InventoryGrid = ({
   onUse,
   onQualityChange,
   location, // 'corpo' ou 'mochila'
-  // Novos Props para Drag and Drop
   onDragStartItem, 
   onDropItem, 
-  
   styles = {}, 
-  qualityLevels = {}, 
   placeholders = [],
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // --- Funções de Drag & Drop da Grade ---
   const handleDragOver = (e) => {
-    e.preventDefault(); // Necessário para permitir o Drop
+    e.preventDefault();
     setIsDragOver(true);
   };
 
@@ -43,27 +39,26 @@ const InventoryGrid = ({
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
-    // Chama a função do pai dizendo "Soltaram algo AQUI (nesta location)"
     if (onDropItem) onDropItem(location); 
   };
 
-  // --- Renderização dos Slots ---
   const renderedSlots = [];
   let itemIndex = 0;
 
-  // Estilo Inline Botões
+  // Estilo base dos botões de ação (sem padding fixo para o CSS controlar no mobile)
   const actionBtnStyle = {
     background: 'transparent', border: 'none', cursor: 'pointer',
-    color: '#ccc', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+    color: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    borderRadius: '4px'
   };
 
   for (let slotIndex = 0; slotIndex < totalSlots; slotIndex++) {
-    // 1. TENTA RENDERIZAR UM ITEM
     if (itemIndex < items.length) {
       const invItem = items[itemIndex];
       const itemDetails = invItem?.itemData || invItem?.item;
 
       if (!invItem || !itemDetails) {
+        // Slot corrompido/erro
         renderedSlots.push(<div className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`corrupt-${slotIndex}`} />);
         itemIndex++;
         continue;
@@ -73,6 +68,7 @@ const InventoryGrid = ({
       if (itemDetails.modifiers?.includes("Pequeno")) slotsNeeded = 0;
       else if (itemDetails.modifiers?.includes("Pesado")) slotsNeeded += 1;
 
+      // Se o item excede os slots totais restantes, enche de vazios e para
       if (slotIndex + slotsNeeded > totalSlots) {
         for (let k = slotIndex; k < totalSlots; k++) {
           renderedSlots.push(<div className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`fill-${k}`} />);
@@ -80,19 +76,19 @@ const InventoryGrid = ({
         break;
       }
 
-      // ITEM CONTEÚDO (Pequeno ou Normal)
       const isSmall = slotsNeeded === 0;
       
       renderedSlots.push(
         <div 
           className={`${styles.inventorySlot} ${styles.filledSlot}`} 
           key={`item-${invItem._id || itemIndex}`}
-          title={`${itemDetails.name} ${isSmall ? '(Pequeno)' : ''}`}
-          // PROPRIEDADES DE ARRASTAR
+          title={`${itemDetails.name}`}
           draggable={true}
           onDragStart={() => onDragStartItem && onDragStartItem(invItem)}
-          // Estilo de Grid
+          // Use tabIndex para permitir foco no mobile (para abrir o menu de ações ao tocar)
+          tabIndex={0} 
           style={{ 
+            // Span de colunas controlado aqui, mas responsivo graças ao CSS grid container
             gridColumn: isSmall ? 'span 1' : `span ${slotsNeeded}`,
             border: isSmall ? '1px dashed #b71c1c' : undefined
           }}
@@ -104,34 +100,35 @@ const InventoryGrid = ({
             style={{ opacity: itemDetails.isArtefato ? 0.9 : 1 }}
           />
 
-          {itemDetails.isArtefato && <StarIcon style={{ position: 'absolute', top: 3, left: 3, color: '#ffd700', fontSize:'14px', filter: 'drop-shadow(0 0 2px black)' }} />}
+          {itemDetails.isArtefato && (
+            <StarIcon style={{ position: 'absolute', top: 3, left: 3, color: '#ffd700', fontSize:'14px', filter: 'drop-shadow(0 0 2px black)', pointerEvents:'none' }} />
+          )}
           
-          {/* Badge Quantidade */}
           {invItem.quantity > 1 && (
-            <span style={{ position:'absolute', bottom:2, right:4, fontSize:'0.75rem', fontWeight:'bold', color: '#fff', textShadow: '0 0 3px black' }}>
+            <span className={styles.qtyBadge}>
                 x{invItem.quantity}
             </span>
           )}
 
           {/* Painel Ações */}
           <div className={styles.slotActions}>
-             <button style={actionBtnStyle} onClick={() => onMove(invItem, location === 'corpo' ? 'mochila' : 'corpo')} title="Mover">
+             <button style={actionBtnStyle} onClick={(e) => { e.stopPropagation(); onMove(invItem, location === 'corpo' ? 'mochila' : 'corpo'); }} title="Mover">
                 <ShareIcon fontSize="small" style={{transform: location === 'corpo' ? 'rotate(90deg)' : 'rotate(-90deg)'}} />
              </button>
              
-             <button style={actionBtnStyle} onClick={() => onEdit(invItem)} title="Editar"><EditIcon fontSize="small"/></button>
+             <button style={actionBtnStyle} onClick={(e) => { e.stopPropagation(); onEdit(invItem); }} title="Editar"><EditIcon fontSize="small"/></button>
              
              {onQualityChange && (
-                 <div style={{display:'flex', flexDirection:'column'}}>
-                     <button style={{...actionBtnStyle, padding:0}} disabled={invItem.quality<=0} onClick={()=>onQualityChange(invItem, invItem.quality-1)}><RemoveCircleOutlineIcon style={{fontSize: 16}}/></button>
-                     <button style={{...actionBtnStyle, padding:0}} disabled={invItem.quality>=6} onClick={()=>onQualityChange(invItem, invItem.quality+1)}><AddCircleOutlineIcon style={{fontSize: 16}}/></button>
+                 <div style={{display:'flex', flexDirection:'column', gap:'2px'}}>
+                     <button style={{...actionBtnStyle, padding:0}} disabled={invItem.quality<=0} onClick={(e)=>{e.stopPropagation(); onQualityChange(invItem, invItem.quality-1)}}><RemoveCircleOutlineIcon style={{fontSize: 16}}/></button>
+                     <button style={{...actionBtnStyle, padding:0}} disabled={invItem.quality>=6} onClick={(e)=>{e.stopPropagation(); onQualityChange(invItem, invItem.quality+1)}}><AddCircleOutlineIcon style={{fontSize: 16}}/></button>
                  </div>
              )}
 
-             <button style={{...actionBtnStyle, color: '#d32f2f'}} onClick={() => onDelete(invItem)} title="Descartar"><DeleteIcon fontSize="small"/></button>
+             <button style={{...actionBtnStyle, color: '#d32f2f'}} onClick={(e) => { e.stopPropagation(); onDelete(invItem); }} title="Descartar"><DeleteIcon fontSize="small"/></button>
 
              {(itemDetails.isConsumable || itemDetails.resourceType) && (
-                 <button style={{...actionBtnStyle, color: '#4caf50'}} onClick={()=>onUse(invItem)} title="Usar"><PlayArrowIcon fontSize="small"/></button>
+                 <button style={{...actionBtnStyle, color: '#4caf50'}} onClick={(e) => { e.stopPropagation(); onUse(invItem); }} title="Usar"><PlayArrowIcon fontSize="small"/></button>
              )}
           </div>
         </div>
@@ -141,7 +138,7 @@ const InventoryGrid = ({
       itemIndex++;
 
     } else {
-      // 2. SLOT VAZIO (Placeholder)
+      // SLOT VAZIO
       const placeholderInfo = placeholders[slotIndex]; 
       renderedSlots.push(
         <div className={`${styles.inventorySlot} ${styles.emptySlot}`} key={`empty-${slotIndex}`}>
@@ -153,12 +150,10 @@ const InventoryGrid = ({
     }
   }
 
-  // --- RENDER FINAL ---
   return (
     <div>
-      {title && <h4 className={styles.gridTitle} style={{marginTop:20, marginBottom:8, color:'#eee', borderLeft:'3px solid #b71c1c', paddingLeft:8, textTransform:'uppercase'}}>{title}</h4>}
+      {title && <h4 className={styles.gridTitle}>{title}</h4>}
       
-      {/* O Container principal recebe os eventos de Drop */}
       <div 
         className={`${styles.inventoryGridContainer} ${isDragOver ? styles.dragOver : ''}`}
         onDragOver={handleDragOver}
