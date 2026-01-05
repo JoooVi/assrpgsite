@@ -12,6 +12,7 @@ import Footer from "./components/Footer";
 import KofiButton from "./components/KofiButton";
 import PageTransition from "./components/PageTransition";
 import { AnimatePresence } from 'framer-motion';
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 // Páginas
 import HomePage from "./pages/HomePage";
@@ -68,6 +69,8 @@ const AppContent = () => {
     return Promise.reject(error);
   }
 );
+
+<SpeedInsights/>
 
 axios.interceptors.response.use(
   (response) => response, // Se a resposta for OK, não faz nada
