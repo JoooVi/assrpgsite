@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 // O componente de CharacteristicsMenu precisa ser compatível ou removido se usar MUI
 // Assumindo que ele ainda use MUI, podemos deixá-lo encapsulado ou refatorar depois.
-// Se quiser remover MUI de TUDO, CharacteristicsMenu também precisará de atenção.
 import CharacteristicsMenu from "./CharacteristicsMenu";
 
 // --- DADOS ESTÁTICOS ---
@@ -17,8 +16,7 @@ const qualityLevels = {
 
 const resourceTypes = ['agua', 'comida', 'combustivel', 'pecas'];
 
-// --- ESTILOS CSS INLINE (PARA SUBSTITUIR MUI RAPIDAMENTE) ---
-// Em um projeto real, moveria para .module.css
+// --- ESTILOS CSS INLINE ---
 const styles = {
   overlay: {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -59,7 +57,7 @@ const styles = {
     width: '100%', padding: '10px', backgroundColor: '#1f1f1f',
     border: '1px solid #333', borderRadius: '3px', color: '#fff',
     fontSize: '0.95rem', fontFamily: 'inherit',
-    boxSizing: 'border-box' // Importante para não quebrar layout
+    boxSizing: 'border-box'
   },
   select: {
     width: '100%', padding: '10px', backgroundColor: '#1f1f1f',
@@ -98,6 +96,8 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
   const [showCharacteristicsMenu, setShowCharacteristicsMenu] = useState(false);
 
   useEffect(() => {
+    setShowCharacteristicsMenu(false);
+
     if (editItem && editItem.invItemData) {
       const sourceItemData = editItem.invItemData.itemData || editItem.invItemData.item;
       
@@ -108,7 +108,6 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
             type: sourceItemData.type || 'Desconhecido',
             category: sourceItemData.category ?? 3,
             slots: sourceItemData.slots ?? 1,
-            // A qualidade vem da instância do inventário
             quality: editItem.invItemData.quality ?? 3,
             modifiers: sourceItemData.modifiers || [],
             isArtefato: sourceItemData.isArtefato || false,
@@ -136,7 +135,6 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
       else if (name === 'modifiers') newValue = value.split(',').map(m => m.trim());
       else if (['slots', 'quality', 'category'].includes(name)) newValue = parseInt(value) || 0;
 
-      // Lógicas específicas de Reset
       if (name === 'type' && !['Recurso', 'Consumivel'].includes(newValue)) {
           return { ...prev, type: newValue, resourceType: null, isConsumable: false };
       }
@@ -148,8 +146,35 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
     });
   };
 
-  const handleCharacteristicsChange = (newChars) => {
-     setEditedData(prev => ({ ...prev, characteristics: newChars }));
+  // EditItemDialog.js
+
+  const handleCharacteristicsChange = (returnedItem) => {
+     // O CharacteristicsMenu retorna um objeto { characteristics: { details: [], points: X } }
+     // Precisamos extrair o objeto 'characteristics' de dentro dele.
+     const newChars = returnedItem.characteristics; 
+
+     // Verificação de segurança para evitar o erro de .map undefined
+     if (!newChars || !newChars.details) return;
+
+     setEditedData(prev => {
+        // Agora sim acessamos .details corretamente
+        const newCharNames = newChars.details.map(c => c.name);
+        
+        let currentModifiers = [...(prev.modifiers || [])];
+
+        newCharNames.forEach(name => {
+           if (!currentModifiers.includes(name)) {
+              currentModifiers.push(name);
+           }
+        });
+
+        return { 
+           ...prev, 
+           characteristics: newChars, // Salva a estrutura completa (points + details)
+           modifiers: currentModifiers 
+        };
+     });
+     
      setShowCharacteristicsMenu(false);
   };
 
@@ -163,123 +188,154 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
   if (!editItem || !editedData) return null;
 
   return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        
-        {/* Cabeçalho */}
-        <div style={styles.header}>
-          <span>EDITAR ITEM</span>
-          <button onClick={onClose} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:'1.5rem'}}>×</button>
-        </div>
-
-        {/* Corpo do Formulário */}
-        <div style={styles.body}>
+    <>
+      <div style={styles.overlay} onClick={onClose}>
+        <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
           
-          {/* Coluna Esquerda: Dados Básicos */}
-          <div style={styles.column}>
-            <div>
-                <label style={styles.label}>NOME</label>
-                <input style={styles.input} name="name" value={editedData.name} onChange={handleChange} />
+          {/* Cabeçalho */}
+          <div style={styles.header}>
+            <span>EDITAR ITEM</span>
+            <button onClick={onClose} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:'1.5rem'}}>×</button>
+          </div>
+
+          {/* Corpo do Formulário */}
+          <div style={styles.body}>
+            
+            {/* Coluna Esquerda: Dados Básicos */}
+            <div style={styles.column}>
+              <div>
+                  <label style={styles.label}>NOME</label>
+                  <input style={styles.input} name="name" value={editedData.name} onChange={handleChange} />
+              </div>
+
+              <div style={{display: 'flex', gap: '10px'}}>
+                  <div style={{flex: 1}}>
+                      <label style={styles.label}>QUALIDADE</label>
+                      <select style={styles.select} name="quality" value={editedData.quality} onChange={handleChange}>
+                          {Object.entries(qualityLevels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                  </div>
+                  <div style={{flex: 1}}>
+                      <label style={styles.label}>ESCASSEZ</label>
+                      <select style={styles.select} name="category" value={editedData.category} onChange={handleChange}>
+                          {Object.entries(scarcityLevels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                  </div>
+              </div>
+
+              <div>
+                  <label style={styles.label}>TIPO</label>
+                  <input style={styles.input} name="type" value={editedData.type} onChange={handleChange} placeholder="Ex: Arma, Recurso..." />
+              </div>
+
+              <div style={{display: 'flex', gap: '10px'}}>
+                  <div style={{flex:1}}>
+                      <label style={styles.label}>SLOTS</label>
+                      <input style={styles.input} type="number" name="slots" value={editedData.slots} onChange={handleChange} />
+                  </div>
+                  <div style={{flex:2}}>
+                      <label style={styles.label}>MODIFICADORES (Sep. Vírgula)</label>
+                      <input style={styles.input} name="modifiers" value={editedData.modifiers?.join(', ') || ''} onChange={handleChange} placeholder="Ex: Pesado, Pequeno" />
+                  </div>
+              </div>
             </div>
 
-            <div style={{display: 'flex', gap: '10px'}}>
-                <div style={{flex: 1}}>
-                    <label style={styles.label}>QUALIDADE</label>
-                    <select style={styles.select} name="quality" value={editedData.quality} onChange={handleChange}>
-                        {Object.entries(qualityLevels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                    </select>
-                </div>
-                <div style={{flex: 1}}>
-                    <label style={styles.label}>ESCASSEZ</label>
-                    <select style={styles.select} name="category" value={editedData.category} onChange={handleChange}>
-                        {Object.entries(scarcityLevels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                    </select>
-                </div>
-            </div>
+            {/* Coluna Direita: Flags e Descrição */}
+            <div style={styles.column}>
+               
+               {/* FLAGS BOX */}
+               <div style={styles.flagsBox}>
+                  <label style={styles.label}>CONFIGURAÇÕES</label>
+                  <div style={{display:'flex', gap:'15px', flexWrap:'wrap', marginTop:'10px'}}>
+                      <label style={{color:'#ccc', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'}}>
+                          <input type="checkbox" name="isArtefato" checked={editedData.isArtefato} onChange={handleChange} /> 
+                          Artefato
+                      </label>
+                      <label style={{color:'#ccc', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'}}>
+                          <input type="checkbox" name="isConsumable" checked={editedData.isConsumable} onChange={handleChange} /> 
+                          Consumível
+                      </label>
+                  </div>
+                  
+                  <div style={{marginTop:'10px'}}>
+                      <label style={styles.label}>RECURSO</label>
+                      <select style={{...styles.select, padding:'5px'}} name="resourceType" value={editedData.resourceType || 'nenhum'} onChange={handleChange}>
+                          <option value="nenhum">Nenhum</option>
+                          {resourceTypes.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                      </select>
+                  </div>
+               </div>
 
-            <div>
-                <label style={styles.label}>TIPO</label>
-                <input style={styles.input} name="type" value={editedData.type} onChange={handleChange} placeholder="Ex: Arma, Recurso..." />
-            </div>
+               <div>
+                  <label style={styles.label}>DESCRIÇÃO</label>
+                  <textarea 
+                      style={{...styles.input, resize: 'vertical', minHeight: '80px'}} 
+                      name="description" 
+                      value={editedData.description} 
+                      onChange={handleChange} 
+                  />
+               </div>
 
-            <div style={{display: 'flex', gap: '10px'}}>
-                <div style={{flex:1}}>
-                    <label style={styles.label}>SLOTS</label>
-                    <input style={styles.input} type="number" name="slots" value={editedData.slots} onChange={handleChange} />
-                </div>
-                <div style={{flex:2}}>
-                    <label style={styles.label}>MODIFICADORES (Sep. Vírgula)</label>
-                    <input style={styles.input} name="modifiers" value={editedData.modifiers?.join(', ') || ''} onChange={handleChange} placeholder="Ex: Pesado, Pequeno" />
-                </div>
+               {/* Características */}
+               <div style={{background:'#111', padding:'10px', borderRadius:'4px', border:'1px solid #333'}}>
+                  {/* ALTERADO: Header flexível com input de pontos */}
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                      <label style={{...styles.label, marginBottom:0}}>CARACTERÍSTICAS</label>
+                      
+                      {/* Novo Input de Pontos */}
+                      <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
+                        <span style={{fontSize:'0.75rem', color:'#888', fontWeight:'bold'}}>PTS:</span>
+                        <input 
+                            type="number"
+                            value={editedData.characteristics?.points || 0}
+                            onChange={(e) => setEditedData(prev => ({
+                                ...prev,
+                                characteristics: {
+                                    ...prev.characteristics,
+                                    points: parseInt(e.target.value) || 0
+                                }
+                            }))}
+                            style={{
+                                width: '50px', 
+                                padding: '4px', 
+                                background: '#222', 
+                                border: '1px solid #444', 
+                                color: '#fff', 
+                                textAlign: 'center',
+                                borderRadius: '3px'
+                            }}
+                        />
+                      </div>
+
+                      <button 
+                        style={{background:'none', border:'1px solid #555', color:'#aaa', fontSize:'0.7rem', cursor:'pointer', borderRadius:'2px', padding:'2px 6px'}} 
+                        onClick={() => setShowCharacteristicsMenu(true)}
+                      >
+                          GERENCIAR
+                      </button>
+                  </div>
+                  
+                  <ul style={{paddingLeft: '20px', margin: 0, color:'#ccc', fontSize:'0.9rem', maxHeight:'100px', overflowY:'auto'}}>
+                      {(editedData.characteristics?.details?.length > 0) ? 
+                          editedData.characteristics.details.map((c, i) => (
+                              <li key={i}>{c.name} <span style={{color:'#666', fontSize:'0.8em'}}>({c.cost})</span></li>
+                          )) 
+                      : <li style={{color:'#666', listStyle:'none'}}>Nenhuma</li>}
+                  </ul>
+               </div>
+
             </div>
           </div>
 
-          {/* Coluna Direita: Flags e Descrição */}
-          <div style={styles.column}>
-             
-             {/* FLAGS BOX */}
-             <div style={styles.flagsBox}>
-                <label style={styles.label}>CONFIGURAÇÕES</label>
-                <div style={{display:'flex', gap:'15px', flexWrap:'wrap', marginTop:'10px'}}>
-                    <label style={{color:'#ccc', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'}}>
-                        <input type="checkbox" name="isArtefato" checked={editedData.isArtefato} onChange={handleChange} /> 
-                        Artefato
-                    </label>
-                    <label style={{color:'#ccc', cursor:'pointer', display:'flex', alignItems:'center', gap:'5px'}}>
-                        <input type="checkbox" name="isConsumable" checked={editedData.isConsumable} onChange={handleChange} /> 
-                        Consumível
-                    </label>
-                </div>
-                
-                <div style={{marginTop:'10px'}}>
-                    <label style={styles.label}>RECURSO</label>
-                    <select style={{...styles.select, padding:'5px'}} name="resourceType" value={editedData.resourceType || 'nenhum'} onChange={handleChange}>
-                        <option value="nenhum">Nenhum</option>
-                        {resourceTypes.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                    </select>
-                </div>
-             </div>
-
-             <div>
-                <label style={styles.label}>DESCRIÇÃO</label>
-                <textarea 
-                    style={{...styles.input, resize: 'vertical', minHeight: '80px'}} 
-                    name="description" 
-                    value={editedData.description} 
-                    onChange={handleChange} 
-                />
-             </div>
-
-             {/* Características */}
-             <div style={{background:'#111', padding:'10px', borderRadius:'4px', border:'1px solid #333'}}>
-                <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
-                    <label style={styles.label}>CARACTERÍSTICAS (PTS: {editedData.characteristics?.points || 0})</label>
-                    <button style={{background:'none', border:'1px solid #555', color:'#aaa', fontSize:'0.7rem', cursor:'pointer', borderRadius:'2px'}} onClick={() => setShowCharacteristicsMenu(true)}>
-                        GERENCIAR
-                    </button>
-                </div>
-                
-                <ul style={{paddingLeft: '20px', margin: 0, color:'#ccc', fontSize:'0.9rem', maxHeight:'100px', overflowY:'auto'}}>
-                    {(editedData.characteristics?.details?.length > 0) ? 
-                        editedData.characteristics.details.map((c, i) => (
-                            <li key={i}>{c.name} <span style={{color:'#666', fontSize:'0.8em'}}>({c.cost})</span></li>
-                        )) 
-                    : <li style={{color:'#666', listStyle:'none'}}>Nenhuma</li>}
-                </ul>
-             </div>
-
+          {/* Rodapé com Ações */}
+          <div style={styles.footer}>
+            <button style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button>
+            <button style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar</button>
           </div>
-        </div>
 
-        {/* Rodapé com Ações */}
-        <div style={styles.footer}>
-          <button style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button>
-          <button style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar</button>
         </div>
-
       </div>
 
-      {/* Se houver modal interno, ele é renderizado aqui. O CSS do Menu pode precisar de ajuste se usar MUI. */}
       {showCharacteristicsMenu && (
         <CharacteristicsMenu
           open={showCharacteristicsMenu}
@@ -288,7 +344,7 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
           onChange={handleCharacteristicsChange}
         />
       )}
-    </div>
+    </>
   );
 };
 

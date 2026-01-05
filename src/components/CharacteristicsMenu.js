@@ -1,4 +1,4 @@
-// src/components/CharacteristicsMenu.js - ATUALIZADO COM TEMA ESCURO
+// src/components/CharacteristicsMenu.js
 
 import React, { useState, useEffect } from "react";
 import {
@@ -12,7 +12,7 @@ import {
   ListItemText,
   Typography,
   Box,
-  IconButton, // Trocado Button por IconButton para o Delete
+  IconButton,
 } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -25,13 +25,11 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
       setCharacteristics(item.characteristics.details || []);
       setPoints(item.characteristics.points || 0);
     } else {
-      // Reseta se o item não tiver características
       setCharacteristics([]);
       setPoints(0);
     }
   }, [item]);
 
-  // Lista de características disponíveis (sem alterações)
   const availableCharacteristics = {
     "-1": [
       { name: "Frágil", cost: -1, description: "Precisa de uma [Sucesso] a menos para baixar um nível de qualidade..." },
@@ -93,30 +91,35 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
     <Dialog 
       open={open} 
       onClose={onClose}
-      // --- ESTILO DO DIALOG (TEMA ESCURO) ---
+      // --- CORREÇÃO IMPORTANTE DE Z-INDEX ---
+      // O EditItemDialog tem zIndex 9999. Este precisa ser maior.
+      // style={{ zIndex: 11000 }} força o container do Portal a ficar na frente.
+      style={{ zIndex: 11000 }}
+      sx={{ zIndex: 11000 }} // Redundância para garantir compatibilidade com versões diferentes do MUI
+      
       PaperProps={{
         sx: {
           bgcolor: '#1e1e1e',
           color: '#fff',
-          border: '1px solid #4a4a4a'
+          border: '1px solid #4a4a4a',
+          minWidth: '400px'
         }
       }}
     >
       <DialogTitle sx={{ borderBottom: '1px solid #4a4a4a' }}>
         Características do Item
       </DialogTitle>
-      <DialogContent sx={{ paddingTop: '20px !important' }}> {/* Adiciona padding top */}
+      <DialogContent sx={{ paddingTop: '20px !important' }}> 
         <Typography variant="h6" sx={{ color: '#ccc', mb: 1 }}>
           Pontos Disponíveis: {points}
         </Typography>
         
-        {/* Lista de características adicionadas */}
         {characteristics.length > 0 && (
           <>
             <Typography variant="subtitle1" sx={{ color: '#aaa', mt: 2, mb: 1 }}>
               Adicionadas:
             </Typography>
-            <List dense> {/* dense para ocupar menos espaço */}
+            <List dense> 
               {characteristics.map((characteristic, index) => (
                 <ListItem 
                   key={index}
@@ -154,19 +157,19 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
                     key={index} 
                     secondaryAction={
                       <Button
-                        size="small" // Botão menor
-                        variant="outlined" // Estilo mais sutil
+                        size="small"
+                        variant="outlined"
                         onClick={() => handleAddCharacteristic(characteristic)}
                         disabled={points < characteristic.cost}
                         sx={{ 
-                          color: points >= characteristic.cost ? '#66bb6a' : '#666', // Verde se pode, cinza se não
+                          color: points >= characteristic.cost ? '#66bb6a' : '#666',
                           borderColor: points >= characteristic.cost ? '#66bb6a' : '#666',
                           '&:hover': {
                              borderColor: points >= characteristic.cost ? '#81c784' : '#666',
                              backgroundColor: points >= characteristic.cost ? 'rgba(102, 187, 106, 0.1)' : 'transparent'
                           },
-                          minWidth: '30px', // Largura mínima
-                          padding: '2px 6px' // Padding menor
+                          minWidth: '30px', 
+                          padding: '2px 6px'
                         }}
                       >
                         +
@@ -175,7 +178,7 @@ const CharacteristicsMenu = ({ open, item, onClose, onChange }) => {
                     sx={{ paddingBottom: '8px', marginBottom: '8px' }}
                   >
                     <ListItemText
-                      primary={`${characteristic.name}`} // Removido custo do primário para limpar
+                      primary={`${characteristic.name}`} 
                       secondary={characteristic.description}
                       primaryTypographyProps={{ sx: { color: '#fff' } }}
                       secondaryTypographyProps={{ sx: { color: '#bbb' } }}
