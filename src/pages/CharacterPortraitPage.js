@@ -1,6 +1,6 @@
 // src/pages/CharacterPortraitPage.js
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import "./CharacterPortraitPage.css";
@@ -9,12 +9,15 @@ import "./CharacterPortraitPage.css";
 import { ReactComponent as HeartFullIcon } from '../assets/icons/heart-full.svg';
 import { ReactComponent as HeartEmptyIcon } from '../assets/icons/heart-empty.svg';
 
-// Images
+// Images Overlays
 import bruisedOverlay from '../assets/damage_overlays/escoriado.png';
 import laceratedOverlay from '../assets/damage_overlays/lacerado.png';
 import injuredOverlay from '../assets/damage_overlays/ferido.png';
 import brokenOverlay from '../assets/damage_overlays/arrebentado.png';
 import incapacitatedOverlay from '../assets/damage_overlays/incapacitado.png';
+
+// --- ADICIONEI AQUI: Import do fundo do dado ---
+import diceBg from '../assets/tras.png'; 
 
 // Helpers
 const healthLevelDetails = {
@@ -57,12 +60,16 @@ const AssimilationCircle = ({ level }) => (
     </svg>
 );
 
-const FETCH_INTERVAL = 2500;
+const FETCH_INTERVAL = 2000;
 
 const CharacterPortraitPage = () => {
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Animação
+  const [showDice, setShowDice] = useState(false);
+  const lastRollTimeRef = useRef(0);
 
   // Poll de dados
   const fetchCharacterData = useCallback(async () => {
@@ -71,7 +78,22 @@ const CharacterPortraitPage = () => {
       const response = await api.get(
         `https://assrpgsite-be-production.up.railway.app/api/public/characters/${id}/portrait?t=${new Date().getTime()}`
       );
-      setCharacter(response.data);
+      
+      const charData = response.data;
+      setCharacter(charData);
+
+      // Verifica nova rolagem
+      if (charData.lastRoll && charData.lastRoll.timestamp) {
+        const rollTime = new Date(charData.lastRoll.timestamp).getTime();
+        
+        if (rollTime > lastRollTimeRef.current) {
+            lastRollTimeRef.current = rollTime;
+            setShowDice(false);
+            setTimeout(() => setShowDice(true), 50);
+            setTimeout(() => setShowDice(false), 8000);
+        }
+      }
+
     } catch (err) {
       console.error("Polling error:", err);
     } finally {
@@ -80,7 +102,6 @@ const CharacterPortraitPage = () => {
   }, [id, loading]);
 
   useEffect(() => {
-    // Adiciona classes ao body para transparência
     document.documentElement.classList.add("portrait-html-active");
     document.body.classList.add("portrait-body-active");
     
@@ -105,18 +126,11 @@ const CharacterPortraitPage = () => {
   // Cálculos de Status
   const currentHealthLevel = character.currentHealthLevel || 6;
   const currentHealthInfo = healthLevelDetails[currentHealthLevel] || { name: "Desconhecido" };
-  // Cálculo simplificado assumindo array ou lógica fixa. Se healthLevels for array de pontos:
-  // (Nota: Ajuste aqui conforme sua lógica exata de index do backend. Se healthLevels[0] é o atual ou o max.)
   const currentHealthPoints = character.healthLevels ? character.healthLevels[6 - currentHealthLevel] : 0; 
-  
-  // Exemplo de Max: Soma instintos + base. Se já vem calculado, use direto.
   const maxHealthPerLevel = 1 + (character.instincts?.potency || 0) + (character.instincts?.resolution || 0);
-
   const { determinationLevel, determinationPoints, assimilationLevel, assimilationPoints } = character;
-  
   const currentDamageOverlay = damageOverlays[currentHealthLevel];
 
-  // Renderizar corações manualmente (Substitui Rating)
   const renderHearts = () => {
       const hearts = [];
       for (let i = 1; i <= maxHealthPerLevel; i++) {
@@ -131,9 +145,55 @@ const CharacterPortraitPage = () => {
 
   return (
     <div className="live-portrait-wrapper">
+      
+      {/* --- CAMADA DE DADOS COM FUNDO --- */}
+      <div className={`dice-animation-container ${showDice ? 'visible entering' : 'leaving'}`}>
+         {character.lastRoll && character.lastRoll.roll && character.lastRoll.roll.map((die, index) => (
+             <div key={index} className="individual-die-result">
+                 
+                 {/* 1. FUNDO DO DADO (TRAS.PNG) */}
+                 <img 
+                    src={diceBg} 
+                    alt="dado-bg" 
+                    className="individual-die-image" 
+                    // Se preferir ajustar tamanho no CSS, use a classe.
+                    // Aqui garanto que preencha.
+                    style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 0 }}
+                 />
+
+                 {/* 2. CONTEÚDO (Números ou Símbolos) */}
+                 <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                     {/* Se tiver Símbolos */}
+                     {die.result && die.result.length > 0 ? (
+                         <div className="individual-die-symbols">
+                             {die.result.map((imgSrc, i) => (
+                                 <img key={i} src={imgSrc} alt="symbol" className="symbol-image" />
+                             ))}
+                         </div>
+                     ) : (
+                         /* Se for Número puro */
+                         <span className="individual-die-number">{die.face}</span>
+                     )}
+                 </div>
+
+             </div>
+         ))}
+         
+         {/* Nome da Perícia */}
+         {character.lastRoll && (
+             <div style={{
+                 position: 'absolute', bottom: '-40px', width: '100%', 
+                 textAlign: 'center', color: '#fff', textShadow: '0 2px 4px #000',
+                 fontFamily: 'Cinzel', fontSize: '1.2rem', fontWeight: 'bold'
+             }}>
+                 {character.lastRoll.skill ? character.lastRoll.skill.toUpperCase() : "ROLAGEM"}
+             </div>
+         )}
+      </div>
+
+      {/* --- CONTAINER PRINCIPAL DO RETRATO --- */}
       <div className="character-portrait-container-tlou">
         
-        {/* --- Avatar & Dano --- */}
         <div className="portrait-avatar-section-tlou">
           <img
             src={character.avatar || "/default-avatar.png"}
@@ -149,13 +209,11 @@ const CharacterPortraitPage = () => {
           )}
         </div>
 
-        {/* --- Stats --- */}
         <div className="status-section-tlou">
           <h1 className="character-name-tlou">
             {character.name || "Sobrevivente"}
           </h1>
 
-          {/* Saúde */}
           <div className="status-item-tlou health-tlou">
             <span 
               className="health-status-tlou"
@@ -164,7 +222,6 @@ const CharacterPortraitPage = () => {
               STATUS: {currentHealthInfo.name.toUpperCase()}
             </span>
 
-            {/* Corações Customizados */}
             <div className="health-hearts-container">
                {renderHearts()}
             </div>
@@ -174,7 +231,6 @@ const CharacterPortraitPage = () => {
             </span>
           </div>
           
-          {/* Cabo de Guerra */}
           <div className="status-item-tlou tug-of-war-tlou">
              <div className="tug-of-war-track-tlou">
                 <div title="Determinação">
@@ -182,13 +238,10 @@ const CharacterPortraitPage = () => {
                 </div>
                 
                 <div className="track-icons-container-tlou">
-                    {/* Tracks de Determinação */}
                     {Array.from({ length: determinationLevel }, (_, i) => (
                         <TrackIcon key={`det-${i}`} color="#a73c39" isFilled={i + 1 <= determinationPoints} />
                     ))}
-                    {/* Divisor Visual (Opcional) */}
                     <div style={{width:'2px', height:'20px', background:'rgba(255,255,255,0.2)'}}></div>
-                    {/* Tracks de Assimilação */}
                     {Array.from({ length: assimilationLevel }, (_, i) => (
                         <TrackIcon key={`ass-${i}`} color="#3b4766" isFilled={i + 1 <= assimilationPoints} />
                     ))}
