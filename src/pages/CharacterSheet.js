@@ -963,34 +963,6 @@ const CharacterSheet = () => {
     if (!itemToMove) return;
     if (itemToMove.slotLocation === targetLocation) return; // Já está lá
 
-    // 1. Validar Espaço
-    const itemDetails = itemToMove.itemData || itemToMove.item;
-    let slotsNeeded = itemDetails.slots ?? 1;
-    if (itemDetails.modifiers?.includes("Pequeno")) slotsNeeded = 0;
-    else if (itemDetails.modifiers?.includes("Pesado")) slotsNeeded += 1;
-
-    const {
-      usedBodySlots,
-      totalBodySlots,
-      usedBackpackSlots,
-      totalBackpackSlots,
-    } = slotsInfo;
-
-    if (
-      targetLocation === "corpo" &&
-      usedBodySlots + slotsNeeded > totalBodySlots
-    ) {
-      alert("Sem espaço no Corpo!");
-      return;
-    }
-    if (
-      targetLocation === "mochila" &&
-      usedBackpackSlots + slotsNeeded > totalBackpackSlots
-    ) {
-      alert("Sem espaço na Mochila!");
-      return;
-    }
-
     // 2. Atualizar Inventário
     const updatedInventory = character.inventory.map((invItem) => {
       // Compara referência do objeto para saber qual é
@@ -1030,12 +1002,14 @@ const CharacterSheet = () => {
           name: item.name,
           type: item.type,
           category: item.category,
+          icon: item.icon || "", 
           slots: item.slots,
           modifiers: item.modifiers || [],
           description: item.description,
           characteristics: item.characteristics,
           isArtefato: item.isArtefato,
           isConsumable: item.isConsumable,
+          resourceType: item.resourceType,
         },
       },
     ];

@@ -120,8 +120,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
       >
         <FaPlus style={{ marginRight: '8px' }} /> Criar Nova Assimilação
       </button>
-
-      {/* --- DIALOG DE CRIAÇÃO (Substituindo MUI Dialog por HTML/CSS Modal) --- */}
+      
       {createDialogOpen && (
         <div className="nero-modal-overlay">
           <div className="nero-modal">

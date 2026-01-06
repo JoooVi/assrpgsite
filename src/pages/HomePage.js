@@ -5,7 +5,7 @@ import "./HomePage.css";
 const HomePage = () => {
   return (
     // Se a imagem de fundo for dinâmica, coloque: style={{ backgroundImage: `url(${suaImagem})` }}
-    <div className="homepage-container" style={{backgroundImage: "url('/caminho/para/sua/imagem-de-fundo.jpg')"}}>
+    <div className="homepage-container" style={{backgroundImage: "url('./assets/')"}}>
       
       <div className="homepage-content">
         <h1 className="homepage-title">
