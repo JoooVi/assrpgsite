@@ -339,19 +339,38 @@ export default function CharacterForm() {
     const file = e.target.files[0];
     if (file) { setAvatar(file); setAvatarPreview(URL.createObjectURL(file)); }
   };
-
-  const handlePackSelect = (pack) => {
+  
+const handlePackSelect = (pack) => {
     if (!pack || areItemsLoading || allItems.length === 0) return;
     const newInventory = [];
+    
     pack.items.forEach(itemName => {
+        // Busca o item no catálogo pelo nome
         const dbItem = allItems.find(i => i.name.toLowerCase().includes(itemName.toLowerCase().split(' ')[0]));
+        
         if(dbItem) {
              newInventory.push({
-                quality: dbItem.quality || 3, quantity: 1, slotLocation: 'mochila', currentUses: 0,
+                quality: dbItem.quality || 3, 
+                quantity: 1, 
+                slotLocation: 'mochila', 
+                currentUses: 0,
                 itemData: { 
-                    originalItemId: dbItem._id, name: dbItem.name, type: dbItem.type, category: dbItem.category, 
-                    slots: dbItem.slots, modifiers: dbItem.modifiers || [], isArtefato: dbItem.isArtefato || false, 
-                    description: dbItem.description || "", characteristics: dbItem.characteristics || { points: 0, details: [] } 
+                    originalItemId: dbItem._id, 
+                    name: dbItem.name, 
+                    type: dbItem.type, 
+                    category: dbItem.category, 
+                    
+                    // --- CORREÇÃO AQUI ---
+                    icon: dbItem.icon || "", // Copia o link da imagem
+                    // ---------------------
+
+                    slots: dbItem.slots, 
+                    modifiers: dbItem.modifiers || [], 
+                    isArtefato: dbItem.isArtefato || false, 
+                    isConsumable: dbItem.isConsumable || false,
+                    resourceType: dbItem.resourceType || null, // Importante copiar também
+                    description: dbItem.description || "", 
+                    characteristics: dbItem.characteristics || { points: 0, details: [] } 
                 }
             });
         }

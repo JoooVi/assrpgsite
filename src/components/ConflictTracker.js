@@ -112,8 +112,8 @@ const ConflictTracker = ({ open, onClose, onStartConflict }) => {
                                 <div key={aIndex} style={{display:'grid', gridTemplateColumns:'3fr 1.5fr 1fr auto', gap:'10px', marginBottom:'10px', alignItems:'center'}}>
                                     <input type="text" className={styles.diceInput} value={act.name} onChange={e => handleActivationChange(tIndex, aIndex, 'name', e.target.value)} placeholder="Nome da Habilidade" style={{fontSize:'0.9rem', padding:'8px', marginBottom:0}}/>
                                     <select className={styles.neroSelect} value={act.type} onChange={e => handleActivationChange(tIndex, aIndex, 'type', e.target.value)} style={{fontSize:'0.9rem', padding:'8px', height:'35px'}}>
-                                        <option value="C">C (Desfavorável)</option>
-                                        <option value="A">A (Favorável)</option>
+                                        <option value="C"> Pressão (Desfavorável)</option>
+                                        <option value="A"> Sucesso (Favorável)</option>
                                     </select>
                                     <input type="number" className={styles.diceInput} value={act.cost} onChange={e => handleActivationChange(tIndex, aIndex, 'cost', Number(e.target.value))} style={{fontSize:'0.9rem', padding:'8px', textAlign:'center', marginBottom:0}}/>
                                     <button onClick={() => removeActivation(tIndex, aIndex)} className={styles.btnTrash} style={{padding:'5px'}}><FaTimes size={16}/></button>
