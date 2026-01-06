@@ -56,19 +56,19 @@ export const fetchAllAssimilations = createAsyncThunk(
 )
 
 // Thunk para atualizar Assimilation
+// Thunk para atualizar Assimilation
 export const updateAssimilation = createAsyncThunk(
   'assimilations/updateAssimilation',
-  async ({ id, data }, { getState, rejectWithValue }) => { // Receber apenas id e data
+  async ({ id, data }, { getState, rejectWithValue }) => {
     const token = getState().auth.token;
     try {
-      const response = await axios.put(`${API_URL}/assimilations/${id}`, data, { // Alterado para usar API_URL
+      const response = await axios.patch(`${API_URL}/assimilations/${id}`, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
-      console.error('Erro ao atualizar assimilação:', error.response?.data || error.message); // Log de erro
-      return rejectWithValue(error.response.data);
+      console.error('Erro ao atualizar assimilação:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data);
     }
   }
 );

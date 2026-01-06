@@ -212,6 +212,7 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
                   <option value="copas">Copas</option>
                   <option value="ouros">Ouros</option>
                   <option value="espadas">Espadas</option>
+                  <option value="paus">Paus</option>
                 </select>
               </div>
             </div>

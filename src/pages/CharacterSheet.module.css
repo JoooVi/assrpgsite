@@ -1538,3 +1538,31 @@
     font-size: 0.9rem;
   }
 }
+
+/* ... Adicione isso ao final do arquivo CSS ou junto com os outros estilos de slot ... */
+
+.overweightSlot {
+  background-color: rgba(183, 28, 28, 0.15) !important; /* Fundo avermelhado */
+  border: 2px solid #b71c1c !important; /* Borda vermelha forte */
+  position: relative;
+}
+
+/* Um ícone de aviso ou texto "SOBREPESO" opcional */
+.overweightSlot::after {
+  content: "!";
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #b71c1c;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
