@@ -15,7 +15,7 @@ const Footer = () => {
               Sobre o RPG de Assimilação
             </a>
             <a
-              href="https://www.catarse.me/assimilacaorpg"
+              href="https://newordereditora.com/loja/?orderby=price-desc&paged=1&all_products_filtering=1&categorias=assimilacao-rpg&utm_content=%7C47dc4680-3a3c-469e-ac38-0a43a0fbce85%7Cfb.1.1759271167265.682163678241442775%7C&sck=%7C47dc4680-3a3c-469e-ac38-0a43a0fbce85%7Cfb.1.1759271167265.682163678241442775%7C&src=%7C47dc4680-3a3c-469e-ac38-0a43a0fbce85%7Cfb.1.1759271167265.682163678241442775%7C"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.links}
@@ -46,7 +46,7 @@ const Footer = () => {
         {/* Ícones sociais */}
         <div className={styles.iconLinksContainer}>
           
-          {/* Link Wiki (Usando Emoji 📖) */}
+          {/* Link Wiki */}
           <a
             href="https://assimilacao.fandom.com/pt-br/wiki/Assimila%C3%A7%C3%A3o_Wiki"
             target="_blank"

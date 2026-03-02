@@ -1,45 +1,9 @@
 import React from "react";
 // --- ALTERAÇÃO: Removemos Chip e Avatar ---
-import { Box, Typography, List, ListItemText, CircularProgress } from "@mui/material"; 
+import { Box, Typography, List, ListItemText, } from "@mui/material"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNowStrict } from 'date-fns'; // For better timestamps
 import { ptBR } from 'date-fns/locale';        // For Portuguese timestamps
-
-// --- Dice Assets (Permanece igual) ---
-const dados = {
-  d6: {
-    1: [], 2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-  },
-  d10: {
-    1: [], 2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-    7: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png")],
-    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
-    9: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    10: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png"), require("../assets/Coruja_1.png")],
-  },
-  d12: {
-    1: [], 2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    5: [require("../assets/Coruja_1.png"), require("../assets/Cervo_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-    7: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png")],
-    8: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png")],
-    9: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    10: [require("../assets/Joaninha_1.png"), require("../assets/Joaninha_1.png"), require("../assets/Coruja_1.png")],
-    11: [require("../assets/Joaninha_1.png"), require("../assets/Cervo_1.png"), require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    12: [require("../assets/Coruja_1.png"), require("../assets/Coruja_1.png")],
-  },
-};
-// --- END Dice Assets ---
 
 // --- Translation Function (Permanece igual) ---
 const translateKey = (key) => {
@@ -69,7 +33,6 @@ const translateKey = (key) => {
 };
 // --- END Translation Function ---
 
-// --- ALTERAÇÃO: Removemos o componente DieResultDisplay daqui ---
 
 // --- Main RecentRollsFeed Component ---
 const RecentRollsFeed = ({ rolls }) => {
@@ -80,7 +43,6 @@ const RecentRollsFeed = ({ rolls }) => {
   const itemVariants = {
     hidden: { opacity: 0, y: 30, scale: 0.95 },
     visible: (i) => ({
-        // --- ALTERAÇÃO: Opacidade padronizada para melhor leitura ---
         opacity: i === 0 ? 1 : 0.7, // Mais recente = 100%, antigos = 70%
         y: 0,
         scale: 1,
@@ -90,12 +52,24 @@ const RecentRollsFeed = ({ rolls }) => {
   };
 
   return (
-    <List sx={{ maxHeight: 400, overflow: 'auto', p: 1, bgcolor: 'rgba(0,0,0,0.1)', borderRadius: 1 }}>
+    <List 
+      sx={{ 
+        maxHeight: 400, 
+        overflow: 'auto', 
+        p: 1, 
+        bgcolor: 'rgba(0,0,0,0.1)', 
+        borderRadius: 1,
+        // --- NOVO: SCROLLBAR PERSONALIZADA VIA MATERIAL UI ---
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-track': { background: '#050505' },
+        '&::-webkit-scrollbar-thumb': { background: '#333', borderRadius: '3px' },
+        '&::-webkit-scrollbar-thumb:hover': { background: '#8a1c18' },
+      }}
+    >
       <AnimatePresence initial={false}>
         {rolls.map((roll, index) => {
-           // --- ALTERAÇÃO: Removemos a função getDieType ---
 
-           const timeAgo = roll.timestamp ? formatDistanceToNowStrict(new Date(roll.timestamp), { addSuffix: true, locale: ptBR }) : '';
+          const timeAgo = roll.timestamp ? formatDistanceToNowStrict(new Date(roll.timestamp), { addSuffix: true, locale: ptBR }) : '';
 
           return (
             <motion.div
@@ -110,13 +84,15 @@ const RecentRollsFeed = ({ rolls }) => {
                   borderBottom: '1px solid rgba(255,255,255,0.1)',
                   paddingBottom: 12,
                   marginBottom: 12,
-                  // --- ALTERAÇÃO: Cor de fundo da rolagem mais recente ---
                   backgroundColor: index === 0 ? '#21364bff' : 'transparent', // Destaque #517daaff
                   borderRadius: '4px',
                   padding: '8px'
               }}
             >
               <ListItemText
+                // --- NOVO: CORREÇÃO DE AVISOS DO CONSOLE (<div> dentro de <p>) ---
+                primaryTypographyProps={{ component: 'div' }}
+                secondaryTypographyProps={{ component: 'div' }}
                 primary={
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                      <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
@@ -128,7 +104,6 @@ const RecentRollsFeed = ({ rolls }) => {
                   </Box>
                 }
                 secondary={
-                  // --- ALTERAÇÃO: Substituímos DieResultDisplay pelo novo layout ---
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                     {(roll.roll || []).map((dieResult, i) => (
                       <Box
@@ -143,8 +118,7 @@ const RecentRollsFeed = ({ rolls }) => {
                           minWidth: '55px' // Largura mínima
                         }}
                       >
-                        <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 'bold' }}>
-                          {/* Agora usamos dieResult.sides, que é mais preciso */}
+                        <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 'bold', component: 'span' }}>
                           (d{dieResult.sides || '?'}) 
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', minHeight: '30px', alignItems: 'center' }}>
@@ -162,8 +136,7 @@ const RecentRollsFeed = ({ rolls }) => {
                               />
                             ))
                           ) : (
-                            // Padronizado para H6, igual ao Snackbar
-                            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold' }}>
+                            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold', component: 'span' }}>
                               {dieResult.face}
                             </Typography>
                           )}
@@ -171,7 +144,6 @@ const RecentRollsFeed = ({ rolls }) => {
                       </Box>
                     ))}
                   </Box>
-                  // --- FIM DA ALTERAÇÃO ---
                 }
                 sx={{ m: 0 }}
               />
@@ -182,6 +154,5 @@ const RecentRollsFeed = ({ rolls }) => {
     </List>
   );
 };
-// --- END Main Component ---
 
 export default RecentRollsFeed;

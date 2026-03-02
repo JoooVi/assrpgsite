@@ -38,6 +38,7 @@ import ConsumivelPlaceholder from "../assets/consumivel_placeholder.svg";
 // Procure por volta da linha 25 e adicione:
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
+
 // CSS Module
 import styles from "./CharacterSheet.module.css";
 

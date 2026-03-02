@@ -1,6 +1,3 @@
-/* index.css ATUALIZADO */
-
-/* Garantir que html e body ocupem tudo */
 html, body {
   margin: 0;
   padding: 0;
@@ -19,11 +16,6 @@ body {
   position: relative; /* Necessário para posicionar o fundo */
 }
 
-/* 
-   === SOLUÇÃO DO FUNDO FIXO GLOBAL ===
-   Isso cria uma camada "papel de parede" que fica travada na tela.
-   Não importa o quanto você rolar a página, a imagem não mexe e não corta.
-*/
 body::before {
   content: "";
   position: fixed; /* Segredo: Posição fixa em relação à janela, não ao texto */
@@ -38,13 +30,11 @@ body::before {
   background-size: cover; /* Cobre tudo sem distorcer */
   background-position: center;
   background-repeat: no-repeat;
-  
-  /* Opcional: Um overlay escuro leve para melhorar a leitura do texto em cima da imagem */
-  /* background-color: rgba(0, 0, 0, 0.6); 
-     background-blend-mode: overlay; */
+  background-color: rgba(0, 0, 0, 0); 
+  background-blend-mode: overlay;
 }
 
-/* 2. PARTICULAS (Firefly) */
+/* PARTICULAS (Firefly) */
 #firefly-canvas {
   position: fixed;
   top: 0;
@@ -55,14 +45,13 @@ body::before {
   pointer-events: none; /* Garante que não bloqueie cliques */
 }
 
-/* 3. Container da Aplicação (React Root) */
+/* Container da Aplicação (React Root) */
 #root {
   min-height: 100vh;
   position: relative;
-  z-index: 1; /* Conteúdo fica acima de tudo */
+  z-index: 1;
 }
 
-/* Estilos gerais mantidos */
 code {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif,

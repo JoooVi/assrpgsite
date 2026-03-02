@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-// O componente de CharacteristicsMenu precisa ser compatível ou removido se usar MUI
-// Assumindo que ele ainda use MUI, podemos deixá-lo encapsulado ou refatorar depois.
 import CharacteristicsMenu from "./CharacteristicsMenu";
 
 // --- DADOS ESTÁTICOS ---
@@ -146,18 +144,13 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
     });
   };
 
-  // EditItemDialog.js
-
   const handleCharacteristicsChange = (returnedItem) => {
-     // O CharacteristicsMenu retorna um objeto { characteristics: { details: [], points: X } }
-     // Precisamos extrair o objeto 'characteristics' de dentro dele.
      const newChars = returnedItem.characteristics; 
 
      // Verificação de segurança para evitar o erro de .map undefined
      if (!newChars || !newChars.details) return;
 
      setEditedData(prev => {
-        // Agora sim acessamos .details corretamente
         const newCharNames = newChars.details.map(c => c.name);
         
         let currentModifiers = [...(prev.modifiers || [])];

@@ -17,7 +17,6 @@ const CharacterPortraitOverview = ({ character }) => {
     return <Typography variant="body2" color="textSecondary">Dados do personagem indisponíveis.</Typography>;
   }
 
-  // ===== A LÓGICA DA VIDA ESTÁ AQUI, INTACTA =====
   const maxHealthBasePerLevel =
     Math.max(character.instincts?.potency || 0, character.instincts?.resolution || 0) + 2;
   const maxTotalHealth = maxHealthBasePerLevel * (character.healthLevels?.length || 5);
@@ -36,7 +35,6 @@ const CharacterPortraitOverview = ({ character }) => {
       </Typography>
       <StyledLinearProgress variant="determinate" value={healthPercentage} />
       
-      {/* ===== DEPOIS, ELE CHAMA O OUTRO COMPONENTE PARA MOSTRAR A&D ===== */}
       <TugOfWarOverview character={character} />
 
     </Box>
