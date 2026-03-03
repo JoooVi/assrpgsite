@@ -3,41 +3,60 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-import { FaDiceD20, FaSave, FaUserSecret, FaSyncAlt, FaSuitcase, FaBrain } from 'react-icons/fa';
+import { FaDiceD20, FaSave, FaUserSecret, FaSyncAlt, FaSuitcase, FaBrain, FaCubes } from 'react-icons/fa';
 import './NPCGenerator.css'; 
 
 const archetypes = [
-  "Aleatório", "Combatente", "Curandeiro", "Desbravador", 
-  "Estudioso", "Negociador", "Furtivo", "Sobrevivente"
+  "Aleatório", "Combatente", "Curandeiro(a)", "Desbravador(a)", 
+  "Estudioso(a)", "Negociador(a)", "Furtivo(a)", "Sobrevivente"
 ];
 
-/* --- DADOS LOCAIS PARA GERAÇÃO RÁPIDA (CLIENT-SIDE) --- */
+/* --- DADOS LÓGICOS CATEGORIZADOS --- */
 const temperaments = [
   "Hostil", "Desconfiado", "Cooperativo", "Em Choque", "Pragmático", 
   "Agressivo", "Covarde", "Líder Nato", "Egoísta", "Altruísta", "Instável"
 ];
 
-const objectives = [
-  "Procurando água potável", "Fugindo de uma dívida", "Escondendo uma mordida", 
-  "Rastreando um grupo rival", "Buscando abrigo para a noite", "Procurando um parente desaparecido",
-  "Tentando consertar um rádio", "Sofrendo de abstinência", "Planejando uma emboscada", 
-  "Apenas vagando sem rumo", "Carregando uma mensagem importante"
-];
+const logicalData = {
+    "Combatente": {
+        objectives: ["Caçando uma criatura assimilada", "Patrulhando território", "Buscando vingança contra um grupo", "Limpando uma rota perigosa"],
+        loot: ["Munição deflagrada", "Faca tática desgastada", "Plaqueta de identificação suja", "Ração militar seca", "Cantil de metal"]
+    },
+    "Curandeiro(a)": {
+        objectives: ["Buscando suprimentos médicos", "Tentando curar uma infecção", "Procurando ervas limpas na zona morta", "Cuidando de um aliado ferido"],
+        loot: ["Bandagens encardidas", "Frasco de álcool pela metade", "Bisturi enferrujado", "Seringa vazia", "Anotações sobre anatomia"]
+    },
+    "Desbravador(a)": {
+        objectives: ["Mapeando ruínas desconhecidas", "Buscando uma nova fonte de água", "Procurando abrigo seguro para a noite", "Rastreando um comboio perdido"],
+        loot: ["Bússola com vidro trincado", "Corda puída", "Mapa rabiscado", "Binóculos sem lente", "Sinalizador de emergência"]
+    },
+    "Estudioso(a)": {
+        objectives: ["Analisando fungos da Assimilação", "Tentando consertar um rádio antigo", "Catalogando artefatos do Velho Mundo", "Buscando registros em uma ruína"],
+        loot: ["Caderno de anotações manchado", "Caneta sem tinta", "Pen drive enferrujado", "Óculos com fita adesiva", "Peça de motor inutilizável"]
+    },
+    "Negociador(a)": {
+        objectives: ["Indo fechar um acordo de escambo", "Fugindo de uma dívida de recursos", "Tentando recrutar aliados", "Procurando clientes para um item raro"],
+        loot: ["Moedas antigas inúteis", "Relógio de bolso quebrado", "Caderneta de devedores", "Isqueiro de metal", "Joia suja de lama"]
+    },
+    "Furtivo(a)": {
+        objectives: ["Espionando um Refúgio rival", "Fugindo após roubar suprimentos", "Escondendo loot num esconderijo", "Evitando chamar atenção"],
+        loot: ["Gazuas improvisadas", "Faca de lâmina escura", "Máscara de pano suja", "Veneno extraído de planta", "Saco com comida roubada"]
+    },
+    "Sobrevivente": {
+        objectives: ["Fugindo de uma horda", "Procurando restos de comida", "Tentando não congelar de frio", "Escondendo a própria mordida"],
+        loot: ["Lata de feijão vazia", "Pedaço de lona", "Fósforos úmidos", "Garrafa de água rachada", "Foto de família rasgada"]
+    }
+};
 
-const lootList = [
-  "Faca de cozinha enferrujada", "3 munições de revólver", "Foto de família desgastada", 
-  "Relógio de pulso quebrado", "Meia garrafa de água", "Isqueiro (sem gás)", 
-  "Maço de cigarros amassado", "Mapa local rabiscado", "Barra de cereal vencida", 
-  "Bandagens sujas", "Um par de meias secas", "Canivete suíço", "Apito de emergência"
-];
+// Junta tudo caso o utilizador escolha "Aleatório"
+const allObjectives = Object.values(logicalData).flatMap(d => d.objectives);
+const allLoot = Object.values(logicalData).flatMap(d => d.loot);
 
 // --- FUNÇÃO DE TRADUÇÃO ---
 const translateKey = (key) => {
     const map = {
-        // Instintos
         reaction: "Reação", perception: "Percepção", sagacity: "Sagacidade",
         potency: "Potência", influence: "Influência", resolution: "Resolução",
-        // Perícias
         geography: "Geografia", medicine: "Medicina", security: "Segurança",
         biology: "Biologia", erudition: "Erudição", engineering: "Engenharia",
         weapons: "Armas", athletics: "Atletismo", expression: "Expressão",
@@ -48,30 +67,29 @@ const translateKey = (key) => {
 
 const NPCGenerator = ({ campaignId, onNpcSaved }) => {
   const token = useSelector((state) => state.auth.token);
-
   const [loading, setLoading] = useState(false);
   const [npc, setNpc] = useState(null);
-  
-  const [rpDetails, setRpDetails] = useState({
-    temperament: "",
-    objective: "",
-    loot: []
-  });
-  
-  const [config, setConfig] = useState({
-    type: "", 
-    level: 1  
-  });
+  const [rpDetails, setRpDetails] = useState({ temperament: "", objective: "", loot: [] });
+  const [config, setConfig] = useState({ type: "Aleatório", level: 1 });
 
   const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  const generateLocalDetails = () => {
+  // GERAÇÃO LÓGICA BASEADA NO ARQUÉTIPO
+  const generateLocalDetails = (archetype) => {
     const numItems = Math.floor(Math.random() * 2) + 2; 
-    const shuffledLoot = [...lootList].sort(() => 0.5 - Math.random());
+    let validObjectives = allObjectives;
+    let validLoot = allLoot;
+
+    if (archetype && logicalData[archetype]) {
+        validObjectives = logicalData[archetype].objectives;
+        validLoot = logicalData[archetype].loot;
+    }
+
+    const shuffledLoot = [...validLoot].sort(() => 0.5 - Math.random());
     
     return {
       temperament: getRandom(temperaments),
-      objective: getRandom(objectives),
+      objective: getRandom(validObjectives),
       loot: shuffledLoot.slice(0, numItems)
     };
   };
@@ -80,6 +98,7 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
     setLoading(true);
     try {
       const payload = {
+        // Envia o arquétipo escolhido para o backend
         type: config.type === "Aleatório" ? "" : config.type,
         level: parseInt(config.level)
       };
@@ -91,31 +110,29 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
       );
       
       setNpc(res.data);
-      setRpDetails(generateLocalDetails());
+      // Lê o arquétipo final para garantir que as informações locais batem certo
+      const generatedArchetype = config.type !== "Aleatório" ? config.type : res.data.archetype;
+      setRpDetails(generateLocalDetails(generatedArchetype));
 
     } catch (err) {
       console.error(err);
-      alert("Erro ao gerar NPC.");
+      alert("Erro ao sintetizar NPC. Verifique a conexão.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleRerollRP = () => {
-    setRpDetails(generateLocalDetails());
+      const generatedArchetype = config.type !== "Aleatório" ? config.type : npc?.archetype;
+      setRpDetails(generateLocalDetails(generatedArchetype));
   };
 
   const handleSave = async () => {
     if (!npc) return;
-    
-    if (!campaignId) {
-        alert("Erro: Este gerador precisa estar dentro de uma campanha para salvar.");
-        return;
-    }
+    if (!campaignId) { alert("Erro de Sistema: O gerador precisa de estar vinculado a uma campanha para guardar dados."); return; }
 
     try {
         setLoading(true);
-
         const payload = {
             campaignId: campaignId,
             npcData: {
@@ -134,16 +151,13 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        alert("NPC Adicionado à Campanha!");
-        
         setNpc(null);
         setRpDetails({ temperament: "", objective: "", loot: [] });
-        
         if(onNpcSaved) onNpcSaved(); 
 
     } catch (err) {
         console.error("Erro ao salvar NPC:", err);
-        alert("Erro ao salvar. Verifique se o servidor está online.");
+        alert("Falha na gravação. Verifique a comunicação com a base de dados.");
     } finally {
         setLoading(false);
     }
@@ -157,40 +171,34 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
   };
 
   return (
-    <div className="npc-gen-container" style={{ margin: 0, padding: '20px', minHeight: 'auto' }}>
+    <div className="npc-gen-container" style={{ margin: 0, padding: '25px', minHeight: 'auto' }}>
       <div className="npc-sidebar">
         <div className="control-group">
-            <label>Arquétipo</label>
+            <label>Arquétipo Base</label>
             <select value={config.type} onChange={(e) => setConfig({...config, type: e.target.value})}>
                 {archetypes.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
         </div>
-
         <div className="control-group">
             <label>Nível de Ameaça</label>
             <div className="level-selector">
                 {[1, 2, 3].map(lvl => (
-                    <button 
-                        key={lvl}
-                        className={config.level === lvl ? 'active' : ''}
-                        onClick={() => setConfig({...config, level: lvl})}
-                    >
-                        Nível {lvl}
+                    <button key={lvl} className={config.level === lvl ? 'active' : ''} onClick={() => setConfig({...config, level: lvl})}>
+                        NÍVEL {lvl}
                     </button>
                 ))}
             </div>
         </div>
-
         <button className="btn-generate" onClick={handleGenerate} disabled={loading}>
-            {loading ? "Gerando..." : <><FaDiceD20 /> GERAR AGORA</>}
+            {loading ? "PROCESSANDO DADOS..." : <><FaDiceD20 size={16} /> SINTETIZAR NPC</>}
         </button>
       </div>
 
       <div className="npc-preview">
         {!npc ? (
-            <div className="empty-state" style={{ paddingTop: '20px' }}>
-                <FaUserSecret size={40} />
-                <p>Configure e clique em Gerar.</p>
+            <div className="empty-state">
+                <FaUserSecret size={50} color="#333" />
+                <p>Nenhum perfil carregado. Configure os parâmetros à esquerda e sintetize um novo agente.</p>
             </div>
         ) : (
             <div className="npc-card fade-in">
@@ -201,31 +209,20 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
                 
                 <div className="npc-rp-section">
                     <div className="rp-header">
-                        <h4><FaBrain /> PERFIL PSICOLÓGICO</h4>
-                        <button className="btn-icon-small" onClick={handleRerollRP} title="Rolar novamente Roleplay">
-                            <FaSyncAlt />
+                        <h4><FaBrain size={14} color="#8b5cf6" /> PERFIL PSICOLÓGICO</h4>
+                        <button className="btn-icon-small" onClick={handleRerollRP} title="Recalcular Roleplay">
+                            <FaSyncAlt size={12} />
                         </button>
                     </div>
-                    
                     <div className="rp-row">
-                        <span className={`npc-badge badge-${getTemperamentColor(rpDetails.temperament)}`}>
-                            {rpDetails.temperament}
-                        </span>
-                        <span className="rp-objective">
-                            <strong>Objetivo:</strong> {rpDetails.objective}
-                        </span>
+                        <span className={`npc-badge badge-${getTemperamentColor(rpDetails.temperament)}`}>{rpDetails.temperament}</span>
+                        <span className="rp-objective"><strong>Objetivo:</strong> {rpDetails.objective}</span>
                     </div>
-
-                    <div className="npc-quirk">
-                        <strong>Característica:</strong> "{npc.event}"
-                    </div>
-
+                    <div className="npc-quirk">"{npc.event}"</div>
                     <div className="inventory-box">
-                        <h5><FaSuitcase size={12}/> INVENTÁRIO RÁPIDO</h5>
+                        <h5><FaSuitcase size={14} color="#3cdce7" /> INVENTÁRIO RÁPIDO</h5>
                         <div className="loot-list">
-                            {rpDetails.loot.map((item, idx) => (
-                                <span key={idx} className="loot-item">{item}</span>
-                            ))}
+                            {rpDetails.loot.map((item, idx) => <span key={idx} className="loot-item">{item}</span>)}
                         </div>
                     </div>
                 </div>
@@ -235,24 +232,17 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
                         <h4>INSTINTOS</h4>
                         <ul>
                             {Object.entries(npc.instincts).map(([k, v]) => (
-                                <li key={k}>
-                                    <span>{translateKey(k)}</span>
-                                    <strong>{v}</strong>
-                                </li>
+                                <li key={k}><span>{translateKey(k)}</span><strong>{v}</strong></li>
                             ))}
                         </ul>
                     </div>
-                    
                     <div className="stat-block">
                         <h4>PERÍCIAS</h4>
                         <ul>
                             {Object.entries({...npc.knowledge, ...npc.practices})
                                 .filter(([_, v]) => v > 0)
                                 .map(([k, v]) => (
-                                <li key={k}>
-                                    <span>{translateKey(k)}</span>
-                                    <strong>+{v}</strong>
-                                </li>
+                                <li key={k}><span>{translateKey(k)}</span><strong>+{v}</strong></li>
                             ))}
                             {Object.values({...npc.knowledge, ...npc.practices}).every(v => v === 0) && <li>Nenhuma</li>}
                         </ul>
@@ -260,10 +250,8 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
                 </div>
 
                 <div className="npc-footer">
-                    <div className="pack-info">Pacote Sugerido: {npc.initialPack}</div>
-                    <button className="btn-save" onClick={handleSave}>
-                        <FaSave /> SALVAR NA CAMPANHA
-                    </button>
+                    <div className="pack-info"><FaCubes size={14} color="#888" />PACOTE SUGERIDO: <span>{npc.initialPack}</span></div>
+                    <button className="btn-save" onClick={handleSave} disabled={loading}><FaSave size={16} /> GUARDAR NO ARQUIVO</button>
                 </div>
             </div>
         )}

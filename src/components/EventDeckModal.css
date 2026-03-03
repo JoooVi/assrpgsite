@@ -1,0 +1,181 @@
+/* src/components/EventDeckModal.css */
+
+.event-deck-modal {
+  max-width: 900px;
+  width: 95%;
+  background-color: #0a0a0a;
+  border: 1px solid #333;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.deck-controls {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px dashed #333;
+}
+
+.btn-draw {
+  background: #ff3333;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: 0.3s ease;
+}
+
+.btn-draw:hover {
+  background: #cc0000;
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+}
+
+.instruction-text {
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+/* --- ESTRUTURA 3D DAS CARTAS --- */
+.cards-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 30px 20px;
+  flex-wrap: wrap;
+}
+
+/* O palco 3D para cada carta */
+.card-scene {
+  width: 260px;
+  height: 400px;
+  perspective: 1000px; /* Dá a ilusão de profundidade ao rodar */
+  cursor: pointer;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d; /* Garante que os filhos rodam em 3D */
+}
+
+/* As faces da carta */
+.card-face {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  backface-visibility: hidden; /* Esconde a face que estiver virada para trás */
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  background-color: #121212;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+/* --- FACE OCULTA (Costas) --- */
+.card-back {
+  background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 10px, #111 10px, #111 20px);
+  border: 2px solid #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.back-design {
+  border: 2px dashed #444;
+  width: 85%;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #555;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 3px;
+  font-weight: bold;
+}
+
+.logo-placeholder {
+  font-size: 3rem;
+  margin-top: 15px;
+  opacity: 0.5;
+}
+
+/* --- FACE REVELADA (Frente) --- */
+.card-front {
+  transform: rotateY(180deg); /* A frente começa invertida para ficar direita quando a carta virar */
+  padding: 15px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.8rem;
+  font-family: 'Orbitron', sans-serif;
+  margin-bottom: 10px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.card-type {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.card-desc-container {
+  overflow-y: auto; /* Adiciona scroll interno se o texto do evento for gigante */
+  padding-right: 5px;
+}
+
+/* Personaliza a barra de scroll interna da carta */
+.card-desc-container::-webkit-scrollbar {
+  width: 4px;
+}
+.card-desc-container::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.card-desc {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+.card-rolls {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  background: rgba(0,0,0,0.3);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.card-rolls li {
+  margin-bottom: 8px;
+  color: #aaa;
+}
+.card-rolls li:last-child {
+  margin-bottom: 0;
+}

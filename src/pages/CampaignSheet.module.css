@@ -104,19 +104,10 @@
   flex-grow: 1;
 }
 
-.scrollableContent::-webkit-scrollbar {
-  width: 6px;
-}
-.scrollableContent::-webkit-scrollbar-track {
-  background: #050505; 
-}
-.scrollableContent::-webkit-scrollbar-thumb {
-  background: #333; 
-  border-radius: 3px;
-}
-.scrollableContent::-webkit-scrollbar-thumb:hover {
-  background: #8a1c18;
-}
+.scrollableContent::-webkit-scrollbar { width: 6px; }
+.scrollableContent::-webkit-scrollbar-track { background: #050505; }
+.scrollableContent::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.scrollableContent::-webkit-scrollbar-thumb:hover { background: #8a1c18; }
 
 /* === COMANDO & INPUTS === */
 .commandLabel {
@@ -158,112 +149,88 @@
 }
 .neroSelect:focus { outline: none; border-color: #3cdce7; }
 
-/* === BOTÕES GERAIS === */
-.btnRoll {
-  width: 100%;
-  background: #1976d2;
-  color: #fff;
-  border: none;
+/* === BOTÕES FERRAMENTAS MESTRE (Efeito Fantasma Terminal) === */
+.btnMasterTool {
+  background: transparent;
+  border: 1px dashed #444;
+  color: #aaa;
   padding: 12px;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  margin-bottom: 20px;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: all 0.2s;
-}
-.btnRoll:hover { background: #1565c0; box-shadow: 0 0 15px rgba(25, 118, 210, 0.4); }
-
-.btnCommand {
-  flex: 1;
-  background: #e0e0e0;
-  color: #000;
-  border: none;
-  padding: 10px;
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btnMasterTool:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnMasterTool.cyan { border-color: rgba(60, 220, 231, 0.4); color: #3cdce7; }
+.btnMasterTool.cyan:hover:not(:disabled) { background: rgba(60, 220, 231, 0.1); border: 1px solid #3cdce7; color: #fff; text-shadow: 0 0 5px #3cdce7; }
+
+.btnMasterTool.purple { border-color: rgba(139, 92, 246, 0.4); color: #8b5cf6; }
+.btnMasterTool.purple:hover:not(:disabled) { background: rgba(139, 92, 246, 0.1); border: 1px solid #8b5cf6; color: #fff; text-shadow: 0 0 5px #8b5cf6; }
+
+.btnMasterTool.red { border-color: rgba(167, 60, 57, 0.4); color: #a73c39; }
+.btnMasterTool.red:hover:not(:disabled) { background: rgba(167, 60, 57, 0.1); border: 1px solid #a73c39; color: #fff; text-shadow: 0 0 5px #a73c39; }
+
+.btnMasterTool.blue { border-color: rgba(59, 130, 246, 0.4); color: #3ca0e7; }
+.btnMasterTool.blue:hover:not(:disabled) { background: rgba(59, 130, 246, 0.1); border: 1px solid #3ca0e7; color: #fff; text-shadow: 0 0 5px #3ca0e7; }
+
+.btnMasterTool.green { border-color: rgba(74, 222, 128, 0.4); color: #4ade80; }
+.btnMasterTool.green:hover:not(:disabled) { background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; color: #fff; text-shadow: 0 0 5px #4ade80; }
+
+/* === BOTÕES GERAIS ANTIGOS (Mantidos para não quebrar outros modais) === */
+.btnRoll {
+  width: 100%; background: #1976d2; color: #fff; border: none; padding: 12px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700; text-transform: uppercase;
+  cursor: pointer; margin-bottom: 20px; border-radius: 2px; display: flex;
+  align-items: center; justify-content: center; gap: 10px; transition: all 0.2s;
+}
+.btnRoll:hover { background: #1565c0; box-shadow: 0 0 15px rgba(25, 118, 210, 0.4); }
+
+.btnCommand {
+  flex: 1; background: #e0e0e0; color: #000; border: none; padding: 10px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.85rem;
+  text-transform: uppercase; cursor: pointer; border-radius: 2px; display: flex;
+  align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
 }
 .btnCommand:hover { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
 /* === BOTÕES DO MODAL DE CONFLITO === */
 .btnAdd {
-  background: transparent;
-  border: 1px dashed #555;
-  color: #aaa;
-  padding: 10px 15px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: 3px;
-  width: 100%;
-  justify-content: center;
-  transition: all 0.2s;
-  text-transform: uppercase;
+  background: transparent; border: 1px dashed #555; color: #aaa; padding: 10px 15px;
+  font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 3px;
+  width: 100%; justify-content: center; transition: all 0.2s; text-transform: uppercase;
 }
 .btnAdd:hover { border-color: #3cdce7; color: #3cdce7; background: rgba(60, 220, 231, 0.05); }
 
 .btnTrash {
-  background: rgba(255, 51, 51, 0.05);
-  border: 1px solid #444;
-  color: #ff3333;
-  border-radius: 3px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  width: 45px;
-  transition: all 0.2s;
+  background: rgba(255, 51, 51, 0.05); border: 1px solid #444; color: #ff3333;
+  border-radius: 3px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; height: 42px; width: 45px; transition: all 0.2s;
 }
 .btnTrash:hover { background: rgba(255, 51, 51, 0.2); border-color: #ff3333; color: #fff; }
 
 .btnCancel {
-  background: transparent;
-  color: #aaa;
-  border: 1px solid #444;
-  padding: 10px 20px;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  cursor: pointer;
-  border-radius: 3px;
-  transition: all 0.2s;
+  background: transparent; color: #aaa; border: 1px solid #444; padding: 10px 20px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700; cursor: pointer;
+  border-radius: 3px; transition: all 0.2s;
 }
 .btnCancel:hover { background: #222; color: #fff; border-color: #888; }
 
 .btnNero {
-  background: #111;
-  color: #fff;
-  border: 1px solid #444;
-  padding: 10px 20px;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
-  border-radius: 3px;
+  background: #111; color: #fff; border: 1px solid #444; padding: 10px 20px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+  justify-content: center; gap: 8px; transition: all 0.2s; border-radius: 3px;
 }
 .btnNero:hover { background: #222; border-color: #3cdce7; color: #3cdce7; box-shadow: 0 0 10px rgba(60, 220, 231, 0.3); }
 
@@ -272,41 +239,13 @@
 
 /* === NOTAS DE CAMPO === */
 .notesArea {
-  width: 100%;
-  background: #080808;
-  color: #a0a0a0;
-  border: 1px solid #333;
-  padding: 15px;
-  font-family: 'Rajdhani', monospace;
-  font-size: 1rem;
-  line-height: 1.5;
-  resize: vertical;
-  min-height: 250px;
-  box-sizing: border-box;
-  display: block;
-  margin-bottom: 0;
-  transition: all 0.3s ease;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-  border-radius: 3px;
+  width: 100%; background: #080808; color: #a0a0a0; border: 1px solid #333;
+  padding: 15px; font-family: 'Rajdhani', monospace; font-size: 1rem;
+  line-height: 1.5; resize: vertical; min-height: 250px; box-sizing: border-box;
+  display: block; transition: all 0.3s ease; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  border-radius: 3px; margin-bottom: 10px;
 }
 .notesArea:focus { outline: none; border-color: #8a1c18; background: #050505; color: #fff; }
-
-.btnSaveNotes {
-  width: 100%;
-  background: #111;
-  color: #666;
-  border: 1px solid #333;
-  border-top: none;
-  padding: 12px;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  margin-top: 0;
-  transition: all 0.3s ease;
-}
-.btnSaveNotes:hover { background: #8a1c18; color: #fff; border-color: #8a1c18; }
 
 /* === CONFLITO ATIVO === */
 .conflictPanel { border: 1px dashed #ff3333; background: rgba(255, 51, 51, 0.05); padding: 15px; margin-bottom: 20px; }
@@ -327,42 +266,22 @@
 .btnControlMini.plus:hover { background: rgba(0, 255, 0, 0.2); border-color: #4caf50; }
 .btnControlMini.minus:hover { background: rgba(255, 0, 0, 0.2); border-color: #f44336; }
 
-/* === LISTA AGENTES (Jogadores Normais) === */
+/* === LISTA AGENTES === */
 .characterList { display: flex; flex-direction: column; gap: 10px; }
-.characterCard { 
-  background: #111; border: 1px solid #333; padding: 10px; border-left: 3px solid #3cdce7; 
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+.characterCard { background: #111; border: 1px solid #333; padding: 10px; border-left: 3px solid #3cdce7; transition: transform 0.2s, box-shadow 0.2s; }
 .characterCard:hover { transform: translateX(4px); box-shadow: -2px 0 10px rgba(60, 220, 231, 0.2); }
 .characterHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .charName { font-family: 'Orbitron'; color: #fff; font-size: 1.1rem; }
 
-/* === TOAST === */
-.neroToast {
-  position: fixed; bottom: 20px; right: 20px; background: #111; border-left: 4px solid #3cdce7;
-  color: #fff; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.8);
-  font-family: 'Orbitron'; z-index: 9999; display: flex; align-items: center; gap: 10px;
-}
+/* === TOAST E MODAIS === */
+.neroToast { position: fixed; bottom: 20px; right: 20px; background: #111; border-left: 4px solid #3cdce7; color: #fff; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); font-family: 'Orbitron'; z-index: 9999; display: flex; align-items: center; gap: 10px; }
 .neroToast.error { border-left-color: #ff3333; }
 
-/* === MODAL ESTILOS === */
-.modalBackdrop {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);
-  backdrop-filter: blur(3px); z-index: 11000; display: flex; justify-content: center; align-items: center;
-}
-.modalPanel {
-  background: #1a1a1a; width: 95%; max-width: 600px; border: 1px solid #444;
-  box-shadow: 0 10px 40px #000; border-radius: 6px; animation: modalFadeIn 0.2s ease-out;
-}
-.modalHeader { 
-  padding: 15px 20px; border-bottom: 1px solid #333; display:flex; justify-content:space-between; 
-  align-items: center; background: #111; border-top-left-radius: 6px; border-top-right-radius: 6px;
-}
+.modalBackdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); backdrop-filter: blur(3px); z-index: 11000; display: flex; justify-content: center; align-items: center; }
+.modalPanel { background: #1a1a1a; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 40px #000; border-radius: 6px; animation: modalFadeIn 0.2s ease-out; }
+.modalHeader { padding: 15px 20px; border-bottom: 1px solid #333; display:flex; justify-content:space-between; align-items: center; background: #111; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 
-@keyframes modalFadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Media Queries */
 @media (max-width: 1024px) {
