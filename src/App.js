@@ -13,6 +13,7 @@ import KofiButton from "./components/KofiButton";
 import PageTransition from "./components/PageTransition";
 import { AnimatePresence } from 'framer-motion';
 import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Analytics } from "@vercel/analytics/react";
 
 // Páginas
 import HomePage from "./pages/HomePage";
@@ -97,6 +98,7 @@ axios.interceptors.response.use(
       {!isPortraitRoute && <Navbar />}
       <main style={{ flexGrow: 1 }}>
         <SpeedInsights/>
+        <Analytics />
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* --- Rotas Públicas --- */}
