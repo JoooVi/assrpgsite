@@ -44,6 +44,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import '@fontsource/material-icons';
 
+
 const AppContent = () => {
   const location = useLocation();
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -70,8 +71,6 @@ const AppContent = () => {
   }
 );
 
-<SpeedInsights/>
-
 axios.interceptors.response.use(
   (response) => response, // Se a resposta for OK, não faz nada
   (error) => {
@@ -97,6 +96,7 @@ axios.interceptors.response.use(
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {!isPortraitRoute && <Navbar />}
       <main style={{ flexGrow: 1 }}>
+        <SpeedInsights/>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* --- Rotas Públicas --- */}
