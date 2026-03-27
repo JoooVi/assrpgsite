@@ -9,23 +9,39 @@ const AuthCallbackPage = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log("--- PASSO 1: Entrei na página de Callback (deve aparecer SÓ UMA VEZ) ---");
     const params = new URLSearchParams(location.search);
-    const token = params.get('token');
+    const code = params.get('code');
 
-    if (token) {
-      console.log("--- PASSO 2: Token encontrado! Despachando para o Redux... ---");
-      dispatch(setAuthFromToken(token));
-      console.log("--- PASSO 3: Redirecionando para /characters AGORA! ---");
-      // Usamos replace: true para que o usuário não possa voltar para esta página com o botão "Voltar"
-      navigate('/characters', { replace: true }); 
-    } else {
-      console.error("--- ERRO: Cheguei na Callback, mas não encontrei o token! ---");
+    if (!code) {
       navigate('/login', { replace: true });
+      return;
     }
-  // A CORREÇÃO ESTÁ AQUI: O array de dependências está vazio.
-  // Isso garante que o efeito rode apenas uma vez.
-  }, []); 
+
+    const exchangeCodeForToken = async () => {
+      try {
+        const response = await fetch('https://assrpgsite-be-production.up.railway.app/api/auth/exchange', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.token) {
+          throw new Error(data.message || 'Falha ao concluir autenticação com Discord.');
+        }
+
+        dispatch(setAuthFromToken(data.token));
+        navigate('/characters', { replace: true });
+      } catch (error) {
+        console.error('Erro no callback OAuth:', error);
+        navigate('/login', { replace: true });
+      }
+    };
+
+    exchangeCodeForToken();
+  }, [dispatch, location.search, navigate]);
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
