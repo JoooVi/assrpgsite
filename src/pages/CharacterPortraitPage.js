@@ -192,44 +192,44 @@ const CharacterPortraitPage = () => {
       
       {/* --- CAMADA DE DADOS COM FUNDO --- */}
       <div className={`dice-animation-container ${showDice ? 'visible entering' : 'leaving'}`}>
-         {character.lastRoll && character.lastRoll.roll && character.lastRoll.roll.map((die, index) => (
+         {character.lastRoll && character.lastRoll.roll && (
+           <div className="dice-results-grid">
+           {character.lastRoll.roll.map((die, index) => (
              <div key={index} className="individual-die-result">
                  
-                 {/* 1. FUNDO DO DADO (TRAS.PNG) */}
-                 <img 
-                    src={diceBg} 
-                    alt="dado-bg" 
-                    className="individual-die-image" 
-                    // Se preferir ajustar tamanho no CSS, use a classe.
-                    // Aqui garanto que preencha.
-                    style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 0 }}
-                 />
+             {/* 1. FUNDO DO DADO (TRAS.PNG) */}
+             <img 
+              src={diceBg} 
+              alt="dado-bg" 
+              className="individual-die-image" 
+              // Se preferir ajustar tamanho no CSS, use a classe.
+              // Aqui garanto que preencha.
+              style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 0 }}
+             />
 
-                 {/* 2. CONTEÚDO (Números ou Símbolos) */}
-                 <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                     {/* Se tiver Símbolos */}
-                     {die.result && die.result.length > 0 ? (
-                         <div className="individual-die-symbols">
-                             {die.result.map((imgSrc, i) => (
-                                 <img key={i} src={imgSrc} alt="symbol" className="symbol-image" />
-                             ))}
-                         </div>
-                     ) : (
-                         /* Se for Número puro */
-                         <span className="individual-die-number">{die.face}</span>
-                     )}
+             {/* 2. CONTEÚDO (Números ou Símbolos) */}
+             <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               {/* Se tiver Símbolos */}
+               {die.result && die.result.length > 0 ? (
+                 <div className="individual-die-symbols">
+                   {die.result.map((imgSrc, i) => (
+                     <img key={i} src={imgSrc} alt="symbol" className="symbol-image" />
+                   ))}
                  </div>
+               ) : (
+                 /* Se for Número puro */
+                 <span className="individual-die-number">{die.face}</span>
+               )}
+             </div>
 
              </div>
-         ))}
+           ))}
+           </div>
+         )}
          
          {/* Nome da Perícia */}
          {character.lastRoll && (
-             <div style={{
-                 position: 'absolute', bottom: '-40px', width: '100%', 
-                 textAlign: 'center', color: '#fff', textShadow: '0 2px 4px #000',
-                 fontFamily: 'Cinzel', fontSize: '1.2rem', fontWeight: 'bold'
-             }}>
+           <div className="roll-legend">
                  {character.lastRoll.skill ? toPortugueseRollLegend(character.lastRoll.skill).toUpperCase() : "ROLAGEM"}
              </div>
          )}

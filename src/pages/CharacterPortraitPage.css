@@ -150,17 +150,40 @@ body.portrait-body-active::after {
 /* Mantém os dados centralizados na tela, independente do portrait */
 .dice-animation-container {
   position: fixed;
-  top: 20%; 
+  top: 14%; 
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1000;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   pointer-events: none;
-  width: 100%;
+  width: auto;
+  max-width: 92vw;
   opacity: 0;
+}
+
+.dice-results-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.roll-legend {
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 2px 4px #000;
+  font-family: "Cinzel", serif;
+  font-size: 1.05rem;
+  font-weight: bold;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
+  max-width: 90vw;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .dice-animation-container.visible { opacity: 1; }
