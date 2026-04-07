@@ -62,6 +62,50 @@ const AssimilationCircle = ({ level }) => (
 
 const FETCH_INTERVAL = 2000;
 
+const rollLegendTranslations = {
+  geography: "Geografia",
+  medicine: "Medicina",
+  security: "Segurança",
+  biology: "Biologia",
+  erudition: "Erudição",
+  engineering: "Engenharia",
+  weapons: "Armas",
+  athletics: "Atletismo",
+  expression: "Expressão",
+  stealth: "Furtividade",
+  crafting: "Manufaturas",
+  survival: "Sobrevivência",
+  reaction: "Reação",
+  perception: "Percepção",
+  sagacity: "Sagacidade",
+  potency: "Potência",
+  influence: "Influência",
+  resolution: "Resolução",
+  instinct: "Instinto",
+  knowledge: "Conhecimento",
+  practice: "Prática",
+  skill: "Perícia",
+  assimilation: "Assimilação",
+};
+
+const toPortugueseRollLegend = (label) => {
+  if (!label || typeof label !== "string") return "Rolagem";
+
+  let translated = label;
+  Object.entries(rollLegendTranslations).forEach(([key, value]) => {
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    translated = translated.replace(new RegExp(`\\b${escapedKey}\\b`, "gi"), value);
+  });
+
+  translated = translated
+    .replace(/\b(Instinto|Conhecimento|Prática|Perícia|Assimilação)\s*:\s*/gi, "")
+    .replace(/\s*\+\s*/g, " + ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return translated;
+};
+
 const CharacterPortraitPage = () => {
   const { id } = useParams();
   const [character, setCharacter] = useState(null);
@@ -186,7 +230,7 @@ const CharacterPortraitPage = () => {
                  textAlign: 'center', color: '#fff', textShadow: '0 2px 4px #000',
                  fontFamily: 'Cinzel', fontSize: '1.2rem', fontWeight: 'bold'
              }}>
-                 {character.lastRoll.skill ? character.lastRoll.skill.toUpperCase() : "ROLAGEM"}
+                 {character.lastRoll.skill ? toPortugueseRollLegend(character.lastRoll.skill).toUpperCase() : "ROLAGEM"}
              </div>
          )}
       </div>

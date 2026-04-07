@@ -417,13 +417,14 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   }, [id, dispatch]);
 
   const handleRoll = async (key) => {
-    if (!selectedInstinct[key]) {
+    const instinctKey = selectedInstinct[key];
+    if (!instinctKey) {
       alert("Selecione um instinto!");
       return;
     }
 
     const skillVal = parseInt(globalSkills[key]) || 0;
-    const instVal = parseInt(instincts[selectedInstinct[key]]) || 0;
+    const instVal = parseInt(instincts[instinctKey]) || 0;
 
     const formulaParts = [];
     if (skillVal > 0) formulaParts.push(`${skillVal}d10`);
@@ -432,7 +433,10 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     const formula = formulaParts.join("+") || "0d0";
     const result = rollCustomDice(formula);
 
-    const rollData = { skill: key, roll: result };
+    const rollData = {
+      skill: `${translateKey(key)} + ${translateKey(instinctKey)}`,
+      roll: result,
+    };
     setCurrentRoll(rollData);
     setRollToastOpen(true);
     addRollToHistory(rollData);
@@ -1124,7 +1128,7 @@ const CharacterSheet = () => {
     const res = rollCustomDice(`${total}d12`);
     addRollToHistory(
       {
-        skill: `Assimilação: ${translateKey(k1)}+${translateKey(k2)}`,
+        skill: `Assimilação: ${translateKey(k1)} + ${translateKey(k2)}`,
         roll: res,
       },
       true
