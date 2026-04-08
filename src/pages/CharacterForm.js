@@ -30,23 +30,42 @@ const translateKey = (key) => {
 
 // --- COMPONENTES DOS PASSOS ---
 
-const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange }) => (
+const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange, tokenPreview, handleTokenChange }) => (
   <div className="fade-in">
-    <div style={{display:'flex', flexDirection:'column', alignItems:'center', marginBottom:'30px'}}>
-      <div style={{
-          width:'120px', height:'120px', border:'2px solid #444', 
-          background:'#000', marginBottom:'10px', display:'flex', alignItems:'center', justifyContent:'center'
-      }}>
-        {avatarPreview ? (
-          <img src={avatarPreview} alt="Avatar" style={{width:'100%', height:'100%', objectFit:'cover'}} />
-        ) : (
-          <span style={{color:'#333', fontSize:'0.8rem', fontFamily:'monospace'}}>NO_IMAGE</span>
-        )}
+    <div style={{display:'flex', gap: 30, justifyContent: 'center', marginBottom:'30px'}}>
+      <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
+        <div style={{
+            width:'120px', height:'120px', border:'2px solid #444', 
+            background:'#000', marginBottom:'10px', display:'flex', alignItems:'center', justifyContent:'center'
+        }}>
+          {avatarPreview ? (
+            <img src={avatarPreview} alt="Avatar" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+          ) : (
+            <span style={{color:'#333', fontSize:'0.8rem', fontFamily:'monospace'}}>NO_IMAGE</span>
+          )}
+        </div>
+        <label className="btn-nero btn-secondary" style={{padding: '5px 15px', fontSize: '0.8rem'}}>
+          <FaUpload style={{marginRight: '5px'}}/> FOTO (FICHA)
+          <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
+        </label>
       </div>
-      <label className="btn-nero btn-secondary" style={{padding: '5px 15px', fontSize: '0.8rem'}}>
-        <FaUpload style={{marginRight: '5px'}}/> CARREGAR FOTO
-        <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
-      </label>
+      
+      <div style={{display:'flex', flexDirection:'column', alignItems:'center', opacity: 0.9}}>
+        <div style={{
+            width:'120px', height:'120px', border:'2px dashed #444', borderRadius: '50%',
+            background:'#0d1117', marginBottom:'10px', display:'flex', alignItems:'center', justifyContent:'center', overflow: 'hidden'
+        }}>
+          {tokenPreview ? (
+            <img src={tokenPreview} alt="Token" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+          ) : (
+            <span style={{color:'#555', fontSize:'0.7rem', fontFamily:'monospace', textAlign: 'center'}}>TOKEN MAPA<br/>(Opcional)</span>
+          )}
+        </div>
+        <label className="btn-nero btn-secondary" style={{padding: '5px 15px', fontSize: '0.8rem'}}>
+          <FaUpload style={{marginRight: '5px'}}/> MAP TOKEN
+          <input type="file" hidden accept="image/*" onChange={handleTokenChange} />
+        </label>
+      </div>
     </div>
 
     <div className="form-grid">
@@ -309,6 +328,8 @@ export default function CharacterForm() {
   const [errors, setErrors] = useState({});
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
+  const [tokenImage, setTokenImage] = useState(null);
+  const [tokenPreview, setTokenPreview] = useState('');
   
   const [allItems, setAllItems] = useState([]);
   const [areItemsLoading, setAreItemsLoading] = useState(true);
@@ -338,6 +359,10 @@ export default function CharacterForm() {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) { setAvatar(file); setAvatarPreview(URL.createObjectURL(file)); }
+  };
+  const handleTokenChange = (e) => {
+    const file = e.target.files[0];
+    if (file) { setTokenImage(file); setTokenPreview(URL.createObjectURL(file)); }
   };
   
 const handlePackSelect = (pack) => {
@@ -465,6 +490,7 @@ const handlePackSelect = (pack) => {
         else appendData(character[key], key);
     });
     if (avatar) formData.append('avatar', avatar);
+    if (tokenImage) formData.append('tokenImage', tokenImage);
 
     try { 
         await axios.post("https://assrpgsite-be-production.up.railway.app/api/characters", formData, { headers: { Authorization: `Bearer ${token}` } }); 
@@ -475,7 +501,7 @@ const handlePackSelect = (pack) => {
   };
 
   const getStepContent = (step) => {
-      const props = { character, handleInputChange, errors, avatarPreview, handleAvatarChange, handlePackSelect, initialEquipmentPacks, handleInstinctChange, handleNestedChange, remainingInstinctPoints, remainingPoints, translateKey, handleTugOfWarChange };
+      const props = { character, handleInputChange, errors, avatarPreview, handleAvatarChange, tokenPreview, handleTokenChange, handlePackSelect, initialEquipmentPacks, handleInstinctChange, handleNestedChange, remainingInstinctPoints, remainingPoints, translateKey, handleTugOfWarChange };
       switch(step) {
           case 0: return <Step1_Informacoes {...props} />;
           case 1: return <Step2_Evento {...props} />;
