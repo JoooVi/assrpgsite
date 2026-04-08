@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-import { FaDiceD20, FaSave, FaUserSecret, FaSyncAlt, FaSuitcase, FaBrain, FaCubes } from 'react-icons/fa';
+import { FaDiceD20, FaSave, FaUserSecret, FaSyncAlt, FaSuitcase, FaBrain, FaCubes, FaShareSquare } from 'react-icons/fa';
 import './NPCGenerator.css'; 
 
 const archetypes = [
@@ -65,7 +65,7 @@ const translateKey = (key) => {
     return map[key.toLowerCase()] || key.toUpperCase();
 };
 
-const NPCGenerator = ({ campaignId, onNpcSaved }) => {
+const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
   const token = useSelector((state) => state.auth.token);
   const [loading, setLoading] = useState(false);
   const [npc, setNpc] = useState(null);
@@ -163,6 +163,12 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
     }
   };
 
+  const handleShare = () => {
+    if (!npc || !onShareToChat) return;
+    const payloadStr = JSON.stringify({ type: 'npc_card', npc, rpDetails });
+    onShareToChat(payloadStr);
+  };
+
   const getTemperamentColor = (temp) => {
       if(['Hostil', 'Agressivo', 'Egoísta'].includes(temp)) return 'red';
       if(['Cooperativo', 'Altruísta', 'Líder Nato'].includes(temp)) return 'green';
@@ -251,7 +257,12 @@ const NPCGenerator = ({ campaignId, onNpcSaved }) => {
 
                 <div className="npc-footer">
                     <div className="pack-info"><FaCubes size={14} color="#888" />PACOTE SUGERIDO: <span>{npc.initialPack}</span></div>
-                    <button className="btn-save" onClick={handleSave} disabled={loading}><FaSave size={16} /> GUARDAR NO ARQUIVO</button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {onShareToChat && (
+                           <button className="btn-save" onClick={handleShare} style={{ background: '#1f2e42' }}><FaShareSquare size={16} /> CHAT</button>
+                        )}
+                        <button className="btn-save" onClick={handleSave} disabled={loading}><FaSave size={16} /> GUARDAR</button>
+                    </div>
                 </div>
             </div>
         )}

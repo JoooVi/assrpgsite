@@ -29,7 +29,7 @@ const InteractiveCard = ({ card, isRevealed, onSelect, onReveal }) => {
   const getLineTheme = (suit) => {
     const t = suit ? suit.toLowerCase() : "";
     if (t === 'copas') return { background: '#ff5252' };
-    if (t === 'ouros' || t === 'adaptativa') return { background: 'linear-gradient(to right, #ff5252, #4c86ff)' }; // O teu degradê nas linhas!
+    if (t === 'ouros' || t === 'adaptativa') return { background: 'linear-gradient(to right, #ff5252, #4c86ff)' };
     if (t === 'paus' || t === 'singular') return { background: '#d05ce3' };  
     if (t === 'espadas' || t === 'inoportuna') return { background: '#4c86ff' }; 
     return { background: '#555' };
@@ -176,7 +176,7 @@ const InteractiveCard = ({ card, isRevealed, onSelect, onReveal }) => {
 
 // --- COMPONENTE PRINCIPAL DO MODAL ---
 // NOTA: Restaurei o prop "open" como estava no teu código original!
-const EventDeckModal = ({ open, onClose, onSelectEvent }) => {
+const EventDeckModal = ({ open, onClose, onSelectEvent, onShareToChat }) => {
   const [drawnCards, setDrawnCards] = useState([]);
   const [revealedStates, setRevealedStates] = useState([false, false, false]);
   const [isDealing, setIsDealing] = useState(false);
@@ -261,7 +261,10 @@ const EventDeckModal = ({ open, onClose, onSelectEvent }) => {
                   card={card} 
                   isRevealed={revealedStates[idx]} 
                   onReveal={() => flipCard(idx)}
-                  onSelect={onSelectEvent} 
+                  onSelect={() => {
+                     onSelectEvent(card);
+                     if (onShareToChat) onShareToChat(JSON.stringify({ type: 'event_card', card }));
+                  }} 
                 />
               </motion.div>
             ))}

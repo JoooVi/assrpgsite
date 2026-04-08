@@ -12,10 +12,21 @@ const getInitialUser = () => {
   }
 };
 
+// Função auxiliar para carregar refresh token
+const getInitialRefreshToken = () => {
+  try {
+    return localStorage.getItem('refreshToken') || null;
+  } catch (error) {
+    console.error("Falha ao carregar refreshToken do localStorage:", error);
+    return null;
+  }
+};
+
 const initialState = {
   user: getInitialUser(),
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: localStorage.getItem('token') || localStorage.getItem('accessToken') || null,
+  refreshToken: getInitialRefreshToken(),
+  isAuthenticated: !!localStorage.getItem('token') || !!localStorage.getItem('accessToken'),
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null
 };
@@ -34,8 +45,18 @@ export const login = createAsyncThunk(
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("token", data.token);
-        return data;
+        // Suportar tanto 'token' (antigo) quanto 'accessToken' (novo)
+        const accessToken = data.accessToken || data.token;
+        localStorage.setItem("token", accessToken);
+        localStorage.setItem("accessToken", accessToken);
+        if (data.refreshToken) {
+          localStorage.setItem("refreshToken", data.refreshToken);
+        }
+        return {
+          user: data.user,
+          token: accessToken,
+          refreshToken: data.refreshToken,
+        };
       } else {
         return rejectWithValue(data.message);
       }
@@ -52,24 +73,47 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
+      state.refreshToken = null;
       state.isAuthenticated = false;
       state.status = 'idle';
       state.error = null;
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     },
     updateUser(state, action) {
       state.user = action.payload.user;
       state.token = action.payload.token;
+      if (action.payload.refreshToken) {
+        state.refreshToken = action.payload.refreshToken;
+        localStorage.setItem('refreshToken', action.payload.refreshToken);
+      }
       localStorage.setItem('user', JSON.stringify(action.payload.user));
       localStorage.setItem('token', action.payload.token);
+      localStorage.setItem('accessToken', action.payload.token);
+    },
+    // Novo reducer para atualizar tokens após refresh
+    updateTokens(state, action) {
+      const { accessToken, refreshToken } = action.payload;
+      state.token = accessToken;
+      if (refreshToken) {
+        state.refreshToken = refreshToken;
+      }
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('accessToken', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
     },
 
     initializeAuth(state) {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
       const user = getInitialUser();
       if (token && user) {
         state.token = token;
+        state.refreshToken = refreshToken;
         state.user = user;
         state.isAuthenticated = true;
         state.status = 'succeeded';
@@ -97,6 +141,7 @@ const authSlice = createSlice({
             state.error = null;
 
             localStorage.setItem('token', token);
+            localStorage.setItem('accessToken', token);
             localStorage.setItem('user', JSON.stringify(userPayload));
         }
     }
@@ -111,6 +156,7 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -120,10 +166,11 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
+        state.refreshToken = null;
       });
   },
 });
 
-export const { logout, initializeAuth, setAuthFromToken, updateUser } = authSlice.actions;
+export const { logout, initializeAuth, setAuthFromToken, updateUser, updateTokens } = authSlice.actions;
 
 export default authSlice.reducer;
