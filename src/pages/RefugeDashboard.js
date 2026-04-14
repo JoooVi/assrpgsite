@@ -45,6 +45,8 @@ const RefugeDashboard = () => {
   const { user, token } = useSelector((state) => state.auth);
 
   const [refuge, setRefuge] = useState(null);
+    const [refuges, setRefuges] = useState([]);
+    const [selectedRefugeId, setSelectedRefugeId] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [isMaster, setIsMaster] = useState(false);
@@ -58,6 +60,8 @@ const RefugeDashboard = () => {
   const [newNpc, setNewNpc] = useState({ name: "", role: "", notes: "" });
   const [newThreat, setNewThreat] = useState({ name: "", description: "", maxLevel: 4 });
   const [newProject, setNewProject] = useState({ name: "", description: "", cost: 10 });
+    const [newRefuge, setNewRefuge] = useState({ name: "", location: "", description: "" });
+    const [newRefugeImage, setNewRefugeImage] = useState(null);
 
   // Toast
   const [toast, setToast] = useState({ open: false, msg: "" });
@@ -85,25 +89,66 @@ const RefugeDashboard = () => {
       return { maxPop, maxReserves };
   };
 
-  // Fetch inicial
-  const fetchRefuge = async () => {
+    const fetchRefugeList = async () => {
+        const res = await axios.get(
+            `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}/refuges`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return res.data || [];
+    };
+
+    const fetchRefuge = async (refugeId = "") => {
     if (!token) return;
     try {
-      setLoading(true);
+            const query = refugeId ? `?refugeId=${refugeId}` : "";
       const res = await axios.get(
-        `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}`,
+                `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}${query}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRefuge(res.data);
+            setSelectedRefugeId(res.data?._id || "");
       setIsMaster(true); 
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+            return res.data;
+        } catch (err) {
+            console.error(err);
+            return null;
     }
   };
 
-  useEffect(() => { fetchRefuge(); }, [campaignId, token]);
+    useEffect(() => {
+        const bootstrap = async () => {
+            if (!token) return;
+            try {
+                setLoading(true);
+                let list = await fetchRefugeList();
+
+                // Retrocompatibilidade com campanhas antigas sem refúgio criado.
+                if (!list.length) {
+                    const createdDefault = await fetchRefuge();
+                    if (createdDefault?._id) {
+                        list = await fetchRefugeList();
+                    }
+                }
+
+                setRefuges(list);
+                if (list.length > 0) {
+                    const activeId = selectedRefugeId && list.some((r) => r._id === selectedRefugeId)
+                        ? selectedRefugeId
+                        : list[0]._id;
+                    await fetchRefuge(activeId);
+                } else {
+                    setRefuge(null);
+                    setSelectedRefugeId("");
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        bootstrap();
+    }, [campaignId, token]);
 
   const saveRefugeUpdate = async (updatedData) => {
     try {
@@ -119,6 +164,79 @@ const RefugeDashboard = () => {
     }
   };
 
+    const handleSwitchRefuge = async (nextId) => {
+        if (!nextId) return;
+        setLoading(true);
+        try {
+            await fetchRefuge(nextId);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateRefuge = async () => {
+        if (!newRefuge.name.trim()) {
+            alert("Defina um nome para o novo refúgio.");
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append("name", newRefuge.name);
+            formData.append("location", newRefuge.location || "");
+            formData.append("description", newRefuge.description || "");
+            if (newRefugeImage) {
+                formData.append("image", newRefugeImage);
+            }
+
+            const res = await axios.post(
+                `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}/refuges`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            const list = await fetchRefugeList();
+            setRefuges(list);
+            setModalType(null);
+            setNewRefuge({ name: "", location: "", description: "" });
+            setNewRefugeImage(null);
+            await fetchRefuge(res.data._id);
+            setToast({ open: true, msg: "Novo refúgio criado." });
+        } catch (error) {
+            alert(error?.response?.data?.message || "Erro ao criar novo refúgio.");
+        }
+    };
+
+    const handleDeleteRefuge = async () => {
+        if (!refuge?._id) return;
+        if (!window.confirm("Deseja realmente deletar este refúgio?")) return;
+
+        try {
+            await axios.delete(
+                `https://assrpgsite-be-production.up.railway.app/api/refuge/${refuge._id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const list = await fetchRefugeList();
+            setRefuges(list);
+
+            if (list.length) {
+                await fetchRefuge(list[0]._id);
+            } else {
+                setRefuge(null);
+                setSelectedRefugeId("");
+            }
+
+            setToast({ open: true, msg: "Refúgio removido." });
+        } catch (error) {
+            alert(error?.response?.data?.message || "Erro ao remover refúgio.");
+        }
+    };
   // --- HANDLERS ---
   
   const handleStatChange = (statName, amount) => {
@@ -266,6 +384,19 @@ const RefugeDashboard = () => {
                     <Link to={`/campaign-lobby/${campaignId}`} className="btn-nero" style={{marginBottom:'10px', textDecoration:'none'}}>
                         <FaArrowLeft /> VOLTAR
                     </Link>
+                                        <div className="refuge-switcher">
+                                                <select
+                                                    className="nero-select"
+                                                    value={selectedRefugeId}
+                                                    onChange={(e) => handleSwitchRefuge(e.target.value)}
+                                                >
+                                                    {refuges.map((r) => (
+                                                        <option key={r._id} value={r._id}>{r.name}</option>
+                                                    ))}
+                                                </select>
+                                                {isMaster && <button className="btn-nero btn-secondary" onClick={() => setModalType('newRefuge')}><FaPlus /> NOVO REFÚGIO</button>}
+                                                {isMaster && refuge && <button className="btn-nero" onClick={handleDeleteRefuge}><FaTrash /> DELETAR</button>}
+                                        </div>
                     <h1 className="refuge-title">{refuge.name}</h1>
                     <div className="refuge-location">
                         <FaMapMarkerAlt /> {refuge.location || "Localização Desconhecida"}
@@ -474,6 +605,22 @@ const RefugeDashboard = () => {
                       <div className="form-group"><label>DESCRIÇÃO</label><textarea className="nero-textarea" rows="3" value={editData.description} onChange={e=>setEditData({...editData, description:e.target.value})}/></div>
                   </div>
                   <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={()=>{saveRefugeUpdate({...refuge, ...editData}); setModalType(null);}}>SALVAR</button></div>
+              </div>
+          </div>
+      )}
+
+      {/* NOVO REFÚGIO */}
+      {modalType === 'newRefuge' && (
+          <div className="nero-modal-overlay">
+              <div className="nero-modal">
+                  <div className="nero-modal-header">NOVO REFÚGIO</div>
+                  <div className="nero-modal-body">
+                      <div className="form-group"><label>NOME</label><input className="nero-input" value={newRefuge.name} onChange={e=>setNewRefuge({...newRefuge, name:e.target.value})}/></div>
+                      <div className="form-group"><label>LOCALIZAÇÃO</label><input className="nero-input" value={newRefuge.location} onChange={e=>setNewRefuge({...newRefuge, location:e.target.value})}/></div>
+                      <div className="form-group"><label>IMAGEM</label><input className="nero-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setNewRefugeImage(e.target.files?.[0] || null)}/></div>
+                      <div className="form-group"><label>DESCRIÇÃO</label><textarea className="nero-textarea" rows="3" value={newRefuge.description} onChange={e=>setNewRefuge({...newRefuge, description:e.target.value})}/></div>
+                  </div>
+                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={handleCreateRefuge}>CRIAR</button></div>
               </div>
           </div>
       )}

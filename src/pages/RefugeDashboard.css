@@ -69,6 +69,19 @@
   color: #ccc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-top: 5px;
 }
 
+.refuge-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0 14px 0;
+}
+
+.refuge-switcher .nero-select {
+  min-width: 260px;
+  max-width: 360px;
+}
+
 .cycle-badge {
   background: #8a1c18; color: #fff; padding: 5px 15px; font-family: 'Orbitron';
   font-size: 0.9rem; margin-left: 15px; border: 1px solid #ff3333;
