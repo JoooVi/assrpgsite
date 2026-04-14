@@ -20,7 +20,6 @@ import CharacteristicsModal from "../components/CharacteristicsModal";
 
 // Icons (Apenas ícones visuais para UI interna)
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
 
@@ -697,7 +696,6 @@ const InstinctList = ({
 // ------------------------------------------
 
 const CharacterSheet = () => {
-  const dispatch = useDispatch();
   const { id } = useParams();
   const { user, token: reduxToken } = useSelector((state) => state.auth);
   const token = reduxToken || localStorage.getItem("token");
@@ -872,27 +870,6 @@ const CharacterSheet = () => {
   }, [character]);
 
   const slotsInfo = calculateSlots();
-
-  const getSkillColor = (key) => {
-    // Normalização para lowerCase para garantir match
-    const k = key.toLowerCase();
-
-    // Conhecimento = Azulão / Cyan
-    if (knowledgeKeys.includes(k)) return "3px solid #00b0ff";
-
-    // Prática = Laranja / Amarelo
-    if (practiceKeys.includes(k)) return "3px solid #ff9100";
-
-    // Padrão (sem match) = Cinza
-    return "3px solid #444";
-  };
-
-  const getSkillTypeLabel = (key) => {
-    const k = key.toLowerCase();
-    if (knowledgeKeys.includes(k)) return "CONHECIMENTO";
-    if (practiceKeys.includes(k)) return "PRÁTICA";
-    return "";
-  };
 
   // HANDLERS E SAVE
   const saveInventory = async (newCharState) => {
