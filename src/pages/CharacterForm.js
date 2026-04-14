@@ -29,6 +29,9 @@ const translateKey = (key) => {
     return map[key.toLowerCase()] || key;
 };
 
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+
 // --- COMPONENTES DOS PASSOS ---
 
 const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange, tokenPreview, handleTokenChange }) => (
@@ -359,11 +362,39 @@ export default function CharacterForm() {
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-    if (file) { setAvatar(file); setAvatarPreview(URL.createObjectURL(file)); }
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError("Formato inválido. Use JPG ou PNG.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setError("Imagem muito grande. O limite é 5MB.");
+      return;
+    }
+
+    setError("");
+    setAvatar(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
   const handleTokenChange = (e) => {
     const file = e.target.files[0];
-    if (file) { setTokenImage(file); setTokenPreview(URL.createObjectURL(file)); }
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError("Formato inválido. Use JPG ou PNG.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setError("Imagem muito grande. O limite é 5MB.");
+      return;
+    }
+
+    setError("");
+    setTokenImage(file);
+    setTokenPreview(URL.createObjectURL(file));
   };
   
 const handlePackSelect = (pack) => {
@@ -497,7 +528,9 @@ const handlePackSelect = (pack) => {
         await api.post("/characters", formData, { headers: { Authorization: `Bearer ${token}` } }); 
         setSuccess(true); 
     } catch(err) { 
-        console.error(err); setError("Erro ao criar personagem."); 
+      console.error(err);
+      console.error("Detalhes do erro de criação:", err?.response?.data);
+      setError(err?.response?.data?.message || "Erro ao criar personagem."); 
     } finally { setLoading(false); }
   };
 
