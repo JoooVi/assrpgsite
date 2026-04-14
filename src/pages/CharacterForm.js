@@ -1,7 +1,8 @@
+/* eslint-disable react/jsx-pascal-case */
 /* CharacterForm.js - BLINDADO CONTRA ENVIO PRECOCE */
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import axios from "axios";
+import api from "../api";
 import "./CharacterForm.css";
 
 // Ícones
@@ -340,7 +341,7 @@ export default function CharacterForm() {
       if (token) {
         setAreItemsLoading(true);
         try {
-          const response = await axios.get("https://assrpgsite-be-production.up.railway.app/api/items", { headers: { Authorization: `Bearer ${token}` } });
+          const response = await api.get("/items");
           setAllItems(response.data);
         } catch (err) { console.error(err); setError("Erro ao carregar itens."); } 
         finally { setAreItemsLoading(false); }
@@ -493,7 +494,7 @@ const handlePackSelect = (pack) => {
     if (tokenImage) formData.append('tokenImage', tokenImage);
 
     try { 
-        await axios.post("https://assrpgsite-be-production.up.railway.app/api/characters", formData, { headers: { Authorization: `Bearer ${token}` } }); 
+        await api.post("/characters", formData, { headers: { Authorization: `Bearer ${token}` } }); 
         setSuccess(true); 
     } catch(err) { 
         console.error(err); setError("Erro ao criar personagem."); 

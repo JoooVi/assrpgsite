@@ -28,11 +28,16 @@ const AuthCallbackPage = () => {
         });
 
         const data = await response.json();
-        if (!response.ok || !data.token) {
+        const accessToken = data.accessToken || data.token;
+        if (!response.ok || !accessToken) {
           throw new Error(data.message || 'Falha ao concluir autenticação com Discord.');
         }
 
-        dispatch(setAuthFromToken(data.token));
+        dispatch(setAuthFromToken({
+          token: accessToken,
+          refreshToken: data.refreshToken,
+          user: data.user,
+        }));
         navigate('/characters', { replace: true });
       } catch (error) {
         console.error('Erro no callback OAuth:', error);

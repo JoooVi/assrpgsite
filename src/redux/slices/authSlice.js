@@ -122,19 +122,25 @@ const authSlice = createSlice({
       }
     },
     setAuthFromToken(state, action) {
-        const token = action.payload;
+        const payload = action.payload;
+        const token = typeof payload === 'string' ? payload : (payload?.token || payload?.accessToken);
+        const refreshToken = typeof payload === 'object' ? payload?.refreshToken : null;
+        const userFromPayload = typeof payload === 'object' ? payload?.user : null;
         if (token) {
             const decodedUser = jwtDecode(token);
             
             // Para isso funcionar perfeitamente, seu backend deve incluir
             // name e avatar no payload do JWT ao criá-lo.
-            const userPayload = {
+            const userPayload = userFromPayload || {
               _id: decodedUser.userId,
               name: decodedUser.name,
               avatar: decodedUser.avatar,
-            }
+            };
 
             state.token = token;
+            if (refreshToken) {
+              state.refreshToken = refreshToken;
+            }
             state.user = userPayload;
             state.isAuthenticated = true;
             state.status = 'succeeded';
@@ -143,6 +149,9 @@ const authSlice = createSlice({
             localStorage.setItem('token', token);
             localStorage.setItem('accessToken', token);
             localStorage.setItem('user', JSON.stringify(userPayload));
+            if (refreshToken) {
+              localStorage.setItem('refreshToken', refreshToken);
+            }
         }
     }
   },
