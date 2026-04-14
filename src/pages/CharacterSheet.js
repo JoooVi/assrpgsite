@@ -261,6 +261,23 @@ const quickAccessPlaceholders = [
   { type: "Consumível", icon: ConsumivelPlaceholder },
 ];
 
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+
+const validateImageFile = (file) => {
+  if (!file) return { ok: false, message: "Nenhum arquivo selecionado." };
+
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { ok: false, message: "Formato inválido. Use JPG ou PNG." };
+  }
+
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    return { ok: false, message: "Imagem acima de 5MB. Escolha um arquivo menor." };
+  }
+
+  return { ok: true };
+};
+
 // ------------------------------------------
 // COMPONENTES AUXILIARES (UI)
 // ------------------------------------------
@@ -903,6 +920,13 @@ const CharacterSheet = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      const validation = validateImageFile(file);
+      if (!validation.ok) {
+        alert(validation.message);
+        e.target.value = "";
+        return;
+      }
+
       const formData = new FormData();
       formData.append("avatar", file);
       try {
@@ -917,7 +941,7 @@ const CharacterSheet = () => {
         );
         if (res.data.character) setCharacter(res.data.character);
       } catch (err) {
-        alert("Erro ao subir imagem.");
+        alert(err?.response?.data?.message || "Erro ao subir imagem.");
       }
     }
   };
@@ -1178,6 +1202,7 @@ const CharacterSheet = () => {
             <input
               id="avatar-upload"
               type="file"
+              accept="image/png,image/jpeg"
               hidden
               onChange={handleAvatarChange}
             />
