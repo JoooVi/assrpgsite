@@ -32,6 +32,20 @@ const translateKey = (key) => {
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
+const validateImageFile = (file) => {
+  if (!file) return { ok: false, message: "Nenhum arquivo selecionado." };
+
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { ok: false, message: "Formato inválido. Use JPG ou PNG." };
+  }
+
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    return { ok: false, message: "Imagem acima de 5MB. Escolha um arquivo menor." };
+  }
+
+  return { ok: true };
+};
+
 // --- COMPONENTES DOS PASSOS ---
 
 const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange, tokenPreview, handleTokenChange }) => (
@@ -52,6 +66,7 @@ const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview
           <FaUpload style={{marginRight: '5px'}}/> FOTO (FICHA)
           <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
         </label>
+        <small className="error-text" style={{ marginTop: '8px' }}>Limite: 5MB (JPG ou PNG)</small>
       </div>
       
       <div style={{display:'flex', flexDirection:'column', alignItems:'center', opacity: 0.9}}>
@@ -69,6 +84,7 @@ const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview
           <FaUpload style={{marginRight: '5px'}}/> MAP TOKEN
           <input type="file" hidden accept="image/*" onChange={handleTokenChange} />
         </label>
+        <small className="error-text" style={{ marginTop: '8px' }}>Limite: 5MB (JPG ou PNG)</small>
       </div>
     </div>
 
@@ -362,15 +378,13 @@ export default function CharacterForm() {
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setError("Formato inválido. Use JPG ou PNG.");
-      return;
-    }
-
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setError("Imagem muito grande. O limite é 5MB.");
+    const validation = validateImageFile(file);
+    if (!validation.ok) {
+      setError(validation.message);
+      if (validation.message.includes("5MB")) {
+        alert("Imagem acima de 5MB nao pode ser enviada. Escolha um arquivo menor.");
+      }
+      e.target.value = "";
       return;
     }
 
@@ -380,15 +394,13 @@ export default function CharacterForm() {
   };
   const handleTokenChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setError("Formato inválido. Use JPG ou PNG.");
-      return;
-    }
-
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setError("Imagem muito grande. O limite é 5MB.");
+    const validation = validateImageFile(file);
+    if (!validation.ok) {
+      setError(validation.message);
+      if (validation.message.includes("5MB")) {
+        alert("Imagem acima de 5MB nao pode ser enviada. Escolha um arquivo menor.");
+      }
+      e.target.value = "";
       return;
     }
 
