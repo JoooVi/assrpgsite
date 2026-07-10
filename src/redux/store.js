@@ -1,5 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, REGISTER } from 'redux-persist';
+import { persistStore, persistReducer } from 'redux-persist';
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { thunk } from 'redux-thunk';
 import authReducer from './slices/authSlice';
@@ -28,7 +36,11 @@ export const store = configureStore({
     homebrews: homebrewsReducer,
     items: itemsReducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    serializableCheck: {
+      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+    },
+  }).concat(thunk),
 });
 
 store.subscribe(() => {

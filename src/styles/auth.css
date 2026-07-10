@@ -1,103 +1,330 @@
-/* Importando as fontes do tema */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;700&display=swap");
 
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background-color: #050505; /* Fundo de fallback */
-}
-
-/* Container Principal - Fundo Imersivo */
-.Register-page, .auth-container {
+.auth-container,
+.Register-page {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.44) 42%, rgba(0, 0, 0, 0.12) 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.28) 100%),
+    url("../assets/ass.png") center / cover no-repeat,
+    #050505;
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-  
-  /* Imagem de fundo escura com overlay */
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.85));
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-
-/* O Card de Login/Registro */
-.Register-container, .auth-box {
-  background: rgba(15, 15, 15, 0.85); /* Escuro e quase opaco */
-  padding: 40px;
-  border-radius: 4px; /* Cantos levemente arredondados, mais industrial */
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: 36px 20px;
   position: relative;
-  
-  /* Efeitos de Vidro e Borda Tática */
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #8a1c18; /* Acento vermelho Nero no topo */
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
 }
 
-/* Título */
-.Register-title, .auth-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
+.auth-container::before,
+.Register-page::before {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 44px 44px;
+  content: "";
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  position: absolute;
+}
+
+.auth-container::after,
+.Register-page::after {
+  background:
+    radial-gradient(circle at 72% 22%, rgba(255, 255, 255, 0.1), transparent 18rem),
+    radial-gradient(circle at 30% 72%, rgba(138, 28, 24, 0.24), transparent 22rem);
+  content: "";
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  pointer-events: none;
+  position: absolute;
+}
+
+.auth-flip-container {
+  flex-direction: column;
+}
+
+.auth-flip-stage {
+  height: min(630px, calc(100dvh - 72px));
+  min-height: min(590px, calc(100dvh - 72px));
+  perspective: 1400px;
+  position: relative;
+  transform: translateY(-42px);
+  width: min(430px, calc(100vw - 32px));
+  z-index: 2;
+}
+
+.auth-flip-card {
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+
+.auth-flip-card.is-register {
+  transform: rotateY(180deg);
+}
+
+.auth-flip-face {
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  left: 0;
+  min-height: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.auth-flip-back {
+  pointer-events: none;
+  transform: rotateY(180deg);
+}
+
+.auth-flip-card.is-register .auth-flip-front {
+  pointer-events: none;
+}
+
+.auth-flip-card.is-register .auth-flip-back {
+  pointer-events: auto;
+}
+
+.auth-flip-card .auth-flip-face {
+  bottom: auto;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.auth-box,
+.Register-container {
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.96), rgba(8, 8, 8, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 3px solid var(--nero-red, #8a1c18);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.72);
+  max-width: 430px;
+  padding: 38px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+  z-index: 2;
+}
+
+.auth-box::before,
+.Register-container::before {
+  border-left: 1px solid rgba(255, 51, 51, 0.5);
+  border-top: 1px solid rgba(255, 51, 51, 0.5);
+  content: "";
+  height: 26px;
+  left: -1px;
+  position: absolute;
+  top: -1px;
+  width: 26px;
+}
+
+.auth-box::after,
+.Register-container::after {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  border-right: 1px solid rgba(255, 255, 255, 0.28);
+  bottom: 10px;
+  content: "";
+  height: 18px;
+  position: absolute;
+  right: 10px;
+  width: 18px;
+}
+
+.auth-box-compact {
+  max-width: 460px;
+}
+
+.auth-kicker {
+  color: var(--nero-red-hot, #ff3333);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.76rem;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 1.5rem;
+  letter-spacing: 0.2em;
+  margin: 0 0 10px;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 0 0 10px rgba(138, 28, 24, 0.5); /* Glow vermelho sutil */
 }
 
-/* Ajustes gerais de formulário */
-.Register-form, .auth-form {
+.auth-title,
+.Register-title {
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(138, 28, 24, 0.45);
+}
+
+.auth-subtitle {
+  color: #aaa;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 auto 22px;
+  max-width: 330px;
+}
+
+.auth-form,
+.Register-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* Mensagens de erro */
-.error-message {
-  color: #ff4444;
-  background: rgba(255, 0, 0, 0.1);
-  border-left: 2px solid #ff4444;
-  padding: 10px;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.9rem;
+.auth-native-label {
+  color: #aaa;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.auth-native-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1rem;
+  min-height: 46px;
+  padding: 0 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-native-input:focus {
+  border-color: var(--nero-red-hot, #ff3333);
+  box-shadow: 0 0 0 1px rgba(255, 51, 51, 0.18);
+  outline: none;
+}
+
+.auth-native-input::placeholder {
+  color: #666;
+}
+
+.auth-native-button {
+  align-items: center;
+  background: var(--nero-red, #8a1c18);
+  border: 1px solid var(--nero-red-dark, #500);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: 1px;
+  margin-top: 12px;
+  min-height: 46px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-native-button:hover,
+.auth-native-button:focus-visible {
+  background: #a0201c;
+  border-color: var(--nero-red-hot, #ff3333);
+  box-shadow: 0 0 18px rgba(138, 28, 24, 0.48);
+  outline: none;
+}
+
+.auth-native-button:disabled {
+  cursor: wait;
+  filter: grayscale(0.2);
+  opacity: 0.72;
+}
+
+.auth-row-end {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2px 0 8px;
+  width: 100%;
+}
+
+.auth-link,
+.auth-box a,
+.Register-container a {
+  color: #b0b0b0;
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-link:hover,
+.auth-box a:hover,
+.Register-container a:hover {
+  color: var(--nero-red-hot, #ff3333);
+}
+
+.error-message,
+.auth-message {
+  border-left: 2px solid;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
   margin: 10px 0;
+  padding: 10px 12px;
   text-align: left;
 }
 
-/* Links (Esqueci senha, Já tem conta) */
-a {
-  color: #b0b0b0;
-  text-decoration: none;
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 600;
-  transition: color 0.3s;
+.error-message {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: #ff4444;
+  color: #ff6464;
 }
 
-a:hover {
-  color: #ff3333;
+.auth-message {
+  background: rgba(138, 28, 24, 0.14);
+  border-color: var(--nero-red, #8a1c18);
+  color: #dcdcdc;
 }
 
-.Register-footer, .auth-footer {
-  margin-top: 20px;
-  font-family: 'Rajdhani', sans-serif;
+.auth-footer,
+.Register-footer {
   color: #888;
+  font-family: "Rajdhani", sans-serif;
+  margin-top: 18px;
 }
 
-/* Responsividade */
+.auth-footer p,
+.Register-footer-text {
+  font-size: 0.9rem;
+  letter-spacing: 0.8px;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
 @media (max-width: 600px) {
-  .Register-container, .auth-box {
-    padding: 25px 20px;
-    max-width: 90%;
+  .auth-container,
+  .Register-page {
+    padding: 28px 16px;
   }
-  
-  .Register-title, .auth-title {
-    font-size: 1.5rem;
+
+  .auth-box,
+  .Register-container {
+    padding: 28px 20px;
+  }
+
+  .auth-flip-stage {
+    height: min(650px, calc(100dvh - 56px));
+    min-height: min(610px, calc(100dvh - 56px));
+    transform: translateY(-24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-flip-card {
+    transition: none;
   }
 }

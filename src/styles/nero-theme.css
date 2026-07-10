@@ -1,0 +1,137 @@
+:root {
+  --nero-bg: #050505;
+  --nero-panel: #111;
+  --nero-panel-soft: #151515;
+  --nero-panel-hover: #1a1a1a;
+  --nero-border: #333;
+  --nero-border-strong: #444;
+  --nero-red: #8a1c18;
+  --nero-red-hot: #ff3333;
+  --nero-red-dark: #500;
+  --nero-text: #dcdcdc;
+  --nero-muted: #888;
+  --nero-muted-dark: #666;
+  --nero-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+}
+
+/* Buttons: dark industrial base, red action language. */
+:where(.btn-nero, .btn-home, .btn-open, .btn-delete, .btn-edit-cover, .btn-generate, .btn-save, .btn-icon-small) {
+  border-radius: 0 !important;
+  font-family: "Roboto Condensed", "Rajdhani", sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+
+:where(.btn-nero, .btn-home, .btn-open, .btn-edit-cover, .btn-generate, .btn-save) {
+  background: #111 !important;
+  color: #ddd !important;
+  border: 1px solid var(--nero-border-strong) !important;
+}
+
+:where(.btn-nero, .btn-home, .btn-open, .btn-edit-cover, .btn-generate, .btn-save):hover:not(:disabled) {
+  background: rgba(138, 28, 24, 0.18) !important;
+  color: #fff !important;
+  border-color: var(--nero-red-hot) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 51, 51, 0.18), 0 0 18px rgba(138, 28, 24, 0.28) !important;
+}
+
+:where(.btn-primary, .primaryBtn, .btn-generate) {
+  background: var(--nero-red) !important;
+  color: #fff !important;
+  border-color: var(--nero-red-dark) !important;
+}
+
+:where(.btn-primary, .primaryBtn, .btn-generate):hover:not(:disabled) {
+  background: #a0201c !important;
+  border-color: var(--nero-red-hot) !important;
+  box-shadow: 0 0 18px rgba(138, 28, 24, 0.42) !important;
+}
+
+:where(.btn-secondary) {
+  background: transparent !important;
+  color: #aaa !important;
+  border-color: var(--nero-border-strong) !important;
+}
+
+:where(.btn-secondary):hover:not(:disabled) {
+  background: #1a1a1a !important;
+  color: #fff !important;
+  border-color: #777 !important;
+}
+
+:where(.btn-danger, .dangerBtn, .dangerBtn button, .btn-delete, .btn-icon-small.delete, .btn-icon-danger) {
+  background: rgba(50, 0, 0, 0.22) !important;
+  color: #ff5555 !important;
+  border-color: var(--nero-red-dark) !important;
+}
+
+:where(.btn-danger, .dangerBtn, .dangerBtn button, .btn-delete, .btn-icon-small.delete, .btn-icon-danger):hover:not(:disabled) {
+  background: var(--nero-red) !important;
+  color: #fff !important;
+  border-color: var(--nero-red-hot) !important;
+  box-shadow: 0 0 18px rgba(255, 51, 51, 0.28) !important;
+}
+
+:where(button:disabled, .btn-nero:disabled, .btn-home:disabled) {
+  background: #222 !important;
+  color: #555 !important;
+  border-color: #333 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+/* Cards and panels: match the deletion button's severe, red-framed feel. */
+:where(.campaignCard, .characterCard, .hb-card, .equip-card, .resource-card, .build-card, .threat-card, .npc-card) {
+  background: var(--nero-panel) !important;
+  border-color: var(--nero-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+
+:where(.campaignCard, .characterCard, .hb-card, .equip-card, .resource-card, .build-card, .threat-card, .npc-card):hover {
+  border-color: #666 !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.72), inset 0 0 0 1px rgba(138, 28, 24, 0.22) !important;
+}
+
+:where(.hb-card, .campaignCard) {
+  border-left-color: var(--nero-red) !important;
+}
+
+:where(.nero-form-card, .hb-panel, .lobby-panel, .refuge-panel, .panel, .contentCard, .nero-modal, .confirm-dialog, .toast-card) {
+  border-radius: 0 !important;
+  border-color: var(--nero-border) !important;
+  border-top-color: var(--nero-red) !important;
+  background: var(--nero-panel) !important;
+  box-shadow: var(--nero-shadow) !important;
+}
+
+:where(.nero-input, .nero-textarea, .nero-select, input, textarea, select) {
+  border-radius: 0 !important;
+}
+
+:where(.nero-input, .nero-textarea, .nero-select):focus {
+  border-color: var(--nero-red-hot) !important;
+  box-shadow: 0 0 0 1px rgba(138, 28, 24, 0.35) !important;
+}
+
+/* Replace isolated accent colors with NERO red. */
+:where(.status-active) {
+  color: #d8d8d8 !important;
+  text-shadow: none !important;
+}
+
+:where(.hb-card-icon.open, .file-name, .npc-role, .pack-info span, .trait-requirement-badge strong) {
+  color: var(--nero-red-hot) !important;
+}
+
+:where(.trait-requirement-badge, .npc-quirk) {
+  border-left-color: var(--nero-red) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.campaignCard, .characterCard, .hb-card, .equip-card, .btn-nero, .btn-home, .btn-open, .btn-delete) {
+    transition: none !important;
+  }
+}

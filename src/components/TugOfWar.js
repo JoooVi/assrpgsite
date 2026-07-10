@@ -1,6 +1,6 @@
 /* TugOfWar.js */
 import React from 'react';
-import axios from 'axios';
+import api from '../api';
 // Reutiliza estilos se possível, ou inline para simplicidade
 // Ícones SVG Inline para não depender de arquivos externos
 
@@ -47,15 +47,14 @@ const TugOfWar = ({ character, setCharacter, isReadOnly = false }) => {
   const saveState = async (updated) => {
     if (isReadOnly) return;
     try {
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${character._id}/tugofwar`,
+      await api.put(
+        `/characters/${character._id}/tugofwar`,
         { 
             determinationLevel: updated.determinationLevel, determinationPoints: updated.determinationPoints,
             assimilationLevel: updated.assimilationLevel, assimilationPoints: updated.assimilationPoints
-        },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        }
       );
-    } catch (error) { console.error("Erro ao salvar", error); }
+    } catch {}
   };
 
   const handlePointClick = (type, index) => {

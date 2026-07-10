@@ -1,49 +1,69 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { 
-  createAssimilation, 
-  updateAssimilation, 
-  deleteAssimilation 
+import {
+  createAssimilation,
+  updateAssimilation,
+  deleteAssimilation,
 } from "../redux/slices/assimilationsSlice";
-// Ícones do React-Icons para substituir os do MUI
-import { 
-  FaPlus, 
-  FaEdit, 
-  FaShareAlt, 
-  FaTrash, 
-  FaChevronDown, 
-  FaChevronUp 
+import {
+  FaPlus,
+  FaEdit,
+  FaShareAlt,
+  FaTrash,
+  FaChevronDown,
+  FaChevronUp,
 } from "react-icons/fa";
+import { useConfirm } from "./notifications/ConfirmProvider";
+import { dispatchToast } from "./notifications/ToastProvider";
+import EmptyState from "./ui/EmptyState";
+import SystemText from "./SystemText";
 
-const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
-  const { userAssimilations } = useSelector((state) => state.assimilations);
+const initialAssimilation = {
+  name: "",
+  description: "",
+  category: "",
+  successCost: 0,
+  adaptationCost: 0,
+  pressureCost: 0,
+  evolutionType: "",
+  isCustom: true,
+};
+
+const costFields = new Set(["successCost", "adaptationCost", "pressureCost"]);
+
+const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth); // Mantido conforme original
+  const { user } = useSelector((state) => state.auth);
+  const { confirm } = useConfirm();
 
-  // --- ESTADOS ORIGINAIS (MANTIDOS) ---
   const [selectedAssimilation, setSelectedAssimilation] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
-  // const [isModalOpen, setIsModalOpen] = useState(false); // Mantido mas não usado visualmente no original
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  
-  const [newAssimilation, setNewAssimilation] = useState({
-    name: "",
-    description: "",
-    category: "",
-    successCost: 0,
-    adaptationCost: 0,
-    pressureCost: 0,
-    evolutionType: "",
-    isCustom: true,
-  });
-
-  // --- ESTADO ADICIONAL APENAS PARA UI (Substituir Accordion) ---
+  const [newAssimilation, setNewAssimilation] = useState(initialAssimilation);
   const [expandedId, setExpandedId] = useState(null);
+
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  // --- HANDLERS ORIGINAIS (MANTIDOS) ---
+  const validateAssimilation = (assimilation) => {
+    if (!assimilation.name?.trim()) {
+      dispatchToast({ type: "warning", message: "Informe o nome da assimilação." });
+      return false;
+    }
+
+    if (!assimilation.description?.trim()) {
+      dispatchToast({ type: "warning", message: "Informe a descrição da assimilação." });
+      return false;
+    }
+
+    if (!assimilation.evolutionType) {
+      dispatchToast({ type: "warning", message: "Selecione o tipo de evolução." });
+      return false;
+    }
+
+    return true;
+  };
 
   const handleEditOpen = (assimilation) => {
     setSelectedAssimilation(assimilation);
@@ -56,6 +76,8 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
   };
 
   const handleSaveEdit = () => {
+    if (!validateAssimilation(selectedAssimilation)) return;
+
     dispatch(
       updateAssimilation({
         id: selectedAssimilation._id,
@@ -70,150 +92,161 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
   const handleCreateClose = () => setCreateDialogOpen(false);
 
   const handleCreateAssimilation = () => {
-    dispatch(createAssimilation({ 
-      ...newAssimilation, 
-      createdBy: currentUserId,
-      userId: currentUserId
-    }));
-    setNewAssimilation({
-      name: "",
-      description: "",
-      category: "",
-      successCost: 0,
-      adaptationCost: 0,
-      pressureCost: 0,
-      evolutionType: "",
-      isCustom: true,
-    });
+    if (!validateAssimilation(newAssimilation)) return;
+
+    dispatch(
+      createAssimilation({
+        ...newAssimilation,
+        createdBy: currentUserId,
+        userId: currentUserId,
+      })
+    );
+    setNewAssimilation(initialAssimilation);
     handleCreateClose();
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const parsedValue = costFields.has(name) ? Number(value) : value;
+
     setSelectedAssimilation((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: parsedValue,
     }));
   };
 
   const handleNewChange = (e) => {
     const { name, value } = e.target;
+    const parsedValue = costFields.has(name) ? Number(value) : value;
+
     setNewAssimilation((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: parsedValue,
     }));
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Tem certeza que deseja excluir esta Assimilação?")) {
+  const handleDelete = async (id) => {
+    const confirmed = await confirm({
+      title: "Excluir assimilação",
+      message: "Tem certeza que deseja excluir esta assimilação?",
+      tone: "danger",
+      confirmLabel: "Excluir",
+    });
+
+    if (confirmed) {
       dispatch(deleteAssimilation(id));
     }
   };
 
+  const renderAssimilationForm = (assimilation, onChange) => (
+    <>
+      <div className="form-group">
+        <label>Nome</label>
+        <input
+          type="text"
+          name="name"
+          className="nero-input"
+          value={assimilation.name}
+          onChange={onChange}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Descrição</label>
+        <textarea
+          name="description"
+          className="nero-textarea"
+          rows="4"
+          value={assimilation.description}
+          onChange={onChange}
+          required
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Categoria</label>
+        <input
+          type="text"
+          name="category"
+          className="nero-input"
+          value={assimilation.category}
+          onChange={onChange}
+        />
+      </div>
+
+      <div className="hb-form-grid hb-form-grid-three">
+        <div className="form-group">
+          <label>Sucessos</label>
+          <input
+            type="number"
+            name="successCost"
+            className="nero-input"
+            value={assimilation.successCost}
+            onChange={onChange}
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label>Adaptações</label>
+          <input
+            type="number"
+            name="adaptationCost"
+            className="nero-input"
+            value={assimilation.adaptationCost}
+            onChange={onChange}
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label>Pressão</label>
+          <input
+            type="number"
+            name="pressureCost"
+            className="nero-input"
+            value={assimilation.pressureCost}
+            onChange={onChange}
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Tipo de Evolução</label>
+        <select
+          name="evolutionType"
+          className="nero-select"
+          value={assimilation.evolutionType}
+          onChange={onChange}
+          required
+        >
+          <option value="" disabled>
+            Selecione
+          </option>
+          <option value="copas">Copas</option>
+          <option value="ouros">Ouros</option>
+          <option value="espadas">Espadas</option>
+          <option value="paus">Paus</option>
+        </select>
+      </div>
+    </>
+  );
+
   return (
     <div>
-      {/* BOTÃO CRIAR */}
       <button
-        className="btn-nero btn-primary"
+        className="btn-nero btn-primary hb-create-btn"
         onClick={handleCreateOpen}
-        style={{ marginBottom: '20px' }}
       >
-        <FaPlus style={{ marginRight: '8px' }} /> Criar Nova Assimilação
+        <FaPlus /> Criar Nova Assimilação
       </button>
-      
+
       {createDialogOpen && (
         <div className="nero-modal-overlay">
           <div className="nero-modal">
-            <div className="nero-modal-header">
-              Criar Nova Assimilação
-            </div>
+            <div className="nero-modal-header">Criar Nova Assimilação</div>
             <div className="nero-modal-body">
-              <div className="form-group">
-                <label>Nome</label>
-                <input
-                  type="text"
-                  name="name"
-                  className="nero-input"
-                  value={newAssimilation.name}
-                  onChange={handleNewChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Descrição</label>
-                <textarea
-                  name="description"
-                  className="nero-textarea"
-                  rows="4"
-                  value={newAssimilation.description}
-                  onChange={handleNewChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Categoria</label>
-                <input
-                  type="text"
-                  name="category"
-                  className="nero-input"
-                  value={newAssimilation.category}
-                  onChange={handleNewChange}
-                  required
-                />
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                <div className="form-group">
-                  <label>Sucessos</label>
-                  <input
-                    type="number"
-                    name="successCost"
-                    className="nero-input"
-                    value={newAssimilation.successCost}
-                    onChange={handleNewChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Adaptações</label>
-                  <input
-                    type="number"
-                    name="adaptationCost"
-                    className="nero-input"
-                    value={newAssimilation.adaptationCost}
-                    onChange={handleNewChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Pressão</label>
-                  <input
-                    type="number"
-                    name="pressureCost"
-                    className="nero-input"
-                    value={newAssimilation.pressureCost}
-                    onChange={handleNewChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Tipo de Evolução</label>
-                <select
-                  name="evolutionType"
-                  className="nero-select"
-                  value={newAssimilation.evolutionType}
-                  onChange={handleNewChange}
-                  required
-                >
-                  <option value="" disabled>Selecione</option>
-                  <option value="copas">Copas</option>
-                  <option value="ouros">Ouros</option>
-                  <option value="espadas">Espadas</option>
-                  <option value="paus">Paus</option>
-                </select>
-              </div>
+              {renderAssimilationForm(newAssimilation, handleNewChange)}
             </div>
             <div className="nero-modal-footer">
               <button className="btn-nero btn-secondary" onClick={handleCreateClose}>
@@ -227,49 +260,69 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
         </div>
       )}
 
-      {/* --- LISTA DE ASSIMILAÇÕES (Substituindo MUI Accordion por Cards) --- */}
-      <div className="hb-title-small" style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '15px', fontFamily: 'Orbitron' }}>
-        Minhas Assimilações
-      </div>
+      <div className="hb-title-small">Minhas Assimilações</div>
 
       <div className="hb-list">
-        {userAssimilations.length > 0 ? (
-          userAssimilations.map((assimilation) => (
+        {assimilationItems.length > 0 ? (
+          assimilationItems.map((assimilation) => (
             <div key={assimilation._id} className="hb-card">
-              {/* Header do Card (Simula AccordionSummary) */}
               <div className="hb-card-header" onClick={() => toggleExpand(assimilation._id)}>
-                <span className="hb-card-title">{assimilation.name}</span>
+                <div>
+                  <span className="hb-card-title">{assimilation.name}</span>
+                  <span className="hb-card-subtitle">
+                    {assimilation.category || "Sem categoria"} •{" "}
+                    {assimilation.evolutionType || "Sem evolução"}
+                  </span>
+                </div>
                 {expandedId === assimilation._id ? <FaChevronUp /> : <FaChevronDown />}
               </div>
 
-              {/* Corpo do Card (Simula AccordionDetails) */}
               {expandedId === assimilation._id && (
                 <div className="hb-card-body">
-                  <div className="hb-info-row"><span className="hb-label">Descrição:</span> {assimilation.description}</div>
-                  <div className="hb-info-row"><span className="hb-label">Categoria:</span> {assimilation.category}</div>
-                  <div className="hb-info-row"><span className="hb-label">Custo em Sucessos:</span> {assimilation.successCost}</div>
-                  <div className="hb-info-row"><span className="hb-label">Custo em Adaptações:</span> {assimilation.adaptationCost}</div>
-                  <div className="hb-info-row"><span className="hb-label">Custo em Pressão:</span> {assimilation.pressureCost}</div>
-                  <div className="hb-info-row"><span className="hb-label">Tipo de Evolução:</span> {assimilation.evolutionType}</div>
-                  
+                  <div className="hb-assimilation-metrics">
+                    <div>
+                      <span>Sucessos</span>
+                      <strong>{assimilation.successCost ?? 0}</strong>
+                    </div>
+                    <div>
+                      <span>Adaptações</span>
+                      <strong>{assimilation.adaptationCost ?? 0}</strong>
+                    </div>
+                    <div>
+                      <span>Pressão</span>
+                      <strong>{assimilation.pressureCost ?? 0}</strong>
+                    </div>
+                    <div>
+                      <span>Evolução</span>
+                      <strong>{assimilation.evolutionType || "-"}</strong>
+                    </div>
+                  </div>
+
+                  <div className="hb-info-row">
+                    <span className="hb-label">Descrição:</span>
+                    <span className="hb-value">
+                      <SystemText text={assimilation.description || "Sem descrição registrada."} />
+                    </span>
+                  </div>
+
                   <div className="hb-actions">
                     <button
                       className="btn-nero btn-secondary"
                       onClick={() => handleEditOpen(assimilation)}
                     >
-                      <FaEdit style={{ marginRight: '5px' }} /> Editar
+                      <FaEdit /> Editar
                     </button>
                     <button
                       className="btn-nero btn-secondary"
                       onClick={() => onShare(assimilation)}
                     >
-                      <FaShareAlt style={{ marginRight: '5px' }} /> Compartilhar
+                      <FaShareAlt /> Compartilhar
                     </button>
                     <button
                       className="btn-nero btn-danger"
                       onClick={() => handleDelete(assimilation._id)}
                     >
-                      <FaTrash style={{ marginRight: '5px' }} /> Excluir
+                      <FaTrash /> Excluir
                     </button>
                   </div>
                 </div>
@@ -277,103 +330,20 @@ const AssimilationsList = ({ assimilationItems, onShare, currentUserId }) => {
             </div>
           ))
         ) : (
-          <p style={{ color: '#aaa', fontStyle: 'italic' }}>Você ainda não criou nenhuma Assimilação.</p>
+          <EmptyState
+            compact
+            title="Nenhuma assimilação"
+            description="Crie poderes, mutações ou evoluções próprias para sua campanha."
+          />
         )}
       </div>
 
-      {/* --- DIALOG DE EDIÇÃO (Substituindo MUI Dialog) --- */}
       {editOpen && selectedAssimilation && (
         <div className="nero-modal-overlay">
           <div className="nero-modal">
-            <div className="nero-modal-header">
-              Editar Assimilação
-            </div>
+            <div className="nero-modal-header">Editar Assimilação</div>
             <div className="nero-modal-body">
-              <div className="form-group">
-                <label>Nome</label>
-                <input
-                  type="text"
-                  name="name"
-                  className="nero-input"
-                  value={selectedAssimilation.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Descrição</label>
-                <textarea
-                  name="description"
-                  className="nero-textarea"
-                  rows="4"
-                  value={selectedAssimilation.description}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Categoria</label>
-                <input
-                  type="text"
-                  name="category"
-                  className="nero-input"
-                  value={selectedAssimilation.category}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                <div className="form-group">
-                  <label>Sucessos</label>
-                  <input
-                    type="number"
-                    name="successCost"
-                    className="nero-input"
-                    value={selectedAssimilation.successCost}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Adaptações</label>
-                  <input
-                    type="number"
-                    name="adaptationCost"
-                    className="nero-input"
-                    value={selectedAssimilation.adaptationCost}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Pressão</label>
-                  <input
-                    type="number"
-                    name="pressureCost"
-                    className="nero-input"
-                    value={selectedAssimilation.pressureCost}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Tipo de Evolução</label>
-                <select
-                  name="evolutionType"
-                  className="nero-select"
-                  value={selectedAssimilation.evolutionType}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="" disabled>Selecione</option>
-                  <option value="copas">Copas</option>
-                  <option value="ouros">Ouros</option>
-                  <option value="espadas">Espadas</option>
-                </select>
-              </div>
+              {renderAssimilationForm(selectedAssimilation, handleChange)}
             </div>
             <div className="nero-modal-footer">
               <button className="btn-nero btn-secondary" onClick={handleEditClose}>

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import "./CharacterPortraitPage.css";
+import PageLoader from "../components/ui/PageLoader";
 
 // SVG Components
 import { ReactComponent as HeartFullIcon } from '../assets/icons/heart-full.svg';
@@ -120,7 +121,7 @@ const CharacterPortraitPage = () => {
     if (!id) return;
     try {
       const response = await api.get(
-        `https://assrpgsite-be-production.up.railway.app/api/public/characters/${id}/portrait?t=${new Date().getTime()}`
+        `/public/characters/${id}/portrait?t=${new Date().getTime()}`
       );
       
       const charData = response.data;
@@ -138,8 +139,7 @@ const CharacterPortraitPage = () => {
         }
       }
 
-    } catch (err) {
-      console.error("Polling error:", err);
+    } catch {
     } finally {
       if (loading) setLoading(false);
     }
@@ -161,9 +161,7 @@ const CharacterPortraitPage = () => {
 
   if (loading || !character) {
     return (
-      <div className="loading-container">
-        <div className="custom-spinner"></div>
-      </div>
+      <PageLoader title="Carregando retrato" subtitle="Aguardando sinal da ficha publica..." fullScreen />
     );
   }
 

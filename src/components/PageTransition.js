@@ -1,33 +1,43 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from "framer-motion";
 
 const animationVariants = {
   initial: {
     opacity: 0,
-    scale: 0.98, // Começa levemente menor (fundo)
-    filter: 'blur(8px)', // Começa desfocado
+    filter: "blur(8px)",
   },
   animate: {
     opacity: 1,
-    scale: 1, // Tamanho normal
-    filter: 'blur(0px)', // Foca a imagem
+    filter: "blur(0px)",
   },
   exit: {
     opacity: 0,
-    scale: 1.02, // Aumenta um pouco ao sair (vem para frente)
-    filter: 'blur(8px)',
+    filter: "blur(8px)",
   },
 };
 
+const transitionShellStyle = {
+  width: "100%",
+  maxWidth: "100%",
+  overflowX: "hidden",
+  overflow: "clip",
+  contain: "paint",
+};
+
 const PageTransition = ({ children }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  if (shouldReduceMotion) {
+    return <div style={transitionShellStyle}>{children}</div>;
+  }
+
   return (
     <motion.div
       variants={animationVariants}
       initial="initial"
       animate="animate"
       exit="exit"
-      // Usamos 'easeOut' para entrada rápida e saída suave
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      style={{ width: '100%' }} // Garante que não quebre o layout
+      transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+      style={transitionShellStyle}
     >
       {children}
     </motion.div>

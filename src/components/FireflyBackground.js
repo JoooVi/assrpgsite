@@ -108,6 +108,7 @@ const FireflyBackground = () => {
 
   return (
     <canvas 
+      id="firefly-canvas"
       ref={canvasRef} 
       style={{
         position: 'fixed',
@@ -116,7 +117,9 @@ const FireflyBackground = () => {
         width: '100vw',
         height: '100vh',
         pointerEvents: 'none',
-        zIndex: 0 
+        zIndex: 2,
+        opacity: 0.85,
+        mixBlendMode: 'screen'
       }} 
     />
   );

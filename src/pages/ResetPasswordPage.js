@@ -1,96 +1,103 @@
-/* ResetPasswordPage.js */
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-import styles from './CampaignForm.css'; // Reutilizando o CSS do CampaignForm
+import React, { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import InlineLoader from "../components/ui/InlineLoader";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import { API_URL } from "../config/apiConfig";
+import "../styles/auth.css";
 
 const ResetPasswordPage = () => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { token } = useParams();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError("");
+    setMessage("");
+
     if (password !== confirmPassword) {
-      setError('AS SENHAS NÃO CONFEREM.');
+      const mismatchMessage = "As senhas não conferem.";
+      setError(mismatchMessage);
+      dispatchToast({ message: mismatchMessage, type: "warning" });
       return;
     }
 
+    setLoading(true);
+
     try {
-      const response = await axios.post(`https://assrpgsite-be-production.up.railway.app/api/reset-password`, {
+      await axios.post(`${API_URL}/reset-password`, {
         token,
-        password
+        password,
       });
-      
-      setMessage("SENHA REDEFINIDA COM SUCESSO. REDIRECIONANDO...");
-      setError('');
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+
+      const successMessage = "Senha redefinida com sucesso. Redirecionando para o login...";
+      setMessage(successMessage);
+      dispatchToast({ message: successMessage, type: "success" });
+      window.setTimeout(() => {
+        navigate("/login");
+      }, 2600);
     } catch (err) {
-      setError(err.response?.data?.message || 'ERRO AO REDEFINIR SENHA.');
+      const errorMessage = err.response?.data?.message || "Erro ao redefinir senha.";
+      setError(errorMessage);
+      dispatchToast({ message: errorMessage, type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="campaign-form-page" style={{ alignItems: 'center' }}> 
-      {/* Reutilizando o container do CampaignForm para pegar o fundo fixo e layout */}
-      
-      <div className="nero-form-card" style={{ maxWidth: '450px', padding: '40px' }}>
-        <h2 className="form-title" style={{ fontSize: '1.5rem', marginBottom: '30px' }}>
-          REDEFINIR CREDENCIAIS
-        </h2>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label style={{ fontFamily: 'Roboto Condensed', color: '#888', fontWeight: 'bold' }}>NOVA SENHA</label>
-            <input
-              type="password"
-              className="nero-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-            />
-          </div>
+    <div className="auth-container">
+      <div className="auth-box auth-box-compact">
+        <p className="auth-kicker">NOVA CREDENCIAL</p>
+        <h2 className="auth-title">Redefinir Acesso</h2>
+        <p className="auth-subtitle">
+          Cadastre uma nova senha para recuperar o acesso ao sistema.
+        </p>
 
-          <div className="form-group" style={{ marginBottom: '30px' }}>
-            <label style={{ fontFamily: 'Roboto Condensed', color: '#888', fontWeight: 'bold' }}>CONFIRMAR SENHA</label>
-            <input
-              type="password"
-              className="nero-input"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <label className="auth-native-label" htmlFor="new-password">
+            Nova senha
+          </label>
+          <input
+            id="new-password"
+            type="password"
+            className="auth-native-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Digite a nova senha"
+          />
 
-          <button 
-            type="submit"
-            className="btn-nero btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
-          >
-            ATUALIZAR ACESSO
+          <label className="auth-native-label" htmlFor="confirm-password">
+            Confirmar senha
+          </label>
+          <input
+            id="confirm-password"
+            type="password"
+            className="auth-native-input"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            placeholder="Repita a nova senha"
+          />
+
+          <button type="submit" className="auth-native-button" disabled={loading}>
+            {loading ? <InlineLoader label="Atualizando" /> : "Atualizar acesso"}
           </button>
 
-          {message && (
-            <div style={{ marginTop: '20px', color: '#4caf50', textAlign: 'center', fontFamily: 'Orbitron', fontSize: '0.9rem' }}>
-              {message}
-            </div>
-          )}
-          
-          {error && (
-            <div style={{ marginTop: '20px', color: '#bd2c2c', textAlign: 'center', fontFamily: 'Orbitron', fontSize: '0.9rem', fontWeight: 'bold' }}>
-              {error}
-            </div>
-          )}
+          {message && <div className="auth-message">{message}</div>}
+          {error && <div className="error-message">{error}</div>}
         </form>
+
+        <div className="auth-footer">
+          <p>Já recuperou o acesso?</p>
+          <Link to="/login">Voltar para login</Link>
+        </div>
       </div>
     </div>
   );

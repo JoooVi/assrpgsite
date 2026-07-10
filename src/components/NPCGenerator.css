@@ -15,9 +15,9 @@
 .npc-sidebar {
     background: #0a0a0a;
     border: 1px solid #222;
-    border-top: 3px solid #8b5cf6; /* Roxo para vincular com a ferramenta de Mestre */
+    border-top: 3px solid #8a1c18;
     padding: 20px;
-    border-radius: 4px;
+    border-radius: 0;
 }
 
 .control-group { margin-bottom: 20px; }
@@ -32,7 +32,7 @@
     font-family: "Rajdhani", sans-serif; transition: border-color 0.2s;
     box-sizing: border-box;
 }
-.control-group select:focus { outline: none; border-color: #8b5cf6; }
+.control-group select:focus { outline: none; border-color: #8a1c18; }
 
 .level-selector { display: flex; gap: 8px; }
 .level-selector button {
@@ -41,22 +41,22 @@
     font-weight: bold; border-radius: 2px; font-size: 0.85rem;
     font-family: 'Orbitron', sans-serif;
 }
-.level-selector button:hover { border-color: #8b5cf6; color: #8b5cf6; background: rgba(139, 92, 246, 0.05); }
+.level-selector button:hover { border-color: #ff3333; color: #fff; background: rgba(138, 28, 24, 0.12); }
 .level-selector button.active { 
-    background: rgba(139, 92, 246, 0.15); color: #fff; 
-    border: 1px solid #8b5cf6; text-shadow: 0 0 5px #8b5cf6; 
+    background: #8a1c18; color: #fff; 
+    border: 1px solid #500; text-shadow: none; 
 }
 
 .btn-generate {
-    width: 100%; padding: 12px; background: transparent; color: #8b5cf6; 
-    border: 1px dashed rgba(139, 92, 246, 0.4); font-weight: 700; font-size: 0.85rem; 
+    width: 100%; padding: 12px; background: #8a1c18; color: #fff; 
+    border: 1px solid #500; font-weight: 700; font-size: 0.85rem; 
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     gap: 8px; border-radius: 2px; margin-top: 25px; transition: all 0.2s ease;
     font-family: 'Orbitron', sans-serif; text-transform: uppercase;
 }
 .btn-generate:hover:not(:disabled) { 
-    background: rgba(139, 92, 246, 0.1); border-style: solid; 
-    border-color: #8b5cf6; color: #fff; text-shadow: 0 0 5px #8b5cf6;
+    background: #a0201c; border-style: solid; 
+    border-color: #ff3333; color: #fff; text-shadow: none;
 }
 .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; border-style: dashed; }
 
@@ -65,7 +65,7 @@
 
 .empty-state { 
     text-align: center; color: #555; padding: 60px 20px; background: #0a0a0a; 
-    border: 1px dashed #222; border-radius: 4px; display: flex; flex-direction: column; 
+    border: 1px dashed #222; border-radius: 0; display: flex; flex-direction: column; 
     align-items: center; gap: 15px; font-family: 'Rajdhani', sans-serif; 
 }
 .empty-state p { margin: 0; font-size: 1.1rem; color: #777; }
@@ -74,7 +74,7 @@
 .npc-card {
     background: #050505; border: 1px solid #222; border-top: 3px solid #a73c39;
     padding: 25px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    animation: fadeIn 0.3s ease-out; border-radius: 4px; box-sizing: border-box;
+    animation: fadeIn 0.3s ease-out; border-radius: 0; box-sizing: border-box;
 }
 
 .npc-header { border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
@@ -91,7 +91,7 @@
     width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
     border-radius: 2px; cursor: pointer; transition: all 0.2s;
 }
-.btn-icon-small:hover { color: #fff; border-color: #3cdce7; background: rgba(60, 220, 231, 0.1); }
+.btn-icon-small:hover { color: #fff; border-color: #ff3333; background: rgba(138, 28, 24, 0.16); }
 
 .rp-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 15px; }
 
@@ -100,15 +100,15 @@
     text-transform: uppercase; color: #fff; letter-spacing: 0.5px; font-family: 'Orbitron', sans-serif;
 }
 .badge-red { background: rgba(167, 60, 57, 0.15); border: 1px solid #a73c39; color: #a73c39; }
-.badge-green { background: rgba(74, 222, 128, 0.15); border: 1px solid #4ade80; color: #4ade80; }
-.badge-yellow { background: rgba(253, 216, 53, 0.15); color: #fdd835; border: 1px solid #fdd835; }
+.badge-green { background: rgba(138, 28, 24, 0.12); border: 1px solid #8a1c18; color: #ddd; }
+.badge-yellow { background: rgba(138, 28, 24, 0.12); color: #ddd; border: 1px solid #8a1c18; }
 .badge-grey { background: rgba(136, 136, 136, 0.15); border: 1px solid #888; color: #ccc; }
 
 .rp-objective { font-size: 0.95rem; color: #ccc; }
 .rp-objective strong { color: #888; text-transform: uppercase; font-size: 0.75rem; font-family: 'Roboto Condensed', sans-serif; margin-right: 5px; }
 
 .npc-quirk {
-    background: #0a0a0a; padding: 12px 15px; border-left: 3px solid #3cdce7; border-top: 1px solid #1a1a1a;
+    background: #0a0a0a; padding: 12px 15px; border-left: 3px solid #8a1c18; border-top: 1px solid #1a1a1a;
     border-right: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a;
     font-size: 0.95rem; color: #ddd; margin-bottom: 15px; font-style: italic; border-radius: 2px;
 }
@@ -131,12 +131,12 @@
 .pack-info span { color: #ccc; }
 
 .btn-save {
-    background: transparent; color: #4ade80; border: 1px dashed rgba(74, 222, 128, 0.4);
+    background: transparent; color: #ff5555; border: 1px dashed #500;
     padding: 10px 20px; cursor: pointer; display: flex; align-items: center; gap: 8px;
     font-weight: bold; border-radius: 2px; transition: all 0.2s ease; font-size: 0.8rem;
     font-family: 'Orbitron', sans-serif; text-transform: uppercase;
 }
-.btn-save:hover { background: rgba(74, 222, 128, 0.1); border-style: solid; border-color: #4ade80; color: #fff; text-shadow: 0 0 5px #4ade80; }
+.btn-save:hover { background: #8a1c18; border-style: solid; border-color: #ff3333; color: #fff; text-shadow: none; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 

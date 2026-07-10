@@ -3,12 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import api from "../api";
 import "./CharacterList.css"; 
-import { Button, Typography, CircularProgress, Tooltip, IconButton } from "@mui/material";
+import { Button, Typography, Tooltip, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import AddIcon from '@mui/icons-material/Add'; // Importando ícone de +
 import { createAvatar } from "@dicebear/core";
 import { adventurerNeutral } from "@dicebear/collection";
+import { useConfirm } from "../components/notifications/ConfirmProvider";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import PageLoader from "../components/ui/PageLoader";
+import EmptyState from "../components/ui/EmptyState";
 
 // Estilo padrão para botões vermelhos da Nero
 const neroButtonStyle = {
@@ -35,6 +39,7 @@ const CharacterList = () => {
   
   const { token, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     const fetchCharacters = async () => {
@@ -47,8 +52,9 @@ const CharacterList = () => {
         if (error.response && error.response.status === 404) {
           setCharacters([]);
         } else {
-          console.error("-> Token expirado, deslogar e logar novamente :b!! ", error);
-          setError("Token expirado, deslogar e logar novamente :b!!");
+          console.error("Erro ao carregar personagens:", error);
+          setError("Não foi possível carregar seus personagens.");
+          dispatchToast({ message: "Erro ao carregar personagens.", type: "error" });
         }
       } finally {
         setLoading(false);
@@ -64,12 +70,20 @@ const CharacterList = () => {
 
   const handleDelete = async (e, id) => {
     e.stopPropagation(); 
-    if (window.confirm("CONFIRMAÇÃO NECESSÁRIA: Deseja eliminar permanentemente este registro?")) {
+    const confirmed = await confirm({
+      title: "Excluir agente",
+      message: "Deseja eliminar permanentemente este registro?",
+      tone: "danger",
+      confirmLabel: "Excluir",
+    });
+    if (confirmed) {
       try {
         await api.delete(`/characters/${id}`);
         setCharacters((prev) => prev.filter((c) => c._id !== id));
+        dispatchToast({ message: "Agente excluído.", type: "success" });
       } catch (error) {
-        setError("Erro ao processar eliminação.");
+        setError("Erro ao processar exclusão.");
+        dispatchToast({ message: "Erro ao excluir agente.", type: "error" });
       }
     }
   };
@@ -80,10 +94,7 @@ const CharacterList = () => {
 
   if (loading) {
     return (
-      <div className="loadingIndicator" style={{display:'flex', flexDirection:'column', alignItems:'center', marginTop:'100px', color:'white'}}>
-        <CircularProgress sx={{color: '#ff3333'}} />
-        <p style={{fontFamily: 'Rajdhani', marginTop: '20px'}}>CARREGANDO DADOS...</p>
-      </div>
+      <PageLoader title="Carregando agentes" subtitle="Sincronizando registros de personagens..." />
     );
   }
 
@@ -102,23 +113,21 @@ const CharacterList = () => {
   if (characters.length === 0) {
     return (
       <div className="noCharacters">
-        <div className="noCharactersBox">
-            <Typography variant="h4" component="div" sx={{ color: '#fff', fontFamily: 'Orbitron', fontWeight: 700, mb: 1 }}>
-              NENHUM AGENTE
-            </Typography>
-            <Typography variant="body1" component="div" sx={{ color: '#aaa', fontFamily: 'Rajdhani', mb: 4, fontSize: '1.1rem' }}>
-              Não há registros ativos neste terminal. Inicie um novo protocolo de recrutamento.
-            </Typography>
-            <Button 
-              component={Link} 
-              to="/create" 
-              variant="contained" 
+        <EmptyState
+          title="Nenhum agente"
+          description="Nao ha registros ativos neste terminal. Inicie um novo protocolo de recrutamento."
+          action={(
+            <Button
+              component={Link}
+              to="/create"
+              variant="contained"
               startIcon={<AddIcon />}
               sx={neroButtonStyle}
             >
               RECRUTAR NOVO AGENTE
             </Button>
-        </div>
+          )}
+        />
       </div>
     );
   }

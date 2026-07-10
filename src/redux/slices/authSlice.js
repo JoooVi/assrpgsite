@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { jwtDecode } from 'jwt-decode';
+import { API_URL } from "../../config/apiConfig";
 
 // Função auxiliar para carregar o usuário inicial de forma segura
 const getInitialUser = () => {
   try {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
-  } catch (error) {
-    console.error("Falha ao carregar usuário do localStorage:", error);
+  } catch {
     return null;
   }
 };
@@ -16,8 +16,7 @@ const getInitialUser = () => {
 const getInitialRefreshToken = () => {
   try {
     return localStorage.getItem('refreshToken') || null;
-  } catch (error) {
-    console.error("Falha ao carregar refreshToken do localStorage:", error);
+  } catch {
     return null;
   }
 };
@@ -35,7 +34,7 @@ export const login = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await fetch("https://assrpgsite-be-production.up.railway.app/api/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

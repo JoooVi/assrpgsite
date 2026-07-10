@@ -1,106 +1,110 @@
-/* CampaignForm.js (Correção de Submit Antecipado) */
-import React, { useState } from "react";
+/* CampaignForm.js */
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaUpload } from "react-icons/fa";
+import InlineLoader from "../components/ui/InlineLoader";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import api from "../api";
 import "./CampaignForm.css";
-
-// Ícones (React Icons)
-import { FaCheck, FaArrowLeft, FaArrowRight, FaUpload } from "react-icons/fa";
 
 const steps = ["Informações Básicas", "Configurações Adicionais"];
 
 export default function CampaignForm() {
   const navigate = useNavigate();
+  const token = useSelector((state) => state.auth.token);
+  const user = useSelector((state) => state.auth.user);
+
   const [campaign, setCampaign] = useState({
     name: "",
     description: "",
     inviteCode: "",
     houseRules: "",
   });
-
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [selectedFileName, setSelectedFileName] = useState("");
-
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
   const [activeStep, setActiveStep] = useState(0);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const token = useSelector((state) => state.auth.token);
-  const user = useSelector((state) => state.auth.user);
+  useEffect(() => {
+    if (!coverImageFile) {
+      setCoverPreviewUrl("");
+      return undefined;
+    }
 
-  // --- HANDLERS ---
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCampaign({ ...campaign, [name]: value });
+    const objectUrl = URL.createObjectURL(coverImageFile);
+    setCoverPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [coverImageFile]);
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setCampaign((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
-        setErrors(prev => ({...prev, [name]: ""}));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setCoverImageFile(e.target.files[0]);
-      setSelectedFileName(e.target.files[0].name);
-    } else {
-      setCoverImageFile(null);
-      setSelectedFileName("");
-    }
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+
+    setCoverImageFile(file || null);
+    setSelectedFileName(file?.name || "");
   };
 
-  // --- NAVEGAÇÃO ---
   const validateStep = () => {
-    let isValid = true;
-    let newErrors = {};
+    const nextErrors = {};
 
     if (activeStep === 0) {
-      if (!campaign.name.trim()) { isValid = false; newErrors.name = "Nome da campanha é obrigatório."; }
-      if (!campaign.description.trim()) { isValid = false; newErrors.description = "Uma descrição é necessária."; }
+      if (!campaign.name.trim()) {
+        nextErrors.name = "Nome da campanha é obrigatório.";
+      }
+
+      if (!campaign.description.trim()) {
+        nextErrors.description = "Uma descrição é necessária.";
+      }
     }
 
-    setErrors(newErrors);
-    return isValid;
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleNext = (e) => {
-    // Garante que o clique não envie o form
-    if(e) e.preventDefault(); 
-    
+  const handleNext = (event) => {
+    event?.preventDefault();
+
     if (validateStep()) {
-      setActiveStep((prev) => prev + 1);
-      setError("");
-    } else {
-      setError("Preencha os campos obrigatórios.");
-    }
-  };
-
-  const handleBack = (e) => {
-    if(e) e.preventDefault();
-    setActiveStep((prev) => prev - 1);
-    setError("");
-  };
-
-  const handleSubmit = async (e) => {
-    // Previne comportamento padrão se vier de um evento
-    if (e) e.preventDefault();
-
-    // SEGURANÇA EXTRA: Impede envio se não estiver na última etapa
-    if (activeStep !== steps.length - 1) {
-        console.warn("Tentativa de envio fora da etapa final bloqueada.");
-        return; 
-    }
-
-    if (!token || !user || !user._id) {
-      setError("Sessão expirada. Faça login novamente.");
+      setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
       return;
     }
 
-    setLoading(true);
-    setError("");
-    setSuccess(false);
+    dispatchToast({ message: "Preencha os campos obrigatórios.", type: "warning" });
+  };
+
+  const handleBack = (event) => {
+    event?.preventDefault();
+    setActiveStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleSubmit = async (event) => {
+    event?.preventDefault();
+
+    if (activeStep !== steps.length - 1) {
+      return;
+    }
+
+    if (!validateStep()) {
+      dispatchToast({ message: "Revise os campos obrigatórios.", type: "warning" });
+      return;
+    }
+
+    if (!token || !user?._id) {
+      dispatchToast({ message: "Sessão expirada. Faça login novamente.", type: "error" });
+      return;
+    }
 
     const formData = new FormData();
     formData.append("name", campaign.name);
@@ -112,24 +116,24 @@ export default function CampaignForm() {
       formData.append("coverImage", coverImageFile);
     }
 
-    try {
-      await axios.post(
-        "https://assrpgsite-be-production.up.railway.app/api/campaigns",
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    setLoading(true);
 
-      setSuccess(true);
-      setTimeout(() => navigate(`/campaigns`), 1500);
+    try {
+      const response = await api.post("/campaigns", formData);
+
+      const createdCampaignId = response.data?._id || response.data?.campaign?._id;
+      dispatchToast({ message: "Campanha criada. Abrindo lobby...", type: "success" });
+      setTimeout(
+        () => navigate(createdCampaignId ? `/campaign-lobby/${createdCampaignId}` : "/campaigns"),
+        900
+      );
     } catch (err) {
-      setError("Falha ao criar campanha. Verifique os dados.");
-      console.error(err);
+      dispatchToast({ message: "Falha ao criar campanha. Verifique os dados.", type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  // --- RENDER DO CONTEÚDO ---
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
@@ -162,14 +166,21 @@ export default function CampaignForm() {
             </div>
 
             <div className="form-group">
-                <label>IMAGEM DE CAPA (OPCIONAL)</label>
-                <div className="file-upload-wrapper">
-                    <label className="btn-nero btn-secondary" style={{display: 'inline-flex', margin: '0 auto'}}>
-                        <FaUpload /> SELECIONAR ARQUIVO
-                        <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-                    </label>
-                    {selectedFileName && <span className="file-name">{selectedFileName}</span>}
-                </div>
+              <label>IMAGEM DE CAPA (OPCIONAL)</label>
+              <div className="file-upload-wrapper">
+                {coverPreviewUrl && (
+                  <div className="campaign-cover-preview">
+                    <img src={coverPreviewUrl} alt="Prévia da capa" />
+                  </div>
+                )}
+
+                <label className="btn-nero btn-secondary campaign-upload-button">
+                  <FaUpload /> SELECIONAR ARQUIVO
+                  <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                </label>
+
+                {selectedFileName && <span className="file-name">{selectedFileName}</span>}
+              </div>
             </div>
           </div>
         );
@@ -187,7 +198,7 @@ export default function CampaignForm() {
                 onChange={handleInputChange}
                 placeholder="Senha para jogadores entrarem..."
               />
-              <span className="helper-text">Deixe em branco se quiser apenas usar os recursos</span>
+              <span className="helper-text">Deixe em branco se quiser apenas usar os recursos.</span>
             </div>
 
             <div className="form-group">
@@ -198,7 +209,7 @@ export default function CampaignForm() {
                 rows="8"
                 value={campaign.houseRules}
                 onChange={handleInputChange}
-                placeholder="Modificações no sistema, proibições, etc..."
+                placeholder="Modificações no sistema, proibições, acordos da mesa..."
               />
             </div>
           </div>
@@ -211,64 +222,52 @@ export default function CampaignForm() {
 
   return (
     <div className="campaign-form-page">
-        <div className="nero-form-card">
-            <div className="form-title">INICIAR NOVA CAMPANHA</div>
+      <div className="nero-form-card">
+        <div className="form-title">INICIAR NOVA CAMPANHA</div>
 
-            {/* Stepper */}
-            <div className="nero-stepper">
-                {steps.map((label, index) => (
-                    <div 
-                        key={label} 
-                        className={`step-item ${activeStep === index ? 'active' : ''} ${activeStep > index ? 'completed' : ''}`}
-                    >
-                        {label}
-                    </div>
-                ))}
+        <div className="nero-stepper">
+          {steps.map((label, index) => (
+            <div
+              key={label}
+              className={`step-item ${activeStep === index ? "active" : ""} ${
+                activeStep > index ? "completed" : ""
+              }`}
+            >
+              {label}
             </div>
-
-            {/* --- CORREÇÃO AQUI --- */}
-            {/* O onSubmit previne o default para nada acontecer ao apertar enter sem querer */}
-            <form onSubmit={(e) => e.preventDefault()}>
-                
-                {renderStepContent(activeStep)}
-
-                <div className="form-actions">
-                    <button 
-                        type="button" 
-                        onClick={handleBack} 
-                        className="btn-nero btn-secondary"
-                        disabled={activeStep === 0 || loading}
-                    >
-                        <FaArrowLeft /> VOLTAR
-                    </button>
-
-                    {activeStep === steps.length - 1 ? (
-                        /* BOTÃO DE FINALIZAR AGORA É DO TIPO "BUTTON" E CHAMA O SUBMIT MANUALMENTE */
-                        <button 
-                            type="button" 
-                            onClick={handleSubmit}
-                            className="btn-nero btn-primary"
-                            disabled={loading}
-                        >
-                            {loading ? "PROCESSANDO..." : "CRIAR CAMPANHA"} <FaCheck />
-                        </button>
-                    ) : (
-                        /* BOTÃO DE PRÓXIMO É TIPO "BUTTON" */
-                        <button 
-                            type="button" 
-                            onClick={handleNext} 
-                            className="btn-nero btn-primary"
-                        >
-                            PRÓXIMO <FaArrowRight />
-                        </button>
-                    )}
-                </div>
-
-                {error && <div style={{color: '#bd2c2c', textAlign: 'center', marginTop: '20px', fontWeight:'bold'}}>ERRO: {error}</div>}
-                {success && <div style={{color: '#4caf50', textAlign: 'center', marginTop: '20px', fontWeight:'bold'}}>SUCESSO! REDIRECIONANDO...</div>}
-
-            </form>
+          ))}
         </div>
+
+        <form onSubmit={(event) => event.preventDefault()}>
+          {renderStepContent(activeStep)}
+
+          <div className="form-actions">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="btn-nero btn-secondary"
+              disabled={activeStep === 0 || loading}
+            >
+              <FaArrowLeft /> VOLTAR
+            </button>
+
+            {activeStep === steps.length - 1 ? (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="btn-nero btn-primary"
+                disabled={loading}
+              >
+                {loading ? <InlineLoader label="Processando" /> : <>CRIAR E ABRIR LOBBY <FaCheck /></>}
+              </button>
+            ) : (
+              <button type="button" onClick={handleNext} className="btn-nero btn-primary">
+                PRÓXIMO <FaArrowRight />
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

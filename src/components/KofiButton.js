@@ -9,8 +9,6 @@ const KofiButton = ({
   backgroundColor = '#d9534f',
   textColor = '#fff'
 }) => {
-  const kofiScriptUrl = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
-
   // KofiButton.js
 
 useEffect(() => {

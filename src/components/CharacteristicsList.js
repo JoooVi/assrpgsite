@@ -1,5 +1,4 @@
-/* CharacteristicsList.js */
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createCharacteristic,
@@ -7,70 +6,92 @@ import {
   deleteCharacteristic,
   fetchCharacterTraits,
 } from "../redux/slices/characteristicsSlice";
-import { 
-  FaPlus, 
-  FaEdit, 
-  FaShareAlt, 
-  FaTrash, 
-  FaChevronDown, 
-  FaChevronUp 
+import {
+  FaChevronDown,
+  FaChevronUp,
+  FaEdit,
+  FaPlus,
+  FaShareAlt,
+  FaTrash,
 } from "react-icons/fa";
+import { useConfirm } from "./notifications/ConfirmProvider";
+import { dispatchToast } from "./notifications/ToastProvider";
+import EmptyState from "./ui/EmptyState";
+import SystemText from "./SystemText";
 
-const CharacteristicsList = ({ onShare }) => {
+const initialForm = {
+  name: "",
+  description: "",
+  pointsCost: 0,
+  category: "Físico",
+  isCustom: true,
+};
+
+const characteristicCategories = ["Físico", "Mental", "Social", "Habilidade"];
+
+const CharacteristicsList = ({ traits, onShare }) => {
   const dispatch = useDispatch();
   const { token, user } = useSelector((state) => state.auth);
-  
-  // --- VÍNCULO COM O REDUX ---
-  // Buscando todas as características e filtrando pelo usuário logado
   const { characterTraits: allTraits = [] } = useSelector((state) => state.characteristics);
-  const userTraits = allTraits.filter(trait => trait.createdBy === user?._id);
+  const { confirm } = useConfirm();
 
-  // Garante o carregamento dos dados
+  const userTraits = allTraits.filter((trait) => trait.createdBy === user?._id);
+  const displayTraits = traits || userTraits;
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [formData, setFormData] = useState(initialForm);
+
   useEffect(() => {
     if (token && user) {
       dispatch(fetchCharacterTraits());
     }
   }, [dispatch, token, user]);
 
-  // --- ESTADOS LOCAIS ---
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
-
-  // Estado do Formulário
-  const initialForm = {
-    name: "",
-    description: "",
-    pointsCost: 0,
-    category: "Físico", // Valor padrão
-    isCustom: true,
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
   };
-  const [formData, setFormData] = useState(initialForm);
-
-  // --- HANDLERS ---
 
   const handleOpenModal = (item = null) => {
-    if (item) {
-      setEditingItem(item);
-      setFormData(item);
-    } else {
-      setEditingItem(null);
-      setFormData(initialForm);
-    }
+    setEditingItem(item);
+    setFormData(item || initialForm);
     setModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setModalOpen(false);
+    setEditingItem(null);
     setFormData(initialForm);
   };
 
-  const handleSubmit = () => {
-    if (!formData.name.trim()) return alert("Nome é obrigatório.");
+  const updateFormField = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: field === "pointsCost" ? Number(value) : value,
+    }));
+  };
 
-    const payload = { 
-      ...formData, 
-      createdBy: user?._id 
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      dispatchToast({ message: "Nome é obrigatório.", type: "warning" });
+      return false;
+    }
+
+    if (!formData.description.trim()) {
+      dispatchToast({ message: "Descrição é obrigatória.", type: "warning" });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = () => {
+    if (!validateForm()) return;
+
+    const payload = {
+      ...formData,
+      createdBy: user?._id,
     };
 
     if (editingItem) {
@@ -81,41 +102,46 @@ const CharacteristicsList = ({ onShare }) => {
     handleCloseModal();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("ATENÇÃO: Deseja excluir esta Característica permanentemente?")) {
+  const handleDelete = async (id) => {
+    const confirmed = await confirm({
+      title: "Excluir característica",
+      message: "Deseja excluir esta característica permanentemente?",
+      tone: "danger",
+      confirmLabel: "Excluir",
+    });
+
+    if (confirmed) {
       dispatch(deleteCharacteristic(id));
     }
   };
 
-  const toggleExpand = (id) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
   return (
     <div>
-      {/* Botão Criar */}
-      <button 
-        className="btn-nero btn-primary" 
-        onClick={() => handleOpenModal()} 
-        style={{ marginBottom: '20px' }}
+      <button
+        className="btn-nero btn-primary hb-create-btn"
+        onClick={() => handleOpenModal()}
       >
-        <FaPlus /> CRIAR NOVA CARACTERÍSTICA
+        <FaPlus /> Criar Nova Característica
       </button>
 
-      {/* Lista de Cards */}
       <div className="hb-list">
-        {(!userTraits || userTraits.length === 0) && (
-          <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic', marginTop: '20px' }}>
-            Nenhuma característica criada.
-          </p>
+        {(!displayTraits || displayTraits.length === 0) && (
+          <EmptyState
+            compact
+            title="Nenhuma característica"
+            description="Crie vantagens, marcas ou complicações para personalizar os agentes."
+          />
         )}
 
-        {userTraits && userTraits.map((trait) => (
+        {displayTraits?.map((trait) => (
           <div key={trait._id} className="hb-card">
-            
-            {/* Cabeçalho do Card */}
             <div className="hb-card-header" onClick={() => toggleExpand(trait._id)}>
-              <span className="hb-card-title">{trait.name}</span>
+              <div>
+                <span className="hb-card-title">{trait.name}</span>
+                <span className="hb-card-subtitle">
+                  {trait.category || "Sem categoria"} • {trait.pointsCost ?? 0} pontos
+                </span>
+              </div>
               {expandedId === trait._id ? (
                 <FaChevronUp className="hb-card-icon open" />
               ) : (
@@ -123,33 +149,44 @@ const CharacteristicsList = ({ onShare }) => {
               )}
             </div>
 
-            {/* Corpo do Card */}
             {expandedId === trait._id && (
               <div className="hb-card-body">
-                <div className="hb-info-row">
-                  <span className="hb-label">CATEGORIA:</span> 
-                  <span className="hb-value">{trait.category}</span>
+                <div className="hb-trait-summary">
+                  <div>
+                    <span>Categoria</span>
+                    <strong>{trait.category || "Sem categoria"}</strong>
+                  </div>
+                  <div>
+                    <span>Custo</span>
+                    <strong>{trait.pointsCost ?? 0} pontos</strong>
+                  </div>
                 </div>
-                
+
                 <div className="hb-info-row">
-                  <span className="hb-label">CUSTO:</span> 
-                  <span className="hb-value">{trait.pointsCost} Pontos</span>
-                </div>
-                
-                <div className="hb-info-row">
-                  <span className="hb-label">DESCRIÇÃO:</span> 
-                  <span className="hb-value">{trait.description}</span>
+                  <span className="hb-label">Descrição:</span>
+                  <span className="hb-value">
+                    <SystemText text={trait.description || "Sem descrição registrada."} />
+                  </span>
                 </div>
 
                 <div className="hb-actions">
-                  <button className="btn-nero btn-secondary" onClick={() => handleOpenModal(trait)}>
-                    <FaEdit /> EDITAR
+                  <button
+                    className="btn-nero btn-secondary"
+                    onClick={() => handleOpenModal(trait)}
+                  >
+                    <FaEdit /> Editar
                   </button>
-                  <button className="btn-nero btn-secondary" onClick={() => onShare(trait)}>
-                    <FaShareAlt /> COMPARTILHAR
+                  <button
+                    className="btn-nero btn-secondary"
+                    onClick={() => onShare(trait)}
+                  >
+                    <FaShareAlt /> Compartilhar
                   </button>
-                  <button className="btn-nero btn-danger" onClick={() => handleDelete(trait._id)}>
-                    <FaTrash /> EXCLUIR
+                  <button
+                    className="btn-nero btn-danger"
+                    onClick={() => handleDelete(trait._id)}
+                  >
+                    <FaTrash /> Excluir
                   </button>
                 </div>
               </div>
@@ -158,57 +195,65 @@ const CharacteristicsList = ({ onShare }) => {
         ))}
       </div>
 
-      {/* Modal Unificado (HTML Puro) */}
       {modalOpen && (
-        <div className="nero-modal-overlay" onClick={(e) => { if (e.target.className === 'nero-modal-overlay') handleCloseModal() }}>
+        <div
+          className="nero-modal-overlay"
+          onClick={(event) => {
+            if (event.target.className === "nero-modal-overlay") handleCloseModal();
+          }}
+        >
           <div className="nero-modal">
             <div className="nero-modal-header">
-              {editingItem ? "EDITAR CARACTERÍSTICA" : "NOVA CARACTERÍSTICA"}
+              {editingItem ? "Editar Característica" : "Nova Característica"}
             </div>
-            
+
             <div className="nero-modal-body">
               <div className="form-group">
-                <label>NOME</label>
-                <input 
-                  type="text" 
-                  className="nero-input" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                <label>Nome</label>
+                <input
+                  type="text"
+                  className="nero-input"
+                  value={formData.name}
+                  onChange={(event) => updateFormField("name", event.target.value)}
                   placeholder="Ex: Ambidestria"
                 />
               </div>
 
-              <div className="form-group">
-                <label>CATEGORIA</label>
-                <select 
-                  className="nero-select" 
-                  value={formData.category} 
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                >
-                  <option value="Físico">Físico</option>
-                  <option value="Mental">Mental</option>
-                  <option value="Social">Social</option>
-                  <option value="Habilidade">Habilidade</option>
-                </select>
+              <div className="hb-form-grid hb-form-grid-two">
+                <div className="form-group">
+                  <label>Categoria</label>
+                  <select
+                    className="nero-select"
+                    value={formData.category}
+                    onChange={(event) => updateFormField("category", event.target.value)}
+                  >
+                    {characteristicCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Custo (pontos)</label>
+                  <input
+                    type="number"
+                    className="nero-input"
+                    value={formData.pointsCost}
+                    onChange={(event) => updateFormField("pointsCost", event.target.value)}
+                    min="0"
+                  />
+                </div>
               </div>
 
               <div className="form-group">
-                <label>CUSTO (PONTOS)</label>
-                <input 
-                  type="number" 
-                  className="nero-input" 
-                  value={formData.pointsCost} 
-                  onChange={(e) => setFormData({...formData, pointsCost: Number(e.target.value)})} 
-                />
-              </div>
-
-              <div className="form-group">
-                <label>DESCRIÇÃO</label>
-                <textarea 
-                  className="nero-textarea" 
-                  rows="4" 
-                  value={formData.description} 
-                  onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                <label>Descrição</label>
+                <textarea
+                  className="nero-textarea"
+                  rows="4"
+                  value={formData.description}
+                  onChange={(event) => updateFormField("description", event.target.value)}
                   placeholder="Descreva as regras desta característica..."
                 />
               </div>
@@ -216,10 +261,10 @@ const CharacteristicsList = ({ onShare }) => {
 
             <div className="nero-modal-footer">
               <button className="btn-nero btn-secondary" onClick={handleCloseModal}>
-                CANCELAR
+                Cancelar
               </button>
               <button className="btn-nero btn-primary" onClick={handleSubmit}>
-                SALVAR
+                Salvar
               </button>
             </div>
           </div>

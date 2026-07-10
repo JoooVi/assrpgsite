@@ -798,6 +798,15 @@
 .heartContainer { display: flex; gap: 4px; flex-wrap: wrap; }
 .heartIcon:hover { transform: scale(1.15); cursor: pointer; }
 
+.healthRowActive {
+  padding: 8px;
+  border: 1px solid rgba(183, 28, 28, 0.45);
+  border-left: 3px solid var(--accent-red);
+  border-radius: 8px;
+  background: rgba(183, 28, 28, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
 /* Grid e Tabs */
 .customDiceArea {
   margin-bottom: 15px;
@@ -1605,4 +1614,40 @@
   /* ... outras propriedades ... */
   grid-template-columns: repeat(3, 1fr); /* 3 Colunas Fixas */
   grid-auto-flow: row dense; /* ISSO É O SEGREDO DO TETRIS! */
+}
+/* Polish overrides: mantem a estrutura da ficha, mas alinha com o restante do site. */
+.characterSheet {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(138, 28, 24, 0.16), transparent 32rem),
+    linear-gradient(135deg, rgba(5, 5, 5, 0.98), rgba(18, 18, 18, 0.94));
+}
+
+.headerPanel,
+.colLeft,
+.colCenter,
+.colRight {
+  background: linear-gradient(180deg, rgba(22, 22, 22, 0.96), rgba(10, 10, 10, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.58);
+}
+
+.headerPanel {
+  border-left: 5px solid var(--accent-red);
+}
+
+.loaderBox {
+  background:
+    radial-gradient(circle at 28% 20%, rgba(138, 28, 24, 0.16), transparent 28rem),
+    linear-gradient(135deg, rgba(5, 5, 5, 0.98), rgba(18, 18, 18, 0.94));
+}
+
+.privacyToggle {
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+
+.tugOfWarBlock {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }

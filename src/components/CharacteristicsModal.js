@@ -1,149 +1,138 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { FaSearch, FaTimes, FaPlus, FaChevronDown, FaChevronUp, FaExclamationTriangle } from "react-icons/fa"; // Adicionei FaExclamationTriangle
-import "../pages/Homebrews.css"; 
+import { FaChevronDown, FaChevronUp, FaExclamationTriangle, FaPlus, FaSearch, FaTimes } from "react-icons/fa";
+import EmptyState from "./ui/EmptyState";
+import SystemText from "./SystemText";
+import "../pages/Homebrews.css";
+
+const formatDescription = (text = "") => {
+  const requirementRegex = /^(Requisito:.*?\.)(.*)/s;
+  const match = text.match(requirementRegex);
+
+  if (!match) {
+    return <div className="trait-description-text"><SystemText text={text || "Sem descrição registrada."} /></div>;
+  }
+
+  return (
+    <>
+      <div className="trait-requirement-badge">
+        <FaExclamationTriangle />
+        <strong>REQUISITO:</strong> <SystemText text={match[1].replace("Requisito:", "").trim()} />
+      </div>
+      <div className="trait-description-text"><SystemText text={match[2].trim()} /></div>
+    </>
+  );
+};
 
 const CharacteristicsModal = ({
   open,
   handleClose,
-  items = [], 
-  homebrewItems = [], 
+  items = [],
+  homebrewItems = [],
   onItemSelect,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedId, setExpandedId] = useState(null);
-
   const { characterTraits = [] } = useSelector((state) => state.characteristics);
-  const traitsPool = items.length > 0 ? items : characterTraits;
-  let displayList = [...traitsPool];
-  if (homebrewItems.length > 0) {
-      displayList = [...displayList, ...homebrewItems];
-  }
-  
-  const filteredList = displayList
-    .filter((item, index, self) => self.findIndex(t => t._id === item._id) === index)
-    .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const toggleExpand = (id) => {
-      setExpandedId(expandedId === id ? null : id);
-  };
+  useEffect(() => {
+    if (!open) return undefined;
 
-  // FUNÇÃO PARA DESTACAR O REQUISITO
-  const formatDescription = (text) => {
-    // Regex: Procura por "Requisito:" no início até o primeiro ponto final
-    const requirementRegex = /^(Requisito:.*?\.)(.*)/s;
-    const match = text.match(requirementRegex);
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") handleClose();
+    };
 
-    if (match) {
-      return (
-        <>
-          <div className="trait-requirement-badge">
-            <FaExclamationTriangle style={{ marginRight: '6px', fontSize: '0.7rem' }} />
-            <strong>REQUISITO:</strong> {match[1].replace('Requisito:', '').trim()}
-          </div>
-          <div className="trait-description-text">{match[2].trim()}</div>
-        </>
-      );
-    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleClose, open]);
 
-    // Se não tiver requisito, retorna o texto normal formatado
-    return <div className="trait-description-text">{text}</div>;
-  };
+  const filteredList = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+    const traitsPool = items.length > 0 ? items : characterTraits;
+    const displayList = homebrewItems.length > 0 ? [...traitsPool, ...homebrewItems] : [...traitsPool];
+
+    return displayList
+      .filter((item, index, self) => self.findIndex((trait) => trait._id === item._id) === index)
+      .filter((item) => {
+        if (!search) return true;
+        return [item.name, item.category, item.description]
+          .some((field) => String(field || "").toLowerCase().includes(search));
+      });
+  }, [characterTraits, homebrewItems, items, searchTerm]);
 
   if (!open) return null;
 
-  const overlayStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    zIndex: 99999,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backdropFilter: 'blur(3px)'
-  };
-
-  const modalPanelStyle = {
-    width: '95%',
-    maxWidth: '500px',
-    backgroundColor: '#121212',
-    border: '1px solid #444',
-    borderRadius: '4px',
-    boxShadow: '0 0 50px rgba(0,0,0,1)',
-    display: 'flex',
-    flexDirection: 'column',
-    maxHeight: '85vh',
-  };
-
   return (
-    <div style={overlayStyle} onClick={(e) => e.target === e.currentTarget && handleClose()}>
-      <div style={modalPanelStyle} className="nero-modal">
-        <div className="nero-modal-header" style={{flexShrink: 0, display:'flex', justifyContent:'space-between', padding:'15px', borderBottom:'1px solid #333', background:'#1a1a1a'}}>
-          <span style={{fontWeight:'bold', color:'#fff', letterSpacing: '1px'}}>SELECIONAR CARACTERÍSTICA</span>
-          <button onClick={handleClose} style={{background:'transparent', border:'none', color:'#888', cursor:'pointer'}}><FaTimes size={18}/></button>
+    <div className="hb-picker-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
+      <section className="hb-picker-panel">
+        <header className="hb-picker-header">
+          <div>
+            <span>Traços</span>
+            <h2>Selecionar característica</h2>
+          </div>
+          <button type="button" className="hb-picker-close" onClick={handleClose} aria-label="Fechar">
+            <FaTimes />
+          </button>
+        </header>
+
+        <div className="hb-picker-controls">
+          <label className="hb-picker-search">
+            <FaSearch />
+            <input
+              type="text"
+              className="nero-input"
+              placeholder="Buscar característica..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </label>
         </div>
 
-        <div className="nero-modal-body" style={{padding:'20px', overflowY:'auto', flex: 1}}>
-            <div style={{position:'relative', marginBottom:'20px'}}>
-                <FaSearch style={{position:'absolute', left:'10px', top:'12px', color:'#666'}}/>
-                <input 
-                    type="text" 
-                    className="nero-input" 
-                    placeholder="Buscar característica..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{paddingLeft:'35px', width:'100%', boxSizing:'border-box'}}
-                />
-            </div>
-
-            <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
-                {filteredList.map((item) => (
-                    <div key={item._id} className={`hb-card ${expandedId === item._id ? 'expanded' : ''}`} style={{background:'#1a1a1a', borderRadius:'4px', border: '1px solid #333'}}>
-                        
-                        <div className="hb-card-header" onClick={() => toggleExpand(item._id)} style={{padding:'12px', cursor: 'pointer'}}>
-                             <span className="hb-card-title" style={{ color: expandedId === item._id ? '#750303ff' : '#eee', transition: '0.2s' }}>
-                                {item.name}
-                             </span>
-                             <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                                 <span style={{ fontSize: '0.7rem', color: '#666', fontWeight: 'bold' }}>{item.pointsCost} PTS</span>
-                                 {item.isCustom && <span style={{fontSize:'0.6rem', background:'#333', border:'1px solid #555', color:'#aaa', padding:'2px 5px', borderRadius:'2px'}}>HB</span>}
-                                 {expandedId === item._id ? <FaChevronUp size={12} color="#666"/> : <FaChevronDown size={12} color="#666"/>}
-                             </div>
-                        </div>
-
-                        {expandedId === item._id && (
-                            <div className="hb-card-body" style={{padding:'15px', background:'#161616', borderTop: '1px solid #222'}}>
-                                <div style={{marginBottom:'12px', fontSize: '0.75rem', color:'#555', textTransform: 'uppercase', letterSpacing: '1px'}}>
-                                    <strong>Categoria:</strong> {item.category}
-                                </div>
-                                
-                                {/* AQUI ENTRA A FORMATAÇÃO DO REQUISITO */}
-                                <div style={{ marginBottom:'20px' }}>
-                                    {formatDescription(item.description)}
-                                </div>
-                                
-                                <button 
-                                    className="btn-nero btn-primary" 
-                                    style={{width:'100%', padding:'12px', fontWeight: 'bold'}}
-                                    onClick={() => onItemSelect(item)}
-                                >
-                                    <FaPlus style={{marginRight:'8px'}}/> ADICIONAR
-                                </button>
-                            </div>
-                        )}
+        <div className="hb-picker-scroll">
+          <div className="hb-picker-list">
+            {filteredList.map((item) => {
+              const isExpanded = expandedId === item._id;
+              return (
+                <article key={item._id} className={`hb-card hb-picker-entry ${isExpanded ? "expanded" : ""}`}>
+                  <button type="button" className="hb-card-header" onClick={() => setExpandedId(isExpanded ? null : item._id)}>
+                    <div>
+                      <span className={`hb-card-title ${isExpanded ? "is-active" : ""}`}>{item.name}</span>
+                      <span className="hb-card-subtitle">
+                        {item.category || "Geral"} • {item.pointsCost ?? 0} pontos
+                      </span>
                     </div>
-                ))}
-                {filteredList.length === 0 && <p style={{textAlign:'center', color:'#666', marginTop: '20px'}}>Nenhuma característica encontrada.</p>}
-            </div>
-        </div>
+                    <div className="hb-picker-card-meta">
+                      {item.isCustom && <span className="hb-homebrew-badge">HB</span>}
+                      {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+                    </div>
+                  </button>
 
-        <div className="nero-modal-footer" style={{padding:'15px', borderTop:'1px solid #333', background:'#1a1a1a', flexShrink:0, display:'flex', justifyContent:'flex-end'}}>
-           <button className="btn-nero" onClick={handleClose} style={{padding:'8px 20px', background:'transparent', border:'1px solid #444', color:'#ccc', fontSize: '0.8rem'}}>FECHAR</button>
+                  {isExpanded && (
+                    <div className="hb-card-body">
+                      <div className="hb-trait-summary">
+                        <div><span>Categoria</span><strong>{item.category || "Geral"}</strong></div>
+                        <div><span>Custo</span><strong>{item.pointsCost ?? 0} pontos</strong></div>
+                      </div>
+                      <div className="hb-picker-description">{formatDescription(item.description)}</div>
+                      <button className="btn-nero btn-primary hb-picker-select" onClick={() => onItemSelect(item)}>
+                        <FaPlus /> Adicionar
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+
+            {filteredList.length === 0 && (
+              <EmptyState
+                compact
+                title="Nenhuma característica encontrada"
+                description="Tente ajustar a busca ou cadastrar uma nova característica."
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

@@ -1,246 +1,356 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Montserrat:wght@400;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap");
 
-/* --- BASE --- */
-body {
-  margin: 0;
-  padding: 0;
+body.navbar-menu-open {
+  overflow: hidden;
 }
 
 .navbar {
-  display: flex;
-  justify-content: space-between;
+  --navbar-height: 78px;
+
   align-items: center;
-  padding: 0 40px;
-  height: 80px;
-  width: 100%;
+  backdrop-filter: blur(14px);
+  background:
+    linear-gradient(90deg, rgba(5, 5, 5, 0.98), rgba(17, 17, 17, 0.95)),
+    linear-gradient(180deg, rgba(138, 28, 24, 0.12), transparent);
+  border-bottom: 1px solid rgba(138, 28, 24, 0.55);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52);
   box-sizing: border-box;
+  display: flex;
+  height: var(--navbar-height);
+  justify-content: space-between;
+  left: 0;
+  padding: 0 40px;
   position: fixed;
   top: 0;
-  left: 0;
+  width: 100%;
   z-index: 1000;
-  background: rgba(10, 10, 10, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+}
+
+.navbar::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent);
+  bottom: -1px;
+  content: "";
+  height: 1px;
+  left: 12%;
+  position: absolute;
+  width: 76%;
+}
+
+.navbar-left,
+.navbar-right {
+  align-items: center;
+  display: flex;
+  flex: 1;
 }
 
 .navbar-left {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-.navbar-center {
-  flex: 3;
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-}
-.navbar-right {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  justify-content: flex-start;
 }
 
-/* Links Gerais */
+.navbar-right {
+  justify-content: flex-end;
+}
+
+.navbar-center {
+  align-items: center;
+  display: flex;
+  flex: 3;
+  gap: 10px;
+  justify-content: center;
+}
+
+.navbar-logo {
+  align-items: center;
+  display: inline-flex;
+  outline: none;
+}
+
+.logo-image {
+  filter: drop-shadow(0 0 16px rgba(138, 28, 24, 0.2));
+  height: 45px;
+  opacity: 0.95;
+  transition: filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  width: auto;
+}
+
+.navbar-logo:hover .logo-image,
+.navbar-logo:focus-visible .logo-image {
+  filter: drop-shadow(0 0 18px rgba(255, 51, 51, 0.34));
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
 .navbar-link {
+  align-items: center;
+  border: 1px solid transparent;
+  color: var(--nero-muted, #888);
+  display: inline-flex;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  gap: 8px;
+  letter-spacing: 1.2px;
+  line-height: 1;
+  min-height: 38px;
+  overflow: hidden;
+  padding: 0 14px;
   position: relative;
   text-decoration: none;
-  color: #bbb;
-  font-family: "Montserrat", sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
   text-transform: uppercase;
-  transition: color 0.3s;
-  padding: 5px 0;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
-.navbar-link:hover {
+
+.navbar-link::before {
+  background: var(--nero-red, #8a1c18);
+  content: "";
+  height: 100%;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity 0.2s ease;
+  width: 3px;
+}
+
+.navbar-link:hover,
+.navbar-link:focus-visible {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.navbar-link.active {
+  background: rgba(138, 28, 24, 0.16);
+  border-color: rgba(255, 51, 51, 0.42);
+  color: #fff;
+  box-shadow: inset 0 -1px 0 rgba(255, 51, 51, 0.22);
+}
+
+.navbar-link.active::before,
+.navbar-link:hover::before,
+.navbar-link:focus-visible::before {
+  opacity: 1;
+}
+
+.navbar-beta-badge {
+  background: rgba(138, 28, 24, 0.35);
+  border: 1px solid rgba(255, 51, 51, 0.42);
+  color: #ff7777;
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  padding: 3px 5px;
+}
+
+.login-btn-desktop,
+.login-btn-mobile {
+  border-color: rgba(255, 51, 51, 0.4);
   color: #fff;
 }
-.navbar-link::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0%;
-  height: 2px;
-  background-color: #b71c1c;
-  transition: width 0.3s ease;
-}
-.navbar-link:hover::after {
-  width: 100%;
-}
 
-/* Botões Específicos Desktop */
 .login-btn-desktop {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 24px;
-  border-radius: 4px;
-}
-.login-btn-desktop:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #fff;
-}
-.login-btn-desktop::after {
-  display: none;
+  min-height: 40px;
+  padding-inline: 22px;
 }
 
-/* Logo */
-.logo-image {
-  height: 45px;
-  width: auto;
-  opacity: 0.9;
-  transition: 0.3s;
-}
-.logo-image:hover {
-  opacity: 1;
-  transform: scale(1.05);
+.login-btn-desktop::after,
+.login-btn-mobile::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.32), transparent);
+  bottom: 0;
+  content: "";
+  height: 1px;
+  left: 8px;
+  position: absolute;
+  width: calc(100% - 16px);
 }
 
-/* --- ITENS QUE SÓ DEVEM APARECER NO MOBILE (HIDDEN NO DESKTOP) --- */
-.mobile-only-menu {
-  display: none !important;
-}
+.mobile-only-menu,
 .navbar-toggle {
   display: none;
 }
 
-/* --- ITENS QUE SÓ DEVEM APARECER NO DESKTOP --- */
 .desktop-only {
   display: flex;
 }
 
-/* =========================================
-   RESPONSIVIDADE (Tablets e Celulares)
-   Break point em 1024px
-   ========================================= */
-@media (max-width: 1024px) {
+.navbar-toggle {
+  align-items: center;
+  background: rgba(17, 17, 17, 0.9);
+  border: 1px solid var(--nero-border-strong, #444);
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  height: 42px;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  width: 46px;
+  z-index: 2001;
+}
+
+.navbar-toggle:hover,
+.navbar-toggle:focus-visible {
+  border-color: var(--nero-red-hot, #ff3333);
+  outline: none;
+}
+
+.bar {
+  background-color: #ddd;
+  display: block;
+  height: 2px;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  width: 22px;
+}
+
+.navbar-toggle.open .bar:nth-child(1) {
+  background: var(--nero-red-hot, #ff3333);
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.navbar-toggle.open .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-toggle.open .bar:nth-child(3) {
+  background: var(--nero-red-hot, #ff3333);
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.mobile-divider {
+  background: linear-gradient(90deg, transparent, var(--nero-red, #8a1c18), transparent);
+  height: 1px;
+  margin: 18px 0;
+  width: min(260px, 72vw);
+}
+
+.mobile-user-greeting {
+  color: var(--nero-muted, #888);
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+}
+
+.mobile-logout-btn {
+  background: rgba(50, 0, 0, 0.22);
+  border: 1px solid var(--nero-red-dark, #500);
+  color: #ff5555;
+  cursor: pointer;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin-top: 18px;
+  min-height: 44px;
+  padding: 0 26px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-logout-btn:hover,
+.mobile-logout-btn:focus-visible {
+  background: var(--nero-red, #8a1c18);
+  border-color: var(--nero-red-hot, #ff3333);
+  box-shadow: 0 0 18px rgba(255, 51, 51, 0.28);
+  color: #fff;
+  outline: none;
+}
+
+@media (max-width: 1100px) {
   .navbar {
-    padding: 0 20px;
-    height: 70px;
+    padding: 0 24px;
   }
 
-  /* 1. Esconde elementos de Desktop */
+  .navbar-center {
+    gap: 6px;
+  }
+
+  .navbar-link {
+    font-size: 0.78rem;
+    padding-inline: 10px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .navbar {
+    --navbar-height: 70px;
+    padding: 0 18px;
+  }
+
   .desktop-only {
     display: none !important;
   }
+
   .navbar-center {
     display: none;
-  } /* Esconde o menu central horizontal */
+  }
 
-  /* 2. Mostra Botão Hambúrguer */
   .navbar-toggle {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 30px;
-    height: 20px;
-    cursor: pointer;
-    z-index: 2001;
-  }
-  .bar {
-    width: 100%;
-    height: 2px;
-    background-color: #fff;
-    transition: 0.3s;
   }
 
-  /* Animação do Toggle X */
-  .navbar-toggle.open .bar:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 6px);
-    background: #b71c1c;
-  }
-  .navbar-toggle.open .bar:nth-child(2) {
-    opacity: 0;
-  }
-  .navbar-toggle.open .bar:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -6px);
-    background: #b71c1c;
-  }
-
-  /* 3. MENU ABERTO (OVERLAY FULLSCREEN) */
   .navbar-center.active {
+    align-items: stretch;
+    background:
+      radial-gradient(circle at top right, rgba(138, 28, 24, 0.18), transparent 30%),
+      linear-gradient(180deg, #080808, #111);
+    border-left: 1px solid rgba(255, 51, 51, 0.22);
+    box-shadow: -20px 0 60px rgba(0, 0, 0, 0.76);
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Itens começam do topo com padding */
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
+    gap: 10px;
     height: 100vh;
-    background: #0a0a0a; /* Fundo sólido escuro */
-    padding-top: 100px; /* Espaço para não cobrir logo e toggle */
+    justify-content: flex-start;
+    left: auto;
+    overflow-y: auto;
+    padding: 100px 22px 42px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: min(420px, 100vw);
     z-index: 2000;
-    overflow-y: auto; /* Permite rolar se o celular for muito pequeno */
   }
 
-  /* Estilo dos Links Normais no Mobile */
   .navbar-center.active .navbar-link {
-    font-size: 1.5rem;
-    margin: 15px 0;
-    font-family: "Orbitron", sans-serif;
-    color: #ccc;
-    width: auto;
-  }
-  .navbar-center.active .navbar-link:hover {
-    color: #fff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  }
-  .navbar-center.active .navbar-link::after {
-    display: none;
-  } /* Remove sublinhado vermelho no mobile */
-
-  /* 4. ÁREA DE CONTA MOBILE (AGORA VISÍVEL) */
-  .mobile-only-menu {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    margin-top: 20px;
-    padding-bottom: 40px;
-  }
-
-  .mobile-divider {
-    width: 60px;
-    height: 2px;
-    background: #333;
-    margin: 20px 0;
-  }
-
-  .mobile-user-greeting {
-    color: #888;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    margin-bottom: 15px;
-  }
-
-  /* Botão Sair Mobile - Vermelho e Grande */
-  .mobile-logout-btn {
-    margin-top: 20px;
-    background: transparent;
-    border: 1px solid #d32f2f;
-    color: #d32f2f;
-    padding: 12px 30px;
     font-family: "Orbitron", sans-serif;
     font-size: 1rem;
-    cursor: pointer;
-    border-radius: 4px;
-    text-transform: uppercase;
-    transition: 0.2s;
-  }
-  .mobile-logout-btn:hover {
-    background: #d32f2f;
-    color: #fff;
+    justify-content: space-between;
+    min-height: 52px;
+    padding-inline: 18px;
+    width: 100%;
   }
 
-  /* Botão Login Mobile */
+  .mobile-only-menu {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    width: 100%;
+  }
+
   .login-btn-mobile {
-    color: #b71c1c;
-    font-size: 1.2rem;
-    border: 1px solid #b71c1c;
-    padding: 10px 20px;
-    border-radius: 4px;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .navbar-center.active {
+    width: 100vw;
+  }
+
+  .logo-image {
+    height: 39px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-link,
+  .logo-image,
+  .bar,
+  .mobile-logout-btn {
+    transition: none;
   }
 }

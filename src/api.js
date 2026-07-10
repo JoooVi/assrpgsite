@@ -1,16 +1,17 @@
 import axios from 'axios';
 import { store } from './redux/store'; // Importe sua store do Redux
 import { logout, updateTokens } from './redux/slices/authSlice';
+import { API_URL } from './config/apiConfig';
 
 const api = axios.create({
-  baseURL: 'https://assrpgsite-be-production.up.railway.app/api',
+  baseURL: API_URL,
 });
 
 // Adiciona um interceptor que será executado antes de cada requisição
 api.interceptors.request.use(
   (config) => {
     // Pega o estado mais recente da store
-    const { token, refreshToken } = store.getState().auth;
+    const { token } = store.getState().auth;
 
     // Se o token existir, adiciona ele ao cabeçalho Authorization
     if (token) {
@@ -41,7 +42,7 @@ api.interceptors.response.use(
         try {
           // Tentar renovar o token
           const response = await axios.post(
-            'https://assrpgsite-be-production.up.railway.app/api/auth/refresh',
+            `${API_URL}/auth/refresh`,
             { refreshToken }
           );
 

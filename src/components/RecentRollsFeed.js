@@ -4,6 +4,8 @@ import { Box, Typography, List, ListItemText, } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNowStrict } from 'date-fns'; // For better timestamps
 import { ptBR } from 'date-fns/locale';        // For Portuguese timestamps
+import EmptyState from "./ui/EmptyState";
+import DiceFace from "./DiceFace";
 
 // --- Translation Function (Permanece igual) ---
 const translateKey = (key) => {
@@ -37,7 +39,13 @@ const translateKey = (key) => {
 // --- Main RecentRollsFeed Component ---
 const RecentRollsFeed = ({ rolls }) => {
   if (!rolls || rolls.length === 0) {
-    return <Typography variant="body2" sx={{ color: '#aaa', fontStyle: 'italic', p: 2 }}>Nenhuma rolagem recente.</Typography>;
+    return (
+      <EmptyState
+        compact
+        title="Nenhuma rolagem recente"
+        description="As rolagens da campanha aparecem aqui em tempo real."
+      />
+    );
   }
 
   const itemVariants = {
@@ -118,29 +126,7 @@ const RecentRollsFeed = ({ rolls }) => {
                           minWidth: '55px' // Largura mínima
                         }}
                       >
-                        <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 'bold', component: 'span' }}>
-                          (d{dieResult.sides || '?'}) 
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', minHeight: '30px', alignItems: 'center' }}>
-                          {dieResult.result.length > 0 ? (
-                            dieResult.result.map((imgSrc, j) => (
-                              <img
-                                key={j}
-                                src={imgSrc}
-                                alt="symbol"
-                                style={{ width: "25px", height: "25px", margin: "2px" }} // Tamanho padronizado
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = "/path/to/default-image.png";
-                                }}
-                              />
-                            ))
-                          ) : (
-                            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 'bold', component: 'span' }}>
-                              {dieResult.face}
-                            </Typography>
-                          )}
-                        </Box>
+                        <DiceFace die={dieResult} size={42} />
                       </Box>
                     ))}
                   </Box>
@@ -156,3 +142,4 @@ const RecentRollsFeed = ({ rolls }) => {
 };
 
 export default RecentRollsFeed;
+

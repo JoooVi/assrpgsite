@@ -83,7 +83,7 @@
   flex-direction: column;
   height: 75vh;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .columnHeader {
@@ -130,7 +130,7 @@
   font-size: 1rem;
   box-sizing: border-box;
   transition: border-color 0.2s;
-  border-radius: 3px;
+  border-radius: 0;
 }
 .diceInput:focus { outline: none; border-color: #8a1c18; background: #000; }
 
@@ -144,10 +144,10 @@
   font-size: 1rem;
   box-sizing: border-box;
   transition: border-color 0.2s;
-  border-radius: 3px;
+  border-radius: 0;
   cursor: pointer;
 }
-.neroSelect:focus { outline: none; border-color: #3cdce7; }
+.neroSelect:focus { outline: none; border-color: #8a1c18; }
 
 /* === BOTÕES FERRAMENTAS MESTRE (Efeito Fantasma Terminal) === */
 .btnMasterTool {
@@ -160,7 +160,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -171,29 +171,29 @@
 
 .btnMasterTool:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btnMasterTool.cyan { border-color: rgba(60, 220, 231, 0.4); color: #3cdce7; }
-.btnMasterTool.cyan:hover:not(:disabled) { background: rgba(60, 220, 231, 0.1); border: 1px solid #3cdce7; color: #fff; text-shadow: 0 0 5px #3cdce7; }
+.btnMasterTool.cyan { border-color: rgba(138, 28, 24, 0.55); color: #ff5555; }
+.btnMasterTool.cyan:hover:not(:disabled) { background: rgba(138, 28, 24, 0.14); border: 1px solid #ff3333; color: #fff; text-shadow: none; }
 
-.btnMasterTool.purple { border-color: rgba(139, 92, 246, 0.4); color: #8b5cf6; }
-.btnMasterTool.purple:hover:not(:disabled) { background: rgba(139, 92, 246, 0.1); border: 1px solid #8b5cf6; color: #fff; text-shadow: 0 0 5px #8b5cf6; }
+.btnMasterTool.purple { border-color: rgba(138, 28, 24, 0.55); color: #ff5555; }
+.btnMasterTool.purple:hover:not(:disabled) { background: rgba(138, 28, 24, 0.14); border: 1px solid #ff3333; color: #fff; text-shadow: none; }
 
 .btnMasterTool.red { border-color: rgba(167, 60, 57, 0.4); color: #a73c39; }
 .btnMasterTool.red:hover:not(:disabled) { background: rgba(167, 60, 57, 0.1); border: 1px solid #a73c39; color: #fff; text-shadow: 0 0 5px #a73c39; }
 
-.btnMasterTool.blue { border-color: rgba(59, 130, 246, 0.4); color: #3ca0e7; }
-.btnMasterTool.blue:hover:not(:disabled) { background: rgba(59, 130, 246, 0.1); border: 1px solid #3ca0e7; color: #fff; text-shadow: 0 0 5px #3ca0e7; }
+.btnMasterTool.blue { border-color: rgba(138, 28, 24, 0.55); color: #ff5555; }
+.btnMasterTool.blue:hover:not(:disabled) { background: rgba(138, 28, 24, 0.14); border: 1px solid #ff3333; color: #fff; text-shadow: none; }
 
-.btnMasterTool.green { border-color: rgba(74, 222, 128, 0.4); color: #4ade80; }
-.btnMasterTool.green:hover:not(:disabled) { background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; color: #fff; text-shadow: 0 0 5px #4ade80; }
+.btnMasterTool.green { border-color: rgba(138, 28, 24, 0.55); color: #ff5555; }
+.btnMasterTool.green:hover:not(:disabled) { background: rgba(138, 28, 24, 0.14); border: 1px solid #ff3333; color: #fff; text-shadow: none; }
 
 /* === BOTÕES GERAIS ANTIGOS (Mantidos para não quebrar outros modais) === */
 .btnRoll {
-  width: 100%; background: #1976d2; color: #fff; border: none; padding: 12px;
+  width: 100%; background: #8a1c18; color: #fff; border: 1px solid #500; padding: 12px;
   font-family: 'Orbitron', sans-serif; font-weight: 700; text-transform: uppercase;
   cursor: pointer; margin-bottom: 20px; border-radius: 2px; display: flex;
   align-items: center; justify-content: center; gap: 10px; transition: all 0.2s;
 }
-.btnRoll:hover { background: #1565c0; box-shadow: 0 0 15px rgba(25, 118, 210, 0.4); }
+.btnRoll:hover { background: #a0201c; box-shadow: 0 0 15px rgba(138, 28, 24, 0.4); }
 
 .btnCommand {
   flex: 1; background: #e0e0e0; color: #000; border: none; padding: 10px;
@@ -207,14 +207,14 @@
 .btnAdd {
   background: transparent; border: 1px dashed #555; color: #aaa; padding: 10px 15px;
   font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 3px;
+  cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 0;
   width: 100%; justify-content: center; transition: all 0.2s; text-transform: uppercase;
 }
-.btnAdd:hover { border-color: #3cdce7; color: #3cdce7; background: rgba(60, 220, 231, 0.05); }
+.btnAdd:hover { border-color: #ff3333; color: #fff; background: rgba(138, 28, 24, 0.14); }
 
 .btnTrash {
   background: rgba(255, 51, 51, 0.05); border: 1px solid #444; color: #ff3333;
-  border-radius: 3px; cursor: pointer; display: flex; align-items: center;
+  border-radius: 0; cursor: pointer; display: flex; align-items: center;
   justify-content: center; height: 42px; width: 45px; transition: all 0.2s;
 }
 .btnTrash:hover { background: rgba(255, 51, 51, 0.2); border-color: #ff3333; color: #fff; }
@@ -222,7 +222,7 @@
 .btnCancel {
   background: transparent; color: #aaa; border: 1px solid #444; padding: 10px 20px;
   font-family: 'Orbitron', sans-serif; font-weight: 700; cursor: pointer;
-  border-radius: 3px; transition: all 0.2s;
+  border-radius: 0; transition: all 0.2s;
 }
 .btnCancel:hover { background: #222; color: #fff; border-color: #888; }
 
@@ -230,9 +230,9 @@
   background: #111; color: #fff; border: 1px solid #444; padding: 10px 20px;
   font-family: 'Orbitron', sans-serif; font-weight: 700; text-transform: uppercase;
   cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
-  justify-content: center; gap: 8px; transition: all 0.2s; border-radius: 3px;
+  justify-content: center; gap: 8px; transition: all 0.2s; border-radius: 0;
 }
-.btnNero:hover { background: #222; border-color: #3cdce7; color: #3cdce7; box-shadow: 0 0 10px rgba(60, 220, 231, 0.3); }
+.btnNero:hover { background: #222; border-color: #ff3333; color: #fff; box-shadow: 0 0 10px rgba(138, 28, 24, 0.3); }
 
 .btnOutline { background: transparent; border: 1px solid #444; color: #aaa; }
 .btnOutline:hover { background: rgba(255, 255, 255, 0.05); border-color: #fff; color: #fff; }
@@ -243,7 +243,7 @@
   padding: 15px; font-family: 'Rajdhani', monospace; font-size: 1rem;
   line-height: 1.5; resize: vertical; min-height: 250px; box-sizing: border-box;
   display: block; transition: all 0.3s ease; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-  border-radius: 3px; margin-bottom: 10px;
+  border-radius: 0; margin-bottom: 10px;
 }
 .notesArea:focus { outline: none; border-color: #8a1c18; background: #050505; color: #fff; }
 
@@ -255,31 +255,31 @@
 .conflictItem { background: #1a1a1a; border: 1px solid #333; padding: 10px; margin-bottom: 10px; }
 .conflictItemHeader { display: flex; justify-content: space-between; color: #ccc; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
 
-.neroProgressContainer { height: 8px; background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+.neroProgressContainer { height: 8px; background: #000; border-radius: 0; overflow: hidden; margin-bottom: 8px; }
 .neroProgressBar { height: 100%; transition: width 0.3s ease; }
-.neroProgressBar.blue { background: #3cdce7; }
+.neroProgressBar.blue { background: #8a1c18; }
 .neroProgressBar.red { background: #ff3333; }
 
 .conflictControls { display: flex; justify-content: flex-end; gap: 5px; }
 .btnControlMini { width: 24px; height: 24px; background: #222; border: 1px solid #444; color: #aaa; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 2px; }
 .btnControlMini:hover { color: #fff; border-color: #fff; }
-.btnControlMini.plus:hover { background: rgba(0, 255, 0, 0.2); border-color: #4caf50; }
+.btnControlMini.plus:hover { background: rgba(138, 28, 24, 0.18); border-color: #ff3333; }
 .btnControlMini.minus:hover { background: rgba(255, 0, 0, 0.2); border-color: #f44336; }
 
 /* === LISTA AGENTES === */
 .characterList { display: flex; flex-direction: column; gap: 10px; }
-.characterCard { background: #111; border: 1px solid #333; padding: 10px; border-left: 3px solid #3cdce7; transition: transform 0.2s, box-shadow 0.2s; }
-.characterCard:hover { transform: translateX(4px); box-shadow: -2px 0 10px rgba(60, 220, 231, 0.2); }
+.characterCard { background: #111; border: 1px solid #333; padding: 10px; border-left: 3px solid #8a1c18; transition: transform 0.2s, box-shadow 0.2s; }
+.characterCard:hover { transform: translateX(4px); box-shadow: -2px 0 10px rgba(138, 28, 24, 0.24); }
 .characterHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .charName { font-family: 'Orbitron'; color: #fff; font-size: 1.1rem; }
 
 /* === TOAST E MODAIS === */
-.neroToast { position: fixed; bottom: 20px; right: 20px; background: #111; border-left: 4px solid #3cdce7; color: #fff; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); font-family: 'Orbitron'; z-index: 9999; display: flex; align-items: center; gap: 10px; }
+.neroToast { position: fixed; bottom: 20px; right: 20px; background: #111; border-left: 4px solid #8a1c18; color: #fff; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); font-family: 'Orbitron'; z-index: 9999; display: flex; align-items: center; gap: 10px; }
 .neroToast.error { border-left-color: #ff3333; }
 
 .modalBackdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); backdrop-filter: blur(3px); z-index: 11000; display: flex; justify-content: center; align-items: center; }
-.modalPanel { background: #1a1a1a; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 40px #000; border-radius: 6px; animation: modalFadeIn 0.2s ease-out; }
-.modalHeader { padding: 15px 20px; border-bottom: 1px solid #333; display:flex; justify-content:space-between; align-items: center; background: #111; border-top-left-radius: 6px; border-top-right-radius: 6px; }
+.modalPanel { background: #1a1a1a; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 40px #000; border-radius: 0; animation: modalFadeIn 0.2s ease-out; }
+.modalHeader { padding: 15px 20px; border-bottom: 1px solid #333; display:flex; justify-content:space-between; align-items: center; background: #111; border-radius: 0; }
 
 @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -288,4 +288,56 @@
   .masterShieldGrid { grid-template-columns: 1fr; height: auto; }
   .shieldColumn { height: auto; min-height: 400px; margin-bottom: 20px; }
   .campaignHeader { flex-direction: column; align-items: flex-start; gap: 15px; }
+}
+
+/* Visual refresh for the master tools area */
+.campaignSheet::before {
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(138, 28, 24, 0.2), transparent 30%),
+    linear-gradient(rgba(0, 0, 0, 0.88), rgba(8, 8, 8, 0.96)),
+    url('../assets/asssrpg.png');
+}
+
+.mainContent,
+.modalPanel {
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(5, 5, 5, 0.98));
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.shieldColumn,
+.conflictPanel,
+.characterCard,
+.conflictItem {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.shieldColumn {
+  background: linear-gradient(180deg, #131313, #090909);
+}
+
+.columnHeader,
+.modalHeader {
+  background: linear-gradient(90deg, rgba(138, 28, 24, 0.22), #111 55%, #0b0b0b);
+}
+
+.characterCard,
+.conflictItem {
+  background: linear-gradient(180deg, #151515, #0d0d0d);
+}
+
+.characterCard:hover,
+.conflictItem:hover {
+  border-color: rgba(255, 51, 51, 0.34);
+  background: linear-gradient(180deg, rgba(35, 20, 20, 0.88), #101010);
+}
+
+.btnNero,
+.btnCommand,
+.btnRoll,
+.btnCancel,
+.btnMasterTool {
+  border-radius: 0;
+  letter-spacing: 0.06em;
 }

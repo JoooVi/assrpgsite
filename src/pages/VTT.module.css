@@ -1,117 +1,1684 @@
 /* VTT.module.css */
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap");
 
 .vttContainer {
-  position: fixed; top: 0; left: 0; z-index: 9999;
-  width: 100vw; height: 100vh;
-  background-color: #101214; overflow: hidden;
+  --vtt-bg: #050505;
+  --vtt-panel: rgba(10, 10, 10, 0.94);
+  --vtt-panel-strong: rgba(18, 18, 18, 0.98);
+  --vtt-border: rgba(255, 255, 255, 0.12);
+  --vtt-border-strong: rgba(138, 28, 24, 0.58);
+  --vtt-text: #d8d8d8;
+  --vtt-muted: #8b8b8b;
+  --vtt-accent: #8a1c18;
+  --vtt-accent-strong: #ff3333;
+  --vtt-accent-soft: rgba(138, 28, 24, 0.16);
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--vtt-text);
+  font-family: "Rajdhani", sans-serif;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(138, 28, 24, 0.16), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.04), transparent 20%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(5, 5, 5, 0.92)),
+    var(--vtt-bg);
 }
 
-/* --- BARRAS E PAINÉIS PRINCIPAIS --- */
+/* --- BARRAS E PAINÃ‰IS PRINCIPAIS --- */
 .topBar {
-  position: absolute; top: 10px; left: 10px; right: 10px; height: 52px;
-  display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
-  z-index: 11000; border: 1px solid #35393f; background: rgba(15, 18, 22, 0.9);
-  border-radius: 10px; backdrop-filter: blur(6px);
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  z-index: 11000;
+  pointer-events: none;
+}
+
+.topBarCluster {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.campaignPill {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--vtt-accent);
+  border-radius: 12px;
+  background: rgba(7, 7, 7, 0.86);
+  color: #fafafa;
+  font-family: "Orbitron", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+}
+
+.campaignRole {
+  color: #ffb3b3;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pullPartyBtn {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 179, 71, 0.45);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(160, 83, 20, 0.95), rgba(82, 38, 10, 0.95));
+  color: #fff;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+}
+
+.toolOptionsDock {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12050;
+  width: auto;
+  max-width: min(760px, calc(100vw - 360px));
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 24, 0.18), transparent 38%),
+    linear-gradient(180deg, rgba(14, 14, 14, 0.94), rgba(5, 5, 5, 0.96));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.52);
+  overflow: visible;
+}
+
+.collapseButton,
+.dockCollapseBtn,
+.panelCollapseBtn,
+.rightPanelCollapseBtn {
+  border: 1px solid rgba(255, 51, 51, 0.28);
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.94), rgba(8, 8, 8, 0.96));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42);
+  line-height: 1;
+  padding: 0;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.collapseButton svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.collapseButton:hover,
+.collapseButton:focus-visible {
+  border-color: rgba(255, 51, 51, 0.72);
+  background: linear-gradient(180deg, rgba(82, 18, 18, 0.96), rgba(12, 8, 8, 0.98));
+  color: #fff;
+  outline: none;
+}
+
+.collapseButtonCollapsed {
+  border-color: rgba(255, 51, 51, 0.5);
+  box-shadow: 0 0 18px rgba(138, 28, 24, 0.24), 0 10px 24px rgba(0, 0, 0, 0.42);
+}
+
+.dockCollapseBtn {
+  position: absolute;
+  right: -12px;
+  top: -10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.toolOptionsDockCollapsed {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.toolOptionsDockCollapsed .toolOptionsContent {
+  display: none;
+}
+
+.toolOptionsDock:empty {
+  display: none;
+}
+
+.toolOptionsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.toolOptionsHeader strong {
+  color: #ffb3b3;
+  font-size: 10px;
+}
+
+.toolOptionsContent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 5px 7px;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.fogToolContent {
+  max-width: min(920px, calc(100vw - 340px));
+  row-gap: 8px;
+}
+
+.fogToolSection {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.fogActionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fogOpacityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(118px, 1fr));
+  gap: 7px;
+  align-items: center;
+}
+
+.fogOpacityControl {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: #8d8d8d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fogOpacityControl span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.fogOpacityControl strong {
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+}
+
+.fogToolContent .toolRange {
+  width: 100%;
+  min-width: 92px;
+}
+
+.toolHint {
+  flex: 1 1 100%;
+  color: #a8a8a8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.toolOptionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #bdbdbd;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.segmentedControl {
+  display: flex;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.segmentedControl button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #8b8b8b;
+  padding: 6px 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.segmentedControl button:hover,
+.segmentedControl .segmentActive {
+  color: #fff;
+  background: rgba(138, 28, 24, 0.42);
+}
+
+.compactInput {
+  width: 82px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: #fff;
+  padding: 6px 9px;
+  font-family: "Rajdhani", sans-serif;
+}
+
+.fontSelectWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.fontSelectButton {
+  position: relative;
+  width: 142px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #121212, #080808);
+  color: #f7f7f7;
+  padding: 0 28px 0 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 30px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: inset 0 0 0 1px rgba(255, 51, 51, 0.04);
+}
+
+.fontSelectButton::after {
+  content: "";
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid #ff6969;
+  border-bottom: 2px solid #ff6969;
+  transform: translateY(-68%) rotate(45deg);
+  pointer-events: none;
+}
+
+.fontSelectButton:hover {
+  border-color: rgba(255, 51, 51, 0.45);
+  box-shadow: 0 0 16px rgba(138, 28, 24, 0.18);
+}
+
+.fontSelectMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 14000;
+  width: 178px;
+  padding: 6px;
+  border: 1px solid rgba(255, 51, 51, 0.28);
+  border-radius: 12px;
+  background: rgba(8, 8, 8, 0.98);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.72), 0 0 24px rgba(138, 28, 24, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.fontSelectOption {
+  display: block;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #dedede;
+  padding: 7px 9px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fontSelectOption:hover,
+.fontSelectOptionActive {
+  border-color: rgba(255, 51, 51, 0.32);
+  background: rgba(138, 28, 24, 0.24);
+  color: #fff;
+}
+
+.objectTextInput {
+  flex: 0 1 190px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: #fff;
+  padding: 6px 11px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+}
+
+.labelEditorPopup {
+  position: fixed;
+  z-index: 999999;
+  width: min(320px, calc(100vw - 24px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(255, 51, 51, 0.5);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(138, 28, 24, 0.22), transparent 54%),
+    rgba(5, 5, 5, 0.96);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.78), 0 0 22px rgba(138, 28, 24, 0.22);
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.labelEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #ff6969;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-width: 0;
+}
+
+.labelEditorInput {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.045);
+  color: #fff;
+  padding: 9px 11px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.labelEditorInput:focus {
+  border-color: rgba(255, 51, 51, 0.92);
+  box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.16);
+}
+
+.labelEditorActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.labelEditorButton {
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #d8dde6;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.labelEditorButton:hover {
+  border-color: rgba(255, 51, 51, 0.55);
+  color: #fff;
+  background: rgba(138, 28, 24, 0.18);
+}
+
+.labelEditorButtonPrimary {
+  border-color: rgba(255, 51, 51, 0.72);
+  background: linear-gradient(135deg, rgba(138, 28, 24, 0.92), rgba(48, 13, 13, 0.96));
+  color: #fff;
+}
+
+.labelEditorHint {
+  margin-right: auto;
+  min-width: 0;
+  color: #7e8794;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.inspectorBtn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.inspectorDanger {
+  border-color: rgba(255, 51, 51, 0.45);
+  background: rgba(138, 28, 24, 0.24);
+  color: #ffb3b3;
+}
+
+/* --- ICON ACTION BUTTONS (dock superior) --- */
+.iconActionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  color: #c8c8c8;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.16s, border-color 0.16s, color 0.14s, transform 0.12s;
+}
+
+.iconActionBtn:hover {
+  background: rgba(138, 28, 24, 0.26);
+  border-color: rgba(255, 51, 51, 0.36);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.iconActionBtnActive {
+  background: rgba(138, 28, 24, 0.52) !important;
+  border-color: rgba(255, 51, 51, 0.68) !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(138, 28, 24, 0.28), inset 0 0 0 1px rgba(255, 51, 51, 0.1);
+}
+
+.iconActionBtnDanger {
+  border-color: rgba(255, 51, 51, 0.22);
+  background: rgba(100, 10, 10, 0.1);
+  color: #ff6969;
+}
+
+.iconActionBtnDanger:hover {
+  background: rgba(138, 28, 24, 0.42);
+  border-color: rgba(255, 51, 51, 0.58);
+  color: #ff9090;
+  transform: translateY(-1px);
+}
+
+.iconActionBtnWarning {
+  border-color: rgba(255, 210, 80, 0.28);
+  color: #ffd080;
+}
+
+.iconActionBtnWarning:hover {
+  background: rgba(100, 72, 8, 0.3);
+  border-color: rgba(255, 210, 80, 0.5);
+}
+
+/* Divisor vertical no dock */
+.toolDividerV {
+  width: 1px;
+  height: 20px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  flex-shrink: 0;
+  margin: 0 3px;
+}
+
+/* RÃ³tulo minimalista no dock */
+.toolDockLabel {
+  color: #5e5e5e;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Dica de uso */
+.toolDockHint {
+  color: #5e5e5e;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Valor numérico (ex: "3px" após slider) */
+.toolDockValueLabel {
+  color: #8b8b8b;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  min-width: 26px;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Grupo de botÃµes de ferramenta no dock */
+.toolDockGroup {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+/* Color swatch melhorado */
+.toolColorSwatch {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toolColorSwatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 5px;
+}
+
+.toolColorSwatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
 }
 
 .leftSidebar {
-  position: absolute; top: 84px; left: 12px; z-index: 10000;
-  display: flex; flex-direction: column; gap: 8px;
-  background: rgba(13, 18, 24, 0.92); border: 1px solid #394451;
-  border-radius: 24px; padding: 8px; backdrop-filter: blur(8px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  position: absolute;
+  top: 64px;
+  left: 12px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(138, 28, 24, 0.18), transparent 42%),
+    rgba(7, 7, 7, 0.96);
+  border: 1px solid var(--vtt-border);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 18px;
+  padding: 10px 7px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.58);
+}
+
+.toolGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+}
+
+.toolGroupInline {
+  position: relative;
+}
+
+.leftSidebar .toolPanel {
+  display: none;
+}
+
+.toolGroupLabel {
+  color: #747474;
+  font-family: "Orbitron", sans-serif;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 1px 1px 2px;
 }
 
 .subToolbar {
-  position: absolute; top: 84px; left: 70px; z-index: 10000;
-  background: rgba(13, 18, 24, 0.94); border: 1px solid #394451;
-  border-radius: 12px; padding: 8px; display: flex; gap: 8px;
-  align-items: center; backdrop-filter: blur(8px);
+  position: absolute;
+  top: 84px;
+  left: 70px;
+  z-index: 10000;
+  background: rgba(10, 10, 10, 0.94);
+  border: 1px solid var(--vtt-border);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  backdrop-filter: blur(10px);
 }
 
 .rightPanel {
-  position: absolute; top: 72px; right: 10px; width: 390px; bottom: 10px;
-  z-index: 10000; display: flex; flex-direction: column;
-  border-radius: 10px; border: 1px solid #3a3f47; overflow: hidden;
-  background: rgba(14, 17, 20, 0.95);
+  position: absolute;
+  top: 64px;
+  right: 12px;
+  width: 410px;
+  bottom: 12px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1px solid var(--vtt-border);
+  border-top: 3px solid var(--vtt-accent);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 24, 0.16), transparent 32%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(5, 5, 5, 0.99));
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.64);
 }
 
-/* --- BOTÕES DE FERRAMENTAS --- */
+/* --- BOTÃ•ES DE FERRAMENTAS --- */
 .toolBtn {
-  width: 42px; height: 42px; border-radius: 14px;
-  border: 1px solid transparent; background: transparent; color: #f0f7ff;
-  display: grid; place-items: center; cursor: pointer; transition: 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    linear-gradient(180deg, rgba(24, 24, 24, 0.72), rgba(8, 8, 8, 0.72));
+  color: #f2f2f2;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
-.toolBtn:hover { background: #1a3140; }
-.toolBtnActive { border: 1px solid #7ad7ff; background: #1a3140; }
-.toolBtnDanger { border: 1px solid #ff6969; background: #4a1f27; color: #ffd5d5; }
-.divider { height: 1px; background: #3a4654; margin: 3px 4px; }
+
+.toolBtn:hover {
+  background:
+    linear-gradient(180deg, rgba(62, 20, 20, 0.86), rgba(16, 10, 10, 0.92));
+  border-color: rgba(255, 51, 51, 0.28);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.toolBtnActive {
+  border: 1px solid rgba(255, 51, 51, 0.58);
+  background:
+    linear-gradient(180deg, rgba(138, 28, 24, 0.58), rgba(55, 13, 13, 0.92));
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 51, 51, 0.16),
+    0 0 18px rgba(138, 28, 24, 0.28);
+}
+
+.toolPanel {
+  position: fixed;
+  left: 74px;
+  top: 64px;
+  min-width: 220px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 13000;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 24, 0.18), transparent 36%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(6, 6, 6, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.toolPanelHeader {
+  color: var(--vtt-muted);
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.toolSeparator {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(180deg, transparent, rgba(138, 28, 24, 0.8), transparent);
+  margin: 0 4px;
+}
+
+.toolColorInput {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toolRange {
+  width: 100%;
+  accent-color: #ff3333;
+}
+
+.toolOptionsDock .toolRange {
+  width: 92px;
+}
+
+.toolMiniLabel {
+  color: #d7d7d7;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.toolLabelStack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--vtt-muted);
+  font-size: 10px;
+}
+
+.toolLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--vtt-muted);
+  font-size: 10px;
+}
+
+.toolBtnDanger {
+  border: 1px solid #6d1a1a;
+  background: #361212;
+  color: #ffd5d5;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(138, 28, 24, 0.6), transparent);
+  margin: 3px 4px;
+}
+
+/* Toolbar lateral compacta */
+.leftSidebar {
+  gap: 6px;
+  border-top-width: 2px;
+  border-radius: 14px;
+  padding: 7px 5px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.58);
+  pointer-events: auto;
+}
+
+.leftSidebar .toolGroup {
+  gap: 4px;
+}
+
+.leftSidebar .toolGroupLabel {
+  font-size: 6px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  padding: 0 0 1px;
+}
+
+.leftSidebar .toolBtn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 9px;
+  line-height: 1;
+}
+
+.leftSidebar .toolBtn svg {
+  display: block;
+}
+
+.leftSidebar .divider {
+  margin: 1px 5px;
+}
+
+.leftSidebar .sidebarMenuPanel {
+  display: flex;
+  left: 58px;
+  top: auto;
+  min-width: 178px;
+  max-width: 210px;
+  padding: 8px;
+  gap: 6px;
+  z-index: 14050;
+  pointer-events: auto;
+  border-top-width: 2px;
+}
+
+.leftSidebar .sidebarMenuPanel .toolPanelHeader {
+  font-size: 8px;
+  padding-bottom: 5px;
+}
+
+.layerMenuBtn {
+  width: 100%;
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #9d9d9d;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 9px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.layerMenuBtn:hover,
+.layerMenuBtnActive {
+  border-color: rgba(255, 51, 51, 0.5);
+  background: rgba(138, 28, 24, 0.25);
+  color: #fff;
+}
+
+.layerMenuToggle {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 9px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #8f8f8f;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 11px;
+}
+
+.layerMenuToggle input {
+  accent-color: #ff3333;
+}
+
+/* Scrollbars do VTT */
+.chatViewport,
+.sheetViewport,
+.shieldViewport,
+.scrollableContent,
+.assetGrid,
+.sheetList {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 51, 51, 0.55) rgba(255, 255, 255, 0.035);
+}
+
+.chatViewport::-webkit-scrollbar,
+.sheetViewport::-webkit-scrollbar,
+.shieldViewport::-webkit-scrollbar,
+.scrollableContent::-webkit-scrollbar,
+.assetGrid::-webkit-scrollbar,
+.sheetList::-webkit-scrollbar,
+.tokenEditBox::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.chatViewport::-webkit-scrollbar-track,
+.sheetViewport::-webkit-scrollbar-track,
+.shieldViewport::-webkit-scrollbar-track,
+.scrollableContent::-webkit-scrollbar-track,
+.assetGrid::-webkit-scrollbar-track,
+.sheetList::-webkit-scrollbar-track,
+.tokenEditBox::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: 999px;
+}
+
+.chatViewport::-webkit-scrollbar-thumb,
+.sheetViewport::-webkit-scrollbar-thumb,
+.shieldViewport::-webkit-scrollbar-thumb,
+.scrollableContent::-webkit-scrollbar-thumb,
+.assetGrid::-webkit-scrollbar-thumb,
+.sheetList::-webkit-scrollbar-thumb,
+.tokenEditBox::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 51, 51, 0.72), rgba(138, 28, 24, 0.5));
+  border: 1px solid rgba(0, 0, 0, 0.45);
+}
+
+.chatViewport::-webkit-scrollbar-thumb:hover,
+.sheetViewport::-webkit-scrollbar-thumb:hover,
+.shieldViewport::-webkit-scrollbar-thumb:hover,
+.scrollableContent::-webkit-scrollbar-thumb:hover,
+.assetGrid::-webkit-scrollbar-thumb:hover,
+.sheetList::-webkit-scrollbar-thumb:hover,
+.tokenEditBox::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 90, 90, 0.9), rgba(170, 34, 28, 0.7));
+}
+
+.chatViewport::-webkit-scrollbar-corner,
+.sheetViewport::-webkit-scrollbar-corner,
+.shieldViewport::-webkit-scrollbar-corner,
+.scrollableContent::-webkit-scrollbar-corner,
+.assetGrid::-webkit-scrollbar-corner,
+.sheetList::-webkit-scrollbar-corner,
+.tokenEditBox::-webkit-scrollbar-corner {
+  background: transparent;
+}
 
 /* --- MODAIS E OVERLAYS --- */
 .modalOverlay {
-  position: absolute; inset: 0; z-index: 15000;
-  background: rgba(5, 8, 12, 0.86);
-  display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
+  position: absolute;
+  inset: 0;
+  z-index: 15000;
+  background: rgba(5, 5, 5, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
 }
 
 .sceneManagerBox {
-  width: 800px; height: 600px; background: #12161c;
-  border: 1px solid #353f4d; border-radius: 12px; display: flex;
-  flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.8); overflow: hidden;
+  width: 800px;
+  height: 600px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(138, 28, 24, 0.16), transparent 32%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(6, 6, 6, 0.99));
+  border: 1px solid var(--vtt-border);
+  border-top: 4px solid var(--vtt-accent);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.78);
+  overflow: hidden;
+}
+
+.assetManagerBox {
+  width: 920px;
+}
+
+.modalHeader {
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(6, 6, 6, 0.98));
+}
+
+.modalTitle {
+  margin: 0;
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modalCloseBtn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 105, 105, 0.24);
+  border-radius: 10px;
+  background: rgba(138, 28, 24, 0.12);
+  color: #ff6969;
+  cursor: pointer;
+}
+
+.modalCloseBtn:hover {
+  border-color: rgba(255, 105, 105, 0.6);
+  background: rgba(138, 28, 24, 0.28);
+}
+
+.modalBody {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+}
+
+.modalScrollBody {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modalToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.modalActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.managerTabs {
+  display: flex;
+  gap: 8px;
+}
+
+.managerTabBtn {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #8b8b8b;
+  padding: 8px 14px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.managerTabBtnActive {
+  color: #fff;
+  border-color: rgba(255, 51, 51, 0.52);
+  background: rgba(138, 28, 24, 0.24);
+}
+
+.sceneFolder {
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.sceneFolderHeader {
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(138, 28, 24, 0.12);
+}
+
+.sceneFolderTitle {
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ghostBtn {
+  border: 1px solid rgba(255, 51, 51, 0.38);
+  border-radius: 8px;
+  background: rgba(138, 28, 24, 0.08);
+  color: #ffb3b3;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.ghostBtn:hover {
+  background: rgba(138, 28, 24, 0.2);
+  border-color: #ff3333;
+}
+
+.sceneGrid,
+.assetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.sceneGrid {
+  padding: 14px;
+}
+
+.sceneLooseSection {
+  margin-top: 20px;
+}
+
+.sectionKicker {
+  color: #8b8b8b;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.sceneCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  min-height: 154px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: #101010;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sceneCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 51, 51, 0.4);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+}
+
+.sceneCardActive {
+  border-color: rgba(255, 51, 51, 0.7);
+  background: linear-gradient(180deg, rgba(36, 20, 23, 0.96), rgba(10, 10, 10, 0.98));
+}
+
+.sceneThumb {
+  width: 100%;
+  height: 96px;
+  position: relative;
+  background: #070707;
+}
+
+.sceneThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+  filter: saturate(0.8) contrast(1.08);
+}
+
+.sceneNoImage {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #4b4b4b;
+  background:
+    radial-gradient(circle at center, rgba(138, 28, 24, 0.18), transparent 48%),
+    #090909;
+}
+
+.sceneBadge {
+  position: absolute;
+  top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sceneBadgeParty {
+  right: 7px;
+  background: rgba(255, 179, 71, 0.92);
+  color: #080808;
+}
+
+.sceneBadgeViewing {
+  left: 7px;
+  background: rgba(255, 51, 51, 0.9);
+  color: #fff;
+}
+
+.sceneCardFooter {
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.sceneName {
+  color: #f4f4f4;
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sceneMeta {
+  color: #7b7b7b;
+  font-size: 10px;
+  white-space: nowrap;
 }
 
 .tokenEditBox {
-  background: #151a21; border: 1px solid #353f4d; border-radius: 10px;
-  padding: 20px; width: 320px; color: #e8edf2; box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.98));
+  border: 1px solid var(--vtt-border);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 12px;
+  padding: 18px;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(88vh, 760px);
+  overflow: auto;
+  color: #e8edf2;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.8);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 51, 51, 0.55) rgba(255, 255, 255, 0.035);
+}
+
+.tokenEditHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.tokenEditTitle {
+  margin: 0;
+  color: #ff3333;
+  font-family: "Orbitron", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tokenEditSubtitle {
+  margin: 4px 0 0;
+  color: #8b8b8b;
+  font-size: 12px;
+}
+
+.tokenEditPreview {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 51, 51, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.tokenEditPreview strong {
+  display: block;
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.tokenEditPreview span {
+  display: block;
+  margin-top: 4px;
+  color: #8fa0b3;
+  font-size: 12px;
+}
+
+.tokenPreviewCircle,
+.tokenPreviewFreeform,
+.tokenPreviewEmpty {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
+  background:
+    linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+    #080b0f;
+  background-size: 12px 12px;
+  border: 1px solid rgba(255, 51, 51, 0.5);
+}
+
+.tokenPreviewCircle {
+  border-radius: 50%;
+}
+
+.tokenPreviewFreeform {
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.tokenPreviewEmpty {
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.tokenEditGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tokenEditField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.tokenEditField > span {
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tokenEditField small {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.tokenEditColorRow {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.tokenEditUploadRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tokenEditUploadBtn {
+  position: relative;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 51, 51, 0.48);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(138, 28, 24, 0.84), rgba(30, 11, 11, 0.94));
+  color: #fff;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  overflow: hidden;
+}
+
+.tokenEditUploadBtn:hover {
+  border-color: rgba(255, 91, 91, 0.86);
+  background: linear-gradient(135deg, rgba(178, 32, 28, 0.94), rgba(48, 13, 13, 0.96));
+}
+
+.tokenEditUploadBtn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tokenEditUploadBtn:has(input:disabled) {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.tokenEditColorInput {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: #080b0f;
+  cursor: pointer;
+}
+
+.tokenEditGhostBtn,
+.tokenEditSecondaryBtn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #b7c2cf;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tokenEditGhostBtn {
+  height: 38px;
+  padding: 0 10px;
+}
+
+.tokenEditSecondaryBtn {
+  padding: 8px 12px;
+}
+
+.tokenEditGhostBtn:hover,
+.tokenEditSecondaryBtn:hover {
+  border-color: rgba(255, 51, 51, 0.5);
+  color: #fff;
+  background: rgba(138, 28, 24, 0.16);
+}
+
+.tokenEditActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 620px) {
+  .tokenEditGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tokenEditColorRow {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .tokenEditGhostBtn {
+    grid-column: 1 / -1;
+  }
 }
 
 /* --- COMPONENTES INTERNOS --- */
-.rightTabsHeader { display: flex; border-bottom: 1px solid #2d323a; }
-.rightTabBtn {
-  flex: 1; padding: 10px; border: none; background: transparent;
-  color: #a8b0bd; font-family: 'Orbitron', sans-serif; font-size: 12px; cursor: pointer;
+.rightTabsHeader {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(14, 14, 14, 0.98), rgba(6, 6, 6, 0.98));
 }
-.rightTabBtnActive { background: #1f2630; color: #fff; }
+
+.rightTabBtn {
+  flex: 1;
+  padding: 13px 10px;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  color: #8d8d8d;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.rightTabBtn:last-child {
+  border-right: 0;
+}
+
+.rightTabBtn:hover {
+  color: #fff;
+  background: rgba(138, 28, 24, 0.1);
+}
+
+.rightTabBtnActive {
+  background:
+    linear-gradient(180deg, rgba(138, 28, 24, 0.22), rgba(40, 12, 12, 0.2));
+  color: #fff;
+  box-shadow: inset 0 -2px 0 #ff3333;
+}
 
 .chatEntryText {
-  background: #1c222a; border: 1px solid #2f363f; color: #dce5ef;
-  padding: 8px; border-radius: 6px; font-size: 12px;
+  background: rgba(18, 18, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #dce5ef;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
 }
+
 .chatEntryRoll {
-  background: #171d24; border: 1px solid #2c343e; color: #dfe7f2;
-  padding: 10px; border-radius: 6px;
+  background: rgba(18, 18, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #dfe7f2;
+  padding: 10px;
+  border-radius: 8px;
 }
+
 .chatInputArea {
-  border-top: 1px solid #2d323a; padding: 10px; display: flex; flex-direction: column; gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
+
 .inputField {
-  background: #12161c; border: 1px solid #2d323a; color: #fff;
-  padding: 8px 10px; border-radius: 6px; outline: none; font-size: 12px;
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  outline: none;
+  font-size: 12px;
+  font-family: "Rajdhani", sans-serif;
 }
+
+.inputField:focus {
+  border-color: rgba(255, 51, 51, 0.55);
+  box-shadow: 0 0 0 1px rgba(138, 28, 24, 0.24);
+}
+
 .primaryBtn {
-  padding: 8px 12px; border-radius: 6px; border: 1px solid #3d6b8c;
-  background: #1e4d68; color: #fff; font-size: 12px; cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(138, 28, 24, 0.78);
+  background: linear-gradient(180deg, #8a1c18, #5d120f);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
+
+.primaryBtn:hover {
+  background: linear-gradient(180deg, #a0201c, #6a1612);
+  border-color: #ff3333;
+}
+
 .dangerBtn {
-  padding: 8px 12px; background: #8c1d1d; color: white;
-  border: 1px solid #b03a3a; border-radius: 6px; cursor: pointer;
-  font-weight: bold; font-family: 'Orbitron'; font-size: 11px;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #651616, #3d1010);
+  color: white;
+  border: 1px solid #8c1d1d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Orbitron';
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
 /* MENU DE CONTEXTO FLUTUANTE */
 .contextMenu {
-  position: absolute; z-index: 99999; background: #151a21;
-  border: 1px solid #353f4d; border-radius: 8px; padding: 4px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 2px; min-width: 160px;
+  position: fixed;
+  z-index: 99999;
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.98));
+  border: 1px solid var(--vtt-border);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+  max-width: min(280px, calc(100vw - 24px));
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .contextMenuItem {
-  background: transparent; border: none; color: #d8ecff; text-align: left;
-  padding: 6px 8px; font-size: 12px; cursor: pointer; border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: #d8ecff;
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: "Rajdhani", sans-serif;
 }
-.contextMenuItem:hover { background: #1d3342; }
+.contextMenuItem:hover { background: rgba(138, 28, 24, 0.18); }
 
-/* ======== BARRA DE ACESSO RÁPIDO (BOTTOM BAR) ======== */
+/* ======== BARRA DE ACESSO RÃPIDO (BOTTOM BAR) ======== */
 .bottomQuickBar {
   position: absolute;
   bottom: 20px;
@@ -120,12 +1687,13 @@
   z-index: 12000;
   display: flex;
   align-items: center;
-  background: rgba(15, 18, 22, 0.95);
-  border: 1px solid #35393f;
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid var(--vtt-border);
+  border-top: 3px solid var(--vtt-accent);
   padding: 6px 10px;
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.56);
   gap: 4px;
 }
 
@@ -137,7 +1705,7 @@
   justify-content: center;
   background: transparent;
   border: none;
-  color: #8fa8bf;
+  color: #9d9d9d;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s ease;
@@ -145,14 +1713,14 @@
 }
 
 .categoryBtn:hover {
-  background: #1d3342;
-  color: #67d7ff;
+  background: rgba(138, 28, 24, 0.18);
+  color: #fff;
 }
 
 .categoryBtnActive {
-  background: #1d3342;
-  color: #67d7ff;
-  box-shadow: inset 0 0 10px rgba(103, 215, 255, 0.2);
+  background: rgba(138, 28, 24, 0.22);
+  color: #fff;
+  box-shadow: inset 0 0 10px rgba(138, 28, 24, 0.22);
 }
 
 .categoryBtnActive::after {
@@ -161,14 +1729,14 @@
   bottom: 2px;
   width: 14px;
   height: 2px;
-  background: #67d7ff;
+  background: #ff3333;
   border-radius: 2px;
 }
 
 .verticalDivider {
   width: 1px;
   height: 24px;
-  background: #2d3b4f;
+  background: linear-gradient(180deg, transparent, rgba(138, 28, 24, 0.8), transparent);
   margin: 0 6px;
 }
 
@@ -181,8 +1749,9 @@
   transform: translateX(-50%);
   width: 600px;
   max-width: 90vw;
-  background: rgba(15, 18, 22, 0.98);
-  border: 1px solid #3d6b8c;
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.98));
+  border: 1px solid rgba(138, 28, 24, 0.72);
+  border-top: 3px solid #8a1c18;
   border-radius: 12px;
   padding: 12px;
   display: flex;
@@ -190,9 +1759,9 @@
   overflow-x: auto;
   box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
   animation: slideUpQuick 0.2s ease-out;
-  
+
   /* A MÁGICA ACONTECE AQUI: Força a prateleira a ficar sempre acima do mapa */
-  z-index: 11500; 
+  z-index: 11500;
 }
 
 @keyframes slideUpQuick {
@@ -204,14 +1773,14 @@
   min-width: 80px;
   height: 80px;
   border-radius: 8px;
-  border: 1px solid #2d3b4f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
   cursor: grab;
   flex-shrink: 0;
   transition: 0.2s;
 }
 
-.shelfItem:hover { border-color: #67d7ff; transform: scale(1.05); }
+.shelfItem:hover { border-color: #ff3333; transform: scale(1.05); }
 .shelfItem img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ======== MENU RADIAL (CTRL+V) ======== */
@@ -219,8 +1788,8 @@
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
 }
 
 .radialCenter {
@@ -229,8 +1798,8 @@
   height: 130px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: rgba(15, 20, 25, 0.95);
-  border: 2px solid #3d6b8c;
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.98));
+  border: 2px solid rgba(138, 28, 24, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -243,11 +1812,11 @@
   border-radius: 8px;
   object-fit: cover;
   z-index: 10;
-  border: 1px solid #67d7ff;
+  border: 1px solid #ff3333;
 }
 
 .radialLoader {
-  color: #67d7ff;
+  color: #ff3333;
   font-size: 11px;
   position: absolute;
   bottom: -30px;
@@ -259,24 +1828,24 @@
   position: absolute;
   width: 48px;
   height: 48px;
-  background: #1d3342;
+  background: #241417;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8fa8bf;
+  color: #d8d8d8;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #2d3b4f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 .radialSlice:hover {
-  background: #3d6b8c;
+  background: #5d120f;
   color: #fff;
   transform: scale(1.15);
-  border-color: #67d7ff;
-  box-shadow: 0 0 15px rgba(103, 215, 255, 0.4);
+  border-color: #ff3333;
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.28);
 }
 
 /* Posições dos botões na roda */
@@ -285,3 +1854,1565 @@
 .radialBottom { bottom: -24px; left: 39px; }
 .radialLeft { top: 39px; left: -24px; color: #ff6969; }
 .radialLeft:hover { background: #8c1d1d; border-color: #ff6969; }
+
+/* ======== CHAT / FICHA / ASSETS ======== */
+
+.chatViewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.9), rgba(8, 8, 8, 0.96));
+}
+
+.chatEmptyState {
+  margin: auto 12px;
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  color: #9d9d9d;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.45;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chatSystemCard,
+.chatMessageCard,
+.chatRollCard,
+.chatJsonCard {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(20, 20, 20, 0.98), rgba(8, 8, 8, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(138, 28, 24, 0.85);
+  border-radius: 12px;
+  padding: 12px;
+  color: #dce5ef;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+}
+
+.chatSystemCard {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-left-color: rgba(255, 255, 255, 0.18);
+  color: #bcbcbc;
+  font-style: italic;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.chatSystemCard span,
+.chatSystemCard strong {
+  color: #ffb3b3;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+
+.chatMessageMeta,
+.chatRollMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ffb3b3;
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chatMessageMeta span {
+  color: #777;
+}
+
+.chatMessageBody {
+  white-space: pre-wrap;
+  color: #f0f0f0;
+  line-height: 1.5;
+}
+
+.chatRollHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.chatRollTitle {
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.chatRollSubtitle {
+  color: #8b8b8b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.chatRollTime {
+  color: #777;
+  font-size: 11px;
+}
+
+.chatRollResult {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 51, 51, 0.16);
+  background:
+    linear-gradient(90deg, rgba(138, 28, 24, 0.22), rgba(255, 255, 255, 0.03));
+}
+
+.chatRollResult strong {
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 12px;
+}
+
+.chatRollResult span {
+  color: #9d9d9d;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.chatRollDiceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chatRollDie {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  background: #101010;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.chatRollDieLabel {
+  font-size: 10px;
+  color: #ffb3b3;
+  font-family: "Orbitron", sans-serif;
+}
+
+.chatRollDieEmpty {
+  font-size: 10px;
+  color: #7d7d7d;
+}
+
+.chatRollSymbol {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.16));
+}
+
+.chatCardKicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ff6969;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chatCardKicker div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chatCardKicker span {
+  color: #777;
+  font-family: "Rajdhani", sans-serif;
+  letter-spacing: 0;
+}
+
+.chatNpcCard {
+  border-left-color: rgba(255, 179, 71, 0.9);
+}
+
+.chatEventCard {
+  border-left-color: rgba(255, 51, 51, 0.9);
+}
+
+.chatInfoBox,
+.chatQuoteBox {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  color: #d8d8d8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.chatInfoBox {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chatInfoBox strong {
+  color: #ffb3b3;
+}
+
+.chatQuoteBox {
+  color: #ffe5e5;
+  font-style: italic;
+}
+
+.chatComposer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background:
+    linear-gradient(180deg, rgba(12, 12, 12, 0.98), rgba(4, 4, 4, 0.98));
+}
+
+.chatComposerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatIdentityLabel {
+  color: #8b8b8b;
+  font-size: 12px;
+}
+
+.chatIdentityLabel strong {
+  color: #fff;
+}
+
+.chatIdentitySelect {
+  width: auto;
+  min-width: 132px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.chatRollModeTabs,
+.chatMessageComposer {
+  display: flex;
+  gap: 8px;
+}
+
+.rollModeBtn {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #101010;
+  color: #9d9d9d;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.rollModeBtnActive {
+  color: #fff;
+  border-color: rgba(255, 51, 51, 0.48);
+  background: linear-gradient(180deg, rgba(138, 28, 24, 0.34), rgba(40, 12, 12, 0.28));
+}
+
+.chatMessageComposer .inputField {
+  flex: 1;
+}
+
+.secondaryBtn {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #202020, #101010);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.secondaryBtn:hover {
+  border-color: rgba(255, 51, 51, 0.55);
+  background: linear-gradient(180deg, #2a1818, #140b0b);
+}
+
+.sheetViewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(8, 8, 8, 0.92), rgba(4, 4, 4, 0.98));
+}
+
+.sheetHeaderBlock {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.sheetPanelTitle {
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sheetSearchInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: #0a0a0a;
+  color: #fff;
+  padding: 8px 12px;
+  outline: none;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+}
+
+.sheetSearchInput:focus {
+  border-color: rgba(255, 51, 51, 0.55);
+  box-shadow: 0 0 0 2px rgba(138, 28, 24, 0.18);
+}
+
+.sheetFilterRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sheetFilterRow button {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #9d9d9d;
+  padding: 6px 9px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sheetFilterRow button:hover,
+.sheetFilterRow .sheetFilterActive {
+  border-color: rgba(255, 51, 51, 0.44);
+  color: #fff;
+  background: rgba(138, 28, 24, 0.28);
+}
+
+.sheetLayout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.sheetList {
+  max-height: 225px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-right: 3px;
+}
+
+.sheetListCard {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #d8d8d8;
+  padding: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.16s, background 0.16s, transform 0.12s;
+}
+
+.sheetListCard:hover,
+.sheetListCardActive {
+  border-color: rgba(255, 51, 51, 0.46);
+  background: linear-gradient(90deg, rgba(138, 28, 24, 0.25), rgba(255, 255, 255, 0.035));
+  transform: translateX(2px);
+}
+
+.sheetListAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sheetListCard span {
+  min-width: 0;
+}
+
+.sheetListCard strong,
+.sheetListCard small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheetListCard strong {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.sheetListCard small {
+  color: #8f8f8f;
+  font-size: 11px;
+}
+
+.sheetListCard em {
+  border: 1px solid rgba(255, 51, 51, 0.35);
+  border-radius: 999px;
+  color: #ffb3b3;
+  padding: 3px 6px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 7px;
+  font-style: normal;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sheetPicker {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.sheetChip {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: #101010;
+  color: #bdbdbd;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sheetChip:hover,
+.sheetChipActive {
+  border-color: rgba(255, 51, 51, 0.55);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(138, 28, 24, 0.34), rgba(28, 10, 10, 0.92));
+}
+
+.sheetEmptyState {
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  color: #8f8f8f;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+}
+
+.sheetStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sheetHeroCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(138, 28, 24, 0.85);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(8, 8, 8, 0.98));
+  padding: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+}
+
+.sheetHeroHeader {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sheetAvatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.sheetHeroInfo {
+  min-width: 0;
+}
+
+.sheetKicker {
+  color: #ff6969;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.sheetName {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.sheetSubtext {
+  color: #9d9d9d;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.sheetTokenBadge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  border: 1px solid rgba(255, 51, 51, 0.38);
+  border-radius: 999px;
+  background: rgba(138, 28, 24, 0.2);
+  color: #ffb3b3;
+  padding: 4px 7px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sheetHealthBlock {
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 3px solid rgba(255, 51, 51, 0.42);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 24, 0.12), transparent 42%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.sheetHealthHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sheetHealthHeader span {
+  color: #8b8b8b;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sheetHealthHeader strong {
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sheetHealthMeta {
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #9b9b9b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sheetHearts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+  color: #ff3333;
+}
+
+.sheetHearts svg {
+  filter: drop-shadow(0 0 6px rgba(255, 51, 51, 0.22));
+}
+
+.sheetHearts svg:last-child {
+  color: inherit;
+}
+
+.sheetHealthTrack {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.sheetHealthSegment {
+  min-width: 0;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #777;
+  font-family: "Orbitron", sans-serif;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.sheetHealthSegmentActive {
+  border-color: rgba(255, 51, 51, 0.78);
+  background: rgba(138, 28, 24, 0.42);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(138, 28, 24, 0.22);
+}
+
+.sheetHealthSegmentDanger {
+  border-color: rgba(255, 51, 51, 0.22);
+  color: #a45d5d;
+}
+
+.sheetHealthDescription {
+  margin: 8px 0 0;
+  color: #aaa;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.sheetHealthHealthy {
+  border-left-color: rgba(88, 210, 135, 0.6);
+}
+
+.sheetHealthBruised {
+  border-left-color: rgba(255, 186, 88, 0.58);
+}
+
+.sheetHealthWounded {
+  border-left-color: rgba(255, 86, 58, 0.72);
+}
+
+.sheetHealthCritical,
+.sheetHealthCollapsed {
+  border-left-color: rgba(255, 51, 51, 0.9);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 51, 51, 0.16), transparent 42%),
+    rgba(60, 8, 8, 0.18);
+}
+
+.sheetStatGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sheetStatCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(7, 7, 7, 0.98));
+  padding: 11px;
+}
+
+.sheetStatValue {
+  color: #ffb3b3;
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.sheetStatLabel {
+  color: #8b8b8b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sheetActionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sheetActionBtn {
+  min-height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.98), rgba(10, 10, 10, 0.98));
+  color: #e9e9e9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sheetActionBtn:hover {
+  border-color: rgba(255, 51, 51, 0.55);
+  background: linear-gradient(180deg, rgba(74, 24, 24, 0.96), rgba(18, 8, 8, 0.98));
+}
+
+.sheetActionBtnAccent {
+  border-color: rgba(138, 28, 24, 0.72);
+  background: linear-gradient(180deg, #8a1c18, #4b100e);
+  color: #fff;
+}
+
+.assetGridCard {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(20, 20, 20, 0.98), rgba(8, 8, 8, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #8a1c18;
+  border-radius: 12px;
+  padding: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.assetGridCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 51, 51, 0.36);
+}
+
+.assetThumb {
+  width: 100%;
+  height: 86px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #070707;
+}
+
+.assetTypeLabel {
+  font-size: 10px;
+  color: #ff3333;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: "Orbitron", sans-serif;
+}
+
+.assetName {
+  color: #cfcfcf;
+  width: 100%;
+  font-size: 11px;
+  text-align: center;
+  word-break: break-word;
+  min-height: 28px;
+}
+
+.assetCardBtn {
+  width: 100%;
+  padding: 7px;
+  border-radius: 8px;
+  border: 1px solid #8a1c18;
+  background: linear-gradient(180deg, #5d120f, #35100e);
+  color: #fff;
+  font-size: 10px;
+  font-family: "Orbitron", sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.assetCardBtn:hover {
+  border-color: #ff3333;
+  background: linear-gradient(180deg, #8a1c18, #4b100e);
+}
+
+.emptyState {
+  color: #8b8b8b;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* ======== ESCUDO / CONFLITO ======== */
+
+.shieldViewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(8, 8, 8, 0.92), rgba(4, 4, 4, 0.98));
+}
+
+.shieldActionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.shieldActionWide {
+  grid-column: 1 / -1;
+}
+
+.shieldActionBtn,
+.shieldEndBtn,
+.btnAdd,
+.btnCancel,
+.btnCommand {
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.98), rgba(10, 10, 10, 0.98));
+  color: #e9e9e9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.shieldActionBtn:hover,
+.shieldEndBtn:hover,
+.btnAdd:hover,
+.btnCancel:hover,
+.btnCommand:hover {
+  border-color: rgba(255, 51, 51, 0.5);
+  background: linear-gradient(180deg, rgba(74, 24, 24, 0.96), rgba(18, 8, 8, 0.98));
+  transform: translateY(-1px);
+}
+
+.shieldActionDanger,
+.shieldEndBtn,
+.btnCommand {
+  border-color: rgba(138, 28, 24, 0.72);
+  background: linear-gradient(180deg, #8a1c18, #4b100e);
+  color: #fff;
+}
+
+.shieldEndBtn {
+  align-self: flex-start;
+  padding: 9px 12px;
+}
+
+.shieldCard,
+.shieldColumn {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(138, 28, 24, 0.85);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(6, 6, 6, 0.98));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+}
+
+.shieldColumn {
+  overflow: hidden;
+}
+
+.shieldCard {
+  padding: 12px;
+}
+
+.shieldCardHeader,
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #ffb3b3;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.columnHeader {
+  margin-bottom: 0;
+  padding: 18px 20px;
+  background:
+    linear-gradient(90deg, rgba(138, 28, 24, 0.28), rgba(10, 10, 10, 0.98));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scrollableContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.08), transparent 25%),
+    #060606;
+}
+
+.shieldEmptyState {
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  color: #8f8f8f;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+}
+
+.shieldConflictStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shieldProgressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.shieldProgressRow:last-child {
+  border-bottom: 0;
+}
+
+.shieldProgressRow strong {
+  display: block;
+  color: #ededed;
+  font-size: 12px;
+}
+
+.shieldProgressRow span {
+  display: block;
+  color: #ffb3b3;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.shieldThreatBlock {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.shieldThreatBlock:last-child {
+  border-bottom: 0;
+}
+
+.shieldThreatTitle {
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.shieldStepper {
+  display: flex;
+  gap: 6px;
+}
+
+.shieldStepper button,
+.btnTrash {
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+}
+
+.shieldStepper button:hover,
+.btnTrash:hover {
+  border-color: rgba(255, 51, 51, 0.6);
+  background: rgba(138, 28, 24, 0.34);
+}
+
+.shieldStepper button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.commandLabel {
+  display: block;
+  color: #8b8b8b;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.diceInput,
+.neroSelect,
+.notesArea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: #0b0b0b;
+  color: #fff;
+  padding: 9px 10px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  outline: none;
+}
+
+.diceInput:focus,
+.neroSelect:focus,
+.notesArea:focus {
+  border-color: rgba(255, 51, 51, 0.58);
+  box-shadow: 0 0 0 1px rgba(138, 28, 24, 0.28);
+}
+
+.notesArea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.btnAdd {
+  padding: 8px 12px;
+}
+
+.btnCancel {
+  padding: 8px 12px;
+  color: #aaa;
+}
+
+.btnCommand {
+  padding: 8px 14px;
+}
+
+/* ===== VTT final tool polish: collapsible panels and compact docks ===== */
+.iconTextBtn {
+  min-height: 30px;
+  border: 1px solid rgba(255, 51, 51, 0.24);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(36, 14, 14, 0.95), rgba(10, 10, 10, 0.98));
+  color: #f7f7f7;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 0 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.iconTextBtn:hover {
+  border-color: rgba(255, 51, 51, 0.65);
+  background: linear-gradient(180deg, rgba(95, 20, 18, 0.96), rgba(18, 8, 8, 0.98));
+}
+
+.iconTextBtnDanger {
+  border-color: rgba(255, 51, 51, 0.5);
+  color: #ffd7d7;
+  background: linear-gradient(180deg, rgba(110, 18, 18, 0.96), rgba(34, 8, 8, 0.98));
+}
+
+.leftSidebarCollapsed {
+  width: 36px;
+  min-height: 42px;
+  padding: 8px 5px;
+}
+
+.leftSidebarCollapsed .toolGroup,
+.leftSidebarCollapsed .divider {
+  display: none;
+}
+
+.panelCollapseBtn {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+}
+
+.rightPanelCollapseBtn {
+  position: absolute;
+  left: -14px;
+  top: 12px;
+  width: 28px;
+  height: 32px;
+  border-radius: 999px 0 0 999px;
+  z-index: 2;
+}
+
+.rightPanelCollapsed {
+  width: 34px;
+  min-width: 34px;
+  overflow: visible;
+}
+
+.rightPanelCollapsed > :not(.rightPanelCollapseBtn) {
+  display: none !important;
+}
+
+.sheetModal {
+  width: min(1220px, calc(100vw - 34px));
+  height: min(92vh, 980px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 3px solid var(--vtt-accent);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 24, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.99), rgba(5, 5, 5, 0.99));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.82), 0 0 34px rgba(138, 28, 24, 0.18);
+}
+
+.sheetModalHeader {
+  min-height: 48px;
+  padding: 8px 12px 8px 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.025);
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sheetModalHeader > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.sheetModalHeader strong {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheetModalKicker {
+  color: #ff6969;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.sheetModalFrame {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: none;
+  background: #0f1318;
+}
+
+.modalCloseBtn {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 92px;
+  min-height: 28px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 51, 51, 0.38);
+  border-radius: 999px;
+  padding: 0 9px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 51, 51, 0.22), transparent 42%),
+    linear-gradient(180deg, rgba(34, 12, 12, 0.98), rgba(9, 9, 9, 1));
+  color: #fff;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 10px 24px rgba(0, 0, 0, 0.45),
+    0 0 14px rgba(138, 28, 24, 0.18);
+}
+
+.modalCloseBtn:hover,
+.modalCloseBtn:focus-visible {
+  border-color: rgba(255, 51, 51, 0.76);
+  color: #fff;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 51, 51, 0.32), transparent 44%),
+    linear-gradient(180deg, rgba(118, 24, 22, 0.98), rgba(24, 8, 8, 1));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(255, 51, 51, 0.24);
+  outline: none;
+}
+
+.modalCloseBtn svg {
+  display: block;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+}
+
+.modalCloseBtn span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolOptionsDock .fontSelectWrap {
+  max-width: 180px;
+  min-width: 132px;
+}
+
+.toolOptionsDock .fontSelectButton,
+.toolOptionsDock .compactInput,
+.toolOptionsDock .objectTextInput {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.toolOptionsDock .segmentedControl button {
+  min-width: 30px;
+  display: inline-grid;
+  place-items: center;
+}
+
+@media (max-width: 980px) {
+  .toolOptionsDock {
+    max-width: calc(100vw - 94px);
+    border-radius: 18px;
+  }
+
+  .toolOptionsContent {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .toolOptionsDock .toolRange {
+    width: 86px;
+  }
+
+  .fogToolContent {
+    max-width: calc(100vw - 94px);
+    justify-content: flex-start;
+  }
+
+  .fogOpacityGrid {
+    grid-template-columns: minmax(142px, 1fr);
+  }
+
+  .sheetModal {
+    width: calc(100vw - 18px);
+    height: calc(100vh - 18px);
+    border-radius: 14px;
+  }
+}
+
+/* ===== VTT compact tool dock pass ===== */
+.toolOptionsDock {
+  top: 8px;
+  max-width: calc(100vw - 150px);
+  min-height: 34px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 24, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(12, 12, 12, 0.94), rgba(5, 5, 5, 0.96));
+}
+
+.toolOptionsContent {
+  min-height: 34px;
+  padding: 4px 8px;
+  gap: 4px;
+  row-gap: 4px;
+}
+
+.dockCollapseBtn {
+  right: -9px;
+  top: -9px;
+  width: 20px;
+  height: 20px;
+}
+
+.iconActionBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+}
+
+.iconTextBtn {
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 8px;
+  border-radius: 8px;
+}
+
+.toolDividerV {
+  height: 18px;
+  margin: 0 2px;
+}
+
+.toolDockGroup {
+  gap: 2px;
+}
+
+.toolDockLabel {
+  font-size: 6.5px;
+  letter-spacing: 0.1em;
+}
+
+.toolDockValueLabel {
+  min-width: 22px;
+  font-size: 7px;
+}
+
+.toolOptionsDock .toolRange {
+  width: 72px;
+}
+
+.toolColorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+
+.segmentedControl {
+  padding: 1px;
+}
+
+.segmentedControl button {
+  min-height: 24px;
+  padding: 0 7px;
+  font-size: 8px;
+  gap: 4px;
+}
+
+.fontSelectButton {
+  width: 120px;
+  height: 26px;
+  line-height: 26px;
+  padding: 0 24px 0 10px;
+  font-size: 11px;
+}
+
+.fontSelectMenu {
+  top: calc(100% + 5px);
+}
+
+.compactInput,
+.objectTextInput {
+  min-height: 26px;
+  padding: 4px 9px;
+  font-size: 11px;
+}
+
+.objectTextInput {
+  flex-basis: 150px;
+}
+
+.fogToolContent {
+  max-width: calc(100vw - 150px);
+  row-gap: 4px;
+}
+
+.fogToolSection {
+  gap: 4px;
+}
+
+.fogToolSection > .toolDockLabel {
+  display: none;
+}
+
+.fogActionGroup {
+  gap: 4px;
+}
+
+.fogOpacityGrid {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.fogOpacityControl {
+  width: 104px;
+  gap: 1px;
+  font-size: 6.5px;
+  letter-spacing: 0.08em;
+}
+
+.fogOpacityControl span {
+  gap: 5px;
+}
+
+.fogOpacityControl strong {
+  font-size: 7px;
+}
+
+.fogToolContent .toolRange {
+  min-width: 0;
+  width: 88px;
+}
+
+@media (max-width: 1180px) {
+  .toolOptionsDock {
+    max-width: calc(100vw - 96px);
+  }
+
+  .toolOptionsContent {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .toolOptionsContent::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fogToolContent {
+    max-width: calc(100vw - 96px);
+  }
+}
+
+/* ===== VTT alignment fixes for compact controls ===== */
+.collapseButton {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.collapseButton svg,
+.toolBtn svg,
+.iconActionBtn svg {
+  display: block;
+  margin: 0;
+  transform: none;
+}
+
+.dockCollapseBtn {
+  left: 50%;
+  right: auto;
+  top: -10px;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+}
+
+.dockCollapseBtn:hover,
+.dockCollapseBtn:focus-visible {
+  transform: translateX(-50%);
+}
+
+.toolOptionsDockCollapsed .dockCollapseBtn {
+  left: 50%;
+  top: 50%;
+  right: auto;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+}
+
+.toolOptionsDockCollapsed .dockCollapseBtn:hover,
+.toolOptionsDockCollapsed .dockCollapseBtn:focus-visible {
+  transform: translate(-50%, -50%);
+}
+
+.panelCollapseBtn {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 5px;
+}
+
+.leftSidebar .toolBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+.leftSidebar > .toolBtn {
+  align-self: center;
+  margin-top: 1px;
+}

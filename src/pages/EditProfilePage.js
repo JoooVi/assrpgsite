@@ -3,6 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { updateUser, logout } from '../redux/slices/authSlice';
+import { useConfirm } from '../components/notifications/ConfirmProvider';
+import { dispatchToast } from '../components/notifications/ToastProvider';
+import InlineLoader from '../components/ui/InlineLoader';
 
 // Importa o novo CSS Module
 import styles from "./EditProfilePage.module.css";
@@ -11,8 +14,11 @@ const EditProfilePage = () => {
     const { user, token } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { confirm } = useConfirm();
 
     const [activeTab, setActiveTab] = useState(0); // 0: Profile, 1: Account
+    const [profileSaving, setProfileSaving] = useState(false);
+    const [passwordSaving, setPasswordSaving] = useState(false);
 
     // Form States
     const [name, setName] = useState('');
@@ -50,6 +56,7 @@ const EditProfilePage = () => {
 
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
+        setProfileSaving(true);
         const formData = new FormData();
         formData.append('name', name);
         formData.append('bio', bio);
@@ -62,42 +69,59 @@ const EditProfilePage = () => {
                  headers: { 'Content-Type': 'multipart/form-data' }
             });
             dispatch(updateUser(data));
-            alert('Perfil atualizado com sucesso!');
+            dispatchToast({ message: 'Perfil atualizado com sucesso!', type: 'success' });
             navigate('/perfil'); // Retorna ao perfil, mas pode ajustar a rota correta aqui
         } catch (error) {
             console.error(error);
-            alert('Erro ao atualizar o perfil.');
+            dispatchToast({ message: 'Erro ao atualizar o perfil.', type: 'error' });
+        } finally {
+            setProfileSaving(false);
         }
     };
     
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        if (newPassword !== confirmPassword) return alert('As novas senhas não coincidem.');
+        if (newPassword !== confirmPassword) {
+            dispatchToast({ message: 'As novas senhas não coincidem.', type: 'warning' });
+            return;
+        }
+        setPasswordSaving(true);
         try {
             await api.post('/profile/change-password', 
                 { currentPassword, newPassword }, 
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert('Senha alterada com sucesso!');
+            dispatchToast({ message: 'Senha alterada com sucesso!', type: 'success' });
             setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
         } catch (error) {
-            alert('Erro ao alterar senha. Verifique a senha atual.');
+            dispatchToast({ message: 'Erro ao alterar senha. Verifique a senha atual.', type: 'error' });
+        } finally {
+            setPasswordSaving(false);
         }
     };
 
     const handleDeleteAccount = async () => {
-        if (!deletePassword) return alert("Digite sua senha para confirmar.");
-        if (window.confirm('TEM CERTEZA? Esta ação é irreversível e apagará todos os seus dados.')) {
+        if (!deletePassword) {
+            dispatchToast({ message: "Digite sua senha para confirmar.", type: "warning" });
+            return;
+        }
+        const confirmed = await confirm({
+            title: "Deletar conta",
+            message: "Esta ação é irreversível e apagará todos os seus dados.",
+            tone: "danger",
+            confirmLabel: "Deletar conta",
+        });
+        if (confirmed) {
             try {
                 await api.delete('/profile/delete-account', { 
                     headers: { Authorization: `Bearer ${token}` }, 
                     data: { password: deletePassword } 
                 });
-                alert('Conta deletada.');
+                dispatchToast({ message: 'Conta deletada.', type: 'success' });
                 dispatch(logout());
                 navigate('/login');
             } catch (error) {
-                alert('Erro ao deletar conta. Senha incorreta.');
+                dispatchToast({ message: 'Erro ao deletar conta. Senha incorreta.', type: 'error' });
             }
         }
     };
@@ -173,7 +197,9 @@ const EditProfilePage = () => {
                             <input className={styles.input} value={twitch} onChange={(e) => setTwitch(e.target.value)} placeholder="https://twitch.tv/usuario" />
                         </div>
 
-                        <button type="submit" className={`${styles.btn} ${styles.primaryBtn}`}>Salvar Alterações</button>
+                        <button type="submit" className={`${styles.btn} ${styles.primaryBtn}`} disabled={profileSaving}>
+                            {profileSaving ? <InlineLoader label="Salvando" /> : "Salvar Alterações"}
+                        </button>
                     </form>
                 )}
 
@@ -195,7 +221,9 @@ const EditProfilePage = () => {
                                 <label className={styles.label}>Confirmar Nova Senha</label>
                                 <input type="password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                             </div>
-                            <button type="submit" className={styles.btn}>Atualizar Senha</button>
+                            <button type="submit" className={styles.btn} disabled={passwordSaving}>
+                                {passwordSaving ? <InlineLoader label="Atualizando" /> : "Atualizar Senha"}
+                            </button>
                         </form>
 
                         <div className={styles.divider}></div>

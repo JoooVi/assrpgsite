@@ -10,10 +10,11 @@ import StarIcon from '@mui/icons-material/Star';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { getItemImageUrl } from '../utils/itemImages';
 
 const InventoryGrid = ({
   title, items, totalSlots, onMove, onEdit, onDelete, onUse, onQualityChange, 
-  location, onDragStartItem, onDropItem, styles = {}, placeholders = []
+  location, onDragStartItem, onDropItem, styles = {}, placeholders = [], readOnly = false
 }) => {
   // ... (mantenha os estados e handlers de drag/drop iguais) ...
   const [isDragOver, setIsDragOver] = useState(false);
@@ -82,7 +83,7 @@ const InventoryGrid = ({
         className={`${styles.inventorySlot} ${slotClass}`} 
         key={`item-${invItem._id || index}`}
         title={`${itemDetails.name} (Peso: ${slotsNeeded})`}
-        draggable={true}
+        draggable={!readOnly}
         onDragStart={() => onDragStartItem && onDragStartItem(invItem)}
         tabIndex={0}
         style={{ 
@@ -98,7 +99,7 @@ const InventoryGrid = ({
         }}
       >
         <img 
-          src={itemDetails.icon || '/icons/default.svg'} 
+          src={getItemImageUrl(itemDetails) || '/icons/default.svg'} 
           alt={itemDetails.name} 
           className={styles.inventoryItemIcon}
           style={{ 
@@ -134,7 +135,7 @@ const InventoryGrid = ({
           <span className={styles.qtyBadge}>x{invItem.quantity}</span>
         )}
 
-        <div className={styles.slotActions}>
+        {!readOnly && <div className={styles.slotActions}>
             <button style={actionBtnStyle} onClick={(e) => { e.stopPropagation(); onMove(invItem, location === 'corpo' ? 'mochila' : 'corpo'); }} title="Mover">
               <ShareIcon fontSize="small" style={{transform: location === 'corpo' ? 'rotate(90deg)' : 'rotate(-90deg)'}} />
             </button>
@@ -149,7 +150,7 @@ const InventoryGrid = ({
             {(itemDetails.isConsumable || itemDetails.resourceType) && (
                 <button style={{...actionBtnStyle, color: '#4caf50'}} onClick={(e) => { e.stopPropagation(); onUse(invItem); }} title="Usar"><PlayArrowIcon fontSize="small"/></button>
             )}
-        </div>
+        </div>}
       </div>
     );
   });

@@ -1,704 +1,997 @@
 /* RefugeDashboard.js */
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import axios from "axios";
-
-// Ícones React Icons
-import { 
-  FaEdit, FaArrowLeft, FaMapMarkerAlt, FaPlus, FaMinus, FaTrash, 
-  FaShieldAlt, FaHammer, FaUsers, FaSkull, FaClipboardList, 
-  FaTint, FaLeaf, FaPaw, FaTree, FaGem, FaSeedling, FaUtensils, 
-  FaTshirt, FaGasPump, FaCrosshairs, FaFirstAid, FaTools, FaExclamationTriangle,
-  FaUserAstronaut
+import {
+  FaArrowLeft,
+  FaCrosshairs,
+  FaEdit,
+  FaExclamationTriangle,
+  FaFirstAid,
+  FaGasPump,
+  FaGem,
+  FaHistory,
+  FaLeaf,
+  FaMapMarkerAlt,
+  FaMinus,
+  FaPaw,
+  FaPlus,
+  FaSave,
+  FaSeedling,
+  FaSkull,
+  FaTint,
+  FaTools,
+  FaTrash,
+  FaTree,
+  FaTshirt,
+  FaUserAstronaut,
+  FaUsers,
+  FaUtensils,
 } from "react-icons/fa";
-
 import "./RefugeDashboard.css";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import { useConfirm } from "../components/notifications/ConfirmProvider";
+import PageLoader from "../components/ui/PageLoader";
+import EmptyState from "../components/ui/EmptyState";
+import InlineLoader from "../components/ui/InlineLoader";
+import api from "../api";
 
-// Configuração de Ícones de Recursos
+const DEFAULT_REFUGE_IMAGE =
+  "https://images.unsplash.com/photo-1590625321528-724dc0f3689f?q=80&w=1200&auto=format&fit=crop";
+
 const resourceIcons = {
-  water: <FaTint style={{color:'#4fc3f7'}}/>, plants: <FaLeaf style={{color:'#66bb6a'}}/>,
-  animals: <FaPaw style={{color:'#ffb74d'}}/>, wood: <FaTree style={{color:'#8d6e63'}}/>,
-  minerals: <FaGem style={{color:'#b0bec5'}}/>, biomass: <FaSeedling style={{color:'#aed581'}}/>,
-  food: <FaUtensils style={{color:'#ff7043'}}/>, clothing: <FaTshirt style={{color:'#ce93d8'}}/>,
-  fuel: <FaGasPump style={{color:'#ffca28'}}/>, ammo: <FaCrosshairs style={{color:'#ef5350'}}/>,
-  meds: <FaFirstAid style={{color:'#f06292'}}/>, construction: <FaTools style={{color:'#8d6e63'}}/>,
-};
-const resourceLabels = {
-    water: "Água", plants: "Plantas", animals: "Animais", wood: "Madeira",
-    minerals: "Minerais", biomass: "Biomassa", food: "Alimento", clothing: "Vestuário",
-    fuel: "Combustível", ammo: "Munição", meds: "Remédios", construction: "Mat. Constr."
+  water: <FaTint style={{ color: "#4fc3f7" }} />,
+  plants: <FaLeaf style={{ color: "#66bb6a" }} />,
+  animals: <FaPaw style={{ color: "#ffb74d" }} />,
+  wood: <FaTree style={{ color: "#8d6e63" }} />,
+  minerals: <FaGem style={{ color: "#b0bec5" }} />,
+  biomass: <FaSeedling style={{ color: "#aed581" }} />,
+  food: <FaUtensils style={{ color: "#ff7043" }} />,
+  clothing: <FaTshirt style={{ color: "#ce93d8" }} />,
+  fuel: <FaGasPump style={{ color: "#ffca28" }} />,
+  ammo: <FaCrosshairs style={{ color: "#ef5350" }} />,
+  meds: <FaFirstAid style={{ color: "#f06292" }} />,
+  construction: <FaTools style={{ color: "#8d6e63" }} />,
 };
 
-// Templates (Baseado nas imagens)
+const resourceLabels = {
+  water: "Água",
+  plants: "Plantas",
+  animals: "Animais",
+  wood: "Madeira",
+  minerals: "Minerais",
+  biomass: "Biomassa",
+  food: "Alimento",
+  clothing: "Vestuário",
+  fuel: "Combustível",
+  ammo: "Munição",
+  meds: "Remédios",
+  construction: "Mat. Construção",
+};
+
 const buildingTemplates = [
-  { name: "Dormitório", type: "Habitação", cost: 20, description: "Aumenta Máx. População.", effect: { type: "popMax", value: 2 } }, 
-  { name: "Fonte de Água", type: "Recurso", cost: 15, description: "Água infinita (não gasta estoque).", effect: { type: "waterSource" } },
-  { name: "Despensa/Celeiro", type: "Armazenamento", cost: 10, description: "Aumenta Teto de Reservas em +5.", effect: { type: "reserves", value: 5 } },
-  { name: "Fortificação", type: "Defesa", cost: 10, description: "+1 Nível de Defesa.", effect: { type: "defense", value: 1 } },
-  { name: "Enfermaria", type: "Recurso", cost: 15, description: "Ajuda na recuperação de crises de saúde.", effect: { type: "health" } },
-  { name: "Oficina", type: "Produção", cost: 10, description: "Permite criar itens.", effect: { type: "craft" } },
+  {
+    name: "Dormitório",
+    type: "Habitação",
+    cost: 20,
+    description: "Aumenta o máximo de população.",
+    effect: { type: "popMax", value: 2 },
+  },
+  {
+    name: "Fonte de Água",
+    type: "Recurso",
+    cost: 15,
+    description: "Água infinita, sem gastar estoque.",
+    effect: { type: "waterSource" },
+  },
+  {
+    name: "Despensa/Celeiro",
+    type: "Armazenamento",
+    cost: 10,
+    description: "Aumenta o teto de reservas em +5.",
+    effect: { type: "reserves", value: 5 },
+  },
+  {
+    name: "Fortificação",
+    type: "Defesa",
+    cost: 10,
+    description: "+1 nível de defesa.",
+    effect: { type: "defense", value: 1 },
+  },
+  {
+    name: "Enfermaria",
+    type: "Recurso",
+    cost: 15,
+    description: "Ajuda na recuperação de crises de saúde.",
+    effect: { type: "health" },
+  },
+  {
+    name: "Oficina",
+    type: "Produção",
+    cost: 10,
+    description: "Permite criar itens.",
+    effect: { type: "craft" },
+  },
 ];
 
+const tabs = ["RECURSOS", "CONSTRUÇÕES", "HABITANTES", "SALA DE GUERRA", "HISTÓRICO"];
+const npcHealthOptions = ["Saudável", "Ferido", "Doente", "Crítico", "Ausente"];
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const calculateRefugeLimits = (currentRefuge) => {
+  if (!currentRefuge) return { maxPop: 2, maxReserves: 10 };
+
+  let maxPop = 2;
+  let maxReserves = 10;
+
+  (currentRefuge.structures || []).forEach((structure) => {
+    const template = buildingTemplates.find((item) => item.name === structure.name) || structure;
+    const structureName = structure.name?.toLowerCase() || "";
+
+    if (template.effect?.type === "popMax") maxPop += template.effect.value || 0;
+    if (template.effect?.type === "reserves") maxReserves += template.effect.value || 0;
+    if (structureName.includes("dormitório")) maxPop += 1;
+    if (structureName.includes("armazém") || structureName.includes("despensa")) maxReserves += 5;
+  });
+
+  return { maxPop, maxReserves };
+};
+
 const RefugeDashboard = () => {
-  const { id: campaignId } = useParams(); 
-  const { user, token } = useSelector((state) => state.auth);
+  const { id: campaignId, refugeId } = useParams();
+  const { token } = useSelector((state) => state.auth);
+  const { confirm } = useConfirm();
 
   const [refuge, setRefuge] = useState(null);
-    const [refuges, setRefuges] = useState([]);
-    const [selectedRefugeId, setSelectedRefugeId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [isMaster, setIsMaster] = useState(false);
-  
-  // Modais
-  const [modalType, setModalType] = useState(null); 
-  
-  // Estados de Formulário
+  const [modalType, setModalType] = useState(null);
   const [editData, setEditData] = useState({ name: "", location: "", description: "" });
-  const [newStructure, setNewStructure] = useState({ name: "", type: "Geral", description: "", cost: 10 });
-  const [newNpc, setNewNpc] = useState({ name: "", role: "", notes: "" });
+  const [newStructure, setNewStructure] = useState({
+    name: "",
+    type: "Geral",
+    description: "",
+    cost: 10,
+  });
+  const [newNpc, setNewNpc] = useState({ name: "", role: "", health: "Saudável", notes: "" });
   const [newThreat, setNewThreat] = useState({ name: "", description: "", maxLevel: 4 });
   const [newProject, setNewProject] = useState({ name: "", description: "", cost: 10 });
-    const [newRefuge, setNewRefuge] = useState({ name: "", location: "", description: "" });
-    const [newRefugeImage, setNewRefugeImage] = useState(null);
 
-  // Toast
-  const [toast, setToast] = useState({ open: false, msg: "" });
+  const { maxPop, maxReserves } = useMemo(() => calculateRefugeLimits(refuge), [refuge]);
 
-  // --- CÁLCULO DE LIMITES ---
-  const calculateRefugeLimits = (currentRefuge) => {
-      if (!currentRefuge) return { maxPop: 2, maxReserves: 10 };
+  const fetchRefugeList = useCallback(async () => {
+    const res = await api.get(`/refuge/campaign/${campaignId}/refuges`);
+    return res.data || [];
+  }, [campaignId]);
 
-      let maxPop = 2; 
-      let maxReserves = 10; 
-      
-      if (currentRefuge.structures) {
-        currentRefuge.structures.forEach(struct => {
-            const template = buildingTemplates.find(t => t.name === struct.name) || struct;
-            
-            if (template.effect) {
-                if (template.effect.type === 'popMax') maxPop += (template.effect.value || 0);
-                if (template.effect.type === 'reserves') maxReserves += (template.effect.value || 0);
-            }
-            if (struct.name.toLowerCase().includes('dormitório')) maxPop += 1;
-            if (struct.name.toLowerCase().includes('armazém') || struct.name.toLowerCase().includes('despensa')) maxReserves += 5;
-        });
-      }
+  const fetchRefuge = useCallback(async (targetRefugeId = "") => {
+    if (!token) return null;
 
-      return { maxPop, maxReserves };
-  };
-
-    const fetchRefugeList = async () => {
-        const res = await axios.get(
-            `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}/refuges`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        return res.data || [];
-    };
-
-    const fetchRefuge = async (refugeId = "") => {
-    if (!token) return;
     try {
-            const query = refugeId ? `?refugeId=${refugeId}` : "";
-      const res = await axios.get(
-                `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}${query}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const query = targetRefugeId ? `?refugeId=${targetRefugeId}` : "";
+      const res = await api.get(`/refuge/campaign/${campaignId}${query}`);
       setRefuge(res.data);
-            setSelectedRefugeId(res.data?._id || "");
-      setIsMaster(true); 
-            return res.data;
-        } catch (err) {
-            console.error(err);
-            return null;
-    }
-  };
-
-    useEffect(() => {
-        const bootstrap = async () => {
-            if (!token) return;
-            try {
-                setLoading(true);
-                let list = await fetchRefugeList();
-
-                // Retrocompatibilidade com campanhas antigas sem refúgio criado.
-                if (!list.length) {
-                    const createdDefault = await fetchRefuge();
-                    if (createdDefault?._id) {
-                        list = await fetchRefugeList();
-                    }
-                }
-
-                setRefuges(list);
-                if (list.length > 0) {
-                    const activeId = selectedRefugeId && list.some((r) => r._id === selectedRefugeId)
-                        ? selectedRefugeId
-                        : list[0]._id;
-                    await fetchRefuge(activeId);
-                } else {
-                    setRefuge(null);
-                    setSelectedRefugeId("");
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        bootstrap();
-    }, [campaignId, token]);
-
-  const saveRefugeUpdate = async (updatedData) => {
-    try {
-      setRefuge(updatedData); 
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/refuge/${updatedData._id}`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      setIsMaster(true);
+      return res.data;
     } catch (error) {
-      setToast({ open: true, msg: "Erro ao salvar no servidor." });
-      fetchRefuge();
+      console.error(error);
+      dispatchToast({ message: "Erro ao carregar dados do refúgio.", type: "error" });
+      return null;
     }
-  };
+  }, [campaignId, token]);
 
-    const handleSwitchRefuge = async (nextId) => {
-        if (!nextId) return;
+  useEffect(() => {
+    const bootstrap = async () => {
+      if (!token) return;
+
+      try {
         setLoading(true);
-        try {
-            await fetchRefuge(nextId);
-        } finally {
-            setLoading(false);
+        let list = await fetchRefugeList();
+
+        if (!list.length) {
+          const createdDefault = await fetchRefuge();
+          if (createdDefault?._id) list = await fetchRefugeList();
         }
+
+        const activeId = refugeId && list.some((item) => item._id === refugeId)
+          ? refugeId
+          : list[0]?._id;
+
+        if (activeId) {
+          await fetchRefuge(activeId);
+        } else {
+          setRefuge(null);
+        }
+      } catch (error) {
+        console.error(error);
+        dispatchToast({ message: "Erro ao preparar o painel do refúgio.", type: "error" });
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleCreateRefuge = async () => {
-        if (!newRefuge.name.trim()) {
-            alert("Defina um nome para o novo refúgio.");
-            return;
-        }
+    bootstrap();
+  }, [fetchRefuge, fetchRefugeList, refugeId, token]);
 
-        try {
-            const formData = new FormData();
-            formData.append("name", newRefuge.name);
-            formData.append("location", newRefuge.location || "");
-            formData.append("description", newRefuge.description || "");
-            if (newRefugeImage) {
-                formData.append("image", newRefugeImage);
-            }
+  const saveRefugeUpdate = async (updatedData, successMessage = "") => {
+    const previousRefuge = refuge;
 
-            const res = await axios.post(
-                `https://assrpgsite-be-production.up.railway.app/api/refuge/campaign/${campaignId}/refuges`,
-                formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+    try {
+      setSaving(true);
+      setRefuge(updatedData);
+      await api.put(`/refuge/${updatedData._id}`, updatedData);
 
-            const list = await fetchRefugeList();
-            setRefuges(list);
-            setModalType(null);
-            setNewRefuge({ name: "", location: "", description: "" });
-            setNewRefugeImage(null);
-            await fetchRefuge(res.data._id);
-            setToast({ open: true, msg: "Novo refúgio criado." });
-        } catch (error) {
-            alert(error?.response?.data?.message || "Erro ao criar novo refúgio.");
-        }
-    };
-
-    const handleDeleteRefuge = async () => {
-        if (!refuge?._id) return;
-        if (!window.confirm("Deseja realmente deletar este refúgio?")) return;
-
-        try {
-            await axios.delete(
-                `https://assrpgsite-be-production.up.railway.app/api/refuge/${refuge._id}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            const list = await fetchRefugeList();
-            setRefuges(list);
-
-            if (list.length) {
-                await fetchRefuge(list[0]._id);
-            } else {
-                setRefuge(null);
-                setSelectedRefugeId("");
-            }
-
-            setToast({ open: true, msg: "Refúgio removido." });
-        } catch (error) {
-            alert(error?.response?.data?.message || "Erro ao remover refúgio.");
-        }
-    };
-  // --- HANDLERS ---
-  
-  const handleStatChange = (statName, amount) => {
-    if (!refuge) return;
-    const newStats = { ...refuge.stats };
-
-    if (statName === 'population') {
-        let newVal = newStats.population.current + amount;
-        if (newVal < 0) newVal = 0; 
-        newStats.population.current = newVal;
-    } else {
-        let newVal = newStats[statName] + amount;
-        if (newVal < 0) newVal = 0; if (newVal > 6) newVal = 6;
-        newStats[statName] = newVal;
+      if (successMessage) {
+        dispatchToast({ message: successMessage, type: "success" });
+      }
+    } catch (error) {
+      console.error(error);
+      setRefuge(previousRefuge);
+      dispatchToast({ message: "Erro ao salvar no servidor.", type: "error" });
+      await fetchRefuge(updatedData._id);
+    } finally {
+      setSaving(false);
     }
-    saveRefugeUpdate({ ...refuge, stats: newStats });
   };
 
-  const handleResourceChange = (cat, type, amount) => {
-    const newRes = { ...refuge.resources };
-    const { maxReserves } = calculateRefugeLimits(refuge);
+  const handleStatChange = (statName, amount) => {
+    if (!refuge || saving) return;
+    const stats = { ...refuge.stats, population: { ...refuge.stats.population } };
 
-    let newVal = newRes[cat][type].level + amount;
-    if (newVal < 0) newVal = 0;
-    if (newVal > maxReserves) newVal = maxReserves;
-    newRes[cat][type].level = newVal;
-    saveRefugeUpdate({ ...refuge, resources: newRes });
+    if (statName === "population") {
+      stats.population.current = clamp((stats.population.current || 0) + amount, 0, maxPop);
+    } else {
+      stats[statName] = clamp((stats[statName] || 0) + amount, 0, 6);
+    }
+
+    saveRefugeUpdate({ ...refuge, stats });
+  };
+
+  const handleResourceChange = (category, type, amount) => {
+    if (!refuge || saving) return;
+
+    const resources = {
+      ...refuge.resources,
+      [category]: {
+        ...refuge.resources[category],
+        [type]: { ...refuge.resources[category][type] },
+      },
+    };
+
+    const currentValue = resources[category][type].level || 0;
+    resources[category][type].level = clamp(currentValue + amount, 0, maxReserves);
+    saveRefugeUpdate({ ...refuge, resources });
   };
 
   const handlePassCycle = async () => {
-    if (!window.confirm("Encerrar semana? Recursos serão consumidos.")) return;
+    const confirmed = await confirm({
+      title: "Encerrar semana",
+      message: "Encerrar a semana vai consumir recursos e avançar todos os efeitos do refúgio.",
+      tone: "warning",
+      confirmLabel: "Encerrar semana",
+    });
+    if (!confirmed) return;
+
     try {
-      const res = await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/refuge/${refuge._id}/cycle`,
-        {}, { headers: { Authorization: `Bearer ${token}` } }
-      );
+      setSaving(true);
+      const res = await api.post(`/refuge/${refuge._id}/cycle`, {});
       setRefuge(res.data);
-      setToast({ open: true, msg: `Ciclo ${res.data.currentCycle} iniciado!` });
-    } catch (error) { alert("Erro ao processar ciclo."); }
+      dispatchToast({ message: `Ciclo ${res.data.currentCycle} iniciado.`, type: "success" });
+    } catch (error) {
+      dispatchToast({ message: "Erro ao processar ciclo.", type: "error" });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // --- PROJETOS E CONSTRUÇÕES ---
   const handleAddStructureProject = () => {
-      const template = buildingTemplates.find(t => t.name === newStructure.name);
-      
-      const proj = { 
-          name: `Construir ${newStructure.name}`, 
-          description: newStructure.description, 
-          cost: newStructure.cost, 
-          progress: 0,
-          linkedBuilding: { 
-              name: newStructure.name, 
-              type: newStructure.type, 
-              description: newStructure.description,
-              effect: template ? template.effect : null
-          }
+    if (!newStructure.name.trim()) {
+      dispatchToast({ message: "Escolha ou informe uma construção.", type: "warning" });
+      return;
+    }
+
+    const template = buildingTemplates.find((item) => item.name === newStructure.name);
+    const project = {
+      name: `Construir ${newStructure.name}`,
+      description: newStructure.description,
+      cost: Math.max(Number(newStructure.cost) || 1, 1),
+      progress: 0,
+      linkedBuilding: {
+        name: newStructure.name,
+        type: newStructure.type,
+        description: newStructure.description,
+        effect: template ? template.effect : null,
+      },
+    };
+
+    saveRefugeUpdate(
+      { ...refuge, activeProjects: [...(refuge.activeProjects || []), project] },
+      "Projeto iniciado na Sala de Guerra."
+    );
+    setModalType(null);
+  };
+
+  const handleProjectProgress = (index, amount) => {
+    if (!refuge || saving) return;
+
+    const activeProjects = [...(refuge.activeProjects || [])];
+    const project = { ...activeProjects[index] };
+    project.progress = clamp((project.progress || 0) + amount, 0, project.cost || 1);
+    activeProjects[index] = project;
+
+    if (project.progress >= project.cost) {
+      const updatedRefuge = {
+        ...refuge,
+        activeProjects: activeProjects.filter((_, projectIndex) => projectIndex !== index),
       };
-      saveRefugeUpdate({ ...refuge, activeProjects: [...refuge.activeProjects, proj] });
-      setModalType(null);
-      setToast({ open: true, msg: "Projeto iniciado na Sala de Guerra!" });
-  };
 
-  const handleProjectProgress = (idx, amt) => {
-      const list = [...refuge.activeProjects];
-      let val = list[idx].progress + amt;
-      if(val < 0) val = 0;
-      list[idx].progress = val;
-      
-      if(val >= list[idx].cost) {
-          if(list[idx].linkedBuilding) {
-              const newRefuge = { ...refuge };
-              newRefuge.structures.push(list[idx].linkedBuilding);
-              newRefuge.activeProjects = list.filter((_, i) => i !== idx);
-              
-              if (list[idx].linkedBuilding.effect?.type === 'defense') {
-                   newRefuge.stats.defense += list[idx].linkedBuilding.effect.value;
-              }
-
-              saveRefugeUpdate(newRefuge);
-              setToast({ open: true, msg: "Construção concluída!" });
-              return;
-          }
-          const newRefuge = { ...refuge };
-          newRefuge.activeProjects = list.filter((_, i) => i !== idx);
-          saveRefugeUpdate(newRefuge);
-          setToast({ open: true, msg: "Projeto finalizado!" });
-          return;
+      if (project.linkedBuilding) {
+        updatedRefuge.structures = [...(refuge.structures || []), project.linkedBuilding];
+        if (project.linkedBuilding.effect?.type === "defense") {
+          updatedRefuge.stats = {
+            ...refuge.stats,
+            defense: clamp((refuge.stats.defense || 0) + project.linkedBuilding.effect.value, 0, 6),
+          };
+        }
+        saveRefugeUpdate(updatedRefuge, "Construção concluída.");
+        return;
       }
-      saveRefugeUpdate({ ...refuge, activeProjects: list });
+
+      saveRefugeUpdate(updatedRefuge, "Projeto finalizado.");
+      return;
+    }
+
+    saveRefugeUpdate({ ...refuge, activeProjects });
   };
 
-  // --- NPCS E AMEAÇAS ---
   const handleAddNpc = () => {
-      if(!newNpc.name) return;
-      const updatedList = [...refuge.populationList, { ...newNpc, health: 'Saudável' }];
-      saveRefugeUpdate({ ...refuge, populationList: updatedList });
-      setModalType(null);
-      setNewNpc({ name: "", role: "", notes: "" });
-      setToast({ open: true, msg: "Habitante registrado." });
+    if (!newNpc.name.trim()) {
+      dispatchToast({ message: "Informe o nome do habitante.", type: "warning" });
+      return;
+    }
+
+    const populationList = [
+      ...(refuge.populationList || []),
+      { ...newNpc, health: newNpc.health || "Saudável" },
+    ];
+
+    saveRefugeUpdate({ ...refuge, populationList }, "Habitante registrado.");
+    setNewNpc({ name: "", role: "", health: "Saudável", notes: "" });
+    setModalType(null);
+  };
+
+  const handleNpcHealthChange = (index, health) => {
+    if (!refuge || saving) return;
+
+    const populationList = [...(refuge.populationList || [])];
+    populationList[index] = { ...populationList[index], health };
+    saveRefugeUpdate({ ...refuge, populationList }, "Estado do habitante atualizado.");
   };
 
   const handleAddThreat = () => {
-      if(!newThreat.name) return;
-      const updatedList = [...refuge.activeThreats, { ...newThreat, level: 0 }];
-      saveRefugeUpdate({ ...refuge, activeThreats: updatedList });
-      setModalType(null);
-      setNewThreat({ name: "", description: "", maxLevel: 4 });
+    if (!newThreat.name.trim()) {
+      dispatchToast({ message: "Informe o nome da ameaça.", type: "warning" });
+      return;
+    }
+
+    const activeThreats = [
+      ...(refuge.activeThreats || []),
+      { ...newThreat, maxLevel: Math.max(Number(newThreat.maxLevel) || 1, 1), level: 0 },
+    ];
+
+    saveRefugeUpdate({ ...refuge, activeThreats }, "Ameaça registrada.");
+    setNewThreat({ name: "", description: "", maxLevel: 4 });
+    setModalType(null);
   };
 
-  // --- FUNÇÃO QUE FALTAVA (FIX ESLINT) ---
-  const handleThreatProgress = (idx, amount) => {
-    const updatedThreats = [...refuge.activeThreats];
-    const threat = { ...updatedThreats[idx] };
-    
-    let newVal = threat.level + amount;
-    if (newVal < 0) newVal = 0;
-    if (newVal > threat.maxLevel) newVal = threat.maxLevel;
-    
-    threat.level = newVal;
-    updatedThreats[idx] = threat;
-    
-    saveRefugeUpdate({ ...refuge, activeThreats: updatedThreats });
-  };
-  // -------------------------------------
+  const handleThreatProgress = (index, amount) => {
+    if (!refuge || saving) return;
 
-  const handleDeleteItem = (list, idx) => {
-      if(!window.confirm("Confirmar exclusão?")) return;
-      saveRefugeUpdate({ ...refuge, [list]: refuge[list].filter((_, i) => i !== idx) });
+    const activeThreats = [...(refuge.activeThreats || [])];
+    const threat = { ...activeThreats[index] };
+    threat.level = clamp((threat.level || 0) + amount, 0, threat.maxLevel || 1);
+    activeThreats[index] = threat;
+
+    saveRefugeUpdate({ ...refuge, activeThreats });
   };
 
-  // --- RENDER AUXILIARES ---
-  const { maxPop, maxReserves } = calculateRefugeLimits(refuge);
+  const handleAddProject = () => {
+    if (!newProject.name.trim()) {
+      dispatchToast({ message: "Informe o nome do projeto.", type: "warning" });
+      return;
+    }
 
-  if (loading) return <div className="refuge-container"><h2 style={{fontFamily:'Orbitron'}}>CARREGANDO BASE...</h2></div>;
-  if (!refuge) return <div className="refuge-container"><h2>DADOS INACESSÍVEIS</h2></div>;
+    const activeProjects = [
+      ...(refuge.activeProjects || []),
+      { ...newProject, cost: Math.max(Number(newProject.cost) || 1, 1), progress: 0 },
+    ];
+
+    saveRefugeUpdate({ ...refuge, activeProjects }, "Projeto iniciado.");
+    setNewProject({ name: "", description: "", cost: 10 });
+    setModalType(null);
+  };
+
+  const handleDeleteItem = async (listName, index) => {
+    const confirmed = await confirm({
+      title: "Excluir registro",
+      message: "Deseja excluir este registro do refúgio?",
+      tone: "danger",
+      confirmLabel: "Excluir",
+    });
+    if (!confirmed) return;
+
+    const updatedList = (refuge[listName] || []).filter((_, itemIndex) => itemIndex !== index);
+    saveRefugeUpdate({ ...refuge, [listName]: updatedList }, "Registro removido.");
+  };
+
+  const handleSaveEdit = () => {
+    if (!editData.name?.trim()) {
+      dispatchToast({ message: "O refúgio precisa ter um nome.", type: "warning" });
+      return;
+    }
+
+    saveRefugeUpdate({ ...refuge, ...editData }, "Refúgio atualizado.");
+    setModalType(null);
+  };
+
+  const openEditModal = () => {
+    setEditData({
+      name: refuge.name || "",
+      location: refuge.location || "",
+      description: refuge.description || "",
+    });
+    setModalType("edit");
+  };
+
+  const handleTemplateChange = (event) => {
+    const template = buildingTemplates.find((item) => item.name === event.target.value);
+    if (!template) return;
+
+    setNewStructure({
+      name: template.name,
+      type: template.type,
+      description: template.description,
+      cost: template.cost,
+    });
+  };
+
+  const renderResourceSection = (title, category, resources = {}) => (
+    <section className="refuge-section">
+      <div className="section-heading">
+        <h3>{title}</h3>
+        <span>Teto: {maxReserves}</span>
+      </div>
+      <div className="resource-grid">
+        {Object.entries(resources).map(([key, value]) => (
+          <div key={key} className="resource-card">
+            <span className="res-icon">{resourceIcons[key]}</span>
+            <span className="res-name">{resourceLabels[key] || key}</span>
+            <div className="res-control">
+              <button className="btn-stat-mini" disabled={saving} onClick={() => handleResourceChange(category, key, -1)}>
+                <FaMinus />
+              </button>
+              <span className="res-val">{value.level || 0}</span>
+              <button className="btn-stat-mini" disabled={saving} onClick={() => handleResourceChange(category, key, 1)}>
+                <FaPlus />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderEmptyState = (title, description, action = null) => (
+    <div className="refuge-empty-inline">
+      <EmptyState title={title} description={description} action={action} />
+    </div>
+  );
+
+  if (loading) {
+    return <PageLoader title="Carregando base" subtitle="Atualizando recursos, estruturas e ameaças..." />;
+  }
+
+  if (!refuge) {
+    return (
+      <div className="refuge-container">
+        <div className="refuge-panel refuge-missing-panel">
+          <EmptyState
+            title="Dados inacessíveis"
+            description="Não foi possível abrir este refúgio. Volte ao lobby e tente novamente."
+            action={<Link to={`/campaign/${campaignId}/refuges`} className="btn-nero btn-primary">Voltar aos refúgios</Link>}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const stats = [
+    { label: "POPULAÇÃO", value: refuge.stats?.population?.current || 0, key: "population", limit: maxPop },
+    { label: "MORAL", value: refuge.stats?.morale || 0, key: "morale", type: "morale", limit: 6 },
+    { label: "DEFESA", value: refuge.stats?.defense || 0, key: "defense", type: "defense", limit: 6 },
+    { label: "MOBILIDADE", value: refuge.stats?.mobility || 0, key: "mobility", limit: 6 },
+    { label: "BELIGERÂNCIA", value: refuge.stats?.belligerence || 0, key: "belligerence", type: "danger", limit: 6 },
+    { label: "TETO RESERVAS", value: maxReserves },
+  ];
+  const playerCount = (refuge.playerCharacters || []).length;
+  const npcCount = (refuge.populationList || []).length;
+  const totalResidents = playerCount + npcCount;
+  const populationCapacity = maxPop * 10;
 
   return (
     <div className="refuge-container">
       <div className="refuge-panel">
-        
-        {/* HEADER */}
-        <div className="refuge-header" style={{backgroundImage: `url(${refuge.image || 'http://images.unsplash.com/photo-1590625321528-724dc0f3689f?q=80'})`}}>
-            <div className="header-content">
-                <div>
-                    <Link to={`/campaign-lobby/${campaignId}`} className="btn-nero" style={{marginBottom:'10px', textDecoration:'none'}}>
-                        <FaArrowLeft /> VOLTAR
-                    </Link>
-                                        <div className="refuge-switcher">
-                                                <select
-                                                    className="nero-select"
-                                                    value={selectedRefugeId}
-                                                    onChange={(e) => handleSwitchRefuge(e.target.value)}
-                                                >
-                                                    {refuges.map((r) => (
-                                                        <option key={r._id} value={r._id}>{r.name}</option>
-                                                    ))}
-                                                </select>
-                                                {isMaster && <button className="btn-nero btn-secondary" onClick={() => setModalType('newRefuge')}><FaPlus /> NOVO REFÚGIO</button>}
-                                                {isMaster && refuge && <button className="btn-nero" onClick={handleDeleteRefuge}><FaTrash /> DELETAR</button>}
-                                        </div>
-                    <h1 className="refuge-title">{refuge.name}</h1>
-                    <div className="refuge-location">
-                        <FaMapMarkerAlt /> {refuge.location || "Localização Desconhecida"}
-                        <span className="cycle-badge">CICLO {refuge.currentCycle}</span>
-                    </div>
-                </div>
-                <div style={{display:'flex', gap:'10px'}}>
-                    {isMaster && <button className="btn-nero btn-primary" onClick={handlePassCycle}>PASSAR CICLO</button>}
-                    {isMaster && <button className="btn-nero btn-secondary" onClick={() => { setEditData(refuge); setModalType('edit'); }}><FaEdit /> EDITAR</button>}
-                </div>
+        <div className="refuge-header" style={{ backgroundImage: `url(${refuge.image || DEFAULT_REFUGE_IMAGE})` }}>
+          <div className="header-content">
+            <div className="refuge-heading-block">
+              <Link to={`/campaign/${campaignId}/refuges`} className="btn-nero btn-back">
+                <FaArrowLeft /> Voltar
+              </Link>
+              <h1 className="refuge-title">{refuge.name}</h1>
+              <div className="refuge-location">
+                <FaMapMarkerAlt /> {refuge.location || "Localização desconhecida"}
+                <span className="cycle-badge">CICLO {refuge.currentCycle || 1}</span>
+              </div>
+              {refuge.description && <p className="refuge-description">{refuge.description}</p>}
             </div>
-        </div>
 
-        {/* STATUS BAR */}
-        <div className="stats-bar">
-            {[
-                { l: "POPULAÇÃO", v: refuge.stats.population.current, k: 'population', limit: maxPop },
-                { l: "MORAL", v: refuge.stats.morale, k: 'morale', type: 'morale', limit: 6 },
-                { l: "DEFESA", v: refuge.stats.defense, k: 'defense', type: 'defense', limit: 6 },
-                { l: "MOBILIDADE", v: refuge.stats.mobility, k: 'mobility', limit: 6 },
-                { l: "BELIGERÂNCIA", v: refuge.stats.belligerence, k: 'belligerence', type: 'danger', limit: 6 },
-                { l: "TETO RESERVAS", v: maxReserves, k: null }
-            ].map((s, i) => (
-                <div key={i} className="stat-box">
-                    <span className="stat-label">{s.l}</span>
-                    <div className="stat-value-container">
-                        {s.k && <button className="btn-stat-mini" onClick={() => handleStatChange(s.k, -1)}><FaMinus size={10}/></button>}
-                        <span className={`stat-value ${s.type || ''}`}>{s.v}</span>
-                        {s.limit && <span style={{fontSize:'0.8rem', color:'#666', alignSelf:'flex-end', marginBottom:'5px'}}>/{s.limit}</span>}
-                        {s.k && <button className="btn-stat-mini" onClick={() => handleStatChange(s.k, 1)}><FaPlus size={10}/></button>}
-                    </div>
-                </div>
-            ))}
-        </div>
-
-        {/* ABAS */}
-        <div className="refuge-tabs">
-            {['RECURSOS', 'CONSTRUÇÕES', 'HABITANTES', 'SALA DE GUERRA', 'HISTÓRICO'].map((label, idx) => (
-                <button key={idx} className={`refuge-tab ${activeTab === idx ? 'active' : ''}`} onClick={() => setActiveTab(idx)}>
-                    {label}
+            <div className="refuge-header-actions">
+              {saving && (
+                <span className="saving-pill">
+                  <InlineLoader label="Salvando" />
+                </span>
+              )}
+              {isMaster && (
+                <button className="btn-nero btn-danger-action" disabled={saving} onClick={handlePassCycle}>
+                  <FaExclamationTriangle /> Passar ciclo
                 </button>
-            ))}
+              )}
+              {isMaster && (
+                <button className="btn-nero btn-secondary" disabled={saving} onClick={openEditModal}>
+                  <FaEdit /> Editar
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* CONTEÚDO */}
+        <div className="stats-bar">
+          {stats.map((stat) => (
+            <div key={stat.label} className="stat-box">
+              <span className="stat-label">{stat.label}</span>
+              <div className="stat-value-container">
+                {stat.key && (
+                  <button className="btn-stat-mini" disabled={saving} onClick={() => handleStatChange(stat.key, -1)}>
+                    <FaMinus size={10} />
+                  </button>
+                )}
+                <span className={`stat-value ${stat.type || ""}`}>{stat.value}</span>
+                {stat.limit && <span className="stat-limit">/{stat.limit}</span>}
+                {stat.key && (
+                  <button className="btn-stat-mini" disabled={saving} onClick={() => handleStatChange(stat.key, 1)}>
+                    <FaPlus size={10} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="refuge-tabs">
+          {tabs.map((label, index) => (
+            <button
+              key={label}
+              className={`refuge-tab ${activeTab === index ? "active" : ""}`}
+              onClick={() => setActiveTab(index)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="tab-content">
-            
-            {/* 0: RECURSOS */}
-            {activeTab === 0 && (
-                <div>
-                    <div className="resource-grid">
-                        {Object.entries(refuge.resources.natural).map(([k, v]) => (
-                            <div key={k} className="resource-card">
-                                <span className="res-icon">{resourceIcons[k]}</span>
-                                <span className="res-name">{resourceLabels[k]}</span>
-                                <div className="res-control">
-                                    <button className="btn-stat-mini" onClick={() => handleResourceChange('natural', k, -1)}><FaMinus/></button>
-                                    <span className="res-val">{v.level}</span>
-                                    <button className="btn-stat-mini" onClick={() => handleResourceChange('natural', k, 1)}><FaPlus/></button>
-                                </div>
-                            </div>
-                        ))}
-                        {Object.entries(refuge.resources.manufactured).map(([k, v]) => (
-                            <div key={k} className="resource-card">
-                                <span className="res-icon">{resourceIcons[k]}</span>
-                                <span className="res-name">{resourceLabels[k]}</span>
-                                <div className="res-control">
-                                    <button className="btn-stat-mini" onClick={() => handleResourceChange('manufactured', k, -1)}><FaMinus/></button>
-                                    <span className="res-val">{v.level}</span>
-                                    <button className="btn-stat-mini" onClick={() => handleResourceChange('manufactured', k, 1)}><FaPlus/></button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+          {activeTab === 0 && (
+            <>
+              {renderResourceSection("Recursos naturais", "natural", refuge.resources?.natural)}
+              {renderResourceSection("Recursos manufaturados", "manufactured", refuge.resources?.manufactured)}
+            </>
+          )}
 
-            {/* 1: CONSTRUÇÕES */}
-            {activeTab === 1 && (
-                <div>
-                    <button className="btn-nero btn-primary btn-float-right" onClick={() => setModalType('structure')}><FaPlus/> INICIAR PROJETO</button>
-                    <div style={{clear:'both'}}></div>
-                    <div className="build-grid">
-                        {refuge.structures.map((s, i) => (
-                            <div key={i} className="build-card">
-                                <button className="btn-icon-danger" onClick={() => handleDeleteItem('structures', i)}><FaTrash/></button>
-                                <h4>{s.name}</h4>
-                                <span className="type">{s.type}</span>
-                                <p>{s.description}</p>
-                            </div>
-                        ))}
-                    </div>
+          {activeTab === 1 && (
+            <section className="refuge-section">
+              <div className="tab-toolbar">
+                <div className="section-heading">
+                  <h3>Construções</h3>
+                  <span>{(refuge.structures || []).length} estruturas</span>
                 </div>
-            )}
+                <button className="btn-nero btn-primary" onClick={() => setModalType("structure")}>
+                  <FaPlus /> Iniciar projeto
+                </button>
+              </div>
 
-            {/* 2: HABITANTES */}
-            {activeTab === 2 && (
+              {(refuge.structures || []).length === 0 ? (
+                renderEmptyState(
+                  "Nenhuma construção pronta",
+                  "Inicie um projeto para transformar recursos em estruturas permanentes.",
+                  <button className="btn-nero btn-primary" onClick={() => setModalType("structure")}>
+                    <FaPlus /> Iniciar construção
+                  </button>
+                )
+              ) : (
+                <div className="build-grid">
+                  {(refuge.structures || []).map((structure, index) => (
+                    <article key={`${structure.name}-${index}`} className="build-card">
+                      <button className="btn-icon-danger" onClick={() => handleDeleteItem("structures", index)}>
+                        <FaTrash />
+                      </button>
+                      <h4>{structure.name}</h4>
+                      <span className="type">{structure.type || "Geral"}</span>
+                      <p>{structure.description || "Sem descrição registrada."}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === 2 && (
+            <section className="refuge-section">
+              <div className="tab-toolbar">
+                <div className="section-heading">
+                  <h3>Habitantes</h3>
+                  <span>{totalResidents} registros</span>
+                </div>
+                <button className="btn-nero btn-primary" onClick={() => setModalType("npc")}>
+                  <FaPlus /> Novo NPC
+                </button>
+              </div>
+
+              <div className="population-summary">
                 <div>
-                    <button className="btn-nero btn-primary btn-float-right" onClick={() => setModalType('npc')}><FaPlus/> NOVO NPC</button>
-                    <div style={{clear:'both'}}></div>
-                    <div className="build-grid" style={{gridTemplateColumns:'1fr 1fr'}}>
-                        
-                        {/* COLUNA 1: JOGADORES (PJs) */}
-                        <div style={{background:'#111', padding:'20px', border:'1px solid #333'}}>
-                            <h4 style={{color:'#4c86ff', borderBottom:'1px solid #333', paddingBottom:'10px', display:'flex', alignItems:'center', gap:'10px'}}>
-                                <FaUserAstronaut/> JOGADORES (PJs)
-                            </h4>
-                            {refuge.playerCharacters && refuge.playerCharacters.length > 0 ? (
-                                refuge.playerCharacters.map(pj => (
-                                    <div key={pj._id} style={{padding:'10px', borderBottom:'1px solid #222', color:'#fff'}}>
-                                        <strong>{pj.name}</strong> <br/>
-                                        <span style={{color:'#666', fontSize:'0.85rem'}}>{pj.role || 'Sem função'} • {pj.health || 'Saudável'}</span>
-                                    </div>
-                                ))
-                            ) : (
-                                <p style={{color:'#666'}}>Nenhum jogador na campanha.</p>
-                            )}
+                  <strong>{playerCount}</strong>
+                  <span>Jogadores</span>
+                </div>
+                <div>
+                  <strong>{npcCount}</strong>
+                  <span>NPCs</span>
+                </div>
+                <div>
+                  <strong>{refuge.stats?.population?.current || 0}/{maxPop}</strong>
+                  <span>Nível populacional</span>
+                </div>
+                <div>
+                  <strong>{populationCapacity}</strong>
+                  <span>Capacidade estimada</span>
+                </div>
+              </div>
+
+              <div className="population-grid">
+                <div className="population-panel">
+                  <h4><FaUserAstronaut /> Jogadores</h4>
+                  {(refuge.playerCharacters || []).length === 0 ? (
+                    <p className="muted-text">Nenhum personagem de jogador vinculado à campanha.</p>
+                  ) : (
+                    refuge.playerCharacters.map((player) => (
+                      <div key={player._id} className="person-row">
+                        <div>
+                          <strong>{player.name}</strong>
+                          <span>{player.role || player.occupation || "Sem função"} · {player.health || "Saudável"}</span>
                         </div>
+                      </div>
+                    ))
+                  )}
+                </div>
 
-                        {/* COLUNA 2: NPCs */}
-                        <div style={{background:'#111', padding:'20px', border:'1px solid #333'}}>
-                            <h4 style={{color:'#b0c4de', borderBottom:'1px solid #333', paddingBottom:'10px', display:'flex', alignItems:'center', gap:'10px'}}>
-                                <FaUsers/> HABITANTES (NPCs)
-                            </h4>
-                            {refuge.populationList.map((npc, i) => (
-                                <div key={i} style={{padding:'10px', borderBottom:'1px solid #222', color:'#fff', display:'flex', justifyContent:'space-between'}}>
-                                    <div>
-                                        <strong>{npc.name}</strong> <br/>
-                                        <span style={{color:'#666', fontSize:'0.85rem'}}>{npc.role}</span>
-                                    </div>
-                                    <button className="btn-icon-danger" style={{position:'static'}} onClick={() => handleDeleteItem('populationList', i)}><FaTrash/></button>
-                                </div>
+                <div className="population-panel">
+                  <h4><FaUsers /> NPCs do refúgio</h4>
+                  {(refuge.populationList || []).length === 0 ? (
+                    <div className="compact-empty">
+                      <p>Nenhum NPC registrado.</p>
+                      <button className="btn-nero btn-secondary" onClick={() => setModalType("npc")}>
+                        <FaPlus /> Adicionar
+                      </button>
+                    </div>
+                  ) : (
+                    refuge.populationList.map((npc, index) => (
+                      <div key={`${npc.name}-${index}`} className="person-card">
+                        <div className="person-card-main">
+                          <div>
+                            <strong>{npc.name}</strong>
+                            <span>{npc.role || "Sem função"}</span>
+                          </div>
+                          <select
+                            className="npc-health-select"
+                            value={npc.health || "Saudável"}
+                            disabled={saving}
+                            onChange={(event) => handleNpcHealthChange(index, event.target.value)}
+                          >
+                            {npcHealthOptions.map((option) => (
+                              <option key={option} value={option}>{option}</option>
                             ))}
+                          </select>
                         </div>
-                    </div>
+                        {npc.notes && <p>{npc.notes}</p>}
+                        <div className="person-card-footer">
+                          <span className={`health-chip health-${(npc.health || "saudavel").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`}>
+                            {npc.health || "Saudável"}
+                          </span>
+                          <button className="btn-icon-danger inline" onClick={() => handleDeleteItem("populationList", index)}>
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-            )}
+              </div>
+            </section>
+          )}
 
-            {/* 3: SALA DE GUERRA */}
-            {activeTab === 3 && (
-                <div className="war-room-grid">
-                    <div>
-                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
-                            <h3 style={{fontFamily:'Orbitron', color:'#ff5252', margin:0}}><FaSkull/> AMEAÇAS</h3>
-                            <button className="btn-nero btn-secondary" onClick={() => setModalType('threat')}><FaPlus/> NOVA</button>
-                        </div>
-                        {refuge.activeThreats.map((t, i) => (
-                            <div key={i} className="threat-card">
-                                <button className="btn-icon-danger" onClick={() => handleDeleteItem('activeThreats', i)}><FaTrash/></button>
-                                <div className="threat-title">{t.name}</div>
-                                <div className="threat-desc">{t.description}</div>
-                                <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                                    <button className="btn-stat-mini" onClick={() => handleThreatProgress(i, -1)}><FaMinus/></button>
-                                    <div style={{flex:1}} className="nero-progress"><div className="nero-bar red" style={{width: `${(t.level/t.maxLevel)*100}%`}}></div></div>
-                                    <button className="btn-stat-mini" onClick={() => handleThreatProgress(i, 1)}><FaPlus/></button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div>
-                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
-                            <h3 style={{fontFamily:'Orbitron', color:'#4c86ff', margin:0}}><FaTools/> PROJETOS</h3>
-                            <button className="btn-nero btn-secondary" onClick={() => setModalType('project')}><FaPlus/> NOVO</button>
-                        </div>
-                        {refuge.activeProjects.map((p, i) => (
-                            <div key={i} className="build-card" style={{marginBottom:'15px', borderLeftColor:'#4c86ff'}}>
-                                <button className="btn-icon-danger" onClick={() => handleDeleteItem('activeProjects', i)}><FaTrash/></button>
-                                <h4>{p.name}</h4>
-                                <p>{p.description}</p>
-                                <div style={{display:'flex', alignItems:'center', gap:'10px', marginTop:'10px'}}>
-                                    <button className="btn-stat-mini" onClick={() => handleProjectProgress(i, -1)}><FaMinus/></button>
-                                    <div style={{flex:1}} className="nero-progress"><div className="nero-bar blue" style={{width: `${(p.progress/p.cost)*100}%`}}></div></div>
-                                    <button className="btn-stat-mini" onClick={() => handleProjectProgress(i, 1)}><FaPlus/></button>
-                                </div>
-                                <div style={{textAlign:'right', fontSize:'0.8rem', color:'#666', marginTop:'5px'}}>{p.progress}/{p.cost}</div>
-                            </div>
-                        ))}
-                    </div>
+          {activeTab === 3 && (
+            <section className="war-room-grid">
+              <div className="war-panel">
+                <div className="tab-toolbar">
+                  <div className="section-heading danger-title">
+                    <h3><FaSkull /> Ameaças</h3>
+                    <span>{(refuge.activeThreats || []).length} ativas</span>
+                  </div>
+                  <button className="btn-nero btn-secondary" onClick={() => setModalType("threat")}>
+                    <FaPlus /> Nova
+                  </button>
                 </div>
-            )}
 
-            {/* 4: HISTÓRICO */}
-            {activeTab === 4 && (
+                {(refuge.activeThreats || []).length === 0 ? (
+                  renderEmptyState("Sem ameaças ativas", "Registre relógios de perigo para acompanhar pressão sobre a base.")
+                ) : (
+                  refuge.activeThreats.map((threat, index) => (
+                    <article key={`${threat.name}-${index}`} className="threat-card">
+                      <button className="btn-icon-danger" onClick={() => handleDeleteItem("activeThreats", index)}>
+                        <FaTrash />
+                      </button>
+                      <div className="threat-title">{threat.name}</div>
+                      <div className="threat-desc">{threat.description || "Sem descrição registrada."}</div>
+                      <div className="progress-row">
+                        <button className="btn-stat-mini" disabled={saving} onClick={() => handleThreatProgress(index, -1)}>
+                          <FaMinus />
+                        </button>
+                        <div className="nero-progress">
+                          <div className="nero-bar red" style={{ width: `${((threat.level || 0) / (threat.maxLevel || 1)) * 100}%` }} />
+                        </div>
+                        <button className="btn-stat-mini" disabled={saving} onClick={() => handleThreatProgress(index, 1)}>
+                          <FaPlus />
+                        </button>
+                      </div>
+                      <div className="progress-meta">{threat.level || 0}/{threat.maxLevel || 1}</div>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              <div className="war-panel">
+                <div className="tab-toolbar">
+                  <div className="section-heading project-title">
+                    <h3><FaTools /> Projetos</h3>
+                    <span>{(refuge.activeProjects || []).length} em andamento</span>
+                  </div>
+                  <button className="btn-nero btn-secondary" onClick={() => setModalType("project")}>
+                    <FaPlus /> Novo
+                  </button>
+                </div>
+
+                {(refuge.activeProjects || []).length === 0 ? (
+                  renderEmptyState("Nenhum projeto em andamento", "Projetos livres e construções aparecerão aqui até serem concluídos.")
+                ) : (
+                  refuge.activeProjects.map((project, index) => (
+                    <article key={`${project.name}-${index}`} className="build-card project-card">
+                      <button className="btn-icon-danger" onClick={() => handleDeleteItem("activeProjects", index)}>
+                        <FaTrash />
+                      </button>
+                      <h4>{project.name}</h4>
+                      <p>{project.description || "Sem descrição registrada."}</p>
+                      <div className="progress-row">
+                        <button className="btn-stat-mini" disabled={saving} onClick={() => handleProjectProgress(index, -1)}>
+                          <FaMinus />
+                        </button>
+                        <div className="nero-progress">
+                          <div className="nero-bar blue" style={{ width: `${((project.progress || 0) / (project.cost || 1)) * 100}%` }} />
+                        </div>
+                        <button className="btn-stat-mini" disabled={saving} onClick={() => handleProjectProgress(index, 1)}>
+                          <FaPlus />
+                        </button>
+                      </div>
+                      <div className="progress-meta">{project.progress || 0}/{project.cost || 1}</div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 4 && (
+            <section className="refuge-section">
+              <div className="section-heading">
+                <h3><FaHistory /> Histórico</h3>
+                <span>{(refuge.logs || []).length} registros</span>
+              </div>
+
+              {(refuge.logs || []).length === 0 ? (
+                renderEmptyState("Nenhum ciclo registrado", "Quando semanas forem encerradas, os eventos do refúgio aparecerão aqui.")
+              ) : (
                 <div className="log-list">
-                    {refuge.logs && refuge.logs.map((log, i) => (
-                        <div key={i} className={`log-item ${log.type}`}>
-                            <span className="log-time">{new Date(log.timestamp).toLocaleDateString()}</span>
-                            <strong>CICLO {log.cycle}:</strong> {log.message}
-                        </div>
-                    ))}
+                  {(refuge.logs || []).map((log, index) => (
+                    <div key={`${log.timestamp}-${index}`} className={`log-item ${log.type || ""}`}>
+                      <span className="log-time">{log.timestamp ? new Date(log.timestamp).toLocaleDateString() : ""}</span>
+                      <strong>CICLO {log.cycle || "-"}</strong> {log.message}
+                    </div>
+                  ))}
                 </div>
-            )}
+              )}
+            </section>
+          )}
         </div>
       </div>
 
-      {/* --- MODAIS --- */}
-      
-      {/* EDITAR REFÚGIO */}
-      {modalType === 'edit' && (
-          <div className="nero-modal-overlay">
-              <div className="nero-modal">
-                  <div className="nero-modal-header">EDITAR REFÚGIO</div>
-                  <div className="nero-modal-body">
-                      <div className="form-group"><label>NOME</label><input className="nero-input" value={editData.name} onChange={e=>setEditData({...editData, name:e.target.value})}/></div>
-                      <div className="form-group"><label>LOCALIZAÇÃO</label><input className="nero-input" value={editData.location} onChange={e=>setEditData({...editData, location:e.target.value})}/></div>
-                      <div className="form-group"><label>DESCRIÇÃO</label><textarea className="nero-textarea" rows="3" value={editData.description} onChange={e=>setEditData({...editData, description:e.target.value})}/></div>
-                  </div>
-                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={()=>{saveRefugeUpdate({...refuge, ...editData}); setModalType(null);}}>SALVAR</button></div>
+      {modalType === "edit" && (
+        <div className="nero-modal-overlay" onClick={() => setModalType(null)}>
+          <div className="nero-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="nero-modal-header">Editar refúgio</div>
+            <div className="nero-modal-body">
+              <div className="form-group">
+                <label>Nome</label>
+                <input className="nero-input" value={editData.name} onChange={(event) => setEditData({ ...editData, name: event.target.value })} />
               </div>
+              <div className="form-group">
+                <label>Localização</label>
+                <input className="nero-input" value={editData.location} onChange={(event) => setEditData({ ...editData, location: event.target.value })} />
+              </div>
+              <div className="form-group">
+                <label>Descrição</label>
+                <textarea className="nero-textarea" rows="4" value={editData.description} onChange={(event) => setEditData({ ...editData, description: event.target.value })} />
+              </div>
+            </div>
+            <div className="nero-modal-footer">
+              <button className="btn-nero" onClick={() => setModalType(null)}>Cancelar</button>
+              <button className="btn-nero btn-primary" disabled={saving} onClick={handleSaveEdit}><FaSave /> Salvar</button>
+            </div>
           </div>
+        </div>
       )}
 
-      {/* NOVO REFÚGIO */}
-      {modalType === 'newRefuge' && (
-          <div className="nero-modal-overlay">
-              <div className="nero-modal">
-                  <div className="nero-modal-header">NOVO REFÚGIO</div>
-                  <div className="nero-modal-body">
-                      <div className="form-group"><label>NOME</label><input className="nero-input" value={newRefuge.name} onChange={e=>setNewRefuge({...newRefuge, name:e.target.value})}/></div>
-                      <div className="form-group"><label>LOCALIZAÇÃO</label><input className="nero-input" value={newRefuge.location} onChange={e=>setNewRefuge({...newRefuge, location:e.target.value})}/></div>
-                      <div className="form-group"><label>IMAGEM</label><input className="nero-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setNewRefugeImage(e.target.files?.[0] || null)}/></div>
-                      <div className="form-group"><label>DESCRIÇÃO</label><textarea className="nero-textarea" rows="3" value={newRefuge.description} onChange={e=>setNewRefuge({...newRefuge, description:e.target.value})}/></div>
-                  </div>
-                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={handleCreateRefuge}>CRIAR</button></div>
+      {modalType === "structure" && (
+        <div className="nero-modal-overlay" onClick={() => setModalType(null)}>
+          <div className="nero-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="nero-modal-header">Iniciar construção</div>
+            <div className="nero-modal-body">
+              <div className="form-group">
+                <label>Modelo</label>
+                <select className="nero-select" onChange={handleTemplateChange}>
+                  <option value="">Selecionar modelo</option>
+                  {buildingTemplates.map((template) => (
+                    <option key={template.name} value={template.name}>{template.name} (Custo: {template.cost})</option>
+                  ))}
+                </select>
+                <span className="field-hint">Escolha um modelo para preencher nome, tipo, custo e descrição.</span>
               </div>
+              <div className="form-group">
+                <label>Nome</label>
+                <input className="nero-input" value={newStructure.name} onChange={(event) => setNewStructure({ ...newStructure, name: event.target.value })} />
+              </div>
+              <div className="form-group">
+                <label>Tipo</label>
+                <select className="nero-select" value={newStructure.type} onChange={(event) => setNewStructure({ ...newStructure, type: event.target.value })}>
+                  <option>Geral</option>
+                  <option>Habitação</option>
+                  <option>Recurso</option>
+                  <option>Defesa</option>
+                  <option>Armazenamento</option>
+                  <option>Produção</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Custo</label>
+                <input type="number" min="1" className="nero-input" value={newStructure.cost} onChange={(event) => setNewStructure({ ...newStructure, cost: Number(event.target.value) })} />
+              </div>
+              <div className="form-group">
+                <label>Descrição</label>
+                <textarea className="nero-textarea" rows="3" value={newStructure.description} onChange={(event) => setNewStructure({ ...newStructure, description: event.target.value })} />
+              </div>
+            </div>
+            <div className="nero-modal-footer">
+              <button className="btn-nero" onClick={() => setModalType(null)}>Cancelar</button>
+              <button className="btn-nero btn-primary" disabled={saving} onClick={handleAddStructureProject}>Iniciar</button>
+            </div>
           </div>
+        </div>
       )}
 
-      {/* CONSTRUÇÃO */}
-      {modalType === 'structure' && (
-          <div className="nero-modal-overlay">
-              <div className="nero-modal">
-                  <div className="nero-modal-header">INICIAR PROJETO</div>
-                  <div className="nero-modal-body">
-                      <div className="form-group"><label>MODELO</label>
-                          <select className="nero-select" onChange={e => {
-                              const t = buildingTemplates.find(t => t.name === e.target.value);
-                              if(t) setNewStructure({name:t.name, type:t.type, description:t.description, cost:t.cost});
-                          }}>
-                              <option value="">-- Selecionar --</option>
-                              {buildingTemplates.map(t => <option key={t.name} value={t.name}>{t.name} (Custo: {t.cost})</option>)}
-                          </select>
-                      </div>
-                      <div className="form-group"><label>NOME</label><input className="nero-input" value={newStructure.name} onChange={e=>setNewStructure({...newStructure, name:e.target.value})}/></div>
-                      <div className="form-group"><label>TIPO</label><select className="nero-select" value={newStructure.type} onChange={e=>setNewStructure({...newStructure, type:e.target.value})}><option>Geral</option><option>Habitação</option><option>Recurso</option><option>Defesa</option></select></div>
-                      <div className="form-group"><label>CUSTO</label><input type="number" className="nero-input" value={newStructure.cost} onChange={e=>setNewStructure({...newStructure, cost:Number(e.target.value)})}/></div>
-                  </div>
-                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={handleAddStructureProject}>INICIAR</button></div>
+      {modalType === "npc" && (
+        <div className="nero-modal-overlay" onClick={() => setModalType(null)}>
+          <div className="nero-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="nero-modal-header">Novo NPC</div>
+            <div className="nero-modal-body">
+              <div className="form-group">
+                <label>Nome</label>
+                <input className="nero-input" value={newNpc.name} onChange={(event) => setNewNpc({ ...newNpc, name: event.target.value })} />
               </div>
+              <div className="form-group">
+                <label>Função</label>
+                <input className="nero-input" value={newNpc.role} onChange={(event) => setNewNpc({ ...newNpc, role: event.target.value })} placeholder="Ex: vigia, médico, batedor..." />
+              </div>
+              <div className="form-group">
+                <label>Estado</label>
+                <select className="nero-select" value={newNpc.health} onChange={(event) => setNewNpc({ ...newNpc, health: event.target.value })}>
+                  {npcHealthOptions.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Notas</label>
+                <textarea className="nero-textarea" rows="3" value={newNpc.notes} onChange={(event) => setNewNpc({ ...newNpc, notes: event.target.value })} />
+              </div>
+            </div>
+            <div className="nero-modal-footer">
+              <button className="btn-nero" onClick={() => setModalType(null)}>Cancelar</button>
+              <button className="btn-nero btn-primary" disabled={saving} onClick={handleAddNpc}>Adicionar</button>
+            </div>
           </div>
+        </div>
       )}
 
-      {/* NPC */}
-      {modalType === 'npc' && (
-          <div className="nero-modal-overlay">
-              <div className="nero-modal">
-                  <div className="nero-modal-header">NOVO NPC</div>
-                  <div className="nero-modal-body">
-                      <div className="form-group"><label>NOME</label><input className="nero-input" value={newNpc.name} onChange={e=>setNewNpc({...newNpc, name:e.target.value})}/></div>
-                      <div className="form-group"><label>FUNÇÃO</label><input className="nero-input" value={newNpc.role} onChange={e=>setNewNpc({...newNpc, role:e.target.value})}/></div>
-                  </div>
-                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={handleAddNpc}>ADICIONAR</button></div>
+      {modalType === "threat" && (
+        <div className="nero-modal-overlay" onClick={() => setModalType(null)}>
+          <div className="nero-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="nero-modal-header">Nova ameaça</div>
+            <div className="nero-modal-body">
+              <div className="form-group">
+                <label>Nome</label>
+                <input className="nero-input" value={newThreat.name} onChange={(event) => setNewThreat({ ...newThreat, name: event.target.value })} />
               </div>
+              <div className="form-group">
+                <label>Descrição</label>
+                <textarea className="nero-textarea" rows="3" value={newThreat.description} onChange={(event) => setNewThreat({ ...newThreat, description: event.target.value })} />
+              </div>
+              <div className="form-group">
+                <label>Tamanho do relógio</label>
+                <input type="number" min="1" className="nero-input" value={newThreat.maxLevel} onChange={(event) => setNewThreat({ ...newThreat, maxLevel: Number(event.target.value) })} />
+              </div>
+            </div>
+            <div className="nero-modal-footer">
+              <button className="btn-nero" onClick={() => setModalType(null)}>Cancelar</button>
+              <button className="btn-nero btn-primary" disabled={saving} onClick={handleAddThreat}>Criar</button>
+            </div>
           </div>
+        </div>
       )}
 
-      {/* Ameaça */}
-      {modalType === 'threat' && (
-          <div className="nero-modal-overlay">
-              <div className="nero-modal">
-                  <div className="nero-modal-header">NOVA AMEAÇA</div>
-                  <div className="nero-modal-body">
-                      <div className="form-group"><label>NOME</label><input className="nero-input" value={newThreat.name} onChange={e=>setNewThreat({...newThreat, name:e.target.value})}/></div>
-                      <div className="form-group"><label>DESCRIÇÃO</label><textarea className="nero-textarea" value={newThreat.description} onChange={e=>setNewThreat({...newThreat, description:e.target.value})}/></div>
-                      <div className="form-group"><label>TAMANHO DO RELÓGIO</label><input type="number" className="nero-input" value={newThreat.maxLevel} onChange={e=>setNewThreat({...newThreat, maxLevel:Number(e.target.value)})}/></div>
-                  </div>
-                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={handleAddThreat}>CRIAR</button></div>
+      {modalType === "project" && (
+        <div className="nero-modal-overlay" onClick={() => setModalType(null)}>
+          <div className="nero-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="nero-modal-header">Novo projeto</div>
+            <div className="nero-modal-body">
+              <div className="form-group">
+                <label>Nome</label>
+                <input className="nero-input" value={newProject.name} onChange={(event) => setNewProject({ ...newProject, name: event.target.value })} />
               </div>
-          </div>
-      )}
-
-      {/* Projeto */}
-      {modalType === 'project' && (
-          <div className="nero-modal-overlay">
-              <div className="nero-modal">
-                  <div className="nero-modal-header">NOVO PROJETO</div>
-                  <div className="nero-modal-body">
-                      <div className="form-group"><label>NOME</label><input className="nero-input" value={newProject.name} onChange={e=>setNewProject({...newProject, name:e.target.value})}/></div>
-                      <div className="form-group"><label>CUSTO</label><input type="number" className="nero-input" value={newProject.cost} onChange={e=>setNewProject({...newProject, cost:Number(e.target.value)})}/></div>
-                      <div className="form-group"><label>DESCRIÇÃO</label><textarea className="nero-textarea" value={newProject.description} onChange={e=>setNewProject({...newProject, description:e.target.value})}/></div>
-                  </div>
-                  <div className="nero-modal-footer"><button className="btn-nero" onClick={()=>setModalType(null)}>CANCELAR</button><button className="btn-nero btn-primary" onClick={() => {
-                      saveRefugeUpdate({ ...refuge, activeProjects: [...refuge.activeProjects, { ...newProject, progress: 0 }] });
-                      setModalType(null);
-                  }}>INICIAR</button></div>
+              <div className="form-group">
+                <label>Custo</label>
+                <input type="number" min="1" className="nero-input" value={newProject.cost} onChange={(event) => setNewProject({ ...newProject, cost: Number(event.target.value) })} />
               </div>
+              <div className="form-group">
+                <label>Descrição</label>
+                <textarea className="nero-textarea" rows="3" value={newProject.description} onChange={(event) => setNewProject({ ...newProject, description: event.target.value })} />
+              </div>
+            </div>
+            <div className="nero-modal-footer">
+              <button className="btn-nero" onClick={() => setModalType(null)}>Cancelar</button>
+              <button className="btn-nero btn-primary" disabled={saving} onClick={handleAddProject}>Iniciar</button>
+            </div>
           </div>
+        </div>
       )}
-
-      {/* Toast */}
-      {toast.open && <div className="nero-toast">{toast.msg}</div>}
-
     </div>
   );
 };

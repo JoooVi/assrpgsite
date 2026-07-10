@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import CharacteristicsMenu from "./CharacteristicsMenu";
+import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 
 // --- DADOS ESTÁTICOS ---
 const scarcityLevels = { 
@@ -18,15 +19,20 @@ const resourceTypes = ['agua', 'comida', 'combustivel', 'pecas'];
 const styles = {
   overlay: {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
+    background: 'radial-gradient(circle at 50% 20%, rgba(138, 28, 24, 0.22), rgba(0, 0, 0, 0.84) 48%, rgba(0, 0, 0, 0.92))',
+    zIndex: 9999,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    backdropFilter: 'blur(3px)'
+    backdropFilter: 'blur(8px)',
+    padding: 20,
+    boxSizing: 'border-box'
   },
   modal: {
-    backgroundColor: '#161616', border: '1px solid #444',
+    background: 'linear-gradient(180deg, rgba(18,18,18,0.98), rgba(7,7,7,0.99))',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderTop: '4px solid #8a1c18',
     width: '90%', maxWidth: '800px', maxHeight: '90vh',
-    overflowY: 'auto', borderRadius: '4px',
-    boxShadow: '0 10px 40px rgba(0,0,0,1)', color: '#e0e0e0',
+    overflowY: 'auto', borderRadius: '0',
+    boxShadow: '0 24px 70px rgba(0,0,0,0.9)', color: '#e0e0e0',
     fontFamily: '"Roboto Condensed", sans-serif',
     animation: 'fadeIn 0.2s ease-out'
   },
@@ -34,7 +40,7 @@ const styles = {
     padding: '16px 24px', borderBottom: '1px solid #333',
     fontSize: '1.2rem', fontWeight: 'bold', textTransform: 'uppercase',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#111'
+    background: 'linear-gradient(90deg, rgba(138,28,24,0.18), #151515 44%)'
   },
   body: {
     padding: '24px', display: 'flex', flexWrap: 'wrap', gap: '20px'
@@ -53,22 +59,22 @@ const styles = {
   },
   input: {
     width: '100%', padding: '10px', backgroundColor: '#1f1f1f',
-    border: '1px solid #333', borderRadius: '3px', color: '#fff',
+    border: '1px solid #333', borderRadius: '0', color: '#fff',
     fontSize: '0.95rem', fontFamily: 'inherit',
     boxSizing: 'border-box'
   },
   select: {
     width: '100%', padding: '10px', backgroundColor: '#1f1f1f',
-    border: '1px solid #333', borderRadius: '3px', color: '#fff',
+    border: '1px solid #333', borderRadius: '0', color: '#fff',
     fontSize: '0.95rem', cursor: 'pointer'
   },
   checkboxContainer: {
     display: 'flex', alignItems: 'center', gap: '10px',
-    padding: '10px', border: '1px solid #333', borderRadius: '4px',
+    padding: '10px', border: '1px solid #333', borderRadius: '0',
     backgroundColor: '#1a1a1a'
   },
   btn: {
-    padding: '10px 20px', border: 'none', borderRadius: '3px',
+    padding: '10px 20px', border: 'none', borderRadius: '0',
     cursor: 'pointer', fontWeight: 'bold', textTransform: 'uppercase',
     fontSize: '0.9rem', transition: '0.2s'
   },
@@ -79,7 +85,7 @@ const styles = {
     backgroundColor: 'transparent', color: '#bbb', border: '1px solid #444'
   },
   flagsBox: {
-    padding: '15px', border: '1px solid #444', borderRadius: '4px',
+    padding: '15px', border: '1px solid #444', borderRadius: '0',
     backgroundColor: 'rgba(255,255,255,0.02)'
   },
   charList: {
@@ -104,6 +110,7 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
             originalItemId: sourceItemData.originalItemId || editItem.invItemData.item?._id || null,
             name: sourceItemData.name || 'Nome Desconhecido',
             type: sourceItemData.type || 'Desconhecido',
+            ...normalizeItemImageFields(sourceItemData),
             category: sourceItemData.category ?? 3,
             slots: sourceItemData.slots ?? 1,
             quality: editItem.invItemData.quality ?? 3,
@@ -123,6 +130,15 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
     }
   }, [editItem, onClose]);
 
+  useEffect(() => {
+    if (!editItem) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editItem, onClose]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
@@ -133,7 +149,7 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
       else if (name === 'modifiers') newValue = value.split(',').map(m => m.trim());
       else if (['slots', 'quality', 'category'].includes(name)) newValue = parseInt(value) || 0;
 
-      if (name === 'type' && !['Recurso', 'Consumivel'].includes(newValue)) {
+      if (name === 'type' && !['Recurso', 'Consumivel', 'Consumível'].includes(newValue)) {
           return { ...prev, type: newValue, resourceType: null, isConsumable: false };
       }
       if (name === 'resourceType' && value === 'nenhum') {
@@ -187,12 +203,45 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
           
           {/* Cabeçalho */}
           <div style={styles.header}>
-            <span>EDITAR ITEM</span>
-            <button onClick={onClose} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:'1.5rem'}}>×</button>
+            <div>
+              <span style={{display:'block', color:'#ff5555', fontSize:'0.68rem', fontWeight:800, letterSpacing:'0.18em', textTransform:'uppercase'}}>Inventário</span>
+              <span>Editar item</span>
+            </div>
+            <button type="button" aria-label="Fechar edição de item" onClick={onClose} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:'1.5rem'}}>×</button>
           </div>
 
           {/* Corpo do Formulário */}
           <div style={styles.body}>
+            <div style={{
+              width:'100%',
+              display:'flex',
+              gap:16,
+              alignItems:'center',
+              padding:'14px 16px',
+              border:'1px solid #333',
+              background:'linear-gradient(90deg, rgba(138,28,24,0.1), rgba(255,255,255,0.02))'
+            }}>
+              <div style={{
+                width:58,
+                height:58,
+                display:'grid',
+                placeItems:'center',
+                background:'#0b0b0b',
+                border:'1px solid #333',
+                color:'#555',
+                fontWeight:800
+              }}>
+                {getItemImageUrl(editedData) ? (
+                  <img src={getItemImageUrl(editedData)} alt="" style={{maxWidth:'100%', maxHeight:'100%', objectFit:'contain'}} />
+                ) : (
+                  editedData.name?.charAt(0)?.toUpperCase() || "I"
+                )}
+              </div>
+              <div>
+                <div style={{color:'#fff', fontWeight:800, textTransform:'uppercase', letterSpacing:1}}>{editedData.name}</div>
+                <div style={{color:'#888', fontSize:'0.82rem', textTransform:'uppercase'}}>{editedData.type} · {editedData.slots} slot(s)</div>
+              </div>
+            </div>
             
             {/* Coluna Esquerda: Dados Básicos */}
             <div style={styles.column}>
@@ -270,14 +319,14 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
                </div>
 
                {/* Características */}
-               <div style={{background:'#111', padding:'10px', borderRadius:'4px', border:'1px solid #333'}}>
+               <div style={{background:'linear-gradient(180deg, #151515, #0d0d0d)', padding:'14px', borderRadius:'0', border:'1px solid #333', borderLeft:'3px solid #8a1c18'}}>
                   {/* ALTERADO: Header flexível com input de pontos */}
-                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', marginBottom:'8px', flexWrap:'wrap'}}>
                       <label style={{...styles.label, marginBottom:0}}>CARACTERÍSTICAS</label>
                       
                       {/* Novo Input de Pontos */}
-                      <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
-                        <span style={{fontSize:'0.75rem', color:'#888', fontWeight:'bold'}}>PTS:</span>
+                      <div style={{display:'flex', alignItems:'center', gap:'5px', height:'28px', padding:'0 7px', background:'#101010', border:'1px solid #333', marginLeft:'auto'}}>
+                        <span style={{fontSize:'0.66rem', color:'#888', fontWeight:'900', letterSpacing:'0.08em'}}>PTS</span>
                         <input 
                             type="number"
                             value={editedData.characteristics?.points || 0}
@@ -289,32 +338,37 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
                                 }
                             }))}
                             style={{
-                                width: '50px', 
-                                padding: '4px', 
-                                background: '#222', 
-                                border: '1px solid #444', 
+                                width: '40px', 
+                                padding: '2px 4px', 
+                                background: '#1d1d1d', 
+                                border: '1px solid #3a3a3a', 
                                 color: '#fff', 
                                 textAlign: 'center',
-                                borderRadius: '3px'
+                                borderRadius: '0',
+                                fontSize: '0.78rem',
+                                fontWeight: 800
                             }}
                         />
                       </div>
 
                       <button 
-                        style={{background:'none', border:'1px solid #555', color:'#aaa', fontSize:'0.7rem', cursor:'pointer', borderRadius:'2px', padding:'2px 6px'}} 
+                        type="button"
+                        title="Editar"
+                        style={{width:'66px', height:'28px', overflow:'hidden', background:'rgba(138,28,24,0.2)', border:'1px solid #631713', color:'#fff', fontSize:'0.64rem', letterSpacing:'0.08em', cursor:'pointer', borderRadius:'0', padding:'0 9px', textTransform:'uppercase', fontWeight:900, whiteSpace:'nowrap'}} 
                         onClick={() => setShowCharacteristicsMenu(true)}
-                      >
-                          GERENCIAR
-                      </button>
+                      >Editar</button>
                   </div>
                   
-                  <ul style={{paddingLeft: '20px', margin: 0, color:'#ccc', fontSize:'0.9rem', maxHeight:'100px', overflowY:'auto'}}>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:'6px', marginTop:'12px', maxHeight:'110px', overflowY:'auto'}}>
                       {(editedData.characteristics?.details?.length > 0) ? 
                           editedData.characteristics.details.map((c, i) => (
-                              <li key={i}>{c.name} <span style={{color:'#666', fontSize:'0.8em'}}>({c.cost})</span></li>
+                              <span key={i} style={{display:'inline-flex', alignItems:'center', gap:'5px', padding:'5px 8px', border:'1px solid #333', background:'#191919', color:'#ddd', fontSize:'0.82rem', fontWeight:700}}>
+                                {c.name}
+                                <span style={{color:'#ff5555', fontSize:'0.78em'}}>({c.cost})</span>
+                              </span>
                           )) 
-                      : <li style={{color:'#666', listStyle:'none'}}>Nenhuma</li>}
-                  </ul>
+                      : <span style={{color:'#666'}}>Nenhuma característica aplicada.</span>}
+                  </div>
                </div>
 
             </div>
@@ -322,8 +376,8 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
 
           {/* Rodapé com Ações */}
           <div style={styles.footer}>
-            <button style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button>
-            <button style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar</button>
+            <button type="button" style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button>
+            <button type="button" style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar</button>
           </div>
 
         </div>

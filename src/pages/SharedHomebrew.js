@@ -1,153 +1,157 @@
-/* SharedHomebrew.js */
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
-// Ícones
-import { FaBoxOpen, FaBrain, FaFire, FaDownload, FaExclamationTriangle } from "react-icons/fa";
-// Reutilizando o CSS de Homebrews para consistência
-import "./Homebrews.css"; 
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { FaBoxOpen, FaBrain, FaCheck, FaDownload, FaExclamationTriangle, FaFire, FaLink } from "react-icons/fa";
+import api from "../api";
+import "./Homebrews.css";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import PageLoader from "../components/ui/PageLoader";
+
+const typeMeta = {
+  item: { label: "ITEM CUSTOMIZADO", icon: <FaBoxOpen /> },
+  trait: { label: "CARACTERÍSTICA", icon: <FaBrain /> },
+  assimilation: { label: "ASSIMILAÇÃO", icon: <FaFire /> },
+};
 
 const SharedHomebrew = () => {
   const { id } = useParams();
+  const token = useSelector((state) => state.auth.token);
+
   const [homebrewData, setHomebrewData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    console.log("SharedHomebrew component mounted");
     const fetchData = async () => {
       try {
-        console.log("Fetching data for id:", id);
-        const response = await axios.get(
-          `https://assrpgsite-be-production.up.railway.app/api/shared/${id}`
-        );
+        const response = await api.get(`/shared/${id}`);
         setHomebrewData(response.data);
-      } catch (error) {
-        console.error("Erro ao carregar homebrew:", error);
+      } catch (requestError) {
+        console.error("Erro ao carregar homebrew:", requestError);
         setError(true);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchData();
   }, [id]);
 
-  const handleAddToProfile = async () => {
+  const handleCopyLink = async () => {
+    const shareUrl = window.location.href;
+
     try {
-      await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/shared/${id}/add-to-profile`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      alert("DADOS ASSIMILADOS COM SUCESSO.");
-    } catch (error) {
-      alert("ERRO NA ASSIMILAÇÃO. TENTE NOVAMENTE.");
+      await navigator.clipboard.writeText(shareUrl);
+      dispatchToast({ message: "Link copiado.", type: "success" });
+    } catch {
+      dispatchToast({ message: `Link da página: ${shareUrl}`, type: "info", duration: 9000 });
     }
   };
 
-  const renderIcon = () => {
-    const style = { fontSize: '2rem', color: '#ff3333' };
-    switch (homebrewData?.type) {
-      case "item": return <FaBoxOpen style={style} />;
-      case "trait": return <FaBrain style={style} />;
-      case "assimilation": return <FaFire style={style} />;
-      default: return null;
+  const handleAddToProfile = async () => {
+    if (!token) {
+      dispatchToast({ message: "Faça login para adicionar este homebrew ao seu perfil.", type: "warning" });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await api.post(`/shared/${id}/add-to-profile`);
+      setAdded(true);
+      dispatchToast({ message: "Homebrew adicionado ao seu perfil.", type: "success" });
+    } catch (requestError) {
+      console.error("Erro ao adicionar homebrew:", requestError);
+      const message = requestError.response?.data?.message || "Erro ao adicionar homebrew. Tente novamente.";
+      dispatchToast({ message, type: "error" });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const getTypeLabel = (type) => {
-      const map = { item: "ITEM CUSTOMIZADO", trait: "CARACTERÍSTICA", assimilation: "ASSIMILAÇÃO" };
-      return map[type] || "DADOS DESCONHECIDOS";
-  };
+  if (loading) {
+    return <PageLoader title="Decodificando dados" subtitle="Verificando pacote de homebrew compartilhado..." />;
+  }
 
-  if (loading) return (
-    <div className="homebrews-container" style={{display:'flex', justifyContent:'center', alignItems:'center'}}>
-        <h2 className="hb-title">DECODIFICANDO DADOS...</h2>
-    </div>
-  );
-
-  if (error || !homebrewData) return (
-    <div className="homebrews-container" style={{display:'flex', justifyContent:'center', alignItems:'center'}}>
-        <div className="hb-panel" style={{textAlign:'center', maxWidth:'500px'}}>
-            <FaExclamationTriangle style={{fontSize:'3rem', color:'#bd2c2c', marginBottom:'20px'}}/>
-            <h2 style={{color:'#fff', fontFamily:'Orbitron'}}>ARQUIVO CORROMPIDO</h2>
-            <p style={{color:'#aaa'}}>Não foi possível recuperar os dados compartilhados.</p>
+  if (error || !homebrewData) {
+    return (
+      <div className="homebrews-container hb-centered-page">
+        <div className="hb-panel hb-shared-panel hb-shared-error">
+          <FaExclamationTriangle />
+          <h1>Arquivo corrompido</h1>
+          <p>Não foi possível recuperar os dados compartilhados.</p>
+          <Link to="/homebrews" className="btn-nero btn-primary">Voltar para Homebrews</Link>
         </div>
-    </div>
-  );
+      </div>
+    );
+  }
+
+  const meta = typeMeta[homebrewData.type] || { label: "DADOS DESCONHECIDOS", icon: <FaBoxOpen /> };
+  const data = homebrewData.data || {};
 
   return (
     <div className="homebrews-container">
-      <div className="hb-panel" style={{ maxWidth: '800px', margin: '0 auto' }}>
-        
-        {/* Cabeçalho do Arquivo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', borderBottom: '2px solid #333', paddingBottom: '20px', marginBottom: '30px' }}>
-          {renderIcon()}
+      <div className="hb-panel hb-shared-panel">
+        <div className="hb-shared-header">
+          <div className="hb-shared-icon">{meta.icon}</div>
           <div>
-            <span style={{ display:'block', color:'#666', fontSize:'0.9rem', fontFamily:'Roboto Condensed', fontWeight:'bold' }}>
-                ARQUIVO RECEBIDO: {getTypeLabel(homebrewData.type)}
-            </span>
-            <h1 style={{ margin: 0, fontFamily: 'Orbitron', color: '#fff', fontSize: '2rem', textTransform: 'uppercase' }}>
-              {homebrewData.data.name}
-            </h1>
+            <span className="hb-eyebrow">Arquivo recebido: {meta.label}</span>
+            <h1>{data.name || "Homebrew sem nome"}</h1>
           </div>
         </div>
 
-        {/* Corpo de Dados */}
-        <div style={{ background: '#0a0a0a', border: '1px solid #333', padding: '25px', marginBottom: '30px' }}>
-          
-          {/* Layout para Assimilação */}
+        <div className="hb-shared-body">
           {homebrewData.type === "assimilation" && (
-            <>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(150px, 1fr))', gap:'15px', marginBottom:'20px'}}>
-                 <div className="hb-info-row"><span className="hb-label">SUCESSOS:</span> <span className="hb-value">{homebrewData.data.successCost}</span></div>
-                 <div className="hb-info-row"><span className="hb-label">ADAPTAÇÃO:</span> <span className="hb-value">{homebrewData.data.adaptationCost}</span></div>
-                 <div className="hb-info-row"><span className="hb-label">PRESSÃO:</span> <span className="hb-value">{homebrewData.data.pressureCost}</span></div>
-              </div>
-              <div className="hb-info-row" style={{marginBottom:'20px'}}>
-                  <span className="hb-label">EVOLUÇÃO:</span> <span className="hb-value" style={{textTransform:'capitalize', color:'#ff3333'}}>{homebrewData.data.evolutionType}</span>
-              </div>
-            </>
+            <div className="hb-metric-grid">
+              <div><span>Sucessos</span><strong>{data.successCost ?? 0}</strong></div>
+              <div><span>Adaptação</span><strong>{data.adaptationCost ?? 0}</strong></div>
+              <div><span>Pressão</span><strong>{data.pressureCost ?? 0}</strong></div>
+              <div><span>Evolução</span><strong>{data.evolutionType || "-"}</strong></div>
+            </div>
           )}
 
-          {/* Layout para Item */}
           {homebrewData.type === "item" && (
-             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'15px', marginBottom:'20px'}}>
-                <div className="hb-info-row"><span className="hb-label">TIPO:</span> <span className="hb-value">{homebrewData.data.type}</span></div>
-                <div className="hb-info-row"><span className="hb-label">QUALIDADE:</span> <span className="hb-value">{homebrewData.data.quality}</span></div>
-                <div className="hb-info-row"><span className="hb-label">ESCASSEZ:</span> <span className="hb-value">{homebrewData.data.category}</span></div>
-                <div className="hb-info-row"><span className="hb-label">SLOTS:</span> <span className="hb-value">{homebrewData.data.slots}</span></div>
-             </div>
+            <div className="hb-metric-grid">
+              <div><span>Tipo</span><strong>{data.type || "-"}</strong></div>
+              <div><span>Qualidade</span><strong>{data.quality ?? "-"}</strong></div>
+              <div><span>Escassez</span><strong>{data.category ?? "-"}</strong></div>
+              <div><span>Slots</span><strong>{data.slots ?? "-"}</strong></div>
+            </div>
           )}
 
-          {/* Layout para Característica */}
           {homebrewData.type === "trait" && (
-             <div className="hb-info-row" style={{marginBottom:'20px'}}>
-                <span className="hb-label">CUSTO EM PONTOS:</span> <span className="hb-value" style={{fontSize:'1.2rem'}}>{homebrewData.data.pointsCost}</span>
-             </div>
+            <div className="hb-metric-grid">
+              <div><span>Custo</span><strong>{data.pointsCost ?? 0}</strong></div>
+              <div><span>Categoria</span><strong>{data.category || "-"}</strong></div>
+            </div>
           )}
 
-          {/* Descrição (Comum a todos) */}
-          <div style={{ borderTop: '1px dashed #333', paddingTop: '20px' }}>
-            <span className="hb-label" style={{display:'block', marginBottom:'10px'}}>DESCRIÇÃO DO ARQUIVO:</span>
-            <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '1rem', whiteSpace: 'pre-wrap' }}>
-                {homebrewData.data.description}
-            </p>
+          <div className="hb-shared-description">
+            <span className="hb-label">Descrição do arquivo</span>
+            <p>{data.description || "Sem descrição registrada."}</p>
           </div>
         </div>
 
-        {/* Botão de Ação */}
-        <button 
-            className="btn-nero btn-primary" 
-            onClick={handleAddToProfile} 
-            style={{ width: '100%', padding: '15px', fontSize: '1.1rem', justifyContent: 'center' }}
-        >
-            <FaDownload /> ADICIONAR AO MEU PERFIL
-        </button>
+        <div className="hb-shared-actions">
+          <button
+            className="btn-nero btn-primary hb-shared-action"
+            onClick={handleAddToProfile}
+            disabled={saving || added}
+          >
+            {added ? <FaCheck /> : <FaDownload />}
+            {added ? "Adicionado ao perfil" : saving ? "Adicionando..." : "Adicionar ao meu perfil"}
+          </button>
+          <button className="btn-nero btn-secondary hb-shared-action" onClick={handleCopyLink}>
+            <FaLink /> Copiar link
+          </button>
+        </div>
 
+        {!token && (
+          <p className="hb-shared-login-note">
+            Você pode visualizar este arquivo agora, mas precisa entrar na conta para salvar no seu perfil.
+          </p>
+        )}
       </div>
     </div>
   );

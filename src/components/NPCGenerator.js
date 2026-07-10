@@ -1,10 +1,10 @@
 /* src/components/NPCGenerator.js */
 
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useSelector } from 'react-redux';
 import { FaDiceD20, FaSave, FaUserSecret, FaSyncAlt, FaSuitcase, FaBrain, FaCubes, FaShareSquare } from 'react-icons/fa';
 import './NPCGenerator.css'; 
+import { dispatchToast } from './notifications/ToastProvider';
+import api from '../api';
 
 const archetypes = [
   "Aleatório", "Combatente", "Curandeiro(a)", "Desbravador(a)", 
@@ -66,7 +66,6 @@ const translateKey = (key) => {
 };
 
 const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
-  const token = useSelector((state) => state.auth.token);
   const [loading, setLoading] = useState(false);
   const [npc, setNpc] = useState(null);
   const [rpDetails, setRpDetails] = useState({ temperament: "", objective: "", loot: [] });
@@ -103,11 +102,7 @@ const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
         level: parseInt(config.level)
       };
 
-      const res = await axios.post(
-        "https://assrpgsite-be-production.up.railway.app/api/tools/generate-npc",
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post("/tools/generate-npc", payload);
       
       setNpc(res.data);
       // Lê o arquétipo final para garantir que as informações locais batem certo
@@ -115,8 +110,7 @@ const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
       setRpDetails(generateLocalDetails(generatedArchetype));
 
     } catch (err) {
-      console.error(err);
-      alert("Erro ao sintetizar NPC. Verifique a conexão.");
+      dispatchToast({ message: "Erro ao sintetizar NPC. Verifique a conexao.", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -129,7 +123,10 @@ const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
 
   const handleSave = async () => {
     if (!npc) return;
-    if (!campaignId) { alert("Erro de Sistema: O gerador precisa de estar vinculado a uma campanha para guardar dados."); return; }
+    if (!campaignId) {
+      dispatchToast({ message: "O gerador precisa estar vinculado a uma campanha para guardar dados.", type: "error" });
+      return;
+    }
 
     try {
         setLoading(true);
@@ -145,19 +142,14 @@ const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
             }
         };
 
-        await axios.post(
-            "https://assrpgsite-be-production.up.railway.app/api/campaigns/npc", 
-            payload, 
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.post("/campaigns/npc", payload);
 
         setNpc(null);
         setRpDetails({ temperament: "", objective: "", loot: [] });
         if(onNpcSaved) onNpcSaved(); 
 
     } catch (err) {
-        console.error("Erro ao salvar NPC:", err);
-        alert("Falha na gravação. Verifique a comunicação com a base de dados.");
+        dispatchToast({ message: "Falha na gravacao. Verifique a comunicacao com a base de dados.", type: "error" });
     } finally {
         setLoading(false);
     }
@@ -215,7 +207,7 @@ const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
                 
                 <div className="npc-rp-section">
                     <div className="rp-header">
-                        <h4><FaBrain size={14} color="#8b5cf6" /> PERFIL PSICOLÓGICO</h4>
+                        <h4><FaBrain size={14} color="#ff3333" /> PERFIL PSICOLÓGICO</h4>
                         <button className="btn-icon-small" onClick={handleRerollRP} title="Recalcular Roleplay">
                             <FaSyncAlt size={12} />
                         </button>
@@ -226,7 +218,7 @@ const NPCGenerator = ({ campaignId, onNpcSaved, onShareToChat }) => {
                     </div>
                     <div className="npc-quirk">"{npc.event}"</div>
                     <div className="inventory-box">
-                        <h5><FaSuitcase size={14} color="#3cdce7" /> INVENTÁRIO RÁPIDO</h5>
+                        <h5><FaSuitcase size={14} color="#ff3333" /> INVENTÁRIO RÁPIDO</h5>
                         <div className="loot-list">
                             {rpDetails.loot.map((item, idx) => <span key={idx} className="loot-item">{item}</span>)}
                         </div>

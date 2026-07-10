@@ -13,8 +13,15 @@ import {
   FaShareAlt, 
   FaTrash, 
   FaChevronDown, 
-  FaChevronUp 
+  FaChevronUp,
+  FaCube,
+  FaStar
 } from "react-icons/fa";
+import { useConfirm } from "./notifications/ConfirmProvider";
+import SystemText from "./SystemText";
+import { dispatchToast } from "./notifications/ToastProvider";
+import EmptyState from "./ui/EmptyState";
+import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 
 // Mapeamento de categorias (Escassez)
 const scarcityLevels = {
@@ -27,9 +34,12 @@ const scarcityLevels = {
   6: 'Quase Extinto'
 };
 
+const itemTypes = ["Equipamento", "Arma", "Consumível", "Utilidade", "Proteção", "Ferramenta", "Artefato"];
+
 const ItemsList = ({ items, onShare, currentUserId }) => {
   const dispatch = useDispatch();
   const { token, user } = useSelector((state) => state.auth);
+  const { confirm } = useConfirm();
 
   // Garante que os itens estejam carregados ao montar o componente
   useEffect(() => {
@@ -50,11 +60,16 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     description: "",
     quality: 3,
     slots: 1,
+    imageUrl: "",
+    iconUrl: "",
+    icon: "",
+    isArtefato: false,
     modifiers: [], // Array no estado interno
     characteristics: { points: 0, details: [] },
     isCustom: true,
   };
   const [formData, setFormData] = useState(initialForm);
+  const [imageFile, setImageFile] = useState(null);
   
   // Estado auxiliar para o input de texto dos modificadores (separados por vírgula)
   const [modifiersInput, setModifiersInput] = useState("");
@@ -65,14 +80,16 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     if (item) {
       // Modo Edição
       setEditingItem(item);
-      setFormData(item);
+      setFormData(normalizeItemImageFields(item));
       // Converte array de modificadores para string para exibir no input
       setModifiersInput(item.modifiers ? item.modifiers.join(", ") : "");
+      setImageFile(null);
     } else {
       // Modo Criação
       setEditingItem(null);
       setFormData(initialForm);
       setModifiersInput("");
+      setImageFile(null);
     }
     setModalOpen(true);
   };
@@ -81,19 +98,39 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     setModalOpen(false);
     setFormData(initialForm);
     setModifiersInput("");
+    setImageFile(null);
+  };
+
+  const buildItemPayload = () => {
+    const processedModifiers = modifiersInput.split(',').map(s => s.trim()).filter(s => s !== "");
+    const normalizedImage = getItemImageUrl(formData);
+    const payload = {
+      ...formData,
+      imageUrl: normalizedImage,
+      iconUrl: normalizedImage,
+      icon: normalizedImage,
+      modifiers: processedModifiers,
+      createdBy: currentUserId
+    };
+
+    if (!imageFile) return payload;
+
+    const multipart = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      multipart.append(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+    });
+    multipart.append("image", imageFile);
+    return multipart;
   };
 
   const handleSubmit = () => {
-    if (!formData.name.trim()) return alert("Nome é obrigatório.");
+    if (!formData.name.trim()) {
+      dispatchToast({ message: "Nome é obrigatório.", type: "warning" });
+      return;
+    }
 
-    // Processa a string de modificadores de volta para array
-    const processedModifiers = modifiersInput.split(',').map(s => s.trim()).filter(s => s !== "");
-
-    const payload = { 
-      ...formData, 
-      modifiers: processedModifiers,
-      createdBy: currentUserId 
-    };
+    const payload = buildItemPayload();
 
     if (editingItem) {
       dispatch(updateItem({ id: editingItem._id, data: payload }));
@@ -103,8 +140,14 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     handleCloseModal();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("ATENÇÃO: Deseja excluir este Item permanentemente?")) {
+  const handleDelete = async (id) => {
+    const confirmed = await confirm({
+      title: "Excluir item",
+      message: "Deseja excluir este item permanentemente?",
+      tone: "danger",
+      confirmLabel: "Excluir",
+    });
+    if (confirmed) {
       dispatch(deleteItem(id));
     }
   };
@@ -117,9 +160,8 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     <div>
       {/* Botão Criar */}
       <button 
-        className="btn-nero btn-primary" 
-        onClick={() => handleOpenModal()} 
-        style={{ marginBottom: '20px' }}
+        className="btn-nero btn-primary hb-create-btn" 
+        onClick={() => handleOpenModal()}
       >
         <FaPlus /> CRIAR NOVO ITEM
       </button>
@@ -127,9 +169,11 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
       {/* Lista de Cards */}
       <div className="hb-list">
         {(!items || items.length === 0) && (
-          <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic', marginTop: '20px' }}>
-            Nenhum item customizado encontrado.
-          </p>
+          <EmptyState
+            compact
+            title="Nenhum item customizado"
+            description="Crie itens próprios para ampliar o arsenal da sua mesa."
+          />
         )}
 
         {items && items.map((item) => (
@@ -137,7 +181,16 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
             
             {/* Header do Card */}
             <div className="hb-card-header" onClick={() => toggleExpand(item._id)}>
-              <span className="hb-card-title">{item.name}</span>
+              <div className="hb-item-heading">
+                <div className="hb-item-icon">
+                  {getItemImageUrl(item) ? <img src={getItemImageUrl(item)} alt="" /> : <FaCube />}
+                  {item.isArtefato && <span className="hb-item-artifact"><FaStar /></span>}
+                </div>
+                <div>
+                  <span className="hb-card-title">{item.name}</span>
+                  <span className="hb-card-subtitle">{item.type || "Item"} · {scarcityLevels[item.category] || item.category}</span>
+                </div>
+              </div>
               {expandedId === item._id ? (
                 <FaChevronUp className="hb-card-icon open" />
               ) : (
@@ -148,6 +201,12 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
             {/* Corpo do Card */}
             {expandedId === item._id && (
               <div className="hb-card-body">
+                <div className="hb-item-metrics">
+                  <div><span>Qualidade</span><strong>{item.quality ?? 3}</strong></div>
+                  <div><span>Slots</span><strong>{item.slots ?? 1}</strong></div>
+                  <div><span>Caract.</span><strong>{item.characteristics?.points || 0}</strong></div>
+                </div>
+
                 <div className="hb-info-row">
                   <span className="hb-label">TIPO:</span> 
                   <span className="hb-value">{item.type}</span>
@@ -158,7 +217,7 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
                   <span className="hb-value">{scarcityLevels[item.category] || item.category}</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', margin: '10px 0' }}>
+                <div className="hb-inline-grid hb-inline-grid-two">
                     <div className="hb-info-row">
                         <span className="hb-label">QUALIDADE:</span> <span className="hb-value">{item.quality}</span>
                     </div>
@@ -179,7 +238,7 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
 
                 <div className="hb-info-row">
                   <span className="hb-label">DESCRIÇÃO:</span> 
-                  <span className="hb-value">{item.description}</span>
+                  <span className="hb-value"><SystemText text={item.description} /></span>
                 </div>
 
                 <div className="hb-actions">
@@ -221,13 +280,39 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
 
               <div className="form-group">
                 <label>TIPO</label>
-                <input 
-                  type="text" 
-                  className="nero-input" 
+                <select
+                  className="nero-select"
                   value={formData.type} 
                   onChange={(e) => setFormData({...formData, type: e.target.value})} 
-                  placeholder="Ex: Equipamento, Arma, Consumível"
-                />
+                >
+                  {itemTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+                </select>
+              </div>
+
+              <div className="hb-item-preview-row">
+                <div className="hb-item-preview">
+                  {imageFile || getItemImageUrl(formData) ? (
+                    <img src={imageFile ? URL.createObjectURL(imageFile) : getItemImageUrl(formData)} alt="" />
+                  ) : <FaCube />}
+                  {formData.isArtefato && <span><FaStar /></span>}
+                </div>
+                <div className="form-group">
+                  <label>ÍCONE / IMAGEM DO ITEM</label>
+                  <input
+                    type="text"
+                    className="nero-input"
+                    value={getItemImageUrl(formData)}
+                    onChange={(e) => setFormData(normalizeItemImageFields({...formData, imageUrl: e.target.value}))}
+                    placeholder="Cole uma URL de imagem..."
+                  />
+                  <input
+                    type="file"
+                    className="nero-input"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    style={{ marginTop: 8 }}
+                  />
+                </div>
               </div>
 
               <div className="form-group">
@@ -243,8 +328,8 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div className="form-group" style={{ flex: 1 }}>
+              <div className="hb-form-grid hb-form-grid-two">
+                <div className="form-group">
                   <label>SLOTS</label>
                   <input 
                     type="number" 
@@ -253,7 +338,7 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
                     onChange={(e) => setFormData({...formData, slots: Number(e.target.value)})} 
                   />
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-group">
                   <label>QUALIDADE</label>
                   <input 
                     type="number" 
@@ -287,6 +372,15 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
                   })} 
                 />
               </div>
+
+              <label className="hb-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={!!formData.isArtefato}
+                  onChange={(e) => setFormData({...formData, isArtefato: e.target.checked})}
+                />
+                Marcar como artefato
+              </label>
 
               <div className="form-group">
                 <label>DESCRIÇÃO</label>

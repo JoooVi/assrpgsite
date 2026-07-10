@@ -1,6 +1,6 @@
-// src/App.js
+﻿// src/App.js
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { initializeAuth } from "./redux/slices/authSlice";
 import axios from "axios";
@@ -16,10 +16,9 @@ import { AnimatePresence } from 'framer-motion';
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Analytics } from "@vercel/analytics/react";
 
-// PÃƒÆ’Ã‚Â¡ginas
+// Páginas
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import AuthAccessPage from "./pages/AuthAccessPage";
 import CharacterForm from "./pages/CharacterForm";
 import CharacterList from "./pages/CharacterList";
 import CharacterSheet from "./pages/CharacterSheet";
@@ -37,9 +36,10 @@ import EditProfilePage from "./pages/EditProfilePage";
 import useTokenRefresh from "./hooks/useTokenRefresh";
 
 
-// --- IMPORTAÃƒÆ’Ã¢â‚¬Â¡ÃƒÆ’Ã¢â‚¬Â¢ES DE CAMPANHA ---
+// --- IMPORTAÇÕES DE CAMPANHA ---
 import CampaignLobby from "./components/CampaignLobby";
 import CampaignSheet from "./pages/CampaignSheet";
+import RefugeLobby from "./pages/RefugeLobby";
 import RefugeDashboard from "./pages/RefugeDashboard"; 
 import VTT from './pages/VTT';
 
@@ -57,105 +57,102 @@ const AppContent = () => {
   const isPortraitRoute = location.pathname.startsWith('/character-portrait/');
   const isEmbedMode = new URLSearchParams(location.search).get('embed') === '1';
   const isVttRoute = location.pathname.startsWith('/campanha/');
+  const isAuthRoute = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/auth/callback',
+  ].includes(location.pathname) || location.pathname.startsWith('/reset-password/');
+  const shouldShowLayout = !isPortraitRoute && !isEmbedMode && !isVttRoute && !isAuthRoute;
+  const routeTransitionKey = ['/login', '/register'].includes(location.pathname)
+    ? 'auth-access'
+    : location.pathname;
 
-  axios.interceptors.response.use(
-  (response) => response, // Se a resposta for OK, nÃƒÆ’Ã‚Â£o faz nada
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // OPA! O token expirou ou ÃƒÆ’Ã‚Â© invÃƒÆ’Ã‚Â¡lido
-      console.warn("Token expirado. Deslogando...");
-      
-      // 1. Limpa o Redux
-      store.dispatch(logout()); 
-      
-      // 2. Limpa o localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          store.dispatch(logout());
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.dispatchEvent(
+            new CustomEvent('sessionExpired', {
+              detail: { reason: 'Sua sessao expirou. Faca login novamente.' }
+            })
+          );
+        }
+        return Promise.reject(error);
+      }
+    );
 
-      // 3. Manda para o login
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-axios.interceptors.response.use(
-  (response) => response, // Se a resposta for OK, nÃƒÆ’Ã‚Â£o faz nada
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // OPA! O token expirou ou ÃƒÆ’Ã‚Â© invÃƒÆ’Ã‚Â¡lido
-      console.warn("Token expirado. Deslogando...");
-      
-      // 1. Limpa o Redux
-      store.dispatch(logout()); 
-      
-      // 2. Limpa o localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-
-      // 3. Manda para o login
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+    return () => axios.interceptors.response.eject(interceptorId);
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <SessionExpiredModal />
-      {!isPortraitRoute && !isEmbedMode && !isVttRoute && <Navbar />}
+      {shouldShowLayout && <Navbar />}
       <main style={{ flexGrow: 1 }}>
         <SpeedInsights/>
         <Analytics />
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            {/* --- Rotas PÃƒÆ’Ã‚Âºblicas --- */}
+          <Routes location={location} key={routeTransitionKey}>
+            {/* --- Rotas PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºblicas --- */}
             <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
-            <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+            <Route path="/login" element={<PageTransition><AuthAccessPage /></PageTransition>} />
+            <Route path="/register" element={<PageTransition><AuthAccessPage /></PageTransition>} />
             <Route path="/forgot-password" element={<PageTransition><ForgotPasswordPage /></PageTransition>} />
             <Route path="/reset-password/:token" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-            {/* --- Rota de Homebrew Compartilhado (PÃƒÆ’Ã‚Âºblica) --- */}
-            <Route path="/shared/:id" element={<SharedHomebrew />} />
+            {/* --- Rota de Homebrew Compartilhado (PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºblica) --- */}
+            <Route path="/shared/:id" element={<PageTransition><SharedHomebrew /></PageTransition>} />
             
-            {/* --- Rota de Retrato (PÃƒÆ’Ã‚Âºblica, sem layout padrÃƒÆ’Ã‚Â£o) --- */}
+            {/* --- Rota de Retrato (PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºblica, sem layout padrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o) --- */}
             <Route path="/character-portrait/:id" element={<CharacterPortraitPage />} />
             
             {/* --- Rotas Protegidas --- */}
-            <Route path="/create" element={isAuthenticated ? <PageTransition><CharacterForm /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/perfil" element={<ProfilePage />} />
-            <Route path="/edit-profile" element={isAuthenticated ? <PageTransition><EditProfilePage /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/characters" element={isAuthenticated ? <PageTransition><CharacterList /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/character-sheet/:id" element={isAuthenticated ? (isEmbedMode ? <CharacterSheet /> : <PageTransition><CharacterSheet /></PageTransition>) : <PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/homebrews" element={isAuthenticated ? <PageTransition><Homebrews /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/campaigns" element={isAuthenticated ? <PageTransition><CampaignList /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
-            <Route path="/create-campaign" element={isAuthenticated ? <PageTransition><CampaignForm /></PageTransition> : <PageTransition><LoginPage /></PageTransition>} />
+            <Route path="/create" element={isAuthenticated ? <PageTransition><CharacterForm /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/perfil" element={isAuthenticated ? <PageTransition><ProfilePage /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/edit-profile" element={isAuthenticated ? <PageTransition><EditProfilePage /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/characters" element={isAuthenticated ? <PageTransition><CharacterList /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/character-sheet/:id" element={isAuthenticated ? (isEmbedMode ? <CharacterSheet /> : <PageTransition><CharacterSheet /></PageTransition>) : <Navigate to="/login" replace />} />
+            <Route path="/homebrews" element={isAuthenticated ? <PageTransition><Homebrews /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/campaigns" element={isAuthenticated ? <PageTransition><CampaignList /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/create-campaign" element={isAuthenticated ? <PageTransition><CampaignForm /></PageTransition> : <Navigate to="/login" replace />} />
             
             {/* --- ROTAS DA CAMPANHA --- */}
             <Route
               path="/campaign-lobby/:id"
-              element={isAuthenticated ? <PageTransition><CampaignLobby /></PageTransition> : <PageTransition><LoginPage /></PageTransition>}
+              element={isAuthenticated ? <PageTransition><CampaignLobby /></PageTransition> : <Navigate to="/login" replace />}
             />
             <Route
               path="/campaign-sheet/:id"
-              element={isAuthenticated ? <PageTransition><CampaignSheet /></PageTransition> : <PageTransition><LoginPage /></PageTransition>}
+              element={isAuthenticated ? <PageTransition><CampaignSheet /></PageTransition> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/campaign/:id/refuges"
+              element={isAuthenticated ? <PageTransition><RefugeLobby /></PageTransition> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/campaign/:id/refuge/:refugeId"
+              element={isAuthenticated ? <PageTransition><RefugeDashboard /></PageTransition> : <Navigate to="/login" replace />}
             />
             <Route
               path="/campaign/:id/refuge"
-              element={isAuthenticated ? <PageTransition><RefugeDashboard /></PageTransition> : <PageTransition><LoginPage /></PageTransition>}
+              element={isAuthenticated ? <Navigate to={`/campaign/${location.pathname.split('/')[2]}/refuges`} replace /> : <Navigate to="/login" replace />}
             />
             <Route
               path="/campanha/:id/vtt"
-              element={isAuthenticated ? <VTT /> : <LoginPage />}
+              element={isAuthenticated ? <VTT /> : <Navigate to="/login" replace />}
             />
 
           </Routes>
         </AnimatePresence>
       </main>
-      {!isPortraitRoute && !isEmbedMode && !isVttRoute && <Footer />}
-      {!isPortraitRoute && !isEmbedMode && !isVttRoute && <KofiButton />}
+      {shouldShowLayout && <Footer />}
+      {shouldShowLayout && <KofiButton />}
     </div>
   );
 };
@@ -163,7 +160,7 @@ axios.interceptors.response.use(
 function App() {
   const dispatch = useDispatch();
   
-  // ✅ Iniciar renovação proativa de token
+  // Iniciar renovações proativas de token
   useTokenRefresh();
 
   useEffect(() => {

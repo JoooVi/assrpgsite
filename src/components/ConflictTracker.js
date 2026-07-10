@@ -1,7 +1,7 @@
 /* ConflictTracker.js */
 import React, { useState } from 'react';
 import { FaPlus, FaTrash, FaTimes, FaSkull, FaBullseye } from 'react-icons/fa';
-import styles from '../pages/CampaignSheet.module.css'; 
+import styles from '../pages/VTT.module.css'; 
 
 // Templates
 const newObjectiveTemplate = { name: '', type: 'principal', cost: 10, progress: 0 };
@@ -54,7 +54,7 @@ const ConflictTracker = ({ open, onClose, onStartConflict }) => {
             {/* OBJETIVOS */}
             <div style={{marginBottom:'40px'}}>
                 <h4 style={{color:'#ddd', borderBottom:'1px solid #333', paddingBottom:'10px', marginBottom:'20px', display:'flex', alignItems:'center', gap:'10px'}}>
-                    <FaBullseye style={{color:'#3cdce7'}}/> OBJETIVOS (JOGADORES)
+                    <FaBullseye style={{color:'#ff3333'}}/> OBJETIVOS (JOGADORES)
                 </h4>
                 
                 {objectives.map((obj, index) => (

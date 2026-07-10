@@ -2,48 +2,36 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FaDiscord } from "react-icons/fa";
-
-// Importa os estilos CSS Module
+import PageLoader from "../components/ui/PageLoader";
+import { API_URL } from "../config/apiConfig";
 import styles from "./ProfilePage.module.css";
 
-// Importa os componentes internos
-import CharacterList from "./CharacterList";
-import Homebrews from "./Homebrews";
+const tabs = [
+  { label: "Visão Geral", id: 0, disabled: false },
+  { label: "Personagens", id: 1, disabled: false },
+  { label: "Homebrews", id: 2, disabled: false },
+  { label: "Campanhas (Beta)", id: 3, disabled: true },
+];
 
 const ProfilePage = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(0); // 0: Geral, 1: Chars, 2: Homebrew, 3: Campaign
+  const [activeTab, setActiveTab] = useState(0);
 
   const handleLinkDiscord = () => {
-    window.location.href =
-      "https://assrpgsite-be-production.up.railway.app/api/auth/discord";
+    window.location.href = `${API_URL}/auth/discord`;
   };
 
   if (!user) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Carregando perfil do agente...</p>
-      </div>
+      <PageLoader title="Carregando perfil" subtitle="Recuperando dados do agente..." />
     );
   }
-
-  // Lista de abas para facilitar renderização
-  const tabs = [
-    { label: "Visão Geral", id: 0, disabled: false },
-    { label: "Personagens", id: 1, disabled: false },
-    { label: "Homebrews", id: 2, disabled: false },
-    { label: "Campanhas (Beta)", id: 3, disabled: true },
-  ];
 
   return (
     <div className={styles.profileContainer}>
       <div className={styles.contentCard}>
-        
-        {/* CABEÇALHO DO PERFIL */}
         <div className={styles.profileHeader}>
-          {/* Avatar */}
           <div className={styles.avatarWrapper}>
             {user.avatar ? (
               <img src={user.avatar} alt={user.name} className={styles.avatarImg} />
@@ -52,44 +40,38 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* Info + Botão */}
           <div className={styles.profileInfo}>
+            <p className={styles.profileKicker}>Registro de agente</p>
             <h1 className={styles.profileName}>{user.name}</h1>
             <p className={styles.profileBio}>
               {user.bio || "Este agente ainda não registrou dados biográficos no sistema."}
             </p>
           </div>
 
-          <button 
-            className={styles.editBtn} 
-            onClick={() => navigate("/edit-profile")}
-          >
+          <button className={styles.editBtn} onClick={() => navigate("/edit-profile")}>
             Editar Perfil
           </button>
         </div>
 
-        {/* NAVEGAÇÃO (TABS) */}
         <div className={styles.tabsContainer}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}
+              className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ""}`}
               onClick={() => setActiveTab(tab.id)}
               disabled={tab.disabled}
+              type="button"
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* CONTEÚDO DAS ABAS */}
         <div className={styles.tabPanel}>
-          
-          {/* Aba 0: Visão Geral */}
           {activeTab === 0 && (
             <div className={styles.contentBox}>
               <h2 className={styles.sectionTitle}>Integrações do Sistema</h2>
-              
+
               <div className={styles.discordContainer}>
                 {user.discordId ? (
                   <div className={styles.accountLinked}>
@@ -98,13 +80,10 @@ const ProfilePage = () => {
                   </div>
                 ) : (
                   <>
-                    <p style={{color: '#ccc', marginBottom:'10px'}}>
+                    <p className={styles.helperText}>
                       Vincule sua conta do Discord para login rápido e sincronização de dados.
                     </p>
-                    <button
-                      className={styles.discordBtn}
-                      onClick={handleLinkDiscord}
-                    >
+                    <button className={styles.discordBtn} onClick={handleLinkDiscord}>
                       <FaDiscord size={20} />
                       Conectar Discord
                     </button>
@@ -114,27 +93,35 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {/* Aba 1: Personagens */}
           {activeTab === 1 && (
-            // CharacterList geralmente tem seu próprio container, não precisamos do contentBox padding aqui
-            // a não ser que o CharacterList seja 'cru'.
-            <CharacterList />
-          )}
-
-          {/* Aba 2: Homebrews */}
-          {activeTab === 2 && (
-            <Homebrews />
-          )}
-
-          {/* Aba 3: Campanhas */}
-          {activeTab === 3 && (
             <div className={styles.contentBox}>
-              <p style={{color:'#888', fontStyle:'italic'}}>
-                Módulo de Campanhas em desenvolvimento. Acesso restrito.
+              <h2 className={styles.sectionTitle}>Personagens</h2>
+              <p className={styles.helperText}>
+                Gerencie seus agentes, fichas e retratos pela tela dedicada de personagens.
               </p>
+              <button className={styles.primaryActionBtn} onClick={() => navigate("/characters")}>
+                Abrir personagens
+              </button>
             </div>
           )}
 
+          {activeTab === 2 && (
+            <div className={styles.contentBox}>
+              <h2 className={styles.sectionTitle}>Homebrews</h2>
+              <p className={styles.helperText}>
+                Crie e organize itens, assimilações e características personalizadas para sua mesa.
+              </p>
+              <button className={styles.primaryActionBtn} onClick={() => navigate("/homebrews")}>
+                Abrir homebrews
+              </button>
+            </div>
+          )}
+
+          {activeTab === 3 && (
+            <div className={styles.contentBox}>
+              <p className={styles.helperText}>Módulo de Campanhas em desenvolvimento. Acesso restrito.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

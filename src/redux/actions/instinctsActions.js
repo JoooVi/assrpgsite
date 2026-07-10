@@ -1,16 +1,10 @@
-import axios from 'axios';
 import { updateInstincts, setLoading, setError, setSelectedInstinct } from '../slices/instinctsSlice';
+import api from '../../api';
 
 export const fetchInstincts = (id) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(
-      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await api.get(`/characters/${id}/instincts`);
     
     if (response?.data) {
       // Garantir que o formato está correto
@@ -27,14 +21,7 @@ export const fetchInstincts = (id) => async (dispatch) => {
 export const saveInstinctsToBackend = (id, updatedInstincts) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.put(
-      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
-      { instincts: updatedInstincts },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await api.put(`/characters/${id}/instincts`, { instincts: updatedInstincts });
     if (response?.data?.instincts) {
       dispatch(updateInstincts(response.data.instincts));
     }

@@ -4,13 +4,13 @@ import {
   TextField,
   Button,
   Typography,
-  Snackbar,
-  Alert,
   Grid,
 } from "@mui/material";
-import axios from "axios";
 import { useSelector } from "react-redux";
-import { ReactComponent as D20Icon } from "../assets/d12.svg"; // Reutilizando um ícone de dado existente
+import { ReactComponent as D20Icon } from "../assets/d12.svg";
+import { dispatchToast } from "./notifications/ToastProvider";
+import DiceFace from "./DiceFace";
+import api from "../api";
 
 // --- Dice Assets (Replicar do CharacterSheet.js) ---
 const dados = {
@@ -79,7 +79,7 @@ const dados = {
 // --- END Dice Assets ---
 
 const rollCustomDice = (formula) => {
-  // ... (A tua função rollCustomDice permanece a mesma) ...
+  // Mantem a rolagem customizada do sistema.
   const regex = /(\d+)d(\d+)/g;
   let match;
   const results = [];
@@ -90,7 +90,7 @@ const rollCustomDice = (formula) => {
     const sidesInt = parseInt(sides);
 
     if (!dados[`d${sidesInt}`]) {
-      console.warn(`Dado d${sidesInt} não definido.`);
+      console.warn(`Dado d${sidesInt} nao definido.`);
       continue;
     }
 
@@ -103,23 +103,16 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-// --- ALTERAÇÃO 1: Envolvemos o componente com forwardRef ---
 const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
-  const { user, token } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   // Estado interno para o TextField (rolagem manual)
   const [customDiceFormula, setCustomDiceFormula] = useState("");
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [rollResult, setRollResult] = useState(null); // Store roll result for display
 
-  // --- ALTERAÇÃO 2: Criámos uma função 'executeRoll' que aceita a fórmula ---
-  // Esta função contém a lógica de rolagem que estava no handleCustomRoll
+  // Executa a rolagem interna ou acionada pelo painel da campanha.
   const executeRoll = useCallback(async (formulaToRoll) => {
     if (!formulaToRoll || !formulaToRoll.trim()) {
-      setSnackbarMessage("Por favor, insira uma fórmula de dados.");
-      setSnackbarSeverity("warning");
-      setSnackbarOpen(true);
+      dispatchToast({ message: "Por favor, insira uma formula de dados.", type: "warning" });
       return;
     }
 
@@ -129,60 +122,43 @@ const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
       setRollResult({ formula: formulaToRoll, roll: results }); 
 
       // Envia a rolagem para o backend (para o RecentRollsFeed)
-      await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/roll`, 
+      await api.post(
+        `/campaigns/${campaignId}/roll`,
         {
           rollerId: user._id,
           rollerName: user.name || "Mestre", // Garante um nome
           formula: formulaToRoll,
           roll: results,
           timestamp: new Date(),
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
-      setSnackbarMessage("Rolagem realizada com sucesso!");
-      setSnackbarSeverity("success");
+      dispatchToast({ message: "Rolagem realizada com sucesso!", type: "success" });
     } catch (error) {
-      console.error(
-        "Erro ao rolar dados:",
-        error.response?.data || error.message
-      );
-      setSnackbarMessage("Erro ao realizar rolagem.");
-      setSnackbarSeverity("error");
-    } finally {
-      setSnackbarOpen(true);
+      dispatchToast({ message: "Erro ao realizar rolagem.", type: "error" });
     }
-  }, [campaignId, user, token]); // Dependências da lógica de execução
+  }, [campaignId, user]);
 
-  // --- ALTERAÇÃO 3: O 'handleCustomRoll' (do botão interno) agora chama o 'executeRoll' ---
   const handleInternalRoll = () => {
     executeRoll(customDiceFormula);
   };
   
-  // --- ALTERAÇÃO 4: Usamos 'useImperativeHandle' para expor uma função ao "pai" ---
   useImperativeHandle(ref, () => ({
     /**
      * Permite que o componente pai (CampaignSheet) dispare uma rolagem
-     * com uma fórmula específica (ex: a fórmula da Ameaça).
+     * com uma formula especifica (ex: a formula da ameaca).
      */
     triggerRoll: (formulaFromParent) => {
       executeRoll(formulaFromParent);
     }
   }));
 
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
 
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box sx={{ mt: 1 }}>
       {/* O TextField ainda usa o estado interno 'customDiceFormula' */}
       <TextField
-        label="Fórmula dos Dados (ex: 1d6+2d10)"
+        label="Formula dos Dados (ex: 1d6+2d10)"
         value={customDiceFormula}
         onChange={(e) => setCustomDiceFormula(e.target.value)}
         variant="outlined"
@@ -190,22 +166,53 @@ const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
         margin="normal"
         size="small"
         sx={{
-          "& .MuiInputBase-root": { color: "white" },
-          "& .MuiInputLabel-root": { color: "#aaa" },
-          "& .MuiOutlinedInput-notchedOutline": { borderColor: "#555" },
-          "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#777" },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#fff",
+          "& .MuiInputBase-root": {
+            color: "#fff",
+            background: "#0b0b0b",
+            borderRadius: "8px",
+            fontFamily: "Rajdhani, sans-serif",
+          },
+          "& .MuiInputLabel-root": {
+            color: "#8b8b8b",
+            fontFamily: "Orbitron, sans-serif",
+            fontSize: "0.68rem",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          },
+          "& .MuiInputLabel-root.Mui-focused": { color: "#ffb3b3" },
+          "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
+          "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,51,51,0.45)" },
+          "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "rgba(255,51,51,0.65)",
           },
         }}
       />
-      {/* O botão interno agora chama 'handleInternalRoll' */}
+      {/* O botao interno agora chama handleInternalRoll */}
       <Button
         variant="contained"
         color="primary"
         onClick={handleInternalRoll}
         startIcon={<D20Icon style={{ width: "24px", height: "24px" }} />}
-        sx={{ mt: 1, mb: 2, width: "100%" }}
+        sx={{
+          mt: 1,
+          mb: 2,
+          width: "100%",
+          minHeight: 40,
+          borderRadius: "10px",
+          border: "1px solid rgba(138,28,24,0.78)",
+          background: "linear-gradient(180deg, #8a1c18, #4b100e)",
+          color: "#fff",
+          fontFamily: "Orbitron, sans-serif",
+          fontSize: "0.72rem",
+          fontWeight: 900,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          boxShadow: "0 12px 28px rgba(0,0,0,0.34)",
+          "&:hover": {
+            background: "linear-gradient(180deg, #a0211c, #5d120f)",
+            borderColor: "#ff3333",
+          },
+        }}
       >
         Rolar Dados
       </Button>
@@ -215,13 +222,14 @@ const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
         <Box
           sx={{
             mt: 2,
-            p: 1,
-            border: "1px dashed #666",
-            borderRadius: "4px",
-            bgcolor: "#1a1a1a",
+            p: 1.25,
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderLeft: "3px solid rgba(138,28,24,0.85)",
+            borderRadius: "10px",
+            bgcolor: "#101010",
           }}
         >
-          <Typography variant="body2" sx={{ color: "#eee" }}>
+          <Typography variant="body2" sx={{ color: "#ffb3b3", fontFamily: "Orbitron, sans-serif", fontSize: "0.68rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>
             Rolagem: {rollResult.formula}
           </Typography>
           <Grid container spacing={1} sx={{ mt: 1 }}>
@@ -235,58 +243,15 @@ const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
                   alignItems: "center",
                 }}
               >
-                <Typography variant="caption" sx={{ color: "#ccc" }}>
-                  D{die.sides}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "center",
-                  }}
-                >
-                  {die.result.length > 0 ? (
-                    die.result.map((imgSrc, i) => (
-                      <img
-                        key={i}
-                        src={imgSrc}
-                        alt="symbol"
-                        style={{ width: "25px", height: "25px", margin: "2px" }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/path/to/default-image.png";
-                        }}
-                      />
-                    ))
-                  ) : (
-                    // Alterado: Mostrar a 'face' (número) se não houver símbolos
-                    <Typography variant="body2" sx={{ color: '#aaa', fontWeight: 'bold' }}>
-                      {die.face}
-                    </Typography> 
-                  )}
-                </Box>
+                <DiceFace die={die} size={44} />
               </Grid>
             ))}
           </Grid>
         </Box>
       )}
-
-      {/* O Snackbar permanece igual */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }); // Fim do forwardRef
 
 export default MasterDiceRoller;
+

@@ -2,8 +2,11 @@
 /* CharacterForm.js - BLINDADO CONTRA ENVIO PRECOCE */
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./CharacterForm.css";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import InlineLoader from "../components/ui/InlineLoader";
 
 // Ícones
 import { 
@@ -330,6 +333,7 @@ const initialEquipmentPacks = [
 const stepsLabels = ["Dados", "Histórico", "Propósitos", "Equipamento", "Atributos", "Psique"];
 
 export default function CharacterForm() {
+  const navigate = useNavigate();
   const [character, setCharacter] = useState({
     name: "", generation: "", event: "", occupation: "", purpose1: "", purpose2: "", relationalPurpose1: "", relationalPurpose2: "",
     inventory: [], initialPack: "",
@@ -362,7 +366,11 @@ export default function CharacterForm() {
         try {
           const response = await api.get("/items");
           setAllItems(response.data);
-        } catch (err) { console.error(err); setError("Erro ao carregar itens."); } 
+        } catch (err) {
+          console.error(err);
+          setError("Erro ao carregar itens.");
+          dispatchToast({ message: "Erro ao carregar itens iniciais.", type: "error" });
+        } 
         finally { setAreItemsLoading(false); }
       } else { setAreItemsLoading(false); }
     };
@@ -381,9 +389,7 @@ export default function CharacterForm() {
     const validation = validateImageFile(file);
     if (!validation.ok) {
       setError(validation.message);
-      if (validation.message.includes("5MB")) {
-        alert("Imagem acima de 5MB nao pode ser enviada. Escolha um arquivo menor.");
-      }
+      dispatchToast({ message: validation.message, type: "warning" });
       e.target.value = "";
       return;
     }
@@ -397,9 +403,7 @@ export default function CharacterForm() {
     const validation = validateImageFile(file);
     if (!validation.ok) {
       setError(validation.message);
-      if (validation.message.includes("5MB")) {
-        alert("Imagem acima de 5MB nao pode ser enviada. Escolha um arquivo menor.");
-      }
+      dispatchToast({ message: validation.message, type: "warning" });
       e.target.value = "";
       return;
     }
@@ -506,7 +510,9 @@ const handlePackSelect = (pack) => {
         setActiveStep(p => p + 1);
         setError("");
     } else {
-        if(!error) setError("Preencha todos os campos obrigatórios.");
+        const message = error || "Preencha todos os campos obrigatórios.";
+        setError(message);
+        dispatchToast({ message, type: "warning" });
     }
   };
 
@@ -538,11 +544,15 @@ const handlePackSelect = (pack) => {
 
     try { 
         await api.post("/characters", formData, { headers: { Authorization: `Bearer ${token}` } }); 
-        setSuccess(true); 
+        setSuccess(true);
+        dispatchToast({ message: "Personagem criado com sucesso.", type: "success" });
+        window.setTimeout(() => navigate("/characters"), 900);
     } catch(err) { 
       console.error(err);
       console.error("Detalhes do erro de criação:", err?.response?.data);
-      setError(err?.response?.data?.message || "Erro ao criar personagem."); 
+      const message = err?.response?.data?.message || "Erro ao criar personagem.";
+      setError(message);
+      dispatchToast({ message, type: "error" });
     } finally { setLoading(false); }
   };
 
@@ -593,7 +603,7 @@ const handlePackSelect = (pack) => {
                     disabled={loading} 
                     className="btn-nero btn-primary"
                 >
-                    {loading ? "ENVIANDO..." : "FINALIZAR"} <FaCheck />
+                    {loading ? <InlineLoader label="Enviando" /> : <>FINALIZAR <FaCheck /></>}
                 </button>
             ) : (
                 <button 
@@ -607,8 +617,8 @@ const handlePackSelect = (pack) => {
             )}
           </div>
           
-          {error && <div style={{color: '#bd2c2c', textAlign: 'center', marginTop: '20px', fontWeight:'bold', border:'1px solid #bd2c2c', padding:'10px'}}>ERRO: {error}</div>}
-          {success && <div style={{color: '#4caf50', textAlign: 'center', marginTop: '20px', fontWeight:'bold', border:'1px solid #4caf50', padding:'10px'}}>REGISTRO CONFIRMADO.</div>}
+          {error && <div className="form-feedback error">ERRO: {error}</div>}
+          {success && <div className="form-feedback success">REGISTRO CONFIRMADO. Redirecionando...</div>}
         </form>
       </div>
     </div>

@@ -1,111 +1,290 @@
-/* src/components/ItemsModal.js */
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchItems } from "../redux/slices/itemsSlice";
-import { FaSearch, FaTimes, FaCube, FaStar, FaUser } from "react-icons/fa";
+import { FaCube, FaPlus, FaSearch, FaStar, FaTimes, FaUser } from "react-icons/fa";
+import { createItem, fetchItems } from "../redux/slices/itemsSlice";
 import "../pages/Homebrews.css";
+import EmptyState from "./ui/EmptyState";
+import PageLoader from "./ui/PageLoader";
+import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
+import { dispatchToast } from "./notifications/ToastProvider";
+
+const initialItemForm = {
+  name: "",
+  type: "Equipamento",
+  category: 3,
+  description: "",
+  quality: 3,
+  slots: 1,
+  imageUrl: "",
+  iconUrl: "",
+  icon: "",
+  modifiers: "",
+  isArtefato: false,
+  isConsumable: false,
+  resourceType: "",
+  characteristics: { points: 0, details: [] },
+  isCustom: true,
+};
 
 const ItemsModal = ({ open, handleClose, onItemSelect }) => {
   const dispatch = useDispatch();
-  const { items: allItems, loading } = useSelector((state) => state.items);
+  const { items: allItems = [], loading } = useSelector((state) => state.items);
   const user = useSelector((state) => state.auth.user);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState('system'); 
+  const [activeTab, setActiveTab] = useState("system");
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState(initialItemForm);
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
-    if (open) { dispatch(fetchItems()); }
-  }, [open, dispatch]);
+    if (open) dispatch(fetchItems());
+    if (!open) {
+      setIsCreating(false);
+      setFormData(initialItemForm);
+      setImageFile(null);
+      setSearchTerm("");
+      setActiveTab("system");
+    }
+  }, [dispatch, open]);
 
-  const itemsFiltered = allItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  const systemItems = itemsFiltered.filter(i => !i.isCustom);
-  const customItems = itemsFiltered.filter(i => i.isCustom && i.createdBy === user?._id);
+  useEffect(() => {
+    if (!open) return undefined;
 
-  if(!open) return null;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        if (isCreating) setIsCreating(false);
+        else handleClose();
+      }
+    };
 
-  // --- ESTILOS FIXOS VIEWPORT ---
-  const overlayStyle = {
-      position: 'fixed', 
-      top: 0, left: 0, width: '100vw', height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.85)',
-      zIndex: 12000, 
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backdropFilter: 'blur(3px)',
-      padding: '20px', 
-      boxSizing: 'border-box'
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleClose, isCreating, open]);
+
+  const filteredItems = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+    return allItems.filter((item) => {
+      if (!search) return true;
+      return [item.name, item.type, item.category, item.description]
+        .some((field) => String(field || "").toLowerCase().includes(search));
+    });
+  }, [allItems, searchTerm]);
+
+  const systemItems = filteredItems.filter((item) => !item.isCustom);
+  const customItems = filteredItems.filter((item) => item.isCustom && String(item.createdBy || "") === String(user?._id || ""));
+  const visibleItems = activeTab === "system" ? systemItems : customItems;
+
+  if (!open) return null;
+
+  const handleCreateAndAdd = async () => {
+    if (!formData.name.trim()) {
+      dispatchToast({ message: "Nome do item ? obrigat?rio.", type: "warning" });
+      return;
+    }
+
+    const modifiers = formData.modifiers
+      .split(",")
+      .map((modifier) => modifier.trim())
+      .filter(Boolean);
+    const imageUrl = getItemImageUrl(formData);
+    const payload = {
+      ...formData,
+      imageUrl,
+      iconUrl: imageUrl,
+      icon: imageUrl,
+      modifiers,
+      resourceType: formData.resourceType || null,
+      isCustom: true,
+    };
+
+    let requestPayload = payload;
+    if (imageFile) {
+      requestPayload = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        requestPayload.append(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+      });
+      requestPayload.append("image", imageFile);
+    }
+
+    try {
+      const createdItem = await dispatch(createItem(requestPayload)).unwrap();
+      onItemSelect(createdItem);
+      setIsCreating(false);
+      setFormData(initialItemForm);
+      setImageFile(null);
+      dispatchToast({ message: "Item criado e adicionado ao invent?rio.", type: "success" });
+    } catch (error) {
+      dispatchToast({ message: error?.message || "Falha ao criar item.", type: "error" });
+    }
   };
 
-  const modalContainerStyle = {
-      width: '100%', 
-      maxWidth: '900px', 
-      backgroundColor: '#101010', 
-      border: '1px solid #444', 
-      borderRadius: '4px',
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '85vh', // Garante que caiba na tela
-      boxShadow: '0 0 50px #000'
-  };
-
-  // Card do Item (Visual)
-  const ItemSlot = ({ item }) => (
-      <div 
-         onClick={() => onItemSelect(item)}
-         style={{
-             background:'#1a1a1a', border:'1px solid #444', borderRadius:'4px', 
-             padding:'10px', cursor:'pointer', position:'relative',
-             display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-             minHeight:'110px', transition:'all 0.2s'
-         }}
-         onMouseEnter={e => {e.currentTarget.style.borderColor='#b71c1c'; e.currentTarget.style.transform='translateY(-2px)'}}
-         onMouseLeave={e => {e.currentTarget.style.borderColor='#444'; e.currentTarget.style.transform='none'}}
-      >
-          {item.isArtefato && <FaStar style={{position:'absolute', top:5, left:5, color:'gold', fontSize:'12px'}}/>}
-          <div style={{fontSize:'2rem', color:'#555', marginBottom:'5px'}}><FaCube /></div>
-          <div style={{textAlign:'center', fontSize:'0.85rem', color:'#fff', fontWeight:'bold', lineHeight:'1.2', maxHeight:'3em', overflow:'hidden', textOverflow:'ellipsis'}}>{item.name}</div>
-          <div style={{fontSize:'0.7rem', color:'#666', marginTop:'5px'}}>S:{item.slots||1} | Q:{item.quality||3}</div>
-      </div>
+  const renderItemCard = (item) => (
+    <button key={item._id} type="button" className="hb-picker-item-card" onClick={() => onItemSelect(item)}>
+      {item.isArtefato && <FaStar className="hb-picker-artifact" />}
+      <span className="hb-picker-item-icon">
+        {getItemImageUrl(item) ? <img src={getItemImageUrl(item)} alt="" /> : <FaCube />}
+      </span>
+      <strong>{item.name}</strong>
+      <span>{item.type || item.category || "Item"}</span>
+      <small>S:{item.slots || 1} | Q:{item.quality || 3}</small>
+    </button>
   );
 
   return (
-    <div style={overlayStyle} onClick={(e) => e.target === e.currentTarget && handleClose()}>
-      <div style={modalContainerStyle}>
-          
-          {/* HEADER */}
-          <div style={{flexShrink:0, display:'flex', justifyContent:'space-between', padding:'15px', background:'#151515', borderBottom:'1px solid #333'}}>
-              <span style={{fontWeight:'bold', color:'#eee', fontSize:'1.1rem'}}>ADICIONAR ITEM</span>
-              <button onClick={handleClose} style={{background:'transparent', border:'none', color:'#888', cursor:'pointer'}}><FaTimes size={22}/></button>
+    <div className="hb-picker-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
+      <section className="hb-picker-panel hb-picker-panel-wide">
+        <header className="hb-picker-header">
+          <div>
+            <span>Arsenal</span>
+            <h2>{isCreating ? "Criar item" : "Adicionar item"}</h2>
           </div>
+          <button type="button" className="hb-picker-close" onClick={handleClose} aria-label="Fechar">
+            <FaTimes />
+          </button>
+        </header>
 
-          {/* CONTROLS */}
-          <div style={{background:'#1a1a1a', padding:'15px', borderBottom:'1px solid #333', flexShrink:0}}>
-              <div style={{position:'relative', marginBottom:'15px'}}>
-                   <FaSearch style={{position:'absolute', left:'12px', top:'12px', color:'#555'}}/>
-                   <input className="nero-input" placeholder="Buscar..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{paddingLeft:'35px', width:'100%', boxSizing:'border-box'}} />
-              </div>
-              <div className="hb-tabs" style={{margin:0, display:'flex'}}>
-                  <button className={`hb-tab ${activeTab==='system'?'active':''}`} onClick={()=>setActiveTab('system')} style={{flex:1, padding:'10px', background:activeTab==='system'?'#222':'transparent', border:'1px solid #444', color:activeTab==='system'?'#fff':'#666', fontWeight:'bold', cursor:'pointer'}}>SISTEMA</button>
-                  <button className={`hb-tab ${activeTab==='custom'?'active':''}`} onClick={()=>setActiveTab('custom')} style={{flex:1, padding:'10px', background:activeTab==='custom'?'#222':'transparent', border:'1px solid #444', borderLeft:'none', color:activeTab==='custom'?'#fff':'#666', fontWeight:'bold', cursor:'pointer'}}><FaUser style={{marginRight:5}}/> MEUS ITENS</button>
-              </div>
+        <div className="hb-picker-controls">
+          {!isCreating && (
+            <label className="hb-picker-search">
+              <FaSearch />
+              <input
+                className="nero-input"
+                placeholder="Buscar por nome, tipo ou descri??o..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </label>
+          )}
+
+          <div className="hb-picker-tabs">
+            <button
+              type="button"
+              className={activeTab === "system" && !isCreating ? "active" : ""}
+              onClick={() => {
+                setActiveTab("system");
+                setIsCreating(false);
+              }}
+            >
+              Sistema <span>{systemItems.length}</span>
+            </button>
+            <button
+              type="button"
+              className={activeTab === "custom" && !isCreating ? "active" : ""}
+              onClick={() => {
+                setActiveTab("custom");
+                setIsCreating(false);
+              }}
+            >
+              <FaUser /> Meus itens <span>{customItems.length}</span>
+            </button>
+            <button
+              type="button"
+              className={isCreating ? "active" : ""}
+              onClick={() => {
+                setActiveTab("custom");
+                setIsCreating(true);
+              }}
+            >
+              <FaPlus /> Criar item
+            </button>
           </div>
+        </div>
 
-          {/* GRID SCROLLAVEL */}
-          <div style={{padding:'15px', overflowY:'auto', background:'#080808', flex:1}}>
-              {loading ? <div style={{color:'#fff', textAlign:'center', marginTop:'40px'}}>Carregando arsenal...</div> : (
-                  <div style={{
-                      display:'grid', 
-                      gridTemplateColumns:'repeat(auto-fill, minmax(110px, 1fr))', // Grid inteligente
-                      gap:'10px'
-                  }}>
-                      {activeTab === 'system' ? (
-                          systemItems.length > 0 ? systemItems.map(i => <ItemSlot key={i._id} item={i} />) : <div style={{color:'#555', gridColumn:'1/-1', textAlign:'center'}}>Nenhum item encontrado.</div>
-                      ) : (
-                          customItems.length > 0 ? customItems.map(i => <ItemSlot key={i._id} item={i} />) : <div style={{color:'#555', gridColumn:'1/-1', textAlign:'center'}}>Você ainda não criou itens.</div>
-                      )}
-                  </div>
+        <div className="hb-picker-scroll">
+          {loading ? (
+            <PageLoader title="Carregando arsenal" subtitle="Listando itens dispon?veis..." compact />
+          ) : isCreating ? (
+            <div className="nero-modal-body" style={{ padding: 0 }}>
+              <div className="hb-item-preview-row">
+                <div className="hb-item-preview">
+                  {imageFile || getItemImageUrl(formData) ? (
+                    <img src={imageFile ? URL.createObjectURL(imageFile) : getItemImageUrl(formData)} alt="" />
+                  ) : <FaCube />}
+                  {formData.isArtefato && <span><FaStar /></span>}
+                </div>
+                <div className="form-group">
+                  <label>IMAGEM DO ITEM</label>
+                  <input
+                    className="nero-input"
+                    value={getItemImageUrl(formData)}
+                    onChange={(event) => setFormData(normalizeItemImageFields({ ...formData, imageUrl: event.target.value }))}
+                    placeholder="Cole uma URL de imagem..."
+                  />
+                  <input
+                    type="file"
+                    className="nero-input"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    onChange={(event) => setImageFile(event.target.files?.[0] || null)}
+                    style={{ marginTop: 8 }}
+                  />
+                </div>
+              </div>
+
+              <div className="hb-form-grid hb-form-grid-two">
+                <div className="form-group">
+                  <label>NOME</label>
+                  <input className="nero-input" value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="Ex: Rifle de Precis?o" />
+                </div>
+                <div className="form-group">
+                  <label>TIPO</label>
+                  <input className="nero-input" value={formData.type} onChange={(event) => setFormData({ ...formData, type: event.target.value })} placeholder="Equipamento, Arma, Consum?vel..." />
+                </div>
+              </div>
+
+              <div className="hb-form-grid hb-form-grid-two">
+                <div className="form-group">
+                  <label>ESCASSEZ</label>
+                  <input type="number" min="0" max="6" className="nero-input" value={formData.category} onChange={(event) => setFormData({ ...formData, category: Number(event.target.value) })} />
+                </div>
+                <div className="form-group">
+                  <label>SLOTS</label>
+                  <input type="number" min="0" className="nero-input" value={formData.slots} onChange={(event) => setFormData({ ...formData, slots: Number(event.target.value) })} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>MODIFICADORES</label>
+                <input className="nero-input" value={formData.modifiers} onChange={(event) => setFormData({ ...formData, modifiers: event.target.value })} placeholder="Pesado, Ruidoso, Fr?gil" />
+              </div>
+
+              <div className="form-group">
+                <label>DESCRI??O</label>
+                <textarea className="nero-textarea" rows="3" value={formData.description} onChange={(event) => setFormData({ ...formData, description: event.target.value })} placeholder="Detalhes sobre o item..." />
+              </div>
+
+              <label className="hb-checkbox-row">
+                <input type="checkbox" checked={!!formData.isArtefato} onChange={(event) => setFormData({ ...formData, isArtefato: event.target.checked })} />
+                Marcar como artefato
+              </label>
+              <label className="hb-checkbox-row">
+                <input type="checkbox" checked={!!formData.isConsumable} onChange={(event) => setFormData({ ...formData, isConsumable: event.target.checked })} />
+                Consum?vel
+              </label>
+
+              <div className="nero-modal-footer" style={{ paddingInline: 0 }}>
+                <button className="btn-nero btn-secondary" onClick={() => setIsCreating(false)}>CANCELAR</button>
+                <button className="btn-nero btn-primary" onClick={handleCreateAndAdd}>CRIAR E ADICIONAR</button>
+              </div>
+            </div>
+          ) : (
+            <div className="hb-picker-item-grid">
+              {visibleItems.length > 0 ? (
+                visibleItems.map(renderItemCard)
+              ) : (
+                <div className="hb-picker-empty">
+                  <EmptyState
+                    compact
+                    title={activeTab === "system" ? "Nenhum item encontrado" : "Nenhum item pr?prio"}
+                    description={activeTab === "system" ? "Tente ajustar a busca." : "Crie itens customizados por aqui ou na ?rea de Homebrews."}
+                  />
+                </div>
               )}
-          </div>
-      </div>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

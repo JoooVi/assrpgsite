@@ -2,10 +2,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import axios from "axios";
 
 import {
-  FaArrowLeft, FaDiceD20, FaExclamationTriangle, FaCheck, FaTimes,
+  FaArrowLeft, FaDiceD20, FaExclamationTriangle, FaCheck,
   FaPlus, FaMinus, FaShieldAlt, FaExternalLinkAlt, FaUserSecret,
   FaChevronDown, FaChevronUp, FaBrain, FaSuitcase, FaTrash,
   FaLayerGroup, FaSyncAlt,
@@ -17,12 +16,18 @@ import CharacterPortraitOverview from "../components/CharacterPortraitOverview";
 import ConflictTracker from "../components/ConflictTracker";
 import NPCGenerator from "../components/NPCGenerator";
 import EventDeckModal from "../components/EventDeckModal";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import { useConfirm } from "../components/notifications/ConfirmProvider";
+import PageLoader from "../components/ui/PageLoader";
+import EmptyState from "../components/ui/EmptyState";
+import api from "../api";
 
 import styles from "./CampaignSheet.module.css";
 
 const CampaignSheet = () => {
   const { id: campaignId } = useParams();
   const { user, token } = useSelector((state) => state.auth);
+  const { confirm } = useConfirm();
 
   const [campaign, setCampaign] = useState(null);
   const [playersData, setPlayersData] = useState([]);
@@ -41,12 +46,10 @@ const CampaignSheet = () => {
 
   const [npcExpandido, setNpcExpandido] = useState(null);
   const [diceFormula, setDiceFormula] = useState("");
-  const [toast, setToast] = useState({ open: false, msg: "", type: "info" });
   const masterRollerRef = useRef(null);
 
   const showToast = (msg, type = "info") => {
-    setToast({ open: true, msg, type });
-    setTimeout(() => setToast({ open: false, msg: "", type: "info" }), 4000);
+    dispatchToast({ message: msg, type });
   };
 
   const fetchDynamicData = useCallback(async () => {
@@ -54,9 +57,9 @@ const CampaignSheet = () => {
     setIsSyncing(true);
     try {
       const [playersRes, rollsRes, conflictRes] = await Promise.all([
-        axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/players-data`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/recent-rolls`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/conflict`, { headers: { Authorization: `Bearer ${token}` } }),
+        api.get(`/campaigns/${campaignId}/players-data`),
+        api.get(`/campaigns/${campaignId}/recent-rolls`),
+        api.get(`/campaigns/${campaignId}/conflict`),
       ]);
       setPlayersData(playersRes.data);
       setRecentRolls(rollsRes.data);
@@ -76,7 +79,7 @@ const CampaignSheet = () => {
     }
     setLoading(true);
     try {
-      const campaignRes = await axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const campaignRes = await api.get(`/campaigns/${campaignId}`);
       const campaignData = campaignRes.data;
       const masterId = campaignData.master._id || campaignData.master;
       const currentUserIsMaster = user._id === masterId;
@@ -88,8 +91,8 @@ const CampaignSheet = () => {
       if (currentUserIsMaster) {
         setMasterNotes(campaignData.notes || "");
         const [playersRes, rollsRes] = await Promise.all([
-          axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/players-data`, { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/recent-rolls`, { headers: { Authorization: `Bearer ${token}` } }),
+          api.get(`/campaigns/${campaignId}/players-data`),
+          api.get(`/campaigns/${campaignId}/recent-rolls`),
         ]);
         setPlayersData(playersRes.data);
         setRecentRolls(rollsRes.data);
@@ -112,7 +115,7 @@ const CampaignSheet = () => {
 
   const handleSaveNotes = async () => {
     try {
-      await axios.put(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/notes`, { notes: masterNotes }, { headers: { Authorization: `Bearer ${token}` } });
+      await api.put(`/campaigns/${campaignId}/notes`, { notes: masterNotes });
       showToast("Anotações salvas.", "success");
     } catch (err) {
       showToast("Erro ao salvar notas.", "error");
@@ -122,7 +125,7 @@ const CampaignSheet = () => {
   const handleStartConflict = async (conflictData) => {
     setIsConflictLoading(true);
     try {
-      const response = await axios.post(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/conflict`, conflictData, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await api.post(`/campaigns/${campaignId}/conflict`, conflictData);
       setActiveConflict(response.data);
       setOpenConflictModal(false);
       showToast("Conflito iniciado!", "success");
@@ -140,7 +143,7 @@ const CampaignSheet = () => {
     if (activationIndex !== null) payload.activationIndex = activationIndex;
 
     try {
-      const response = await axios.put(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/conflict/progress`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await api.put(`/campaigns/${campaignId}/conflict/progress`, payload);
       setActiveConflict(response.data);
     } catch (err) {
       showToast("Erro ao atualizar.", "error");
@@ -150,31 +153,42 @@ const CampaignSheet = () => {
   };
 
   const handleEndConflict = async () => {
-    if (window.confirm("Encerrar o conflito atual?")) {
-      setIsConflictLoading(true);
-      try {
-        await axios.delete(`https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/conflict`, { headers: { Authorization: `Bearer ${token}` } });
-        setActiveConflict(null);
-        showToast("Conflito encerrado.", "info");
-      } catch (err) {
-        showToast("Erro ao encerrar.", "error");
-      } finally {
-        setIsConflictLoading(false);
-      }
+    const confirmed = await confirm({
+      title: "Encerrar conflito",
+      message: "Encerrar o conflito atual?",
+      tone: "warning",
+      confirmLabel: "Encerrar",
+    });
+    if (!confirmed) return;
+
+    setIsConflictLoading(true);
+    try {
+      await api.delete(`/campaigns/${campaignId}/conflict`);
+      setActiveConflict(null);
+      showToast("Conflito encerrado.", "info");
+    } catch (err) {
+      showToast("Erro ao encerrar.", "error");
+    } finally {
+      setIsConflictLoading(false);
     }
   };
 
   const handleDeleteNpc = async (npcId, npcName) => {
-    if (window.confirm(`Tem certeza que deseja apagar permanentemente o NPC "${npcName}"?`)) {
-      try {
-        await axios.delete(`https://assrpgsite-be-production.up.railway.app/api/campaigns/npc/${npcId}`, { headers: { Authorization: `Bearer ${token}` } });
-        showToast("NPC removido da campanha.", "info");
-        setNpcExpandido(null);
-        fetchDynamicData();
-      } catch (err) {
-        console.error(err);
-        showToast("Erro ao deletar NPC.", "error");
-      }
+    const confirmed = await confirm({
+      title: "Apagar NPC",
+      message: `Tem certeza que deseja apagar permanentemente o NPC "${npcName}"?`,
+      tone: "danger",
+      confirmLabel: "Apagar",
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/campaigns/npc/${npcId}`);
+      showToast("NPC removido da campanha.", "info");
+      setNpcExpandido(null);
+      fetchDynamicData();
+    } catch (err) {
+      showToast("Erro ao deletar NPC.", "error");
     }
   };
 
@@ -190,7 +204,7 @@ const CampaignSheet = () => {
   const jogadoresNaturais = playersData.filter((char) => !char.isNPC);
   const listaNpcs = playersData.filter((char) => char.isNPC);
 
-  if (loading) return <div className={styles.loadingBox}><h2 style={{ fontFamily: "Orbitron", color: "#fff" }}>CARREGANDO DADOS...</h2></div>;
+  if (loading) return <PageLoader title="Carregando campanha" subtitle="Sincronizando ficha, NPCs e conflito..." />;
   if (error || !campaign) return <div className={styles.errorBox}><FaExclamationTriangle size={40} /><h2>ERRO DE ACESSO</h2><p>{error || "Campanha não encontrada."}</p><Link to="/campaigns" className={styles.btnNero}>VOLTAR</Link></div>;
 
   return (
@@ -203,7 +217,7 @@ const CampaignSheet = () => {
             <span className={styles.masterInfo} style={{ display: "flex", alignItems: "center", gap: "15px" }}>
               <span>Mestre: <span className={styles.highlight}>{campaign.master?.name || "Desconhecido"}</span></span>
               {isSyncing && (
-                <span style={{ display: "flex", alignItems: "center", gap: "5px", color: "#3cdce7", fontSize: "0.8rem", fontStyle: "italic" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "5px", color: "#ff5555", fontSize: "0.8rem", fontStyle: "italic" }}>
                   <FaSyncAlt className={styles.spinAnimation} /> Sincronizando...
                 </span>
               )}
@@ -237,7 +251,13 @@ const CampaignSheet = () => {
                         </div>
                       ))}
                     </div>
-                  ) : (<p style={{ color: "#666", textAlign: "center", marginTop: "20px" }}>Nenhum agente conectado.</p>)}
+                  ) : (
+                    <EmptyState
+                      compact
+                      title="Nenhum agente conectado"
+                      description="Quando jogadores entrarem na campanha, eles aparecem aqui."
+                    />
+                  )}
                 </div>
               </div>
 
@@ -422,14 +442,7 @@ const CampaignSheet = () => {
         </div>
       </div>
 
-      {/* TOAST E MODAIS */}
-      {toast.open && (
-        <div className={`${styles.neroToast} ${toast.type === "error" ? "error" : ""}`}>
-          {toast.type === "success" ? <FaCheck /> : toast.type === "error" ? <FaTimes /> : <FaExclamationTriangle />}
-          {toast.msg}
-        </div>
-      )}
-
+      {/* MODAIS */}
       <ConflictTracker open={openConflictModal} onClose={() => setOpenConflictModal(false)} onStartConflict={handleStartConflict} />
 
       <EventDeckModal

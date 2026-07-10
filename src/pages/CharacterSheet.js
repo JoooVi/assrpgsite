@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import ReactDOM from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -17,6 +16,13 @@ import TugOfWar from "../components/TugOfWar";
 import ItemsModal from "../components/ItemsModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
+import SystemText from "../components/SystemText";
+import DiceFace from "../components/DiceFace";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import PageLoader from "../components/ui/PageLoader";
+import EmptyState from "../components/ui/EmptyState";
+import api from "../api";
+import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 
 // Icons (Apenas ícones visuais para UI interna)
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
@@ -24,8 +30,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
 
 // SVG Components
-import { ReactComponent as MeuIcone } from "../assets/d10.svg";
-import { ReactComponent as MeuIcone2 } from "../assets/d12.svg";
+import { ReactComponent as MeuIcone } from "../assets/icons/d10_forma.svg";
+import { ReactComponent as MeuIcone2 } from "../assets/icons/d12_forma.svg";
 import { ReactComponent as HeartFullIcon } from "../assets/icons/heart-full.svg";
 import { ReactComponent as HeartEmptyIcon } from "../assets/icons/heart-empty.svg";
 
@@ -33,6 +39,9 @@ import { ReactComponent as HeartEmptyIcon } from "../assets/icons/heart-empty.sv
 import ArmaPlaceholder from "../assets/arma_placeholder.svg";
 import UtilidadePlaceholder from "../assets/utilidade_placeholder.svg";
 import ConsumivelPlaceholder from "../assets/consumivel_placeholder.svg";
+import conhecimentosIcon from "../assets/icons/conhecimentos.png";
+import praticasIcon from "../assets/icons/praticas.png";
+import instintosIcon from "../assets/icons/instintos.png";
 
 // Procure por volta da linha 25 e adicione:
 import LockIcon from "@mui/icons-material/Lock";
@@ -42,7 +51,7 @@ import LockOpenIcon from "@mui/icons-material/LockOpen";
 import styles from "./CharacterSheet.module.css";
 
 // ------------------------------------------
-// LÓGICA DE DADOS (DADOS E FORMULAS)
+// LÓGICA DE DADOS (DADOS E FÓRMULAS)
 // ------------------------------------------
 
 const dados = {
@@ -347,7 +356,7 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
             fontSize: "0.9rem",
           }}
         >
-          {displayData.effectMessage}
+          <SystemText text={displayData.effectMessage} />
         </div>
       )}
 
@@ -356,33 +365,7 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
         {displayData.roll &&
           displayData.roll.map((die, i) => (
             <div key={i} className={styles.toastDieBox}>
-              <div className={styles.toastDieType}>d{die.sides}</div>
-              <div className={styles.toastDieValue}>
-                {die.result && die.result.length > 0 ? (
-                  die.result.map((imgSrc, imgIndex) => (
-                    <img
-                      key={imgIndex}
-                      src={imgSrc}
-                      alt="dado"
-                      style={{
-                        width: "28px",
-                        height: "28px",
-                        objectFit: "contain",
-                      }}
-                    />
-                  ))
-                ) : (
-                  <span
-                    style={{
-                      fontSize: "1.4em",
-                      fontWeight: "bold",
-                      color: "#fff",
-                    }}
-                  >
-                    {die.face}
-                  </span>
-                )}
-              </div>
+              <DiceFace die={die} size={50} />
             </div>
           ))}
       </div>
@@ -415,11 +398,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     if (id) {
       const fetchInitialData = async () => {
         try {
-          const token = localStorage.getItem("token");
-          const response = await axios.get(
-            `https://assrpgsite-be-production.up.railway.app/api/characters/${id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
+          const response = await api.get(`/characters/${id}`);
           const { knowledge = {}, practices = {} } = response.data;
           const combinedSkills = { ...knowledge, ...practices };
           dispatch(updateSkills(combinedSkills));
@@ -435,7 +414,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   const handleRoll = async (key) => {
     const instinctKey = selectedInstinct[key];
     if (!instinctKey) {
-      alert("Selecione um instinto!");
+      dispatchToast({ message: "Selecione um instinto!", type: "warning" });
       return;
     }
 
@@ -514,6 +493,13 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     return "";
   };
 
+  const getSkillIcon = (key) => {
+    const k = key.toLowerCase();
+    if (knowledgeKeys.includes(k)) return conhecimentosIcon;
+    if (practiceKeys.includes(k)) return praticasIcon;
+    return null;
+  };
+
   return (
     <>
       <div className={styles.sectionTitle}>{translateKey(title)}</div>
@@ -548,6 +534,13 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
                 textTransform: "uppercase",
               }}
             >
+              {getSkillIcon(key) && (
+                <img
+                  src={getSkillIcon(key)}
+                  alt=""
+                  style={{ width: 13, height: 13, objectFit: "contain", verticalAlign: "-3px", marginRight: 5 }}
+                />
+              )}
               {getSkillLabel(key)}
             </span>
           </div>
@@ -627,12 +620,7 @@ const InstinctList = ({
     dispatch(updateInstincts(updated));
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/instincts`,
-        { instincts: updated },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/characters/${id}/instincts`, { instincts: updated });
     } catch (err) {
       console.error("Error updating instincts", err);
     }
@@ -659,7 +647,10 @@ const InstinctList = ({
 
   return (
     <>
-      <div className={styles.sectionTitle}>{translateKey(title)}</div>
+      <div className={styles.sectionTitle}>
+        <img src={instintosIcon} alt="" style={{ width: 18, height: 18, objectFit: "contain", marginRight: 8, verticalAlign: "-4px" }} />
+        {translateKey(title)}
+      </div>
       {Object.entries(instincts).map(([key, val]) => (
         <div key={key} className={styles.rowItem}>
           <div className={styles.itemName} onClick={() => showDesc(key)}>
@@ -702,7 +693,7 @@ const InstinctList = ({
         onClose={() => setDescModalOpen(false)}
         title={translateKey(selectedInstinctDesc.key)}
       >
-        <p>{selectedInstinctDesc.desc}</p>
+        <p><SystemText text={selectedInstinctDesc.desc} /></p>
       </CustomModal>
     </>
   );
@@ -760,10 +751,7 @@ const CharacterSheet = () => {
 
     const fetchCharacter = async () => {
   try {
-    const response = await axios.get(
-      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}?t=${new Date().getTime()}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await api.get(`/characters/${id}?t=${new Date().getTime()}`);
     setCharacter(response.data);
     setNotes(response.data.notes || "");
   } catch (error) {
@@ -792,12 +780,7 @@ const CharacterSheet = () => {
   // Funções de Fetch Auxiliares
   const fetchInventoryItems = async () => {
     try {
-      const res = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/items",
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      const res = await api.get("/items");
       setInventoryItemsDB(res.data);
     } catch (e) {}
   };
@@ -806,12 +789,7 @@ const CharacterSheet = () => {
       const url = type === "traits" ? "charactertraits" : "assimilations";
       const setter =
         type === "traits" ? setCharacteristicsDB : setAssimilationsDB;
-      const res = await axios.get(
-        `https://assrpgsite-be-production.up.railway.app/api/${url}`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      const res = await api.get(`/${url}`);
       setter(res.data);
     } catch (e) {}
   };
@@ -887,42 +865,40 @@ const CharacterSheet = () => {
   }, [character]);
 
   const slotsInfo = calculateSlots();
+  const canEditSheet = !!character?.canEdit || String(character?.userId || "") === String(user?._id || "");
 
   // HANDLERS E SAVE
   const saveInventory = async (newCharState) => {
+    if (!canEditSheet) {
+      dispatchToast({ message: "Você não tem permissão para editar esta ficha.", type: "warning" });
+      return;
+    }
     try {
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/inventory`,
-        {
-          inventory: newCharState.inventory,
-          notes: notes,
-          characteristics: newCharState.characteristics,
-          assimilations: newCharState.assimilations,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      await api.put(`/characters/${id}/inventory`, {
+        inventory: newCharState.inventory,
+        notes: notes,
+        characteristics: newCharState.characteristics,
+        assimilations: newCharState.assimilations,
+      });
     } catch (err) {
       console.error("Erro ao salvar backend", err);
+      dispatchToast({ message: "Falha ao salvar alterações da ficha.", type: "error" });
     }
   };
 
   const handleInputChange = (field, val) => {
+    if (!canEditSheet) return;
     setCharacter((prev) => ({ ...prev, [field]: val }));
-    axios.put(
-      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/details`,
-      { [field]: val },
-      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-    );
+    api.put(`/characters/${id}/details`, { [field]: val });
   };
 
   const handleAvatarChange = async (e) => {
+    if (!canEditSheet) return;
     const file = e.target.files[0];
     if (file) {
       const validation = validateImageFile(file);
       if (!validation.ok) {
-        alert(validation.message);
+        dispatchToast({ message: validation.message, type: "warning" });
         e.target.value = "";
         return;
       }
@@ -930,18 +906,11 @@ const CharacterSheet = () => {
       const formData = new FormData();
       formData.append("avatar", file);
       try {
-        const res = await axios.put(
-          `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/avatar`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const res = await api.put(`/characters/${id}/avatar`, formData);
         if (res.data.character) setCharacter(res.data.character);
+        dispatchToast({ message: "Avatar atualizado.", type: "success" });
       } catch (err) {
-        alert(err?.response?.data?.message || "Erro ao subir imagem.");
+        dispatchToast({ message: err?.response?.data?.message || "Erro ao subir imagem.", type: "error" });
       }
     }
   };
@@ -950,17 +919,17 @@ const CharacterSheet = () => {
     try {
       const newVal = !character.isPrivate;
       // Usamos a mesma URL de "details" que você já tem no projeto
-      await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/details`,
-        { isPrivate: newVal },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/characters/${id}/details`, { isPrivate: newVal });
 
       // Atualiza o estado local para o botão refletir a mudança na hora
       setCharacter({ ...character, isPrivate: newVal });
+      dispatchToast({
+        message: newVal ? "Ficha marcada como privada." : "Ficha marcada como pública.",
+        type: "success",
+      });
     } catch (err) {
       console.error("Erro ao mudar privacidade", err);
-      alert("Falha ao atualizar privacidade.");
+      dispatchToast({ message: "Falha ao atualizar privacidade.", type: "error" });
     }
   };
 
@@ -996,26 +965,30 @@ const CharacterSheet = () => {
   };
 
   const handleAddItem = (item) => {
+    const normalizedItem = normalizeItemImageFields(item);
+    const imageUrl = getItemImageUrl(normalizedItem);
     const updatedInv = [
       ...(character.inventory || []),
       {
         quantity: 1,
-        quality: 3,
+        quality: normalizedItem.quality ?? 3,
         slotLocation: "mochila",
         currentUses: 0,
         itemData: {
-          originalItemId: item._id,
-          name: item.name,
-          type: item.type,
-          category: item.category,
-          icon: item.icon || "", 
-          slots: item.slots,
-          modifiers: item.modifiers || [],
-          description: item.description,
-          characteristics: item.characteristics,
-          isArtefato: item.isArtefato,
-          isConsumable: item.isConsumable,
-          resourceType: item.resourceType,
+          originalItemId: normalizedItem._id,
+          name: normalizedItem.name,
+          type: normalizedItem.type,
+          category: normalizedItem.category,
+          imageUrl,
+          iconUrl: imageUrl,
+          icon: imageUrl,
+          slots: normalizedItem.slots,
+          modifiers: normalizedItem.modifiers || [],
+          description: normalizedItem.description,
+          characteristics: normalizedItem.characteristics,
+          isArtefato: normalizedItem.isArtefato,
+          isConsumable: normalizedItem.isConsumable,
+          resourceType: normalizedItem.resourceType,
         },
       },
     ];
@@ -1023,6 +996,7 @@ const CharacterSheet = () => {
     setCharacter(newState);
     saveInventory(newState);
     setItemsModalOpen(false);
+    dispatchToast({ message: "Item adicionado ao invent?rio.", type: "success" });
   };
 
   const handleDeleteItem = (index, type = "inventory") => {
@@ -1037,6 +1011,7 @@ const CharacterSheet = () => {
     const newState = { ...character, [listName]: newList };
     setCharacter(newState);
     saveInventory(newState);
+    dispatchToast({ message: "Registro removido da ficha.", type: "info" });
   };
 
 
@@ -1065,22 +1040,40 @@ const CharacterSheet = () => {
 
     // 3. Fecha o modal
     setEditItem(null);
+    dispatchToast({ message: "Item atualizado.", type: "success" });
   };
 
   const handleHealthChange = (index, value) => {
-    const updatedLevels = [...character.healthLevels];
-    updatedLevels[index] = value || 0;
+    const max =
+      1 +
+      Number(character.instincts?.potency || 0) +
+      Number(character.instincts?.resolution || 0);
+    const updatedLevels = Array.from({ length: 6 }, (_, levelIndex) => {
+      const currentValue = Number(character.healthLevels?.[levelIndex]);
+      return Math.min(max, Math.max(0, Number.isFinite(currentValue) ? currentValue : max));
+    });
+    updatedLevels[index] = Math.min(max, Math.max(0, Number(value || 0)));
     const currentLevel = 6 - index;
     setCharacter((prev) => ({
       ...prev,
       healthLevels: updatedLevels,
       currentHealthLevel: currentLevel,
     }));
-    axios.put(
-      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/health`,
-      { healthLevels: updatedLevels, currentHealthLevel: currentLevel },
-      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-    );
+    api.put(`/characters/${id}/health`, { healthLevels: updatedLevels, currentHealthLevel: currentLevel })
+      .then(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("vtt") === "1" && window.parent && window.parent !== window) {
+          window.parent.postMessage({
+            type: "ASSIMILACAO_CHARACTER_HEALTH_UPDATED",
+            characterId: id,
+            healthLevels: updatedLevels,
+            currentHealthLevel: currentLevel,
+          }, window.location.origin);
+        }
+      })
+      .catch(() => {
+        dispatchToast({ message: "Falha ao atualizar vida.", type: "error" });
+      });
   };
 
   // Roll Utils
@@ -1092,19 +1085,10 @@ const CharacterSheet = () => {
     };
     setRollHistory((prev) => [...prev, entry].slice(-20));
 
-    const token = localStorage.getItem("token");
-    axios.put(
-      `https://assrpgsite-be-production.up.railway.app/api/characters/${id}/last-roll`,
-      { lastRoll: entry },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    api.put(`/characters/${id}/last-roll`, { lastRoll: entry });
 
     if (character.campaign) {
-      axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${character.campaign}/roll`,
-        { ...entry, rollerId: user?._id, characterId: id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      api.post(`/campaigns/${character.campaign}/roll`, { ...entry, rollerId: user?._id, characterId: id });
     }
     if (display) {
       setLastCustomRoll(rollData);
@@ -1113,7 +1097,10 @@ const CharacterSheet = () => {
   };
 
   const handleCustomRoll = () => {
-    if (!customDiceFormula) return;
+    if (!customDiceFormula) {
+      dispatchToast({ message: "Informe uma fórmula antes de rolar.", type: "warning" });
+      return;
+    }
     const res = rollCustomDice(customDiceFormula);
     addRollToHistory({ formula: customDiceFormula, roll: res }, true);
   };
@@ -1122,7 +1109,7 @@ const CharacterSheet = () => {
     setSelectedInstinct((prev) => ({ ...prev, [key]: val }));
   const handleAssimilatedRoll = (k1, k2) => {
     if (!k2) {
-      alert("Combine!");
+      dispatchToast({ message: "Combine os instintos antes de rolar.", type: "warning" });
       return;
     }
     const total = (instincts[k1] || 0) + (instincts[k2] || 0);
@@ -1140,14 +1127,16 @@ const CharacterSheet = () => {
   if (error)
     return (
       <div className={styles.loaderBox}>
-        <h2 style={{ color: "red" }}>{error}</h2>
+        <EmptyState
+          title="Ficha indisponível"
+          description={error}
+          compact
+        />
       </div>
     );
   if (!character)
     return (
-      <div className={styles.loaderBox}>
-        <div className="spinner"></div>Carregando Sistema...
-      </div>
+      <PageLoader title="Carregando ficha" subtitle="Sincronizando inventário e atributos..." />
     );
 
   return (
@@ -1347,7 +1336,7 @@ const CharacterSheet = () => {
                   (character.instincts?.potency || 0) +
                   (character.instincts?.resolution || 0);
                 return (
-                  <div key={level} className={styles.healthRow}>
+                  <div key={level} className={`${styles.healthRow} ${character.currentHealthLevel === level ? styles.healthRowActive : ""}`}>
                     <div
                       className={styles.healthHeader}
                       onClick={() => {
@@ -1401,7 +1390,6 @@ const CharacterSheet = () => {
                   </div>
                 );
               })}
-              <TugOfWar character={character} setCharacter={setCharacter} />
             </div>
           </div>
 
@@ -1412,6 +1400,9 @@ const CharacterSheet = () => {
               character={character}
               addRollToHistory={addRollToHistory}
             />
+            <div className={styles.tugOfWarBlock}>
+              <TugOfWar character={character} setCharacter={setCharacter} />
+            </div>
           </div>
 
           <div className={styles.colRight}>
@@ -1457,16 +1448,20 @@ const CharacterSheet = () => {
                   >
                     ARSENAL
                   </div>
-                  <button
-                    className={styles.mainBtn}
-                    onClick={() => {
-                      fetchInventoryItems();
-                      setItemsModalOpen(true);
-                    }}
-                    style={{ fontSize: "0.75rem" }}
-                  >
-                    + Item
-                  </button>
+                  {canEditSheet && (
+                    <>
+                      <button
+                        className={styles.mainBtn}
+                        onClick={() => {
+                          fetchInventoryItems();
+                          setItemsModalOpen(true);
+                        }}
+                        style={{ fontSize: "0.75rem" }}
+                      >
+                        + Item
+                      </button>
+                    </>
+                  )}
                 </div>
                 <InventoryGrid
                   title={`Corpo (${slotsInfo.usedBodySlots}/${slotsInfo.totalBodySlots})`}
@@ -1484,6 +1479,7 @@ const CharacterSheet = () => {
                   }
                   onEdit={(item) => setEditItem({ invItemData: item })}
                   onUse={(item) => {}}
+                  readOnly={!canEditSheet}
                 />
                 <div style={{ height: 20 }}></div>
                 <InventoryGrid
@@ -1500,6 +1496,7 @@ const CharacterSheet = () => {
                     handleDeleteItem(character.inventory.indexOf(item))
                   }
                   onEdit={(item) => setEditItem({ invItemData: item })}
+                  readOnly={!canEditSheet}
                 />
               </div>
             )}
@@ -1539,7 +1536,7 @@ const CharacterSheet = () => {
                         {c.name}
                       </div>
                       <div style={{ fontSize: "0.8em", color: "#888" }}>
-                        {c.description}
+                        <SystemText text={c.description} />
                       </div>
                     </div>
                     <DeleteIcon
@@ -1577,7 +1574,7 @@ const CharacterSheet = () => {
                         {c.name}
                       </div>
                       <div style={{ fontSize: "0.8em", color: "#888" }}>
-                        {c.description}
+                        <SystemText text={c.description} />
                       </div>
                     </div>
                     <DeleteIcon
@@ -1596,7 +1593,7 @@ const CharacterSheet = () => {
         onClose={() => setHealthModalOpen(false)}
         title={selectedHealthInfo.name}
       >
-        <p>{selectedHealthInfo.description}</p>
+        <p><SystemText text={selectedHealthInfo.description} /></p>
       </CustomModal>
       <CustomToast
         open={customToastOpen}
@@ -1663,7 +1660,7 @@ const CharacterSheet = () => {
             title={historyOpen ? "Fechar Histórico" : "Abrir Histórico"}
           >
             {historyOpen ? (
-              <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>×</span>
+              <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>x</span>
             ) : (
               <HistoryIcon />
             )}
@@ -1725,24 +1722,7 @@ const CharacterSheet = () => {
                       <div className={styles.histDiceGrid}>
                         {h.roll.map((die, idx) => (
                           <div key={idx} className={styles.histDie}>
-                            <span className={styles.histDieType}>
-                              d{die.sides}
-                            </span>
-                            <div className={styles.histDieVal}>
-                              {/* Lógica: Se tem array de imagens, mostra imagens. Senão mostra número. */}
-                              {die.result && die.result.length > 0 ? (
-                                die.result.map((src, imgI) => (
-                                  <img
-                                    key={imgI}
-                                    src={src}
-                                    alt="dado"
-                                    className={styles.histImg}
-                                  />
-                                ))
-                              ) : (
-                                <span>{die.face}</span>
-                              )}
-                            </div>
+                            <DiceFace die={die} size={42} />
                           </div>
                         ))}
                       </div>

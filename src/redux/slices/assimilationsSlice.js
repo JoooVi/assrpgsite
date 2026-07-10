@@ -1,136 +1,151 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import { API_URL, authHeaders, jsonAuthHeaders } from "../../config/apiConfig";
 
-// Definir a URL base
-const API_URL = 'https://assrpgsite-be-production.up.railway.app/api';
+const requireAuth = (getState, rejectWithValue) => {
+  const { token, user } = getState().auth;
 
-// Thunk para criar Assimilation
+  if (!token) {
+    return rejectWithValue({ message: "Usuário não autenticado." });
+  }
+
+  return { token, user };
+};
+
 export const createAssimilation = createAsyncThunk(
-  'assimilations/createAssimilation',
+  "assimilations/createAssimilation",
   async (assimilationData, { getState, rejectWithValue }) => {
-    try {
-      const { token, user } = getState().auth;
-      if (!token || !user) {
-        return rejectWithValue({ message: 'Usuário não autenticado.' });
-      }
+    const auth = requireAuth(getState, rejectWithValue);
+    if (auth.payload) return auth;
 
+    if (!auth.user) {
+      return rejectWithValue({ message: "Usuário não autenticado." });
+    }
+
+    try {
       const response = await axios.post(
         `${API_URL}/assimilations`,
         {
           ...assimilationData,
           isCustom: true,
-          createdBy: user._id,
-          userId: user._id
+          createdBy: auth.user._id,
+          userId: auth.user._id,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers: jsonAuthHeaders(auth.token) }
       );
-
-      console.log('Assimilação criada:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Erro ao criar assimilação:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
 
-// assimilationsSlice.js (nova thunk)
 export const fetchAllAssimilations = createAsyncThunk(
-  'assimilations/fetchAll',
+  "assimilations/fetchAll",
   async (_, { getState, rejectWithValue }) => {
+    const auth = requireAuth(getState, rejectWithValue);
+    if (auth.payload) return auth;
+
     try {
-      const token = getState().auth.token;
       const response = await axios.get(`${API_URL}/assimilations/all`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: authHeaders(auth.token),
       });
-      return response.data; // Retorna { allAssimilations, userAssimilations }
-    } catch (err) {
-      return rejectWithValue(err.response?.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
-)
+);
 
-// Thunk para atualizar Assimilation
-// Thunk para atualizar Assimilation
 export const updateAssimilation = createAsyncThunk(
-  'assimilations/updateAssimilation',
+  "assimilations/updateAssimilation",
   async ({ id, data }, { getState, rejectWithValue }) => {
-    const token = getState().auth.token;
+    const auth = requireAuth(getState, rejectWithValue);
+    if (auth.payload) return auth;
+
     try {
       const response = await axios.patch(`${API_URL}/assimilations/${id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(auth.token),
       });
       return response.data;
     } catch (error) {
-      console.error('Erro ao atualizar assimilação:', error.response?.data || error.message);
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
 
-// Thunk para excluir uma Assimilação
 export const deleteAssimilation = createAsyncThunk(
-  'assimilations/deleteAssimilation',
+  "assimilations/deleteAssimilation",
   async (id, { getState, rejectWithValue }) => {
-    const { token } = getState().auth;
+    const auth = requireAuth(getState, rejectWithValue);
+    if (auth.payload) return auth;
+
     try {
-      const response = await axios.delete(`${API_URL}/assimilations/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.delete(`${API_URL}/assimilations/${id}`, {
+        headers: authHeaders(auth.token),
       });
-      return id; // Retorna o ID da assimilação excluída
+      return id;
     } catch (error) {
-      console.error('Erro ao excluir assimilação:', error.response?.data || error.message);
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
 
-// Thunk para buscar apenas as assimilações do usuário
 export const fetchUserAssimilations = createAsyncThunk(
-  'assimilations/fetchUserAssimilations',
+  "assimilations/fetchUserAssimilations",
   async (_, { getState, rejectWithValue }) => {
+    const auth = requireAuth(getState, rejectWithValue);
+    if (auth.payload) return auth;
+
     try {
-      const token = getState().auth.token;
       const response = await axios.get(`${API_URL}/assimilations/user`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: authHeaders(auth.token),
       });
       return response.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data);
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
 
 const initialState = {
-  allAssimilations: [], // Todas as assimilações
-  userAssimilations: [], // Assimilações do usuário
+  allAssimilations: [],
+  userAssimilations: [],
   loading: false,
   error: null,
 };
 
 const assimilationsSlice = createSlice({
-  name: 'assimilations',
+  name: "assimilations",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Create Assimilation
+      .addCase(createAssimilation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(createAssimilation.fulfilled, (state, action) => {
         state.loading = false;
         state.error = null;
-        state.userAssimilations.push(action.payload); // Adicionar apenas ao userAssimilations
+        state.userAssimilations.push(action.payload);
       })
-      // Update Assimilation
+      .addCase(createAssimilation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || action.error.message;
+      })
+      .addCase(updateAssimilation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateAssimilation.fulfilled, (state, action) => {
-        const index = state.userAssimilations.findIndex(item => item._id === action.payload._id);
-        if (index !== -1) {
-          state.userAssimilations[index] = action.payload;
-        }
+        state.loading = false;
+        const index = state.userAssimilations.findIndex((item) => item._id === action.payload._id);
+        if (index !== -1) state.userAssimilations[index] = action.payload;
+      })
+      .addCase(updateAssimilation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || action.error.message;
       })
       .addCase(fetchAllAssimilations.pending, (state) => {
         state.loading = true;
@@ -138,19 +153,25 @@ const assimilationsSlice = createSlice({
       })
       .addCase(fetchAllAssimilations.fulfilled, (state, action) => {
         state.loading = false;
-        state.allAssimilations = action.payload.allAssimilations;
-        state.userAssimilations = action.payload.userAssimilations;
+        state.allAssimilations = action.payload?.allAssimilations || [];
+        state.userAssimilations = action.payload?.userAssimilations || [];
       })
       .addCase(fetchAllAssimilations.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
-      })  
-      // Delete Assimilation
+        state.error = action.payload?.message || action.error.message;
+      })
+      .addCase(deleteAssimilation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(deleteAssimilation.fulfilled, (state, action) => {
         state.loading = false;
-        state.userAssimilations = state.userAssimilations.filter(item => item._id !== action.payload);
+        state.userAssimilations = state.userAssimilations.filter((item) => item._id !== action.payload);
       })
-      // Fetch User Assimilations
+      .addCase(deleteAssimilation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || action.error.message;
+      })
       .addCase(fetchUserAssimilations.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -161,7 +182,7 @@ const assimilationsSlice = createSlice({
       })
       .addCase(fetchUserAssimilations.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.error.message;
       });
   },
 });

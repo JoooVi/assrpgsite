@@ -2,8 +2,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import axios from "axios";
 import "./CampaignLobby.css";
+import { dispatchToast } from "./notifications/ToastProvider";
+import { useConfirm } from "./notifications/ConfirmProvider";
+import PageLoader from "./ui/PageLoader";
+import InlineLoader from "./ui/InlineLoader";
+import EmptyState from "./ui/EmptyState";
+import api from "../api";
+import { API_BASE_URL } from "../config/apiConfig";
 
 // Ícones
 import {
@@ -15,8 +21,6 @@ import {
   FaTv,
   FaTrash,
   FaEye,
-  FaCheck,
-  FaTimes,
   FaExclamationTriangle,
 } from "react-icons/fa";
 
@@ -24,9 +28,35 @@ import {
 const DEFAULT_COVER_IMAGE =
   "https://images.unsplash.com/photo-1626262846282-e36214878a1a?q=80&w=1000&auto=format&fit=crop";
 
+const getCharacterAvatar = (character) => {
+  if (character?.avatar) return character.avatar;
+
+  const initial = encodeURIComponent((character?.name || "?").trim().charAt(0).toUpperCase() || "?");
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#1b1b1b"/>
+          <stop offset="55%" stop-color="#0a0a0a"/>
+          <stop offset="100%" stop-color="#2a0907"/>
+        </linearGradient>
+      </defs>
+      <rect width="320" height="220" fill="url(#bg)"/>
+      <rect x="14" y="14" width="292" height="192" fill="none" stroke="#8a1c18" stroke-width="3"/>
+      <circle cx="160" cy="92" r="38" fill="#8a1c18" opacity="0.88"/>
+      <path d="M92 184c10-43 42-66 68-66s58 23 68 66" fill="#141414" stroke="#333" stroke-width="3"/>
+      <text x="160" y="105" fill="#fff" font-family="Arial, sans-serif" font-size="44" font-weight="700" text-anchor="middle">${initial}</text>
+      <text x="160" y="197" fill="#777" font-family="Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="3">AGENTE</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 const CampaignLobby = () => {
   const { id: campaignId } = useParams();
   const { user, token } = useSelector((state) => state.auth);
+  const { confirm } = useConfirm();
 
   // --- ESTADOS ---
   const [campaign, setCampaign] = useState(null);
@@ -43,11 +73,8 @@ const CampaignLobby = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // Sistema de Notificação Customizado (Substitui Snackbar)
-  const [toast, setToast] = useState({ open: false, msg: "", type: "success" });
-
   const showToast = (msg, type = "success") => {
-    setToast({ open: true, msg, type });
-    setTimeout(() => setToast({ open: false, msg: "", type: "success" }), 4000);
+    dispatchToast({ message: msg, type });
   };
 
   // --- FETCH DATA ---
@@ -60,10 +87,7 @@ const CampaignLobby = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.get(`/campaigns/${campaignId}`);
 
       const data = res.data;
       setCampaign(data);
@@ -76,7 +100,7 @@ const CampaignLobby = () => {
       // URL da Imagem
       let img = data.coverImage;
       if (img && !img.startsWith("http")) {
-        img = `https://assrpgsite-be-production.up.railway.app/${img.replace(
+        img = `${API_BASE_URL}/${img.replace(
           /\\/g,
           "/"
         )}`;
@@ -84,7 +108,6 @@ const CampaignLobby = () => {
       setCoverImageUrl(img || DEFAULT_COVER_IMAGE);
     } catch (err) {
       setError("Falha ao carregar dados da campanha.");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -108,15 +131,11 @@ const CampaignLobby = () => {
     formData.append("coverImage", file);
 
     try {
-      const response = await axios.put(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/cover`,
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.put(`/campaigns/${campaignId}/cover`, formData);
 
       let newUrl = response.data.coverImage;
       if (newUrl && !newUrl.startsWith("http")) {
-        newUrl = `https://assrpgsite-be-production.up.railway.app/${newUrl.replace(
+        newUrl = `${API_BASE_URL}/${newUrl.replace(
           /\\/g,
           "/"
         )}`;
@@ -124,7 +143,6 @@ const CampaignLobby = () => {
       setCoverImageUrl(newUrl || DEFAULT_COVER_IMAGE);
       showToast("Capa atualizada com sucesso!", "success");
     } catch (err) {
-      console.error(err);
       showToast("Erro ao atualizar capa.", "error");
     } finally {
       setIsUploading(false);
@@ -138,10 +156,7 @@ const CampaignLobby = () => {
   // Personagens
   const handleOpenCharModal = async () => {
     try {
-      const res = await axios.get(
-        "https://assrpgsite-be-production.up.railway.app/api/characters/available",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.get("/characters/available");
       setAvailableChars(res.data);
       setOpenCharModal(true);
     } catch (err) {
@@ -151,11 +166,7 @@ const CampaignLobby = () => {
 
   const handleAddCharacter = async (characterId) => {
     try {
-      await axios.post(
-        `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/add-character`,
-        { characterId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/campaigns/${campaignId}/add-character`, { characterId });
       setOpenCharModal(false);
       fetchCampaignData();
       showToast("Agente adicionado à operação.");
@@ -165,18 +176,20 @@ const CampaignLobby = () => {
   };
 
   const handleRemoveCharacter = async (characterId, characterName) => {
-    if (window.confirm(`Remover "${characterName}" da campanha?`)) {
-      try {
-        await axios.post(
-          `https://assrpgsite-be-production.up.railway.app/api/campaigns/${campaignId}/remove-character`,
-          { characterId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        fetchCampaignData();
-        showToast("Agente removido.");
-      } catch (err) {
-        showToast("Erro ao remover agente.", "error");
-      }
+    const confirmed = await confirm({
+      title: "Remover agente",
+      message: `Remover "${characterName}" da campanha?`,
+      tone: "warning",
+      confirmLabel: "Remover",
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.post(`/campaigns/${campaignId}/remove-character`, { characterId });
+      fetchCampaignData();
+      showToast("Agente removido.");
+    } catch (err) {
+      showToast("Erro ao remover agente.", "error");
     }
   };
 
@@ -184,7 +197,7 @@ const CampaignLobby = () => {
     if (campaign?.inviteCode) {
       navigator.clipboard.writeText(campaign.inviteCode).then(
         () => showToast(`Código copiado: ${campaign.inviteCode}`),
-        () => alert(`Código: ${campaign.inviteCode}`)
+        () => showToast(`Codigo: ${campaign.inviteCode}`, "info")
       );
     } else {
       showToast("Sem código de convite.", "error");
@@ -195,11 +208,7 @@ const CampaignLobby = () => {
 
   if (loading)
     return (
-      <div className="lobby-page" style={{ alignItems: "center" }}>
-        <h2 style={{ color: "#fff", fontFamily: "Orbitron" }}>
-          CARREGANDO OPERAÇÃO...
-        </h2>
-      </div>
+      <PageLoader title="Carregando operacao" subtitle="Preparando lobby da campanha..." />
     );
 
   if (error || !campaign)
@@ -228,32 +237,6 @@ const CampaignLobby = () => {
   return (
     <div className="lobby-page">
       <div className="lobby-panel">
-        {/* BARRA DE AÇÕES */}
-        <div className="lobby-actions">
-          {isMaster && (
-            <Link
-              to={`/campaign-sheet/${campaignId}`}
-              className="btn-nero btn-primary"
-            >
-              <FaShieldAlt /> ESCUDO DO MESTRE
-            </Link>
-          )}
-          <Link
-            to={`/campaign/${campaignId}/refuge`}
-            className="btn-nero btn-secondary"
-          >
-            <FaHome /> REFÚGIO
-          </Link>
-          <button
-            onClick={handleOpenCharModal}
-            className="btn-nero btn-secondary"
-          >
-            <FaUserPlus /> ADICIONAR AGENTE
-          </button>
-          <button onClick={handleInvite} className="btn-nero btn-secondary">
-            <FaUserFriends /> CONVIDAR
-          </button>
-        </div>
 
         {/* HEADER DA CAMPANHA */}
         <div className="lobby-header">
@@ -267,7 +250,7 @@ const CampaignLobby = () => {
                 onClick={handleEditCoverClick}
               >
                 <div className="btn-edit-cover">
-                  <FaEdit /> {isUploading ? "ENVIANDO..." : "ALTERAR CAPA"}
+                  {isUploading ? <InlineLoader label="Enviando" /> : <><FaEdit /> ALTERAR CAPA</>}
                 </div>
               </div>
             )}
@@ -285,9 +268,60 @@ const CampaignLobby = () => {
           <p className="lobby-desc">{campaign.description}</p>
         </div>
 
+
+        <div className="campaign-command-grid">
+          <Link to={`/campanha/${campaignId}/vtt`} className="campaign-command-card primary">
+            <FaTv />
+            <span>Entrar no VTT</span>
+            <small>Mesa virtual da campanha</small>
+          </Link>
+
+          <Link to={`/campaign/${campaignId}/refuges`} className="campaign-command-card">
+            <FaHome />
+            <span>Refúgios</span>
+            <small>Bases, recursos e sala de guerra</small>
+          </Link>
+
+          {isMaster && (
+            <Link to={`/campaign-sheet/${campaignId}`} className="campaign-command-card">
+              <FaShieldAlt />
+              <span>Escudo do Mestre</span>
+              <small>Controle da sessão e conflitos</small>
+            </Link>
+          )}
+
+          <button type="button" onClick={handleOpenCharModal} className="campaign-command-card">
+            <FaUserPlus />
+            <span>Adicionar agente</span>
+            <small>Vincular personagem à campanha</small>
+          </button>
+
+          <button type="button" onClick={handleInvite} className="campaign-command-card">
+            <FaUserFriends />
+            <span>Convidar</span>
+            <small>Copiar código de acesso</small>
+          </button>
+        </div>
+
+        {campaign.inviteCode && (
+          <div className="campaign-invite-panel">
+            <div>
+              <span className="campaign-invite-label">Código de convite</span>
+              <strong>{campaign.inviteCode}</strong>
+            </div>
+            <button type="button" className="btn-nero btn-secondary" onClick={handleInvite}>
+              <FaUserFriends /> Copiar código
+            </button>
+          </div>
+        )}
         {/* LISTA DE PERSONAGENS */}
         <div className="character-section">
-          <h3 className="char-section-title">AGENTES ATIVOS</h3>
+          <div className="char-section-header">
+            <h3 className="char-section-title">AGENTES ATIVOS</h3>
+            <button type="button" className="btn-nero btn-secondary" onClick={handleOpenCharModal}>
+              <FaUserPlus /> Adicionar agente
+            </button>
+          </div>
 
           <div className="char-list">
             {campaign.players &&
@@ -303,33 +337,14 @@ const CampaignLobby = () => {
                   if (!char?._id) return null;
 
                   return (
-                    <div
-                      key={char._id}
-                      className="char-row"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "15px",
-                      }}
-                    >
+                    <div key={char._id} className="char-row">
                       {/* EXIBIÇÃO DA IMAGEM */}
-                      <div
-                        className="char-avatar-mini"
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "4px",
-                          overflow: "hidden",
-                          border: "1px solid #444",
-                        }}
-                      >
+                      <div className="char-avatar-mini">
                         <img
-                          src={char.avatar || "URL_DE_PLACEHOLDER"}
+                          src={getCharacterAvatar(char)}
                           alt={char.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
+                          onError={(event) => {
+                            event.currentTarget.src = getCharacterAvatar({ ...char, avatar: "" });
                           }}
                         />
                       </div>
@@ -385,9 +400,16 @@ const CampaignLobby = () => {
                   );
                 })
             ) : (
-              <div className="empty-msg">
-                NENHUM AGENTE REGISTRADO NESTA OPERAÇÃO.
-              </div>
+              <EmptyState
+                compact
+                title="Nenhum agente registrado"
+                description="Adicione personagens para iniciar a operação."
+                action={(
+                  <button type="button" className="btn-nero btn-primary" onClick={handleOpenCharModal}>
+                    <FaUserPlus /> Adicionar agente
+                  </button>
+                )}
+              />
             )}
           </div>
         </div>
@@ -454,14 +476,6 @@ const CampaignLobby = () => {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* TOAST NOTIFICATION (Feedback Visual) */}
-      {toast.open && (
-        <div className={`nero-toast ${toast.type}`}>
-          {toast.type === "success" ? <FaCheck /> : <FaTimes />}
-          {toast.msg}
         </div>
       )}
     </div>
