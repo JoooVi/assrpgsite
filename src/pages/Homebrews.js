@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllAssimilations } from "../redux/slices/assimilationsSlice";
 import { fetchCharacterTraits } from "../redux/slices/characteristicsSlice";
-import { fetchHomebrews } from "../redux/slices/homebrewsSlice";
 import { fetchItems } from "../redux/slices/itemsSlice";
 import AssimilationsList from "../components/AssimilationsList";
 import CharacteristicsList from "../components/CharacteristicsList";
@@ -53,7 +52,6 @@ const Homebrews = () => {
     if (!currentUser || !token) return;
     dispatch(fetchAllAssimilations());
     dispatch(fetchItems());
-    dispatch(fetchHomebrews());
     dispatch(fetchCharacterTraits());
   }, [dispatch, currentUser, token]);
 

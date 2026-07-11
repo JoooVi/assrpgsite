@@ -430,6 +430,7 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
 
     const rollData = {
       skill: `${translateKey(key)} + ${translateKey(instinctKey)}`,
+      formula,
       roll: result,
     };
     setCurrentRoll(rollData);
@@ -1117,6 +1118,7 @@ const CharacterSheet = () => {
     addRollToHistory(
       {
         skill: `Assimilação: ${translateKey(k1)} + ${translateKey(k2)}`,
+        formula: `${total}d12`,
         roll: res,
       },
       true

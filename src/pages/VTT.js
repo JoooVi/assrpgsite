@@ -205,15 +205,37 @@ const summarizeRollSymbols = (roll = []) => {
 };
 
 const formatRollSummary = (summary) => {
-  const parts = [];
-  if (summary.successes) parts.push(`${summary.successes} ${summary.successes === 1 ? 'sucesso' : 'sucessos'}`);
-  if (summary.instincts) parts.push(`${summary.instincts} ${summary.instincts === 1 ? 'Pressão' : 'Pressões'}`);
-  if (summary.strain) parts.push(`${summary.strain} ${summary.strain === 1 ? 'Adaptação' : 'Adaptações'}`);
-  if (!parts.length) return 'Nenhum símbolo ativado';
-  return parts.join(' + ');
+  const successes = `${summary.successes} ${summary.successes === 1 ? 'Sucesso' : 'Sucessos'}`;
+  const pressures = `${summary.instincts} ${summary.instincts === 1 ? 'Pressão' : 'Pressões'}`;
+  const adaptations = `${summary.strain} ${summary.strain === 1 ? 'Adaptação' : 'Adaptações'}`;
+  return `${successes} • ${pressures} • ${adaptations}`;
 };
 
 const formatPlural = (count, singular, plural) => `${count} ${count === 1 ? singular : plural}`;
+
+const getChatEntryId = (entry, type = 'text') => {
+  const explicitId = entry?.id || entry?._id;
+  if (explicitId) return String(explicitId);
+  if (type === 'roll') {
+    const dice = (entry?.roll || []).map((die) => `${die?.sides}:${die?.face}`).join(',');
+    return `roll:${entry?.timestamp || ''}:${entry?.rollerId || ''}:${entry?.characterId || ''}:${entry?.formula || ''}:${dice}`;
+  }
+  return `text:${entry?.timestamp || ''}:${entry?.senderId || ''}:${entry?.characterId || ''}:${entry?.text || ''}`;
+};
+
+const mergeChatItems = (current, incoming, type, limit) => {
+  const merged = [...current];
+  const known = new Set(current.map((item) => getChatEntryId(item, type)));
+  (Array.isArray(incoming) ? incoming : [incoming]).filter(Boolean).forEach((item) => {
+    const key = getChatEntryId(item, type);
+    if (known.has(key)) return;
+    known.add(key);
+    merged.push(item);
+  });
+  return merged
+    .sort((a, b) => new Date(a?.timestamp || 0).getTime() - new Date(b?.timestamp || 0).getTime())
+    .slice(-limit);
+};
 
 const loadImageDimensions = (url) => new Promise((resolve) => {
   const image = new window.Image();
@@ -378,6 +400,10 @@ const VTT = () => {
 
   const [textMessages, setTextMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  const chatListRef = useRef(null);
+  const chatEndRef = useRef(null);
+  const chatShouldFollowRef = useRef(true);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [activeConflict, setActiveConflict] = useState(null);
   const [openConflictModal, setOpenConflictModal] = useState(false);
   const [isConflictLoading, setIsConflictLoading] = useState(false);
@@ -443,6 +469,34 @@ const VTT = () => {
     const textEntries = textMessages.map((msg) => ({ type: 'text', ts: new Date(msg.timestamp || Date.now()).getTime(), data: msg }));
     return [...rollEntries, ...systemEntries, ...textEntries].sort((a, b) => a.ts - b.ts);
   }, [recentRolls, systemMessages, textMessages]);
+
+  const scrollChatToEnd = useCallback((behavior = 'smooth') => {
+    chatEndRef.current?.scrollIntoView({ behavior, block: 'end' });
+    chatShouldFollowRef.current = true;
+    setUnreadChatCount(0);
+  }, []);
+
+  const handleChatScroll = useCallback(() => {
+    const viewport = chatListRef.current;
+    if (!viewport) return;
+    const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
+    chatShouldFollowRef.current = distanceFromBottom < 72;
+    if (chatShouldFollowRef.current) setUnreadChatCount(0);
+  }, []);
+
+  useEffect(() => {
+    if (!chatEntries.length || rightTab !== 'chat') return;
+    if (chatShouldFollowRef.current) {
+      window.requestAnimationFrame(() => scrollChatToEnd(chatEntries.length === 1 ? 'auto' : 'smooth'));
+    } else {
+      setUnreadChatCount((count) => count + 1);
+    }
+  }, [chatEntries.length, rightTab, scrollChatToEnd]);
+
+  useEffect(() => {
+    if (rightTab !== 'chat') return;
+    window.requestAnimationFrame(() => scrollChatToEnd('auto'));
+  }, [rightTab, scrollChatToEnd]);
   const activeSceneRulers = useMemo(() => Object.fromEntries(
     Object.entries(activeRulers).filter(([, ruler]) => String(ruler?.sceneId) === String(viewingSceneId))
   ), [activeRulers, viewingSceneId]);
@@ -519,7 +573,7 @@ const VTT = () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_BASE}/api/campaigns/${id}/recent-rolls`, { headers: { Authorization: `Bearer ${token}` } });
-      setRecentRolls(res.data || []);
+      setRecentRolls((prev) => mergeChatItems(prev, res.data || [], 'roll', 100));
     } catch (error) {}
   }, [id, token]);
 
@@ -605,7 +659,9 @@ const VTT = () => {
           setPartySceneId(res.data.vttState.activeSceneId);
           setViewingSceneId(res.data.vttState.activeSceneId);
         }
-        if (res.data.vttState?.chatMessages?.length) setTextMessages(res.data.vttState.chatMessages);
+        if (res.data.vttState?.chatMessages?.length) {
+          setTextMessages((prev) => mergeChatItems(prev, res.data.vttState.chatMessages, 'text', 200));
+        }
         setHasLoadedCampaign(true);
       } catch (error) { console.error('Erro ao carregar campanha:', error); }
     };
@@ -631,8 +687,12 @@ const VTT = () => {
         navigate(`/campaign-lobby/${id}`);
       });
 
-      newSocket.on('systemMessage', (payload) => setSystemMessages((prev) => [...prev, { message: payload?.message || 'Evento no VTT', timestamp: Date.now() }]));
-      newSocket.on('chatMessage', (payload) => setTextMessages((prev) => [...prev, payload]));
+      newSocket.on('systemMessage', (payload) => setSystemMessages((prev) => [...prev, { message: payload?.message || 'Evento no VTT', timestamp: Date.now() }].slice(-100)));
+      newSocket.on('chatMessage', (payload) => setTextMessages((prev) => mergeChatItems(prev, payload, 'text', 200)));
+      newSocket.on('rollCreated', ({ campaignId, roll } = {}) => {
+        if (String(campaignId) !== String(id) || !roll) return;
+        setRecentRolls((prev) => mergeChatItems(prev, roll, 'roll', 100));
+      });
 
       newSocket.on('activeSceneChanged', (sceneId) => {
         setPartySceneId(sceneId);
@@ -645,7 +705,9 @@ const VTT = () => {
         if (Array.isArray(vttState.scenes)) setScenes(vttState.scenes);
         if (Array.isArray(vttState.folders)) setFolders(vttState.folders);
         if (Array.isArray(vttState.assetLibrary)) setAssetLibrary(vttState.assetLibrary);
-        if (Array.isArray(vttState.chatMessages)) setTextMessages(vttState.chatMessages);
+        if (Array.isArray(vttState.chatMessages)) {
+          setTextMessages((prev) => mergeChatItems(prev, vttState.chatMessages, 'text', 200));
+        }
         if (vttState.activeSceneId) {
           setPartySceneId(vttState.activeSceneId);
           setViewingSceneId(vttState.activeSceneId);
@@ -1593,10 +1655,12 @@ const VTT = () => {
     if (!roll.length) { dispatchToast({ message: 'Rolagem inválida.', type: 'warning' }); return; }
     setIsRolling(true);
     try {
-      await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, { rollerId: user?._id, rollerName: (chatIdentity === 'gm' && isMaster) ? `[GM] ${user?.name || 'Mestre'}` : activeRollCharacter.name, characterId: chatIdentity === 'gm' ? null : activeRollCharacter._id, formula, skill: skillLabel, roll, timestamp: new Date() }, { headers: { Authorization: `Bearer ${token}` } });
-      await fetchRecentRolls();
+      const response = await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, { rollerId: user?._id, rollerName: (chatIdentity === 'gm' && isMaster) ? `[GM] ${user?.name || 'Mestre'}` : activeRollCharacter.name, characterId: chatIdentity === 'gm' ? null : activeRollCharacter._id, formula, skill: skillLabel, roll, timestamp: new Date() }, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.data?.roll) {
+        setRecentRolls((prev) => mergeChatItems(prev, response.data.roll, 'roll', 100));
+      }
     } catch (error) { dispatchToast({ message: 'Não foi possível registrar rolagem.', type: 'error' }); } finally { setIsRolling(false); }
-  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, fetchRecentRolls, id, isMaster, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
+  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, id, isMaster, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
 
   const sendTextMessage = () => {
     const text = chatInput.trim();
@@ -2709,7 +2773,7 @@ const VTT = () => {
 
         {rightTab === 'chat' && (
           <>
-            <div className={styles.chatViewport}>
+            <div ref={chatListRef} onScroll={handleChatScroll} className={styles.chatViewport}>
               {chatEntries.length === 0 && (
                 <div className={styles.chatEmptyState}>
                   A mesa ainda está silenciosa. Role dados, envie mensagens ou compartilhe eventos para começar o registro da sessão.
@@ -2797,13 +2861,19 @@ const VTT = () => {
                     <div className={styles.chatRollDiceList}>
                       {(roll.roll || []).map((die, dieIndex) => (
                         <div key={`${die.sides}-${die.face}-${dieIndex}`} className={styles.chatRollDie}>
-                          <DiceFace die={die} size={38} />
+                          <DiceFace die={die} size={46} />
                         </div>
                       ))}
                     </div>
                   </div>
                 );
               })}
+              <div ref={chatEndRef} className={styles.chatEndAnchor} />
+              {unreadChatCount > 0 && (
+                <button type="button" className={styles.chatNewMessagesBtn} onClick={() => scrollChatToEnd('smooth')}>
+                  {formatPlural(unreadChatCount, 'nova mensagem', 'novas mensagens')}
+                </button>
+              )}
             </div>
 
             <div className={styles.chatComposer}>
@@ -3223,4 +3293,3 @@ const VTT = () => {
 };
 
 export default VTT;
-

@@ -1858,6 +1858,7 @@
 /* ======== CHAT / FICHA / ASSETS ======== */
 
 .chatViewport {
+  position: relative;
   flex: 1;
   overflow-y: auto;
   padding: 12px;
@@ -1982,7 +1983,9 @@
 .chatRollResult strong {
   color: #fff;
   font-family: "Orbitron", sans-serif;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-shadow: 0 0 10px rgba(255, 51, 51, 0.2);
 }
 
 .chatRollResult span {
@@ -1994,18 +1997,53 @@
 .chatRollDiceList {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  align-items: center;
 }
 
 .chatRollDie {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  background: #101010;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 6px 8px;
+  justify-content: center;
+  min-height: 46px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.chatRollDie :global(.dice-face) {
+  min-width: 46px;
+}
+
+.chatRollDie :global(.dice-face-shape) {
+  filter: drop-shadow(0 0 8px rgba(255, 51, 51, 0.32));
+}
+
+.chatEndAnchor {
+  width: 100%;
+  height: 1px;
+  flex: 0 0 1px;
+}
+
+.chatNewMessagesBtn {
+  position: sticky;
+  z-index: 4;
+  bottom: 2px;
+  align-self: center;
+  border: 1px solid rgba(255, 51, 51, 0.58);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: linear-gradient(180deg, rgba(138, 28, 24, 0.98), rgba(62, 10, 10, 0.98));
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.52), 0 0 14px rgba(255, 51, 51, 0.12);
+  font-family: "Orbitron", sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .chatRollDieLabel {

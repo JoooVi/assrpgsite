@@ -33,7 +33,7 @@ const DiceFace = ({ die, size = 44, className = "", label = true }) => {
                 key={`${normalizeSymbolSrc(imgSrc)}-${index}`}
                 className="dice-face-symbol"
                 src={normalizeSymbolSrc(imgSrc)}
-                alt="s?mbolo"
+                alt="símbolo"
               />
             ))
           ) : (
