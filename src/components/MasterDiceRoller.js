@@ -103,7 +103,7 @@ const rollCustomDice = (formula) => {
   return results;
 };
 
-const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
+const MasterDiceRoller = forwardRef(({ campaignId, onRollCreated }, ref) => {
   const { user } = useSelector((state) => state.auth);
   // Estado interno para o TextField (rolagem manual)
   const [customDiceFormula, setCustomDiceFormula] = useState("");
@@ -122,7 +122,7 @@ const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
       setRollResult({ formula: formulaToRoll, roll: results }); 
 
       // Envia a rolagem para o backend (para o RecentRollsFeed)
-      await api.post(
+      const response = await api.post(
         `/campaigns/${campaignId}/roll`,
         {
           rollerId: user._id,
@@ -133,11 +133,14 @@ const MasterDiceRoller = forwardRef(({ campaignId }, ref) => {
         }
       );
 
+      const createdRoll = response.data?.roll || (Array.isArray(response.data) ? response.data[0] : null);
+      if (createdRoll) onRollCreated?.(createdRoll);
+
       dispatchToast({ message: "Rolagem realizada com sucesso!", type: "success" });
     } catch (error) {
       dispatchToast({ message: "Erro ao realizar rolagem.", type: "error" });
     }
-  }, [campaignId, user]);
+  }, [campaignId, onRollCreated, user]);
 
   const handleInternalRoll = () => {
     executeRoll(customDiceFormula);

@@ -237,6 +237,10 @@ const mergeChatItems = (current, incoming, type, limit) => {
     .slice(-limit);
 };
 
+const getCreatedRollFromResponse = (data) => data?.roll
+  || (Array.isArray(data) ? data[0] : null)
+  || (data?.formula && Array.isArray(data?.roll) ? data : null);
+
 const loadImageDimensions = (url) => new Promise((resolve) => {
   const image = new window.Image();
   image.crossOrigin = 'anonymous';
@@ -508,9 +512,13 @@ const VTT = () => {
   }, []);
 
   useEffect(() => {
-    const handleEmbeddedSheetMessage = (event) => {
+  const handleEmbeddedSheetMessage = (event) => {
       if (event.origin !== window.location.origin) return;
       const payload = event.data || {};
+      if (payload.type === 'ASSIMILACAO_CHARACTER_ROLL_CREATED' && payload.roll) {
+        setRecentRolls((prev) => mergeChatItems(prev, payload.roll, 'roll', 100));
+        return;
+      }
       if (payload.type !== 'ASSIMILACAO_CHARACTER_HEALTH_UPDATED' || !payload.characterId) return;
 
       const characterPatch = {
@@ -1656,11 +1664,14 @@ const VTT = () => {
     setIsRolling(true);
     try {
       const response = await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, { rollerId: user?._id, rollerName: (chatIdentity === 'gm' && isMaster) ? `[GM] ${user?.name || 'Mestre'}` : activeRollCharacter.name, characterId: chatIdentity === 'gm' ? null : activeRollCharacter._id, formula, skill: skillLabel, roll, timestamp: new Date() }, { headers: { Authorization: `Bearer ${token}` } });
-      if (response.data?.roll) {
-        setRecentRolls((prev) => mergeChatItems(prev, response.data.roll, 'roll', 100));
+      const createdRoll = getCreatedRollFromResponse(response.data);
+      if (createdRoll) {
+        setRecentRolls((prev) => mergeChatItems(prev, createdRoll, 'roll', 100));
+      } else {
+        await fetchRecentRolls();
       }
     } catch (error) { dispatchToast({ message: 'Não foi possível registrar rolagem.', type: 'error' }); } finally { setIsRolling(false); }
-  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, id, isMaster, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
+  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, fetchRecentRolls, id, isMaster, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
 
   const sendTextMessage = () => {
     const text = chatInput.trim();
@@ -3102,7 +3113,10 @@ const VTT = () => {
               <div className={styles.shieldCardHeader}>
                 <span><FaDiceD20 /> Dados Livres</span>
               </div>
-              <MasterDiceRoller campaignId={id} />
+              <MasterDiceRoller
+                campaignId={id}
+                onRollCreated={(roll) => setRecentRolls((prev) => mergeChatItems(prev, roll, 'roll', 100))}
+              />
             </section>
 
             {!activeConflict && (
