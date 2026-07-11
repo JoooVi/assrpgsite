@@ -196,9 +196,9 @@ export default function CampaignForm() {
                 className="nero-input"
                 value={campaign.inviteCode}
                 onChange={handleInputChange}
-                placeholder="Senha para jogadores entrarem..."
+                placeholder="Opcional, exemplo: NERO47"
               />
-              <span className="helper-text">Deixe em branco se quiser apenas usar os recursos.</span>
+              <span className="helper-text">Se ficar em branco, um código único será gerado automaticamente.</span>
             </div>
 
             <div className="form-group">

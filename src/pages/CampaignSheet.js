@@ -182,6 +182,10 @@ const CampaignSheet = () => {
       showToast("Informe um código ou gere um automaticamente.", "warning");
       return;
     }
+    if (!autoGenerate && !/^[A-Z0-9]{4,12}$/.test(normalizedCode)) {
+      showToast("Código inválido. Use de 4 a 12 letras e números.", "warning");
+      return;
+    }
     setIsSavingInviteCode(true);
     try {
       const response = await api.patch(`/campaigns/${campaignId}/invite-code`, autoGenerate
@@ -190,7 +194,7 @@ const CampaignSheet = () => {
       const nextCode = response.data.inviteCode;
       setInviteCodeDraft(nextCode);
       setCampaign((current) => ({ ...current, inviteCode: nextCode }));
-      showToast("Código de convite atualizado.", "success");
+      showToast(autoGenerate ? "Novo código gerado." : "Código atualizado.", "success");
     } catch (err) {
       showToast(err.response?.data?.message || "Não foi possível atualizar o código.", "error");
     } finally {
@@ -265,15 +269,16 @@ const CampaignSheet = () => {
                 <div className={styles.inviteCodeControls}>
                   <input
                     value={inviteCodeDraft}
-                    onChange={(event) => setInviteCodeDraft(event.target.value.toUpperCase())}
+                    onChange={(event) => setInviteCodeDraft(event.target.value.replace(/\s+/g, "").toUpperCase())}
+                    onKeyDown={(event) => { if (event.key === "Enter" && !isSavingInviteCode) updateInviteCode(); }}
                     maxLength={12}
                     placeholder="Nenhum código criado"
                     aria-label="Código de convite da campanha"
                     className={styles.inviteCodeInput}
                   />
-                  <button type="button" onClick={() => updateInviteCode()} disabled={isSavingInviteCode} className={styles.inviteCodeButton} title="Salvar código"><FaSave /></button>
-                  <button type="button" onClick={() => updateInviteCode({ autoGenerate: true })} disabled={isSavingInviteCode} className={styles.inviteCodeButton} title="Gerar código aleatório"><FaRandom /></button>
-                  <button type="button" onClick={copyInviteCode} disabled={!campaign.inviteCode} className={styles.inviteCodeButton} title="Copiar código"><FaCopy /></button>
+                  <button type="button" onClick={() => updateInviteCode()} disabled={isSavingInviteCode} className={styles.inviteCodeButton} title="Salvar código"><FaSave /><span>Salvar</span></button>
+                  <button type="button" onClick={() => updateInviteCode({ autoGenerate: true })} disabled={isSavingInviteCode} className={styles.inviteCodeButton} title="Gerar código aleatório"><FaRandom /><span>Gerar</span></button>
+                  <button type="button" onClick={copyInviteCode} disabled={!campaign.inviteCode} className={styles.inviteCodeButton} title="Copiar código"><FaCopy /><span>Copiar</span></button>
                 </div>
               </div>
             )}

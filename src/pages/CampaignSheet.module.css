@@ -101,18 +101,31 @@
 .inviteCodeInput:focus { border-color: #8a1c18; }
 
 .inviteCodeButton {
-  width: 32px;
+  min-width: 32px;
   height: 32px;
-  display: inline-grid;
-  place-items: center;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid #333;
   background: #111;
   color: #aaa;
   cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .inviteCodeButton:hover:not(:disabled) { color: #fff; border-color: #ff3333; background: rgba(138, 28, 24, 0.25); }
 .inviteCodeButton:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (max-width: 720px) {
+  .inviteCodeEditor { align-items: flex-start; flex-direction: column; }
+  .inviteCodeControls { flex-wrap: wrap; }
+  .inviteCodeInput { width: 100%; flex-basis: 100%; }
+}
 
 /* === GRID PRINCIPAL === */
 .masterShieldGrid {
