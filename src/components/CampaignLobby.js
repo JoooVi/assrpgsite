@@ -22,6 +22,9 @@ import {
   FaTrash,
   FaEye,
   FaExclamationTriangle,
+  FaSave,
+  FaRandom,
+  FaCopy,
 } from "react-icons/fa";
 
 // Constantes
@@ -64,6 +67,8 @@ const CampaignLobby = () => {
   const [error, setError] = useState(null);
   const [isMaster, setIsMaster] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState(null);
+  const [inviteCodeDraft, setInviteCodeDraft] = useState("");
+  const [isSavingInviteCode, setIsSavingInviteCode] = useState(false);
 
   const [openCharModal, setOpenCharModal] = useState(false);
   const [availableChars, setAvailableChars] = useState([]);
@@ -91,6 +96,7 @@ const CampaignLobby = () => {
 
       const data = res.data;
       setCampaign(data);
+      setInviteCodeDraft(data.inviteCode || "");
 
       // Verifica Mestre
       setIsMaster(
@@ -204,6 +210,33 @@ const CampaignLobby = () => {
     }
   };
 
+  const handleUpdateInviteCode = async ({ autoGenerate = false } = {}) => {
+    const normalizedCode = inviteCodeDraft.replace(/\s+/g, "").toUpperCase();
+    if (!autoGenerate && !normalizedCode) {
+      showToast("Informe um código ou gere um automaticamente.", "warning");
+      return;
+    }
+    if (!autoGenerate && !/^[A-Z0-9]{4,12}$/.test(normalizedCode)) {
+      showToast("Código inválido. Use de 4 a 12 letras e números.", "warning");
+      return;
+    }
+
+    setIsSavingInviteCode(true);
+    try {
+      const response = await api.patch(`/campaigns/${campaignId}/invite-code`, autoGenerate
+        ? { autoGenerate: true }
+        : { inviteCode: normalizedCode });
+      const nextCode = response.data.inviteCode;
+      setInviteCodeDraft(nextCode);
+      setCampaign((current) => ({ ...current, inviteCode: nextCode }));
+      showToast(autoGenerate ? "Novo código gerado." : "Código atualizado.", "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Não foi possível atualizar o código.", "error");
+    } finally {
+      setIsSavingInviteCode(false);
+    }
+  };
+
   // --- RENDER ---
 
   if (loading)
@@ -303,7 +336,33 @@ const CampaignLobby = () => {
           </button>
         </div>
 
-        {campaign.inviteCode && (
+        {isMaster ? (
+          <div className="campaign-invite-panel campaign-invite-editor">
+            <div className="campaign-invite-field">
+              <label htmlFor="campaign-invite-code" className="campaign-invite-label">Código de convite</label>
+              <input
+                id="campaign-invite-code"
+                value={inviteCodeDraft}
+                onChange={(event) => setInviteCodeDraft(event.target.value.replace(/\s+/g, "").toUpperCase())}
+                onKeyDown={(event) => { if (event.key === "Enter" && !isSavingInviteCode) handleUpdateInviteCode(); }}
+                maxLength={12}
+                placeholder="Nenhum código criado"
+                className="campaign-invite-input"
+              />
+            </div>
+            <div className="campaign-invite-actions">
+              <button type="button" className="btn-nero btn-secondary" onClick={() => handleUpdateInviteCode()} disabled={isSavingInviteCode}>
+                <FaSave /> Salvar
+              </button>
+              <button type="button" className="btn-nero btn-secondary" onClick={() => handleUpdateInviteCode({ autoGenerate: true })} disabled={isSavingInviteCode}>
+                <FaRandom /> {campaign.inviteCode ? "Gerar novo" : "Gerar código"}
+              </button>
+              <button type="button" className="btn-nero btn-secondary" onClick={handleInvite} disabled={!campaign.inviteCode || isSavingInviteCode}>
+                <FaCopy /> Copiar
+              </button>
+            </div>
+          </div>
+        ) : campaign.inviteCode ? (
           <div className="campaign-invite-panel">
             <div>
               <span className="campaign-invite-label">Código de convite</span>
@@ -313,7 +372,7 @@ const CampaignLobby = () => {
               <FaUserFriends /> Copiar código
             </button>
           </div>
-        )}
+        ) : null}
         {/* LISTA DE PERSONAGENS */}
         <div className="character-section">
           <div className="char-section-header">
