@@ -7,7 +7,7 @@ import {
   FaArrowLeft, FaDiceD20, FaExclamationTriangle, FaCheck,
   FaPlus, FaMinus, FaShieldAlt, FaExternalLinkAlt, FaUserSecret,
   FaChevronDown, FaChevronUp, FaBrain, FaSuitcase, FaTrash,
-  FaLayerGroup, FaSyncAlt,
+  FaLayerGroup, FaSyncAlt, FaCopy, FaRandom, FaSave,
 } from "react-icons/fa";
 
 import MasterDiceRoller from "../components/MasterDiceRoller";
@@ -43,6 +43,8 @@ const CampaignSheet = () => {
   const [isConflictLoading, setIsConflictLoading] = useState(false);
   const [openEventDeckModal, setOpenEventDeckModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [inviteCodeDraft, setInviteCodeDraft] = useState("");
+  const [isSavingInviteCode, setIsSavingInviteCode] = useState(false);
 
   const [npcExpandido, setNpcExpandido] = useState(null);
   const [diceFormula, setDiceFormula] = useState("");
@@ -86,6 +88,7 @@ const CampaignSheet = () => {
 
       setIsMaster(currentUserIsMaster);
       setCampaign(campaignData);
+      setInviteCodeDraft(campaignData.inviteCode || "");
       setActiveConflict(campaignData.activeConflict || null);
 
       if (currentUserIsMaster) {
@@ -173,6 +176,38 @@ const CampaignSheet = () => {
     }
   };
 
+  const updateInviteCode = async ({ autoGenerate = false } = {}) => {
+    const normalizedCode = inviteCodeDraft.replace(/\s+/g, "").toUpperCase();
+    if (!autoGenerate && !normalizedCode) {
+      showToast("Informe um código ou gere um automaticamente.", "warning");
+      return;
+    }
+    setIsSavingInviteCode(true);
+    try {
+      const response = await api.patch(`/campaigns/${campaignId}/invite-code`, autoGenerate
+        ? { autoGenerate: true }
+        : { inviteCode: normalizedCode });
+      const nextCode = response.data.inviteCode;
+      setInviteCodeDraft(nextCode);
+      setCampaign((current) => ({ ...current, inviteCode: nextCode }));
+      showToast("Código de convite atualizado.", "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Não foi possível atualizar o código.", "error");
+    } finally {
+      setIsSavingInviteCode(false);
+    }
+  };
+
+  const copyInviteCode = async () => {
+    if (!campaign.inviteCode) return;
+    try {
+      await navigator.clipboard.writeText(campaign.inviteCode);
+      showToast("Código copiado.", "success");
+    } catch (err) {
+      showToast("Não foi possível copiar o código.", "error");
+    }
+  };
+
   const handleDeleteNpc = async (npcId, npcName) => {
     const confirmed = await confirm({
       title: "Apagar NPC",
@@ -223,7 +258,25 @@ const CampaignSheet = () => {
               )}
             </span>
             <p className={styles.campaignDescription}>{campaign.description}</p>
-            {campaign.inviteCode && <span className={styles.inviteCode}>Código: {campaign.inviteCode}</span>}
+            {!isMaster && campaign.inviteCode && <span className={styles.inviteCode}>Código: {campaign.inviteCode}</span>}
+            {isMaster && (
+              <div className={styles.inviteCodeEditor}>
+                <span className={styles.inviteCodeLabel}>Código de convite</span>
+                <div className={styles.inviteCodeControls}>
+                  <input
+                    value={inviteCodeDraft}
+                    onChange={(event) => setInviteCodeDraft(event.target.value.toUpperCase())}
+                    maxLength={12}
+                    placeholder="Nenhum código criado"
+                    aria-label="Código de convite da campanha"
+                    className={styles.inviteCodeInput}
+                  />
+                  <button type="button" onClick={() => updateInviteCode()} disabled={isSavingInviteCode} className={styles.inviteCodeButton} title="Salvar código"><FaSave /></button>
+                  <button type="button" onClick={() => updateInviteCode({ autoGenerate: true })} disabled={isSavingInviteCode} className={styles.inviteCodeButton} title="Gerar código aleatório"><FaRandom /></button>
+                  <button type="button" onClick={copyInviteCode} disabled={!campaign.inviteCode} className={styles.inviteCodeButton} title="Copiar código"><FaCopy /></button>
+                </div>
+              </div>
+            )}
           </div>
           <Link to={`/campaign-lobby/${campaignId}`} className={`${styles.btnNero} ${styles.btnOutline}`}>
             <FaArrowLeft /> VOLTAR AO LOBBY

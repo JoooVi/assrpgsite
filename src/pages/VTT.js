@@ -26,6 +26,10 @@ import { dispatchToast } from '../components/notifications/ToastProvider';
 import { API_BASE_URL } from '../config/apiConfig';
 
 const API_BASE = API_BASE_URL;
+const DEBUG_VTT_ROLLS = process.env.REACT_APP_DEBUG_VTT_ROLLS === 'true';
+const debugVttRoll = (...args) => {
+  if (DEBUG_VTT_ROLLS) console.log(...args);
+};
 const knowledgeKeys = ['geography', 'medicine', 'security', 'biology', 'erudition', 'engineering'];
 const practiceKeys = ['weapons', 'athletics', 'expression', 'stealth', 'crafting', 'survival'];
 const VTT_FONT_OPTIONS = [
@@ -74,6 +78,9 @@ const rollCustomDice = (formula) => {
   }
   return results;
 };
+
+const normalizeRollFormula = (formula) => String(formula || '').replace(/\s+/g, '').toLowerCase();
+const isValidRollFormula = (formula) => /^(?:[1-9]\d?d(?:6|10|12))(?:\+[1-9]\d?d(?:6|10|12))*$/.test(normalizeRollFormula(formula));
 
 const timeFmt = (ts) => new Date(ts || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const t = (key) => translations[key] || key;
@@ -394,6 +401,7 @@ const VTT = () => {
   const [sheetFilter, setSheetFilter] = useState('all');
 
   const [rollMode, setRollMode] = useState('skill');
+  const [manualRollFormula, setManualRollFormula] = useState('1d6');
   const [selectedSkillKey, setSelectedSkillKey] = useState('');
   const [selectedInstinctKey, setSelectedInstinctKey] = useState('');
   const [assimilateInstinctA, setAssimilateInstinctA] = useState('');
@@ -699,6 +707,7 @@ const VTT = () => {
       newSocket.on('chatMessage', (payload) => setTextMessages((prev) => mergeChatItems(prev, payload, 'text', 200)));
       newSocket.on('rollCreated', ({ campaignId, roll } = {}) => {
         if (String(campaignId) !== String(id) || !roll) return;
+        debugVttRoll('[ROLL] socket received', roll);
         setRecentRolls((prev) => mergeChatItems(prev, roll, 'roll', 100));
       });
 
@@ -1639,9 +1648,16 @@ const VTT = () => {
   }, [closeFloatingMenus, isMaster, myCharacter, scenes, viewingSceneId]);
 
   const submitRoll = useCallback(async () => {
-    if (!activeRollCharacter?._id) { dispatchToast({ message: 'Abra ou selecione uma ficha para rolar.', type: 'warning' }); return; }
+    debugVttRoll('[ROLL] click roll button', rollMode === 'manual' ? manualRollFormula : rollMode);
+    if (rollMode !== 'manual' && !activeRollCharacter?._id) { dispatchToast({ message: 'Abra ou selecione uma ficha para rolar.', type: 'warning' }); return; }
     let formula = ''; let roll = []; let skillLabel = '';
-    if (rollMode === 'skill') {
+    if (rollMode === 'manual') {
+      formula = normalizeRollFormula(manualRollFormula);
+      if (!formula) { dispatchToast({ message: 'Informe uma fórmula para rolar.', type: 'warning' }); return; }
+      if (!isValidRollFormula(formula)) { dispatchToast({ message: 'Fórmula inválida. Use algo como 1d6+2d10.', type: 'warning' }); return; }
+      roll = rollCustomDice(formula);
+      skillLabel = 'Rolagem livre';
+    } else if (rollMode === 'skill') {
       if (!selectedSkillKey || !selectedInstinctKey) { dispatchToast({ message: 'Selecione perícia e instinto.', type: 'warning' }); return; }
       const skillValue = Number(activeCharacterSkills[selectedSkillKey] || 0);
       const instinctValue = Number(activeCharacterInstincts[selectedInstinctKey] || 0);
@@ -1661,17 +1677,26 @@ const VTT = () => {
       skillLabel = `Assimilação: ${t(assimilateInstinctA)} + ${t(assimilateInstinctB)}`;
     }
     if (!roll.length) { dispatchToast({ message: 'Rolagem inválida.', type: 'warning' }); return; }
+    const rollerName = (chatIdentity === 'gm' && isMaster)
+      ? `[GM] ${user?.name || 'Mestre'}`
+      : (activeRollCharacter?.name || user?.name || 'Jogador');
+    const payload = { rollerId: user?._id, rollerName, characterId: chatIdentity === 'gm' ? null : (activeRollCharacter?._id || null), formula, skill: skillLabel, roll, timestamp: new Date() };
+    debugVttRoll('[ROLL] result', { formula, roll });
+    debugVttRoll('[ROLL] sending to backend', payload);
     setIsRolling(true);
     try {
-      const response = await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, { rollerId: user?._id, rollerName: (chatIdentity === 'gm' && isMaster) ? `[GM] ${user?.name || 'Mestre'}` : activeRollCharacter.name, characterId: chatIdentity === 'gm' ? null : activeRollCharacter._id, formula, skill: skillLabel, roll, timestamp: new Date() }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, payload, { headers: { Authorization: `Bearer ${token}` } });
       const createdRoll = getCreatedRollFromResponse(response.data);
       if (createdRoll) {
         setRecentRolls((prev) => mergeChatItems(prev, createdRoll, 'roll', 100));
       } else {
         await fetchRecentRolls();
       }
-    } catch (error) { dispatchToast({ message: 'Não foi possível registrar rolagem.', type: 'error' }); } finally { setIsRolling(false); }
-  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, fetchRecentRolls, id, isMaster, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
+    } catch (error) {
+      if (DEBUG_VTT_ROLLS) console.error('[ROLL] failed', error);
+      dispatchToast({ message: error.response?.data?.message || 'Não foi possível registrar a rolagem.', type: 'error' });
+    } finally { setIsRolling(false); }
+  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, fetchRecentRolls, id, isMaster, manualRollFormula, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
 
   const sendTextMessage = () => {
     const text = chatInput.trim();
@@ -2901,9 +2926,19 @@ const VTT = () => {
               <div className={styles.chatRollModeTabs}>
                 <button type="button" onClick={() => setRollMode('skill')} className={`${styles.rollModeBtn} ${rollMode === 'skill' ? styles.rollModeBtnActive : ''}`}>Perícia + Instinto</button>
                 <button type="button" onClick={() => setRollMode('assimilation')} className={`${styles.rollModeBtn} ${rollMode === 'assimilation' ? styles.rollModeBtnActive : ''}`}>Assimilação</button>
+                <button type="button" onClick={() => setRollMode('manual')} className={`${styles.rollModeBtn} ${rollMode === 'manual' ? styles.rollModeBtnActive : ''}`}>Livre</button>
               </div>
 
-              {rollMode === 'skill' ? (
+              {rollMode === 'manual' ? (
+                <input
+                  value={manualRollFormula}
+                  onChange={(e) => setManualRollFormula(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !isRolling) submitRoll(); }}
+                  placeholder="Ex.: 1d6 + 2d10"
+                  aria-label="Fórmula da rolagem livre"
+                  className={styles.inputField}
+                />
+              ) : rollMode === 'skill' ? (
                 <>
                   <select value={selectedSkillKey} onChange={(e) => setSelectedSkillKey(e.target.value)} className={styles.inputField}>
                     <option value="">Selecione a perícia</option>

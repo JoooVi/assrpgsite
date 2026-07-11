@@ -68,6 +68,52 @@
 .headerInfo { color: #666; font-size: 0.9rem; }
 .highlight { color: #8a1c18; font-weight: bold; }
 
+.inviteCodeEditor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.inviteCodeLabel {
+  color: #888;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.inviteCodeControls { display: flex; align-items: center; gap: 5px; }
+
+.inviteCodeInput {
+  width: 150px;
+  height: 32px;
+  box-sizing: border-box;
+  border: 1px solid #333;
+  background: #090909;
+  color: #fff;
+  padding: 0 9px;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 1.5px;
+  outline: none;
+}
+
+.inviteCodeInput:focus { border-color: #8a1c18; }
+
+.inviteCodeButton {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #333;
+  background: #111;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.inviteCodeButton:hover:not(:disabled) { color: #fff; border-color: #ff3333; background: rgba(138, 28, 24, 0.25); }
+.inviteCodeButton:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* === GRID PRINCIPAL === */
 .masterShieldGrid {
   display: grid;
