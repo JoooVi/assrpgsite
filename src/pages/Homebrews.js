@@ -57,7 +57,7 @@ const Homebrews = () => {
 
   const handleShare = async (type, data) => {
     try {
-      const response = await api.post("/share", { type, data });
+      const response = await api.post("/share", { type, sourceId: data?._id });
       const shareUrl = `${window.location.origin}/shared/${response.data.id}`;
 
       try {

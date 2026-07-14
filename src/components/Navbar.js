@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/slices/authSlice";
+import { logoutSession } from "../redux/slices/authSlice";
 import AccountMenu from "./AccountMenu";
 import "./Navbar.css";
 import logo from "../assets/asslogo1.png";
@@ -24,8 +24,8 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logoutSession());
     closeMenu();
     navigate("/login");
   };

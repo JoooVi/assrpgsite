@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image as KonvaImage, Circle, Group, Transformer, Text as KonvaText, Rect as KonvaRect, Line as KonvaLine, Path as KonvaPath, Arrow } from 'react-konva';
 import useImage from 'use-image';
+import { incrementVttPerformanceMetric } from '../../utils/vttPerformance';
+import { areTokenPropsEqual } from './vttTokenMemo';
 
 const BASE_TOKEN_RADIUS = 35;
 const SNAP_ANGLES = [0, 90, 180, 270, 360];
@@ -134,6 +136,7 @@ const VTTToken = ({
   onContextMenu,
   activeTool
 }) => {
+  incrementVttPerformanceMetric('tokenRenders');
   const [image] = useImage(avatarUrl, 'anonymous');
   const [draftTransform, setDraftTransform] = useState(null);
   const [livePosition, setLivePosition] = useState(null);
@@ -566,4 +569,4 @@ const VTTToken = ({
   );
 };
 
-export default React.memo(VTTToken);
+export default React.memo(VTTToken, areTokenPropsEqual);

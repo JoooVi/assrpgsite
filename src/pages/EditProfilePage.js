@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import { updateUser, logout } from '../redux/slices/authSlice';
+import { updateUser, logoutSession } from '../redux/slices/authSlice';
 import { useConfirm } from '../components/notifications/ConfirmProvider';
 import { dispatchToast } from '../components/notifications/ToastProvider';
 import InlineLoader from '../components/ui/InlineLoader';
@@ -29,6 +29,10 @@ const EditProfilePage = () => {
     // Avatar
     const [avatar, setAvatar] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState('');
+
+    useEffect(() => () => {
+        if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
+    }, [avatarPreview]);
 
     // Senha & Danger
     const [currentPassword, setCurrentPassword] = useState('');
@@ -118,7 +122,7 @@ const EditProfilePage = () => {
                     data: { password: deletePassword } 
                 });
                 dispatchToast({ message: 'Conta deletada.', type: 'success' });
-                dispatch(logout());
+                await dispatch(logoutSession());
                 navigate('/login');
             } catch (error) {
                 dispatchToast({ message: 'Erro ao deletar conta. Senha incorreta.', type: 'error' });

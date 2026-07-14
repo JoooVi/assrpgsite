@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Profiler, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import styles from './VTT.module.css';
 import VTTMap from '../components/VTT/VTTMap';
+import VTTPerformancePanel from '../components/VTT/VTTPerformancePanel';
 import ConflictTracker from '../components/ConflictTracker';
 import DiceFace from '../components/DiceFace';
 import coruja from '../assets/Coruja_1.png';
@@ -24,9 +25,11 @@ import NPCGenerator from '../components/NPCGenerator';
 import { useConfirm } from '../components/notifications/ConfirmProvider';
 import { dispatchToast } from '../components/notifications/ToastProvider';
 import { API_BASE_URL } from '../config/apiConfig';
+import { setVttPerformanceMetric } from '../utils/vttPerformance';
 
 const API_BASE = API_BASE_URL;
 const DEBUG_VTT_ROLLS = process.env.REACT_APP_DEBUG_VTT_ROLLS === 'true';
+const MAX_VTT_HISTORY = 60;
 const debugVttRoll = (...args) => {
   if (DEBUG_VTT_ROLLS) console.log(...args);
 };
@@ -316,6 +319,17 @@ const VTT = () => {
 
   const [partySceneId, setPartySceneId] = useState('default');
   const [viewingSceneId, setViewingSceneId] = useState('default');
+  const sceneSwitchStartedRef = useRef(0);
+  const changeViewingScene = useCallback((sceneId) => {
+    sceneSwitchStartedRef.current = performance.now();
+    setViewingSceneId(sceneId);
+  }, []);
+
+  useEffect(() => {
+    if (!sceneSwitchStartedRef.current) return;
+    setVttPerformanceMetric('lastSceneSwitchMs', performance.now() - sceneSwitchStartedRef.current);
+    sceneSwitchStartedRef.current = 0;
+  }, [viewingSceneId]);
 
   const [isSceneManagerOpen, setIsSceneManagerOpen] = useState(false);
   const [managerTab, setManagerTab] = useState('scenes');
@@ -329,8 +343,15 @@ const VTT = () => {
   const [isRadialUploading, setIsRadialUploading] = useState(false);
   const mousePosRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
+  useEffect(() => () => {
+    if (radialMenuData?.previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(radialMenuData.previewUrl);
+    }
+  }, [radialMenuData?.previewUrl]);
+
   const currentScene = useMemo(() => scenes.find(s => s.id === viewingSceneId) || scenes[0] || { tokens: [], mapUrl: '', drawings: [], name: 'Carregando...' }, [scenes, viewingSceneId]);
   const tokens = useMemo(() => currentScene.tokens || [], [currentScene]);
+  const drawings = useMemo(() => currentScene.drawings || [], [currentScene]);
   const mapUrl = currentScene.mapUrl || '';
   const currentFogOfWar = useMemo(() => normalizeFogOfWar(currentScene.fogOfWar), [currentScene.fogOfWar]);
 
@@ -708,6 +729,7 @@ const VTT = () => {
     socket.timeout(8000).emit(current.eventName, payload, (timeoutError, ack) => {
       processingMutationRef.current = false;
       if (!timeoutError && ack?.ok) {
+        setVttPerformanceMetric('lastAckMs', Math.round(performance.now() - startedAt));
         latestRevisionRef.current = Math.max(latestRevisionRef.current, Number(ack.revision || 0));
         rememberMutationId(current.clientMutationId);
         pendingMutationsRef.current.shift();
@@ -780,7 +802,7 @@ const VTT = () => {
 
         if (res.data.vttState?.activeSceneId) {
           setPartySceneId(res.data.vttState.activeSceneId);
-          setViewingSceneId(res.data.vttState.activeSceneId);
+          changeViewingScene(res.data.vttState.activeSceneId);
         }
         if (res.data.vttState?.chatMessages?.length) {
           setTextMessages((prev) => mergeChatItems(prev, res.data.vttState.chatMessages, 'text', 200));
@@ -868,7 +890,7 @@ const VTT = () => {
         const sceneId = typeof incoming === 'string' ? incoming : incoming?.sceneId;
         if (typeof incoming === 'object' && !acceptIncomingMutation(incoming)) return;
         setPartySceneId(sceneId);
-        setViewingSceneId(sceneId);
+        changeViewingScene(sceneId);
         setSystemMessages((prev) => [...prev, { message: 'Atenção: A party foi movida para uma nova cena!', timestamp: Date.now() }]);
       });
       newSocket.on('sceneCreated', (newScene) => setScenes((prev) => [...prev, newScene]));
@@ -885,7 +907,7 @@ const VTT = () => {
         }
         if (vttState.activeSceneId) {
           setPartySceneId(vttState.activeSceneId);
-          setViewingSceneId(vttState.activeSceneId);
+          changeViewingScene(vttState.activeSceneId);
         }
         setConnectionStatus('connected');
         if (socketIssueShownRef.current) {
@@ -995,7 +1017,7 @@ const VTT = () => {
         newSocket.disconnect();
       }
     };
-  }, [acceptIncomingMutation, currentUserId, fetchConflict, fetchMyAssets, fetchRecentRolls, gridStorageKey, id, navigate, token, user]);
+  }, [acceptIncomingMutation, changeViewingScene, currentUserId, fetchConflict, fetchMyAssets, fetchRecentRolls, gridStorageKey, id, navigate, token, user]);
 
   useEffect(() => {
     if (!hasLoadedCampaign || !isMaster || !token || !id || connectionStatus !== 'connected' || pendingMutationCount > 0) return undefined;
@@ -1059,7 +1081,7 @@ const VTT = () => {
   const recordHistory = useCallback(() => {
     if (isRestoringHistoryRef.current) return;
     historyRef.current.push(cloneScenesSnapshot());
-    if (historyRef.current.length > 120) historyRef.current.shift();
+    if (historyRef.current.length > MAX_VTT_HISTORY) historyRef.current.shift();
     redoRef.current = [];
   }, [cloneScenesSnapshot]);
 
@@ -1220,7 +1242,7 @@ const VTT = () => {
     recordHistory();
     const newScene = { id: `scene-${Date.now()}`, name: name.trim(), folderId, mapUrl: DEFAULT_SCENE_MAP_URL, gridConfig: { size: 70, opacity: 0.35, offsetX: 0, offsetY: 0 }, tokens: [], drawings: [] };
     setScenes(prev => [...prev, newScene]);
-    setViewingSceneId(newScene.id);
+    changeViewingScene(newScene.id);
     if (socket) socket.emit('createScene', { campaignId: id, newScene });
   };
 
@@ -1232,7 +1254,7 @@ const VTT = () => {
     if (socket) socket.emit('createFolder', { campaignId: id, folder: newFolder });
   };
 
-  const handleChangeViewingScene = (sceneId) => setViewingSceneId(sceneId);
+  const handleChangeViewingScene = changeViewingScene;
 
   const handlePullParty = () => {
     setPartySceneId(viewingSceneId);
@@ -1421,8 +1443,8 @@ const VTT = () => {
 
   const selectedTokenGroupId = getSelectedTokenGroupId();
 
-  const updateTokenPosition = (tokenId, newX, newY, options = {}) => {
-    const scene = scenes.find((item) => item.id === viewingSceneId);
+  const updateTokenPosition = useCallback((tokenId, newX, newY, options = {}) => {
+    const scene = scenesRef.current.find((item) => item.id === viewingSceneId);
     const movedToken = scene?.tokens.find((token) => String(token.id) === String(tokenId));
     const linkedGroupId = movedToken?.linkedGroupId;
     const affectedTokens = linkedGroupId
@@ -1456,9 +1478,9 @@ const VTT = () => {
         emitCriticalMutation('moveToken', { sceneId: viewingSceneId, tokenId: token.id, x: nextX, y: nextY });
       });
     }
-  };
+  }, [emitCriticalMutation, recordHistory, socket, viewingSceneId]);
 
-  const toggleTokenVisibility = (tokenId) => {
+  const toggleTokenVisibility = useCallback((tokenId) => {
     recordHistory();
     setScenes(prev => prev.map(s => {
       if (s.id !== viewingSceneId) return s;
@@ -1472,7 +1494,21 @@ const VTT = () => {
         })
       };
     }));
-  };
+  }, [emitCriticalMutation, recordHistory, viewingSceneId]);
+
+  const handleEditCanvasLabel = useCallback((tokenId, currentLabel, screenX, screenY, mode = 'label') => {
+    if (mode === 'text') {
+      setSelectedTokenId(tokenId);
+      setSelectedTokenIds([tokenId]);
+      setActiveTool('text');
+      return;
+    }
+    setEditingLabel({ id: tokenId, currentLabel, screenX, screenY, mode });
+  }, []);
+
+  const handleMapProfile = useCallback((id, phase, actualDuration) => {
+    setVttPerformanceMetric('lastMapCommitMs', actualDuration);
+  }, []);
 
   const canPlaceSheetToken = useCallback((char) => {
     if (!char) return false;
@@ -3454,6 +3490,7 @@ const VTT = () => {
         </div>
       )}
 
+      <Profiler id="VTTMap" onRender={handleMapProfile}>
       <VTTMap
         mapUrl={mapUrl}
         tokens={tokens}
@@ -3509,22 +3546,23 @@ const VTT = () => {
         onRulerStart={emitRulerStart}
         onRulerUpdate={emitRulerUpdate}
         onRulerEnd={emitRulerEnd}
-        initialDrawings={currentScene.drawings || []}
+        initialDrawings={drawings}
         onAddDrawing={handleAddDrawing}
         onRemoveDrawing={handleRemoveDrawing}
         onAddShapeToken={handleAddShapeToken}
         onCommitHistory={recordHistory}
         onTokenContextMenu={handleTokenContextMenu}
         activeEditorLayer={activeEditorLayer}
-        onEditLabel={(tokenId, currentLabel, screenX, screenY, mode = 'label') => {
-          if (mode === 'text') {
-            setSelectedTokenId(tokenId);
-            setSelectedTokenIds([tokenId]);
-            setActiveTool('text');
-            return;
-          }
-          setEditingLabel({ id: tokenId, currentLabel, screenX, screenY, mode });
-        }}
+        onEditLabel={handleEditCanvasLabel}
+      />
+      </Profiler>
+      <VTTPerformancePanel
+        tokens={tokens.length}
+        drawings={drawings.length}
+        fogAreas={currentFogOfWar.areas.length}
+        revision={latestRevisionRef.current}
+        pending={pendingMutationCount}
+        historySize={historyRef.current.length}
       />
     </div>
   );

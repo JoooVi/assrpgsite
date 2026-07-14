@@ -30,6 +30,24 @@ const initialState = {
   error: null
 };
 
+export const logoutSession = () => async (dispatch, getState) => {
+  const refreshToken = getState().auth.refreshToken || localStorage.getItem('refreshToken');
+
+  try {
+    if (refreshToken) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+    }
+  } catch {
+    // Logout local must still succeed if the API is unavailable.
+  } finally {
+    dispatch(logout());
+  }
+};
+
 export const login = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { rejectWithValue }) => {

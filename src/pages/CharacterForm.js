@@ -354,6 +354,14 @@ export default function CharacterForm() {
   const [avatarPreview, setAvatarPreview] = useState('');
   const [tokenImage, setTokenImage] = useState(null);
   const [tokenPreview, setTokenPreview] = useState('');
+
+  useEffect(() => () => {
+    if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
+  }, [avatarPreview]);
+
+  useEffect(() => () => {
+    if (tokenPreview.startsWith('blob:')) URL.revokeObjectURL(tokenPreview);
+  }, [tokenPreview]);
   
   const [allItems, setAllItems] = useState([]);
   const [areItemsLoading, setAreItemsLoading] = useState(true);

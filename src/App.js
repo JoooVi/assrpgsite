@@ -1,5 +1,5 @@
 ﻿// src/App.js
-import React, { useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { initializeAuth } from "./redux/slices/authSlice";
@@ -12,6 +12,7 @@ import Footer from "./components/Footer";
 import KofiButton from "./components/KofiButton";
 import PageTransition from "./components/PageTransition";
 import SessionExpiredModal from "./components/SessionExpiredModal";
+import PageLoader from "./components/ui/PageLoader";
 import { AnimatePresence } from 'framer-motion';
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Analytics } from "@vercel/analytics/react";
@@ -19,29 +20,15 @@ import { Analytics } from "@vercel/analytics/react";
 // Páginas
 import HomePage from "./pages/HomePage";
 import AuthAccessPage from "./pages/AuthAccessPage";
-import CharacterForm from "./pages/CharacterForm";
-import CharacterList from "./pages/CharacterList";
-import CharacterSheet from "./pages/CharacterSheet";
 import SharedHomebrew from "./pages/SharedHomebrew";
 import ProfilePage from "./pages/ProfilePage";
-import Homebrews from "./pages/Homebrews";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CharacterPortraitPage from "./pages/CharacterPortraitPage";
-import CampaignList from "./pages/CampaignList";
-import CampaignForm from "./pages/CampaignForm";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import EditProfilePage from "./pages/EditProfilePage";
 // Hooks customizados
 import useTokenRefresh from "./hooks/useTokenRefresh";
-
-
-// --- IMPORTAÇÕES DE CAMPANHA ---
-import CampaignLobby from "./components/CampaignLobby";
-import CampaignSheet from "./pages/CampaignSheet";
-import RefugeLobby from "./pages/RefugeLobby";
-import RefugeDashboard from "./pages/RefugeDashboard"; 
-import VTT from './pages/VTT';
 
 import "./App.css";
 import "@fontsource/roboto/300.css";
@@ -49,6 +36,20 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import '@fontsource/material-icons';
+
+
+// --- IMPORTAÇÕES DE CAMPANHA ---
+const CharacterForm = lazy(() => import('./pages/CharacterForm'));
+const CharacterList = lazy(() => import('./pages/CharacterList'));
+const CharacterSheet = lazy(() => import('./pages/CharacterSheet'));
+const Homebrews = lazy(() => import('./pages/Homebrews'));
+const CampaignList = lazy(() => import('./pages/CampaignList'));
+const CampaignForm = lazy(() => import('./pages/CampaignForm'));
+const CampaignLobby = lazy(() => import('./components/CampaignLobby'));
+const CampaignSheet = lazy(() => import(/* webpackChunkName: "campaign-runtime" */ './pages/CampaignSheet'));
+const RefugeLobby = lazy(() => import('./pages/RefugeLobby'));
+const RefugeDashboard = lazy(() => import('./pages/RefugeDashboard'));
+const VTT = lazy(() => import(/* webpackChunkName: "campaign-runtime" */ './pages/VTT'));
 
 
 const AppContent = () => {
@@ -97,6 +98,7 @@ const AppContent = () => {
         <SpeedInsights/>
         <Analytics />
         <AnimatePresence mode="wait">
+          <Suspense fallback={<PageLoader title="Carregando módulo" subtitle="Preparando a interface..." fullScreen />}>
           <Routes location={location} key={routeTransitionKey}>
             {/* --- Rotas PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºblicas --- */}
             <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
@@ -149,6 +151,7 @@ const AppContent = () => {
             />
 
           </Routes>
+          </Suspense>
         </AnimatePresence>
       </main>
       {shouldShowLayout && <Footer />}

@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Stage, Layer, Image as KonvaImage, Line, Text as KonvaText, Rect as KonvaRect, Circle, Arrow } from 'react-konva';
+import { Stage, Layer, Image as KonvaImage, Line, Text as KonvaText, Rect as KonvaRect, Circle, Arrow, Shape } from 'react-konva';
 import useImage from 'use-image';
 import VTTToken from './VTTToken';
 import styles from '../../pages/VTT.module.css';
+import { incrementVttPerformanceMetric } from '../../utils/vttPerformance';
 
 const ZOOM_BY = 1.08;
 const DRAW_MIN_POINT_DISTANCE = 2.5;
@@ -96,6 +97,7 @@ const VTTMap = ({
   onCommitHistory,
   activeEditorLayer = 'token'
 }) => {
+  incrementVttPerformanceMetric('mapRenders');
   const [image] = useImage(mapUrl, 'anonymous');
   const stageRef = useRef(null);
   const [camera, setCamera] = useState({ x: 0, y: 0, scale: mapScaleMultiplier || 1 });
@@ -430,25 +432,27 @@ const VTTMap = ({
     setCamera(nextCam);
   }, [cameraResetKey, mapScaleMultiplier]);
 
-  const gridLines = useMemo(() => {
-    if (!showGrid || !gridSize || gridSize <= 0) return [];
-    const lines = [];
-    // Converter a cor hex + opacidade para rgba
-    const hexToRgba = (hex, alpha) => {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r},${g},${b},${alpha})`;
-    };
-    const stroke = hexToRgba(gridColor, gridOpacity);
+  const gridStroke = useMemo(() => {
+    const clean = String(gridColor || '#334466').replace('#', '');
+    const r = parseInt(clean.slice(0, 2), 16) || 0;
+    const g = parseInt(clean.slice(2, 4), 16) || 0;
+    const b = parseInt(clean.slice(4, 6), 16) || 0;
+    return `rgba(${r},${g},${b},${gridOpacity})`;
+  }, [gridColor, gridOpacity]);
+
+  const drawGrid = useCallback((context, shape) => {
+    if (!showGrid || !gridSize || gridSize <= 0) return;
+    context.beginPath();
     for (let x = 0; x <= mapWidth; x += gridSize) {
-      lines.push(<Line key={`grid-v-${x}`} points={[x, 0, x, mapHeight]} stroke={stroke} strokeWidth={1} listening={false} />);
+      context.moveTo(x, 0);
+      context.lineTo(x, mapHeight);
     }
     for (let y = 0; y <= mapHeight; y += gridSize) {
-      lines.push(<Line key={`grid-h-${y}`} points={[0, y, mapWidth, y]} stroke={stroke} strokeWidth={1} listening={false} />);
+      context.moveTo(0, y);
+      context.lineTo(mapWidth, y);
     }
-    return lines;
-  }, [showGrid, gridSize, mapWidth, mapHeight, gridOpacity, gridColor]);
+    context.strokeShape(shape);
+  }, [gridSize, mapHeight, mapWidth, showGrid]);
 
   const rectsIntersect = useCallback((a, b) => (
     a.x < b.x + b.width &&
@@ -804,6 +808,8 @@ const VTTMap = ({
     <VTTToken
       key={token.id}
       {...token}
+      x={liveSelectedTokenPositions?.[String(token.id)]?.x ?? token.x}
+      y={liveSelectedTokenPositions?.[String(token.id)]?.y ?? token.y}
       isMaster={isMaster}
       onDragEnd={updateTokenPosition}
       onToggleVisibility={toggleTokenVisibility}
@@ -811,6 +817,10 @@ const VTTMap = ({
       onSelect={applyTokenSelection}
       onUpdateToken={updateTokenProps}
       activeTool={activeTool}
+      selectionKey={safeSelectedIds.map(String).join('|')}
+      interactionKey={safeSelectedIds.some((id) => String(id) === String(token.id))
+        ? `${activeTool}:${rulerStart?.x ?? ''}:${rulerStart?.y ?? ''}:${rulerEnd?.x ?? ''}:${rulerEnd?.y ?? ''}:${rulerFollowName}`
+        : activeTool}
       canDrag={canDragToken(token)}
       canTransform={canTransformToken(token)}
       onTokenPointerDown={(tokenId, evt) => {
@@ -873,8 +883,6 @@ const VTTMap = ({
               const nextX = startPos.x + dx;
               const nextY = startPos.y + dy;
               nextLivePositions[String(id)] = { x: nextX, y: nextY };
-              if (String(id) === String(tokenInfo?.id)) return;
-              updateTokenPosition(id, nextX, nextY, { history: false });
             });
             setLiveSelectedTokenPositions(nextLivePositions);
           }
@@ -890,6 +898,11 @@ const VTTMap = ({
           stageRef.current?.draggable(activeTool === 'pan' && !isTokenTransforming);
         }
         if (dragGroupRef.current && dragGroupRef.current.anchorId === tokenInfo?.id) {
+          const finalPositions = liveSelectedTokenPositions || {};
+          Object.entries(finalPositions).forEach(([id, position]) => {
+            if (String(id) === String(tokenInfo?.id)) return;
+            updateTokenPosition(id, position.x, position.y, { history: false });
+          });
           dragGroupRef.current = null;
           window.requestAnimationFrame(() => setLiveSelectedTokenPositions(null));
         }
@@ -930,7 +943,7 @@ const VTTMap = ({
   };
 
   const layerNodes = {
-    map: (showMapLayer || showGrid || mapTokens.length > 0) ? (
+    map: (showMapLayer || mapTokens.length > 0) ? (
       <Layer id="map-layer" key="map-layer">
         {showMapLayer && image && (
           <KonvaImage
@@ -939,6 +952,7 @@ const VTTMap = ({
             x={0} y={0}
             width={image.width}
             height={image.height}
+            perfectDrawEnabled={false}
             listening={activeTool === 'select' && isMaster && activeEditorLayer === 'map'}
             onContextMenu={(e) => {
               e.cancelBubble = true;
@@ -946,11 +960,20 @@ const VTTMap = ({
             }}
           />
         )}
-        {showGrid && gridLines}
         {mapTokens.map(t => renderToken(t, isMaster ? 0.9 : 1))}
       </Layer>
     ) : null,
-    grid: null,
+    grid: showGrid ? (
+      <Layer id="grid-layer" key="grid-layer" listening={false}>
+        <Shape
+          sceneFunc={drawGrid}
+          stroke={gridStroke}
+          strokeWidth={1}
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+      </Layer>
+    ) : null,
     token: showTokenLayer ? (
       <Layer id="token-layer" key="token-layer">
         {baseTokens.map(t => renderToken(t))}
@@ -1358,7 +1381,8 @@ const VTTMap = ({
                 stroke={line.color} strokeWidth={line.width}
                 fill={fillRgba}
                 opacity={line.opacity ?? 1}
-                listening
+                listening={false}
+                perfectDrawEnabled={false}
               />
             );
           }
@@ -1379,7 +1403,8 @@ const VTTMap = ({
                 stroke={line.color} strokeWidth={line.width}
                 fill={fillRgba}
                 opacity={line.opacity ?? 1}
-                listening
+                listening={false}
+                perfectDrawEnabled={false}
               />
             );
           }
@@ -1397,7 +1422,8 @@ const VTTMap = ({
                 opacity={line.opacity ?? 1}
                 lineCap="round"
                 lineJoin="round"
-                listening
+                listening={false}
+                perfectDrawEnabled={false}
               />
             );
           }
@@ -1413,7 +1439,8 @@ const VTTMap = ({
               lineJoin="round"
               tension={line.tension ?? 0}
               opacity={line.opacity ?? 1}
-              listening
+              listening={false}
+              perfectDrawEnabled={false}
             />
           );
         })}
@@ -1679,4 +1706,4 @@ const VTTMap = ({
   );
 };
 
-export default VTTMap;
+export default React.memo(VTTMap);
