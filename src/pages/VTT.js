@@ -30,6 +30,7 @@ const DEBUG_VTT_ROLLS = process.env.REACT_APP_DEBUG_VTT_ROLLS === 'true';
 const debugVttRoll = (...args) => {
   if (DEBUG_VTT_ROLLS) console.log(...args);
 };
+const createMutationId = () => window.crypto?.randomUUID?.() || `mutation-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const knowledgeKeys = ['geography', 'medicine', 'security', 'biology', 'erudition', 'engineering'];
 const practiceKeys = ['weapons', 'athletics', 'expression', 'stealth', 'crafting', 'survival'];
 const VTT_FONT_OPTIONS = [
@@ -81,6 +82,22 @@ const rollCustomDice = (formula) => {
 
 const normalizeRollFormula = (formula) => String(formula || '').replace(/\s+/g, '').toLowerCase();
 const isValidRollFormula = (formula) => /^(?:[1-9]\d?d(?:6|10|12))(?:\+[1-9]\d?d(?:6|10|12))*$/.test(normalizeRollFormula(formula));
+const simplifyDrawingPoints = (points, minDistance = 1.5) => {
+  if (!Array.isArray(points) || points.length <= 4) return points || [];
+  const simplified = [points[0], points[1]];
+  let lastX = points[0];
+  let lastY = points[1];
+  for (let index = 2; index < points.length - 2; index += 2) {
+    const x = Number(points[index]);
+    const y = Number(points[index + 1]);
+    if (Math.hypot(x - lastX, y - lastY) < minDistance) continue;
+    simplified.push(x, y);
+    lastX = x;
+    lastY = y;
+  }
+  simplified.push(points[points.length - 2], points[points.length - 1]);
+  return simplified;
+};
 
 const timeFmt = (ts) => new Date(ts || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const t = (key) => translations[key] || key;
@@ -284,6 +301,7 @@ const VTT = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [socket, setSocket] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
   const { user, token } = useSelector((state) => state.auth);
   const { confirm } = useConfirm();
 
@@ -421,6 +439,17 @@ const VTT = () => {
   const [isConflictLoading, setIsConflictLoading] = useState(false);
   const vttSaveTimeoutRef = useRef(null);
   const vttSaveErrorShownRef = useRef(false);
+  const vttSaveQueueRef = useRef(Promise.resolve());
+  const hasSocketConnectedRef = useRef(false);
+  const reconnectSnapshotTimerRef = useRef(null);
+  const socketIssueShownRef = useRef(false);
+  const lastVttOperationErrorRef = useRef(0);
+  const latestRevisionRef = useRef(0);
+  const appliedMutationIdsRef = useRef(new Set());
+  const pendingMutationsRef = useRef([]);
+  const processingMutationRef = useRef(false);
+  const processMutationQueueRef = useRef(null);
+  const [pendingMutationCount, setPendingMutationCount] = useState(0);
 
   const gridStorageKey = useMemo(() => `vttGridSettings:${id}`, [id]);
 
@@ -644,6 +673,83 @@ const VTT = () => {
     } catch (error) {} finally { setIsConflictLoading(false); }
   };
 
+  const rememberMutationId = useCallback((mutationId) => {
+    if (!mutationId) return;
+    const ids = appliedMutationIdsRef.current;
+    ids.add(mutationId);
+    if (ids.size > 500) ids.delete(ids.values().next().value);
+  }, []);
+
+  const acceptIncomingMutation = useCallback(({ revision, clientMutationId } = {}) => {
+    if (clientMutationId && appliedMutationIdsRef.current.has(clientMutationId)) return false;
+    const incomingRevision = Number(revision);
+    if (Number.isFinite(incomingRevision)) {
+      if (incomingRevision <= latestRevisionRef.current) return false;
+      latestRevisionRef.current = incomingRevision;
+    }
+    rememberMutationId(clientMutationId);
+    return true;
+  }, [rememberMutationId]);
+
+  const requestVttResync = useCallback((message = 'Alteração não sincronizada. Restaurando estado da mesa...') => {
+    setConnectionStatus('syncing');
+    dispatchToast({ message, type: 'warning' });
+    socket?.emit('requestVttSnapshot', { campaignId: id });
+  }, [id, socket]);
+
+  const processMutationQueue = useCallback(() => {
+    if (!socket?.connected || connectionStatus !== 'connected' || processingMutationRef.current) return;
+    const current = pendingMutationsRef.current[0];
+    if (!current) return;
+    processingMutationRef.current = true;
+    const payload = { ...current.payload, campaignId: id, revisionBase: latestRevisionRef.current, clientMutationId: current.clientMutationId };
+    const startedAt = performance.now();
+
+    socket.timeout(8000).emit(current.eventName, payload, (timeoutError, ack) => {
+      processingMutationRef.current = false;
+      if (!timeoutError && ack?.ok) {
+        latestRevisionRef.current = Math.max(latestRevisionRef.current, Number(ack.revision || 0));
+        rememberMutationId(current.clientMutationId);
+        pendingMutationsRef.current.shift();
+        setPendingMutationCount(pendingMutationsRef.current.length);
+        if (process.env.REACT_APP_DEBUG_VTT_SYNC === 'true') {
+          console.log('[VTT_SYNC]', { event: current.eventName, revision: ack.revision, ackMs: Math.round(performance.now() - startedAt) });
+        }
+        window.setTimeout(() => processMutationQueueRef.current?.(), 0);
+        return;
+      }
+
+      current.attempts += 1;
+      if (ack?.stale || ack?.code === 'STALE_REVISION') {
+        requestVttResync();
+        return;
+      }
+      if (!socket.connected) return;
+      if (current.attempts < 3) {
+        window.setTimeout(() => processMutationQueueRef.current?.(), 500 * current.attempts);
+        return;
+      }
+      pendingMutationsRef.current.shift();
+      setPendingMutationCount(pendingMutationsRef.current.length);
+      requestVttResync(ack?.message || 'Não foi possível confirmar uma alteração. Restaurando a mesa...');
+    });
+  }, [connectionStatus, id, rememberMutationId, requestVttResync, socket]);
+
+  processMutationQueueRef.current = processMutationQueue;
+
+  const emitCriticalMutation = useCallback((eventName, payload) => {
+    const entry = { eventName, payload, clientMutationId: createMutationId(), attempts: 0, createdAt: Date.now() };
+    pendingMutationsRef.current.push(entry);
+    if (pendingMutationsRef.current.length > 200) pendingMutationsRef.current.shift();
+    setPendingMutationCount(pendingMutationsRef.current.length);
+    processMutationQueueRef.current?.();
+    return entry.clientMutationId;
+  }, []);
+
+  useEffect(() => {
+    if (connectionStatus === 'connected') processMutationQueueRef.current?.();
+  }, [connectionStatus]);
+
   useEffect(() => {
     const savedGrid = localStorage.getItem(gridStorageKey);
     if (savedGrid) {
@@ -663,6 +769,7 @@ const VTT = () => {
       try {
         const res = await axios.get(`${API_BASE}/api/campaigns/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         setCampaignData(res.data);
+        latestRevisionRef.current = Math.max(0, Number(res.data.vttState?.revision || 0));
         const masterId = res.data.master?._id || res.data.master;
         setIsMaster(Boolean(user && String(masterId) === String(user._id)));
 
@@ -691,19 +798,65 @@ const VTT = () => {
 
     let newSocket;
     const connectTimer = window.setTimeout(() => {
-      newSocket = io(API_BASE, { auth: { token } });
+      newSocket = io(API_BASE, {
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 500,
+        reconnectionDelayMax: 5000,
+        timeout: 10000,
+      });
       setSocket(newSocket);
 
       newSocket.on('connect', () => {
+        const isReconnect = hasSocketConnectedRef.current;
+        hasSocketConnectedRef.current = true;
+        setConnectionStatus(isReconnect ? 'syncing' : 'connected');
         newSocket.emit('joinCampaign', id);
-        newSocket.emit('requestVttSnapshot', { campaignId: id });
+        if (isReconnect) {
+          window.clearTimeout(reconnectSnapshotTimerRef.current);
+          reconnectSnapshotTimerRef.current = window.setTimeout(() => {
+            newSocket.emit('requestVttSnapshot', { campaignId: id });
+          }, 1200);
+        }
       });
-      newSocket.on('connect_error', () => {
-        dispatchToast({ message: 'Acesso negado ao VTT. Faça login novamente.', type: 'error' });
-        navigate(`/campaign-lobby/${id}`);
+      newSocket.on('disconnect', (reason) => {
+        if (reason === 'io client disconnect') return;
+        setConnectionStatus('reconnecting');
+        if (!socketIssueShownRef.current) {
+          dispatchToast({ message: 'Conexão instável. Tentando reconectar sem perder a sessão...', type: 'warning' });
+          socketIssueShownRef.current = true;
+        }
+      });
+      newSocket.io.on('reconnect_attempt', () => setConnectionStatus('reconnecting'));
+      newSocket.on('connect_error', (error) => {
+        const isAuthError = /acesso negado|token inv[aá]lido|unauthorized/i.test(String(error?.message || ''));
+        if (isAuthError) {
+          setConnectionStatus('error');
+          dispatchToast({ message: 'Acesso negado ao VTT. Faça login novamente.', type: 'error' });
+          navigate(`/campaign-lobby/${id}`);
+          return;
+        }
+        setConnectionStatus('reconnecting');
+        if (!socketIssueShownRef.current) {
+          dispatchToast({ message: 'Servidor indisponível. A reconexão será automática.', type: 'warning' });
+          socketIssueShownRef.current = true;
+        }
       });
 
       newSocket.on('systemMessage', (payload) => setSystemMessages((prev) => [...prev, { message: payload?.message || 'Evento no VTT', timestamp: Date.now() }].slice(-100)));
+      newSocket.on('vttOperationError', ({ message } = {}) => {
+        const now = Date.now();
+        if (now - lastVttOperationErrorRef.current < 2500) return;
+        lastVttOperationErrorRef.current = now;
+        dispatchToast({ message: message || 'Uma alteração não pôde ser salva. Tente novamente.', type: 'error' });
+      });
+      newSocket.on('vttRevisionAdvanced', ({ revision } = {}) => {
+        const incomingRevision = Number(revision);
+        if (Number.isFinite(incomingRevision) && incomingRevision > latestRevisionRef.current) {
+          latestRevisionRef.current = incomingRevision;
+        }
+      });
       newSocket.on('chatMessage', (payload) => setTextMessages((prev) => mergeChatItems(prev, payload, 'text', 200)));
       newSocket.on('rollCreated', ({ campaignId, roll } = {}) => {
         if (String(campaignId) !== String(id) || !roll) return;
@@ -711,7 +864,9 @@ const VTT = () => {
         setRecentRolls((prev) => mergeChatItems(prev, roll, 'roll', 100));
       });
 
-      newSocket.on('activeSceneChanged', (sceneId) => {
+      newSocket.on('activeSceneChanged', (incoming) => {
+        const sceneId = typeof incoming === 'string' ? incoming : incoming?.sceneId;
+        if (typeof incoming === 'object' && !acceptIncomingMutation(incoming)) return;
         setPartySceneId(sceneId);
         setViewingSceneId(sceneId);
         setSystemMessages((prev) => [...prev, { message: 'Atenção: A party foi movida para uma nova cena!', timestamp: Date.now() }]);
@@ -719,6 +874,9 @@ const VTT = () => {
       newSocket.on('sceneCreated', (newScene) => setScenes((prev) => [...prev, newScene]));
       newSocket.on('vttSnapshot', ({ vttState }) => {
         if (!vttState) return;
+        const incomingRevision = Number(vttState.revision || 0);
+        if (incomingRevision < latestRevisionRef.current) return;
+        latestRevisionRef.current = incomingRevision;
         if (Array.isArray(vttState.scenes)) setScenes(vttState.scenes);
         if (Array.isArray(vttState.folders)) setFolders(vttState.folders);
         if (Array.isArray(vttState.assetLibrary)) setAssetLibrary(vttState.assetLibrary);
@@ -729,16 +887,25 @@ const VTT = () => {
           setPartySceneId(vttState.activeSceneId);
           setViewingSceneId(vttState.activeSceneId);
         }
+        setConnectionStatus('connected');
+        if (socketIssueShownRef.current) {
+          dispatchToast({ message: 'Conexão com a mesa restabelecida e sincronizada.', type: 'success' });
+          socketIssueShownRef.current = false;
+        }
       });
-      newSocket.on('sceneUpdated', ({ sceneId, ...scenePatch }) => setScenes((prev) => prev.map(s => {
+      newSocket.on('sceneUpdated', ({ sceneId, revision, clientMutationId, ...scenePatch }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
+        setScenes((prev) => prev.map(s => {
         if (s.id !== sceneId) return s;
         return {
           ...s,
           ...scenePatch,
           ...(scenePatch.fogOfWar !== undefined ? { fogOfWar: normalizeFogOfWar(scenePatch.fogOfWar) } : {}),
         };
-      })));
-      newSocket.on('sceneStateReplaced', ({ sceneId, scene }) => {
+        }));
+      });
+      newSocket.on('sceneStateReplaced', ({ sceneId, scene, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         if (!sceneId || !scene) return;
         const normalizedScene = {
           ...scene,
@@ -752,7 +919,8 @@ const VTT = () => {
           normalizedScene.tokens?.some((token) => String(token.id) === String(tokenId))
         )));
       });
-      newSocket.on('fogUpdated', ({ sceneId, fogOfWar }) => {
+      newSocket.on('fogUpdated', ({ sceneId, fogOfWar, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         if (!sceneId) return;
         setScenes((prev) => {
           const nextScenes = prev.map((s) => (
@@ -783,72 +951,89 @@ const VTT = () => {
       newSocket.on('folderCreated', (newFolder) => setFolders((prev) => [...prev, newFolder]));
       newSocket.on('assetAdded', (newAsset) => setAssetLibrary((prev) => [...prev, newAsset]));
 
-      newSocket.on('tokenMoved', ({ sceneId, tokenId, x, y }) => {
+      newSocket.on('tokenMoved', ({ sceneId, tokenId, x, y, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, tokens: s.tokens.map(t => t.id === tokenId ? { ...t, x, y } : t) }));
       });
-      newSocket.on('tokenUpdated', ({ sceneId, tokenId, patch }) => {
+      newSocket.on('tokenUpdated', ({ sceneId, tokenId, patch, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, tokens: s.tokens.map(t => t.id === tokenId ? { ...t, ...patch } : t) }));
       });
-      newSocket.on('visibilityChanged', ({ sceneId, tokenId, isVisible }) => {
+      newSocket.on('visibilityChanged', ({ sceneId, tokenId, isVisible, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, tokens: s.tokens.map(t => t.id === tokenId ? { ...t, isVisible } : t) }));
       });
-      newSocket.on('tokenAdded', ({ sceneId, token }) => {
-        setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, tokens: [...s.tokens, token] }));
+      newSocket.on('tokenAdded', ({ sceneId, token, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
+        setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, tokens: s.tokens.some((item) => String(item.id) === String(token.id)) ? s.tokens : [...s.tokens, token] }));
       });
-      newSocket.on('tokenRemoved', ({ sceneId, tokenId }) => {
+      newSocket.on('tokenRemoved', ({ sceneId, tokenId, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, tokens: s.tokens.filter(t => t.id !== tokenId) }));
         setSelectedTokenId((prev) => (prev === tokenId ? null : prev));
       });
-      newSocket.on('drawingAdded', ({ sceneId, drawing }) => {
-        setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, drawings: [...(s.drawings || []), drawing] }));
+      newSocket.on('drawingAdded', ({ sceneId, drawing, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
+        setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, drawings: (s.drawings || []).some((item) => String(item.id) === String(drawing.id)) ? s.drawings : [...(s.drawings || []), drawing] }));
       });
-      newSocket.on('drawingUpdated', ({ sceneId, drawingId, patch }) => {
+      newSocket.on('drawingUpdated', ({ sceneId, drawingId, patch, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, drawings: (s.drawings || []).map(d => d.id === drawingId ? { ...d, ...patch } : d) }));
       });
-      newSocket.on('drawingRemoved', ({ sceneId, drawingId }) => {
+      newSocket.on('drawingRemoved', ({ sceneId, drawingId, revision, clientMutationId }) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId })) return;
         setScenes(prev => prev.map(s => s.id !== sceneId ? s : { ...s, drawings: (s.drawings || []).filter(d => d.id !== drawingId) }));
       });
     }, 100);
 
     return () => {
       window.clearTimeout(connectTimer);
+      window.clearTimeout(reconnectSnapshotTimerRef.current);
+      hasSocketConnectedRef.current = false;
       if (newSocket) {
         newSocket.removeAllListeners();
         newSocket.disconnect();
       }
     };
-  }, [currentUserId, fetchConflict, fetchMyAssets, fetchRecentRolls, gridStorageKey, id, navigate, token, user]);
+  }, [acceptIncomingMutation, currentUserId, fetchConflict, fetchMyAssets, fetchRecentRolls, gridStorageKey, id, navigate, token, user]);
 
   useEffect(() => {
-    if (!hasLoadedCampaign || !isMaster || !token || !id) return undefined;
+    if (!hasLoadedCampaign || !isMaster || !token || !id || connectionStatus !== 'connected' || pendingMutationCount > 0) return undefined;
 
     window.clearTimeout(vttSaveTimeoutRef.current);
-    vttSaveTimeoutRef.current = window.setTimeout(async () => {
-      try {
-        await axios.put(
+    vttSaveTimeoutRef.current = window.setTimeout(() => {
+      const snapshot = {
+        activeSceneId: partySceneId,
+        scenes,
+        folders,
+        assetLibrary,
+        chatMessages: textMessages.slice(-200),
+      };
+      vttSaveQueueRef.current = vttSaveQueueRef.current
+        .catch(() => undefined)
+        .then(() => axios.put(
           `${API_BASE}/api/campaigns/${id}/vtt-state`,
-          {
-            vttState: {
-              activeSceneId: partySceneId,
-              scenes,
-              folders,
-              assetLibrary,
-              chatMessages: textMessages.slice(-200),
-            },
-          },
+          { vttState: snapshot, revisionBase: latestRevisionRef.current },
           { headers: { Authorization: `Bearer ${token}` } },
-        );
-        vttSaveErrorShownRef.current = false;
-      } catch (error) {
-        if (!vttSaveErrorShownRef.current) {
-          dispatchToast({ message: 'Não foi possível salvar o VTT no servidor.', type: 'error' });
-          vttSaveErrorShownRef.current = true;
-        }
-      }
+        ))
+        .then((response) => {
+          latestRevisionRef.current = Math.max(latestRevisionRef.current, Number(response.data?.revision || 0));
+          vttSaveErrorShownRef.current = false;
+        })
+        .catch((error) => {
+          if (error.response?.status === 409) {
+            requestVttResync('A mesa mudou durante o salvamento. Sincronizando a versão mais recente...');
+            return;
+          }
+          if (!vttSaveErrorShownRef.current) {
+            dispatchToast({ message: 'Não foi possível salvar o VTT no servidor.', type: 'error' });
+            vttSaveErrorShownRef.current = true;
+          }
+        });
     }, 650);
 
     return () => window.clearTimeout(vttSaveTimeoutRef.current);
-  }, [assetLibrary, folders, hasLoadedCampaign, id, isMaster, partySceneId, scenes, textMessages, token]);
+  }, [assetLibrary, connectionStatus, folders, hasLoadedCampaign, id, isMaster, partySceneId, pendingMutationCount, requestVttResync, scenes, textMessages, token]);
 
   useEffect(() => { localStorage.setItem(gridStorageKey, JSON.stringify({ showGrid, showMapLayer, showTokenLayer, showGmLayer, gridSize, gridOpacity, mapScaleMultiplier })); }, [gridOpacity, gridSize, gridStorageKey, mapScaleMultiplier, showGrid, showMapLayer, showTokenLayer, showGmLayer]);
   useEffect(() => {
@@ -887,28 +1072,36 @@ const VTT = () => {
   }, [cloneScenesSnapshot]);
 
   const undoVtt = useCallback(() => {
+    if (connectionStatus !== 'connected') {
+      dispatchToast({ message: 'Aguarde a sincronização para desfazer alterações.', type: 'warning' });
+      return;
+    }
     const previous = historyRef.current.pop();
     if (!previous) return;
     redoRef.current.push(cloneScenesSnapshot());
     window.clearTimeout(vttSaveTimeoutRef.current);
     restoreScenesSnapshot(previous);
     const restoredScene = previous.find((scene) => String(scene.id) === String(viewingSceneId));
-    if (restoredScene && socket && isMaster) {
-      socket.emit('sceneStateReplaced', { campaignId: id, sceneId: viewingSceneId, scene: restoredScene, action: 'undo' });
+    if (restoredScene && isMaster) {
+      emitCriticalMutation('sceneStateReplaced', { sceneId: viewingSceneId, scene: restoredScene, action: 'undo' });
     }
-  }, [cloneScenesSnapshot, id, isMaster, restoreScenesSnapshot, socket, viewingSceneId]);
+  }, [cloneScenesSnapshot, connectionStatus, emitCriticalMutation, isMaster, restoreScenesSnapshot, viewingSceneId]);
 
   const redoVtt = useCallback(() => {
+    if (connectionStatus !== 'connected') {
+      dispatchToast({ message: 'Aguarde a sincronização para refazer alterações.', type: 'warning' });
+      return;
+    }
     const next = redoRef.current.pop();
     if (!next) return;
     historyRef.current.push(cloneScenesSnapshot());
     window.clearTimeout(vttSaveTimeoutRef.current);
     restoreScenesSnapshot(next);
     const restoredScene = next.find((scene) => String(scene.id) === String(viewingSceneId));
-    if (restoredScene && socket && isMaster) {
-      socket.emit('sceneStateReplaced', { campaignId: id, sceneId: viewingSceneId, scene: restoredScene, action: 'redo' });
+    if (restoredScene && isMaster) {
+      emitCriticalMutation('sceneStateReplaced', { sceneId: viewingSceneId, scene: restoredScene, action: 'redo' });
     }
-  }, [cloneScenesSnapshot, id, isMaster, restoreScenesSnapshot, socket, viewingSceneId]);
+  }, [cloneScenesSnapshot, connectionStatus, emitCriticalMutation, isMaster, restoreScenesSnapshot, viewingSceneId]);
 
   useEffect(() => {
     if (undoSignal) undoVtt();
@@ -1043,14 +1236,14 @@ const VTT = () => {
 
   const handlePullParty = () => {
     setPartySceneId(viewingSceneId);
-    if (socket) socket.emit('changeActiveScene', { campaignId: id, sceneId: viewingSceneId });
+    emitCriticalMutation('changeActiveScene', { sceneId: viewingSceneId });
     setSystemMessages((prev) => [...prev, { message: 'Você invocou a party para esta cena.', timestamp: Date.now() }]);
   };
 
   const handleSetSceneMap = (url) => {
     recordHistory();
     setScenes((prev) => prev.map(s => s.id === viewingSceneId ? { ...s, mapUrl: url } : s));
-    if (socket) socket.emit('updateScene', { campaignId: id, sceneId: viewingSceneId, mapUrl: url });
+    emitCriticalMutation('updateScene', { sceneId: viewingSceneId, mapUrl: url });
     setIsSceneManagerOpen(false);
   };
 
@@ -1064,25 +1257,8 @@ const VTT = () => {
     ));
     scenesRef.current = nextScenes;
     setScenes(nextScenes);
-    if (socket) socket.emit('fogUpdated', { campaignId: id, sceneId: viewingSceneId, fogOfWar: normalizedFog });
-    if (options.persistNow && token) {
-      axios.put(
-        `${API_BASE}/api/campaigns/${id}/vtt-state`,
-        {
-          vttState: {
-            activeSceneId: partySceneId,
-            scenes: nextScenes,
-            folders,
-            assetLibrary,
-            chatMessages: textMessages.slice(-200),
-          },
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      ).catch(() => {
-        dispatchToast({ message: 'Não foi possível salvar a máscara agora.', type: 'error' });
-      });
-    }
-  }, [assetLibrary, folders, id, isMaster, partySceneId, recordHistory, socket, textMessages, token, viewingSceneId]);
+    emitCriticalMutation('fogUpdated', { sceneId: viewingSceneId, fogOfWar: normalizedFog });
+  }, [emitCriticalMutation, isMaster, recordHistory, viewingSceneId]);
 
   const hideFullFogPage = useCallback(() => {
     updateSceneFogOfWar({
@@ -1130,7 +1306,7 @@ const VTT = () => {
       ...extraProps
     };
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: [...s.tokens, newToken] }));
-    if (socket) socket.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token: newToken });
+    emitCriticalMutation('addToken', { sceneId: viewingSceneId, token: newToken });
     setActiveQuickCategory(null);
   };
 
@@ -1214,8 +1390,8 @@ const VTT = () => {
   const updateTokenProps = useCallback((tokenId, patch, options = {}) => {
     if (options.history !== false) recordHistory();
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: s.tokens.map(t => t.id === tokenId ? { ...t, ...patch } : t) }));
-    if (socket) socket.emit('updateToken', { campaignId: id, sceneId: viewingSceneId, tokenId, patch });
-  }, [id, recordHistory, socket, viewingSceneId]);
+    emitCriticalMutation('updateToken', { sceneId: viewingSceneId, tokenId, patch });
+  }, [emitCriticalMutation, recordHistory, viewingSceneId]);
 
   const getSelectedTokenGroupId = useCallback(() => {
     if (!selectedTokenIds.length) return null;
@@ -1277,7 +1453,7 @@ const VTT = () => {
       affectedTokens.forEach((token) => {
         const nextX = String(token.id) === String(tokenId) ? newX : token.x + deltaX;
         const nextY = String(token.id) === String(tokenId) ? newY : token.y + deltaY;
-        socket.emit('moveToken', { campaignId: id, sceneId: viewingSceneId, tokenId: token.id, x: nextX, y: nextY });
+        emitCriticalMutation('moveToken', { sceneId: viewingSceneId, tokenId: token.id, x: nextX, y: nextY });
       });
     }
   };
@@ -1291,7 +1467,7 @@ const VTT = () => {
         tokens: s.tokens.map(t => {
           if (t.id !== tokenId) return t;
           const newVis = !t.isVisible;
-          if (socket) socket.emit('toggleVisibility', { campaignId: id, sceneId: viewingSceneId, tokenId, isVisible: newVis });
+          emitCriticalMutation('toggleVisibility', { sceneId: viewingSceneId, tokenId, isVisible: newVis });
           return { ...t, isVisible: newVis };
         })
       };
@@ -1323,8 +1499,8 @@ const VTT = () => {
       hp: 10, maxHp: 10, status: '', auraColor: ''
     };
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: [...s.tokens, newToken] }));
-    if (socket) socket.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token: newToken });
-  }, [canPlaceSheetToken, id, isMaster, recordHistory, socket, viewingSceneId]);
+    emitCriticalMutation('addToken', { sceneId: viewingSceneId, token: newToken });
+  }, [canPlaceSheetToken, emitCriticalMutation, isMaster, recordHistory, viewingSceneId]);
 
   const handleTokenImageUpload = useCallback(async (file) => {
     if (!file || !editingToken) return;
@@ -1368,8 +1544,8 @@ const VTT = () => {
     recordHistory();
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: s.tokens.filter(t => t.id !== tokenId) }));
     setSelectedTokenId((prev) => (prev === tokenId ? null : prev));
-    if (socket) socket.emit('removeToken', { campaignId: id, sceneId: viewingSceneId, tokenId });
-  }, [id, isMaster, recordHistory, socket, viewingSceneId]);
+    emitCriticalMutation('removeToken', { sceneId: viewingSceneId, tokenId });
+  }, [emitCriticalMutation, isMaster, recordHistory, viewingSceneId]);
 
   const deleteSelectedTokens = useCallback(() => {
     if (!isMaster) return;
@@ -1377,10 +1553,10 @@ const VTT = () => {
     if (!ids.length) return;
     recordHistory();
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: s.tokens.filter(t => !ids.some(tokenId => String(tokenId) === String(t.id))) }));
-    ids.forEach((tokenId) => socket?.emit('removeToken', { campaignId: id, sceneId: viewingSceneId, tokenId }));
+    ids.forEach((tokenId) => emitCriticalMutation('removeToken', { sceneId: viewingSceneId, tokenId }));
     setSelectedTokenId(null);
     setSelectedTokenIds([]);
-  }, [id, isMaster, recordHistory, selectedTokenId, selectedTokenIds, socket, viewingSceneId]);
+  }, [emitCriticalMutation, isMaster, recordHistory, selectedTokenId, selectedTokenIds, viewingSceneId]);
 
   const duplicateSelectedTokens = useCallback(() => {
     if (!isMaster) return;
@@ -1400,10 +1576,10 @@ const VTT = () => {
     if (!copies.length) return;
     recordHistory();
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: [...(s.tokens || []), ...copies] }));
-    copies.forEach((token) => socket?.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token }));
+    copies.forEach((token) => emitCriticalMutation('addToken', { sceneId: viewingSceneId, token }));
     setSelectedTokenIds(copies.map((token) => token.id));
     setSelectedTokenId(copies[0]?.id || null);
-  }, [id, isMaster, recordHistory, selectedTokenId, selectedTokenIds, socket, viewingSceneId]);
+  }, [emitCriticalMutation, isMaster, recordHistory, selectedTokenId, selectedTokenIds, viewingSceneId]);
 
   const clearActiveLayer = useCallback(() => {
     if (!isMaster) return;
@@ -1414,10 +1590,10 @@ const VTT = () => {
     if (!ok) return;
     recordHistory();
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: (s.tokens || []).filter((token) => (token.layer || 'token') !== activeEditorLayer) }));
-    tokensInLayer.forEach((token) => socket?.emit('removeToken', { campaignId: id, sceneId: viewingSceneId, tokenId: token.id }));
+    tokensInLayer.forEach((token) => emitCriticalMutation('removeToken', { sceneId: viewingSceneId, tokenId: token.id }));
     setSelectedTokenId(null);
     setSelectedTokenIds([]);
-  }, [activeEditorLayer, id, isMaster, recordHistory, socket, viewingSceneId]);
+  }, [activeEditorLayer, emitCriticalMutation, isMaster, recordHistory, viewingSceneId]);
 
   const handleMapUpload = async (e) => {
     const file = e.target.files[0];
@@ -1435,7 +1611,7 @@ const VTT = () => {
          if (!hasCustomBackground) {
            recordHistory();
            setScenes((prev) => prev.map(s => s.id === viewingSceneId ? { ...s, mapUrl: uploadedUrl } : s));
-           if (socket) socket.emit('updateScene', { campaignId: id, sceneId: viewingSceneId, mapUrl: uploadedUrl });
+           emitCriticalMutation('updateScene', { sceneId: viewingSceneId, mapUrl: uploadedUrl });
          } else {
            const dimensions = await loadImageDimensions(uploadedUrl);
            const mapToken = {
@@ -1459,7 +1635,7 @@ const VTT = () => {
            };
            recordHistory();
            setScenes((prev) => prev.map(s => s.id === viewingSceneId ? { ...s, tokens: [...s.tokens, mapToken] } : s));
-           if (socket) socket.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token: mapToken });
+           emitCriticalMutation('addToken', { sceneId: viewingSceneId, token: mapToken });
          }
       }
       const newAsset = res.data.assetLibrary?.[res.data.assetLibrary.length - 1];
@@ -1468,10 +1644,17 @@ const VTT = () => {
   };
 
   const handleAddDrawing = useCallback((drawing) => {
+    const originalPointCount = Array.isArray(drawing?.points) ? drawing.points.length / 2 : 0;
+    const simplifiedPoints = simplifyDrawingPoints(drawing?.points);
+    const finalDrawing = { ...drawing, points: simplifiedPoints };
+    if (process.env.REACT_APP_DEBUG_VTT_SYNC === 'true' && originalPointCount) {
+      const finalPointCount = simplifiedPoints.length / 2;
+      console.log('[VTT_DRAWING]', { originalPointCount, finalPointCount, reductionPercent: Math.round((1 - finalPointCount / originalPointCount) * 100), payloadBytes: new Blob([JSON.stringify(finalDrawing)]).size });
+    }
     recordHistory();
-    setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, drawings: [...(s.drawings || []), drawing] }));
-    if (socket) socket.emit('addDrawing', { campaignId: id, sceneId: viewingSceneId, drawing });
-  }, [id, recordHistory, socket, viewingSceneId]);
+    setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, drawings: [...(s.drawings || []), finalDrawing] }));
+    emitCriticalMutation('addDrawing', { sceneId: viewingSceneId, drawing: finalDrawing });
+  }, [emitCriticalMutation, recordHistory, viewingSceneId]);
 
   const handleAddShapeToken = useCallback((shapeData) => {
     if (!isMaster) return;
@@ -1503,7 +1686,7 @@ const VTT = () => {
         hp: 1, maxHp: 1, status: '', auraColor: ''
       };
       setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: [...s.tokens, newToken] }));
-      if (socket) socket.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token: newToken });
+      emitCriticalMutation('addToken', { sceneId: viewingSceneId, token: newToken });
       return;
     }
 
@@ -1541,7 +1724,7 @@ const VTT = () => {
         hp: 1, maxHp: 1, status: '', auraColor: ''
       };
       setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: [...s.tokens, newToken] }));
-      if (socket) socket.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token: newToken });
+      emitCriticalMutation('addToken', { sceneId: viewingSceneId, token: newToken });
       return;
     }
 
@@ -1586,14 +1769,14 @@ const VTT = () => {
       hp: 1, maxHp: 1, status: '', auraColor: ''
     };
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, tokens: [...s.tokens, newToken] }));
-    if (socket) socket.emit('addToken', { campaignId: id, sceneId: viewingSceneId, token: newToken });
-  }, [id, isMaster, recordHistory, socket, viewingSceneId]);
+    emitCriticalMutation('addToken', { sceneId: viewingSceneId, token: newToken });
+  }, [emitCriticalMutation, isMaster, recordHistory, viewingSceneId]);
 
   const handleRemoveDrawing = useCallback((drawingId) => {
     recordHistory();
     setScenes(prev => prev.map(s => s.id !== viewingSceneId ? s : { ...s, drawings: (s.drawings || []).filter(d => d.id !== drawingId) }));
-    if (socket) socket.emit('removeDrawing', { campaignId: id, sceneId: viewingSceneId, drawingId });
-  }, [id, recordHistory, socket, viewingSceneId]);
+    emitCriticalMutation('removeDrawing', { sceneId: viewingSceneId, drawingId });
+  }, [emitCriticalMutation, recordHistory, viewingSceneId]);
 
   const handleTokenContextMenu = useCallback((evt, tokenData) => {
     const tokenId = typeof tokenData === 'string' ? tokenData : tokenData.id;
@@ -1904,6 +2087,12 @@ const VTT = () => {
           <div className={styles.campaignPill}>
             <span>{campaignData?.name || 'Campanha'}</span>
             <span className={styles.campaignRole}>{isMaster ? 'Mestre' : 'Jogador'}</span>
+            <span
+              className={`${styles.connectionBadge} ${styles[`connectionBadge_${connectionStatus === 'connected' && pendingMutationCount > 0 ? 'syncing' : connectionStatus}`]}`}
+              title={connectionStatus === 'connected' && pendingMutationCount === 0 ? 'Conectado e sem alterações pendentes.' : `${pendingMutationCount} alteração(ões) aguardando confirmação.`}
+            >
+              {connectionStatus === 'connected' && pendingMutationCount === 0 ? 'Online' : connectionStatus === 'error' ? 'Erro' : 'Sincronizando'}
+            </span>
           </div>
           {isMaster && viewingSceneId !== partySceneId && (
             <button onClick={handlePullParty} className={styles.pullPartyBtn}>Puxar Party</button>

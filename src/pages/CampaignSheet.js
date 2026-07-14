@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { io } from "socket.io-client";
 
 import {
   FaArrowLeft, FaDiceD20, FaExclamationTriangle, FaCheck,
@@ -21,8 +22,24 @@ import { useConfirm } from "../components/notifications/ConfirmProvider";
 import PageLoader from "../components/ui/PageLoader";
 import EmptyState from "../components/ui/EmptyState";
 import api from "../api";
+import { API_BASE_URL } from "../config/apiConfig";
 
 import styles from "./CampaignSheet.module.css";
+
+const mergeRecentRolls = (currentRolls, incomingRolls) => {
+  const incoming = Array.isArray(incomingRolls) ? incomingRolls : [incomingRolls];
+  const byId = new Map();
+
+  [...incoming, ...(currentRolls || [])].forEach((roll) => {
+    if (!roll) return;
+    const key = String(roll.id || roll._id || `${roll.timestamp || ""}:${roll.rollerId || ""}:${roll.formula || ""}`);
+    if (!byId.has(key)) byId.set(key, roll);
+  });
+
+  return Array.from(byId.values())
+    .sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime())
+    .slice(0, 50);
+};
 
 const CampaignSheet = () => {
   const { id: campaignId } = useParams();
@@ -43,6 +60,7 @@ const CampaignSheet = () => {
   const [isConflictLoading, setIsConflictLoading] = useState(false);
   const [openEventDeckModal, setOpenEventDeckModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const syncInFlightRef = useRef(false);
   const [inviteCodeDraft, setInviteCodeDraft] = useState("");
   const [isSavingInviteCode, setIsSavingInviteCode] = useState(false);
 
@@ -55,23 +73,37 @@ const CampaignSheet = () => {
   };
 
   const fetchDynamicData = useCallback(async () => {
-    if (!token || !user || !isMaster) return;
+    if (!token || !user || !isMaster || syncInFlightRef.current) return;
+    syncInFlightRef.current = true;
     setIsSyncing(true);
     try {
-      const [playersRes, rollsRes, conflictRes] = await Promise.all([
-        api.get(`/campaigns/${campaignId}/players-data`),
-        api.get(`/campaigns/${campaignId}/recent-rolls`),
-        api.get(`/campaigns/${campaignId}/conflict`),
+      const [playersResult, rollsResult, conflictResult] = await Promise.allSettled([
+        api.get(`/campaigns/${campaignId}/players-data`, { timeout: 8000 }),
+        api.get(`/campaigns/${campaignId}/recent-rolls`, { timeout: 8000 }),
+        api.get(`/campaigns/${campaignId}/conflict`, { timeout: 8000 }),
       ]);
-      setPlayersData(playersRes.data);
-      setRecentRolls(rollsRes.data);
-      setActiveConflict(conflictRes.data);
+
+      if (playersResult.status === "fulfilled") setPlayersData(playersResult.value.data);
+      if (rollsResult.status === "fulfilled") {
+        setRecentRolls((current) => mergeRecentRolls(current, rollsResult.value.data || []));
+      }
+      if (conflictResult.status === "fulfilled") setActiveConflict(conflictResult.value.data);
+
+      const failedRequests = [playersResult, rollsResult, conflictResult]
+        .filter((result) => result.status === "rejected");
+      if (failedRequests.length) console.warn("Sincronização parcial do Escudo:", failedRequests);
     } catch (err) {
-      console.warn("Sync error:", err);
+      console.warn("Erro de sincronização do Escudo:", err);
     } finally {
+      syncInFlightRef.current = false;
       setIsSyncing(false);
     }
   }, [campaignId, user, token, isMaster]);
+
+  const handleRollCreated = useCallback((roll) => {
+    if (!roll) return;
+    setRecentRolls((current) => mergeRecentRolls(current, roll));
+  }, []);
 
   const fetchInitialData = useCallback(async () => {
     if (!token || !user) {
@@ -93,12 +125,14 @@ const CampaignSheet = () => {
 
       if (currentUserIsMaster) {
         setMasterNotes(campaignData.notes || "");
-        const [playersRes, rollsRes] = await Promise.all([
-          api.get(`/campaigns/${campaignId}/players-data`),
-          api.get(`/campaigns/${campaignId}/recent-rolls`),
+        const [playersResult, rollsResult] = await Promise.allSettled([
+          api.get(`/campaigns/${campaignId}/players-data`, { timeout: 8000 }),
+          api.get(`/campaigns/${campaignId}/recent-rolls`, { timeout: 8000 }),
         ]);
-        setPlayersData(playersRes.data);
-        setRecentRolls(rollsRes.data);
+        if (playersResult.status === "fulfilled") setPlayersData(playersResult.value.data);
+        if (rollsResult.status === "fulfilled") {
+          setRecentRolls((current) => mergeRecentRolls(current, rollsResult.value.data || []));
+        }
       }
     } catch (err) {
       setError("Erro ao carregar dados da campanha.");
@@ -114,7 +148,29 @@ const CampaignSheet = () => {
       const interval = setInterval(fetchDynamicData, 7000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isMaster, fetchDynamicData]);
+
+  useEffect(() => {
+    if (!token || !user || !isMaster || !campaignId) return undefined;
+
+    const campaignSocket = io(API_BASE_URL, {
+      auth: { token },
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
+    });
+
+    campaignSocket.on("connect", () => campaignSocket.emit("joinCampaign", campaignId));
+    campaignSocket.on("rollCreated", ({ campaignId: incomingCampaignId, roll } = {}) => {
+      if (String(incomingCampaignId) !== String(campaignId)) return;
+      handleRollCreated(roll);
+    });
+
+    return () => campaignSocket.disconnect();
+  }, [campaignId, handleRollCreated, isMaster, token, user]);
 
   const handleSaveNotes = async () => {
     try {
@@ -335,7 +391,13 @@ const CampaignSheet = () => {
                   {/* ROLADOR DE DADOS - Diagramação com Grid Fixo */}
                   <div style={{ marginBottom: "30px" }}>
                     <span className={styles.commandLabel}>DADOS MESTRE</span>
-                    <div style={{ display: "none" }}><MasterDiceRoller ref={masterRollerRef} campaignId={campaignId} /></div>
+                    <div style={{ display: "none" }}>
+                      <MasterDiceRoller
+                        ref={masterRollerRef}
+                        campaignId={campaignId}
+                        onRollCreated={handleRollCreated}
+                      />
+                    </div>
                     
                     <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "10px" }}>
                       <input

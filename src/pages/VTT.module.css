@@ -75,6 +75,38 @@
   text-transform: uppercase;
 }
 
+.connectionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #aaa;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.connectionBadge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.connectionBadge_connected { color: #56d98b; }
+.connectionBadge_connecting,
+.connectionBadge_reconnecting,
+.connectionBadge_syncing { color: #f0b44d; }
+.connectionBadge_reconnecting::before,
+.connectionBadge_syncing::before { animation: connectionPulse 1s ease-in-out infinite; }
+.connectionBadge_error { color: #ff4a4a; }
+
+@keyframes connectionPulse {
+  50% { opacity: 0.3; transform: scale(0.72); }
+}
+
 .pullPartyBtn {
   min-height: 38px;
   padding: 0 12px;
