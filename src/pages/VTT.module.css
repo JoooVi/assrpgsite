@@ -3152,6 +3152,43 @@
   background: #0f1318;
 }
 
+.vttDialog {
+  max-width: min(1100px, calc(100vw - 40px));
+}
+
+.vttDialog :global(.nero-dialog-content) {
+  flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.tokenEditBox.vttDialog {
+  height: auto;
+  overflow: hidden;
+  padding: 0;
+  width: min(620px, calc(100vw - 40px));
+}
+
+.sheetModal.vttDialog {
+  max-width: min(1220px, calc(100vw - 34px));
+  padding: 0;
+}
+
+.sheetModal.vttDialog :global(.nero-dialog-content) {
+  display: flex;
+  padding: 0;
+}
+
+@media (max-width: 600px) {
+  .vttDialog,
+  .tokenEditBox.vttDialog,
+  .sheetModal.vttDialog {
+    border-radius: 10px;
+    max-width: calc(100vw - 20px);
+    width: calc(100vw - 20px);
+  }
+}
+
 .modalCloseBtn {
   flex: 0 0 auto;
   width: auto;

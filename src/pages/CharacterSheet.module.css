@@ -1651,3 +1651,45 @@
   padding-top: 22px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+.iconButton {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #aaa;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 36px;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  border-color: var(--accent-red);
+  color: #fff;
+  outline: none;
+}
+
+@media (max-width: 480px) {
+  .characterSheet,
+  .headerPanel,
+  .mainContent,
+  .colLeft,
+  .colCenter,
+  .colRight {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .tabsContainer {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .inventoryGridContainer {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

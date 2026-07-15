@@ -1,12 +1,14 @@
 /* eslint-disable react/jsx-pascal-case */
 /* CharacterForm.js - BLINDADO CONTRA ENVIO PRECOCE */
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./CharacterForm.css";
 import { dispatchToast } from "../components/notifications/ToastProvider";
 import InlineLoader from "../components/ui/InlineLoader";
+import { useConfirm } from "../components/notifications/ConfirmProvider";
+import Breadcrumbs from "../components/navigation/Breadcrumbs";
 
 // Ícones
 import { 
@@ -51,7 +53,7 @@ const validateImageFile = (file) => {
 
 // --- COMPONENTES DOS PASSOS ---
 
-const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange, tokenPreview, handleTokenChange }) => (
+const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview, handleAvatarChange, removeAvatar, avatarError, tokenPreview, handleTokenChange, removeToken, tokenError }) => (
   <div className="fade-in">
     <div style={{display:'flex', gap: 30, justifyContent: 'center', marginBottom:'30px'}}>
       <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
@@ -66,10 +68,12 @@ const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview
           )}
         </div>
         <label className="btn-nero btn-secondary" style={{padding: '5px 15px', fontSize: '0.8rem'}}>
-          <FaUpload style={{marginRight: '5px'}}/> FOTO (FICHA)
+          <FaUpload style={{marginRight: '5px'}}/> Escolher avatar
           <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
         </label>
-        <small className="error-text" style={{ marginTop: '8px' }}>Limite: 5MB (JPG ou PNG)</small>
+        <small className="image-field-help">Avatar exibido na ficha. JPG ou PNG, até 5MB.</small>
+        {avatarPreview && <button type="button" className="image-remove-button" onClick={removeAvatar}>Remover avatar</button>}
+        {avatarError && <small className="error-text">{avatarError}</small>}
       </div>
       
       <div style={{display:'flex', flexDirection:'column', alignItems:'center', opacity: 0.9}}>
@@ -84,10 +88,12 @@ const Step1_Informacoes = ({ character, handleInputChange, errors, avatarPreview
           )}
         </div>
         <label className="btn-nero btn-secondary" style={{padding: '5px 15px', fontSize: '0.8rem'}}>
-          <FaUpload style={{marginRight: '5px'}}/> MAP TOKEN
+          <FaUpload style={{marginRight: '5px'}}/> Escolher token
           <input type="file" hidden accept="image/*" onChange={handleTokenChange} />
         </label>
-        <small className="error-text" style={{ marginTop: '8px' }}>Limite: 5MB (JPG ou PNG)</small>
+        <small className="image-field-help">Imagem usada no mapa do VTT. JPG ou PNG, até 5MB.</small>
+        {tokenPreview && <button type="button" className="image-remove-button" onClick={removeToken}>Remover token</button>}
+        {tokenError && <small className="error-text">{tokenError}</small>}
       </div>
     </div>
 
@@ -334,6 +340,7 @@ const stepsLabels = ["Dados", "Histórico", "Propósitos", "Equipamento", "Atrib
 
 export default function CharacterForm() {
   const navigate = useNavigate();
+  const { confirm } = useConfirm();
   const [character, setCharacter] = useState({
     name: "", generation: "", event: "", occupation: "", purpose1: "", purpose2: "", relationalPurpose1: "", relationalPurpose2: "",
     inventory: [], initialPack: "",
@@ -354,6 +361,10 @@ export default function CharacterForm() {
   const [avatarPreview, setAvatarPreview] = useState('');
   const [tokenImage, setTokenImage] = useState(null);
   const [tokenPreview, setTokenPreview] = useState('');
+  const [avatarError, setAvatarError] = useState("");
+  const [tokenError, setTokenError] = useState("");
+  const initialCharacterRef = useRef(JSON.stringify(character));
+  const isDirty = !success && Boolean(avatar || tokenImage || JSON.stringify(character) !== initialCharacterRef.current);
 
   useEffect(() => () => {
     if (avatarPreview.startsWith('blob:')) URL.revokeObjectURL(avatarPreview);
@@ -396,13 +407,13 @@ export default function CharacterForm() {
     const file = e.target.files[0];
     const validation = validateImageFile(file);
     if (!validation.ok) {
-      setError(validation.message);
-      dispatchToast({ message: validation.message, type: "warning" });
+      setAvatarError(validation.message);
       e.target.value = "";
       return;
     }
 
-    setError("");
+    setAvatarError("");
+    if (avatarPreview.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
     setAvatar(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
@@ -410,15 +421,29 @@ export default function CharacterForm() {
     const file = e.target.files[0];
     const validation = validateImageFile(file);
     if (!validation.ok) {
-      setError(validation.message);
-      dispatchToast({ message: validation.message, type: "warning" });
+      setTokenError(validation.message);
       e.target.value = "";
       return;
     }
 
-    setError("");
+    setTokenError("");
+    if (tokenPreview.startsWith("blob:")) URL.revokeObjectURL(tokenPreview);
     setTokenImage(file);
     setTokenPreview(URL.createObjectURL(file));
+  };
+
+  const removeAvatar = () => {
+    if (avatarPreview.startsWith("blob:")) URL.revokeObjectURL(avatarPreview);
+    setAvatar(null);
+    setAvatarPreview("");
+    setAvatarError("");
+  };
+
+  const removeToken = () => {
+    if (tokenPreview.startsWith("blob:")) URL.revokeObjectURL(tokenPreview);
+    setTokenImage(null);
+    setTokenPreview("");
+    setTokenError("");
   };
   
 const handlePackSelect = (pack) => {
@@ -526,6 +551,19 @@ const handlePackSelect = (pack) => {
 
   const handleBack = () => { setActiveStep(p => p - 1); setError(""); };
 
+  const handleLeaveForm = async () => {
+    if (isDirty) {
+      const confirmed = await confirm({
+        title: "Sair da criação de personagem?",
+        message: "As alterações desta ficha ainda não foram salvas e serão perdidas.",
+        tone: "warning",
+        confirmLabel: "Sair sem salvar",
+      });
+      if (!confirmed) return;
+    }
+    navigate("/characters");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -565,7 +603,7 @@ const handlePackSelect = (pack) => {
   };
 
   const getStepContent = (step) => {
-      const props = { character, handleInputChange, errors, avatarPreview, handleAvatarChange, tokenPreview, handleTokenChange, handlePackSelect, initialEquipmentPacks, handleInstinctChange, handleNestedChange, remainingInstinctPoints, remainingPoints, translateKey, handleTugOfWarChange };
+      const props = { character, handleInputChange, errors, avatarPreview, handleAvatarChange, removeAvatar, avatarError, tokenPreview, handleTokenChange, removeToken, tokenError, handlePackSelect, initialEquipmentPacks, handleInstinctChange, handleNestedChange, remainingInstinctPoints, remainingPoints, translateKey, handleTugOfWarChange };
       switch(step) {
           case 0: return <Step1_Informacoes {...props} />;
           case 1: return <Step2_Evento {...props} />;
@@ -580,7 +618,11 @@ const handlePackSelect = (pack) => {
   return (
     <div className="character-form-page">
       <div className="nero-form-card">
-        <div className="form-title">FICHA DE RECRUTAMENTO</div>
+        <Breadcrumbs items={[{ label: "Personagens", to: "/characters" }, { label: "Criar personagem" }]} />
+        <div className="character-form-heading">
+          <div><div className="form-title">CRIAR PERSONAGEM</div><p>Etapa {activeStep + 1} de {stepsLabels.length}: {stepsLabels[activeStep]}</p></div>
+          <button type="button" className="btn-nero btn-secondary" onClick={handleLeaveForm}>Cancelar criação</button>
+        </div>
         
         <div className="nero-stepper">
            {stepsLabels.map((label, i) => (

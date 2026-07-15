@@ -17,6 +17,7 @@ import { useConfirm } from "./notifications/ConfirmProvider";
 import { dispatchToast } from "./notifications/ToastProvider";
 import EmptyState from "./ui/EmptyState";
 import SystemText from "./SystemText";
+import Dialog from "./ui/Dialog";
 
 const initialAssimilation = {
   name: "",
@@ -241,24 +242,17 @@ const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) =
         <FaPlus /> Criar Nova Assimilação
       </button>
 
-      {createDialogOpen && (
-        <div className="nero-modal-overlay">
-          <div className="nero-modal">
-            <div className="nero-modal-header">Criar Nova Assimilação</div>
+      <Dialog
+        open={createDialogOpen}
+        onClose={handleCreateClose}
+        title="Criar nova assimilação"
+        size="medium"
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCreateClose}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleCreateAssimilation}>Criar</button></>}
+      >
             <div className="nero-modal-body">
               {renderAssimilationForm(newAssimilation, handleNewChange)}
             </div>
-            <div className="nero-modal-footer">
-              <button className="btn-nero btn-secondary" onClick={handleCreateClose}>
-                Cancelar
-              </button>
-              <button className="btn-nero btn-primary" onClick={handleCreateAssimilation}>
-                Criar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       <div className="hb-title-small">Minhas Assimilações</div>
 
@@ -338,24 +332,19 @@ const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) =
         )}
       </div>
 
-      {editOpen && selectedAssimilation && (
-        <div className="nero-modal-overlay">
-          <div className="nero-modal">
-            <div className="nero-modal-header">Editar Assimilação</div>
+      <Dialog
+        open={editOpen && !!selectedAssimilation}
+        onClose={handleEditClose}
+        title="Editar assimilação"
+        size="medium"
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleEditClose}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSaveEdit}>Salvar</button></>}
+      >
+        {selectedAssimilation && (
             <div className="nero-modal-body">
               {renderAssimilationForm(selectedAssimilation, handleChange)}
             </div>
-            <div className="nero-modal-footer">
-              <button className="btn-nero btn-secondary" onClick={handleEditClose}>
-                Cancelar
-              </button>
-              <button className="btn-nero btn-primary" onClick={handleSaveEdit}>
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </Dialog>
     </div>
   );
 };

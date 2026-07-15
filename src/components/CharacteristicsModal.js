@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { FaChevronDown, FaChevronUp, FaExclamationTriangle, FaPlus, FaSearch, FaTimes } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaExclamationTriangle, FaPlus, FaSearch } from "react-icons/fa";
 import EmptyState from "./ui/EmptyState";
 import SystemText from "./SystemText";
+import Dialog from "./ui/Dialog";
 import "../pages/Homebrews.css";
 
 const formatDescription = (text = "") => {
@@ -35,17 +36,6 @@ const CharacteristicsModal = ({
   const [expandedId, setExpandedId] = useState(null);
   const { characterTraits = [] } = useSelector((state) => state.characteristics);
 
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") handleClose();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, open]);
-
   const filteredList = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
     const traitsPool = items.length > 0 ? items : characterTraits;
@@ -63,18 +53,7 @@ const CharacteristicsModal = ({
   if (!open) return null;
 
   return (
-    <div className="hb-picker-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
-      <section className="hb-picker-panel">
-        <header className="hb-picker-header">
-          <div>
-            <span>Traços</span>
-            <h2>Selecionar característica</h2>
-          </div>
-          <button type="button" className="hb-picker-close" onClick={handleClose} aria-label="Fechar">
-            <FaTimes />
-          </button>
-        </header>
-
+    <Dialog open={open} onClose={handleClose} title="Selecionar característica" description="Características disponíveis para a ficha" size="large" className="hb-picker-dialog">
         <div className="hb-picker-controls">
           <label className="hb-picker-search">
             <FaSearch />
@@ -132,8 +111,7 @@ const CharacteristicsModal = ({
             )}
           </div>
         </div>
-      </section>
-    </div>
+    </Dialog>
   );
 };
 

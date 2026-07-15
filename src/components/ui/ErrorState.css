@@ -1,0 +1,64 @@
+.error-state {
+  background: var(--nero-surface, #111);
+  border: 1px solid var(--nero-border, #333);
+  border-left: 3px solid var(--nero-danger, #ff5555);
+  color: var(--nero-text, #dcdcdc);
+  display: grid;
+  gap: var(--nero-space-4, 16px);
+  justify-items: start;
+  margin: 120px auto 48px;
+  max-width: 620px;
+  padding: clamp(24px, 5vw, 40px);
+  width: calc(100% - 32px);
+}
+
+.error-state.compact {
+  margin: 0;
+  padding: 20px;
+}
+
+.error-state-icon {
+  align-items: center;
+  background: rgba(138, 28, 24, 0.14);
+  border: 1px solid rgba(255, 85, 85, 0.36);
+  color: var(--nero-danger, #ff5555);
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.error-state-copy h2 {
+  color: var(--nero-text-strong, #fff);
+  font-family: var(--nero-font-display, "Roboto Condensed", sans-serif);
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.error-state-copy p {
+  color: var(--nero-text-muted, #888);
+  font-family: var(--nero-font-body, "Rajdhani", sans-serif);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 8px 0 0;
+  max-width: 52ch;
+}
+
+.error-state-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.error-state-actions .btn-nero {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+}

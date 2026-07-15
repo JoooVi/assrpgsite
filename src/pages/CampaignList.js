@@ -1,318 +1,143 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import "./CampaignList.css";
-import {
-  Typography,
-  Tooltip,
-  CardMedia,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useConfirm } from "../components/notifications/ConfirmProvider";
-import { dispatchToast } from "../components/notifications/ToastProvider";
-import PageLoader from "../components/ui/PageLoader";
-import EmptyState from "../components/ui/EmptyState";
+import { FaPlus, FaSignInAlt } from "react-icons/fa";
 import api from "../api";
 import { API_BASE_URL } from "../config/apiConfig";
+import CampaignCard from "../components/campaigns/CampaignCard";
+import Dialog from "../components/ui/Dialog";
+import EmptyState from "../components/ui/EmptyState";
+import ErrorState from "../components/ui/ErrorState";
+import SkeletonState from "../components/ui/SkeletonState";
+import { dispatchToast } from "../components/notifications/ToastProvider";
+import { useConfirm } from "../components/notifications/ConfirmProvider";
+import { getPublicErrorMessage } from "../utils/httpErrors";
+import "./CampaignList.css";
+
+const normalizeCampaign = (campaign) => {
+  const rawCover = campaign.coverImage || "";
+  const coverImageUrl = rawCover && !rawCover.startsWith("http") ? `${API_BASE_URL}/${rawCover.replace(/\\/g, "/")}` : rawCover;
+  return { ...campaign, coverImageUrl };
+};
 
 const CampaignList = () => {
+  const { user, token } = useSelector((state) => state.auth);
+  const { confirm } = useConfirm();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState(null);
-  const user = useSelector((state) => state.auth.user);
-  const token = useSelector((state) => state.auth.token);
-  const navigate = useNavigate();
-  const { confirm } = useConfirm();
-
-  const [openJoinModal, setOpenJoinModal] = useState(false);
+  const [error, setError] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [selectedChar, setSelectedChar] = useState("");
   const [availableChars, setAvailableChars] = useState([]);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [campaignFilter, setCampaignFilter] = useState("all");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchCampaigns = useCallback(async () => {
     if (!user || !token) {
       setLoading(false);
       return;
     }
-
+    setLoading(true);
+    setError(false);
     try {
-      setLoading(true);
-      setError(null);
       const response = await api.get("/campaigns");
-      if (response.data && Array.isArray(response.data)) {
-        const campaignsWithImages = response.data.map(campaign => {
-           let imageUrl = campaign.coverImage ? `${API_BASE_URL}/${campaign.coverImage.replace(/\\/g, '/')}` : null;
-           if (campaign.coverImage && campaign.coverImage.startsWith('http')) {
-               imageUrl = campaign.coverImage;
-           }
-           return { ...campaign, coverImageUrl: imageUrl };
-        });
-        setCampaigns(campaignsWithImages);
-      } else {
-        setCampaigns([]);
-      }
-    } catch (error) {
-      setError("Erro ao carregar a lista de campanhas.");
-      dispatchToast({ message: "Erro ao carregar campanhas.", type: "error" });
+      setCampaigns((Array.isArray(response.data) ? response.data : []).map(normalizeCampaign));
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
-  }, [user, token]);
+  }, [token, user]);
 
-  useEffect(() => {
-    fetchCampaigns();
-  }, [fetchCampaigns]);
+  useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
 
-  const fetchAvailableCharacters = async () => {
-      setModalLoading(true);
+  const openJoinDialog = async () => {
+    setJoinOpen(true);
+    setJoinError("");
     try {
-      const res = await api.get("/characters/available");
-      setAvailableChars(res.data);
-    } catch (err) {
+      const response = await api.get("/characters/available");
+      setAvailableChars(Array.isArray(response.data) ? response.data : []);
+    } catch {
       setAvailableChars([]);
-    } finally {
-      setModalLoading(false);
     }
   };
 
-  const handleOpenJoinModal = () => {
-     setOpenJoinModal(true);
-    fetchAvailableCharacters();
-  };
-
-  const handleJoinCampaign = async () => {
-     if (!inviteCode) {
-      dispatchToast({ message: "Código obrigatório.", type: "warning" });
+  const handleJoin = async () => {
+    const normalizedCode = inviteCode.replace(/\s+/g, "").toUpperCase();
+    if (!normalizedCode) {
+      setJoinError("Informe o código de convite.");
       return;
     }
-    const payload = { inviteCode };
-    if (selectedChar) payload.characterId = selectedChar;
-
+    setJoinLoading(true);
+    setJoinError("");
     try {
-      await api.post("/campaigns/join", payload);
-      setOpenJoinModal(false);
+      await api.post("/campaigns/join", { inviteCode: normalizedCode, ...(selectedChar ? { characterId: selectedChar } : {}) });
+      setJoinOpen(false);
       setInviteCode("");
       setSelectedChar("");
       dispatchToast({ message: "Você entrou na campanha.", type: "success" });
-      fetchCampaigns();
-    } catch (err) {
-      dispatchToast({ message: err.response?.data?.message || "Erro ao entrar.", type: "error" });
+      await fetchCampaigns();
+    } catch (requestError) {
+      setJoinError(getPublicErrorMessage(requestError, "Não foi possível entrar na campanha."));
+    } finally {
+      setJoinLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-      const confirmed = await confirm({
-        title: "Excluir campanha",
-        message: "Excluir registro de campanha permanentemente?",
-        tone: "danger",
-        confirmLabel: "Excluir",
-      });
-      if (confirmed) {
-      try {
-        await api.delete(`/campaigns/${id}`);
-        setCampaigns((prev) => prev.filter((c) => c._id !== id));
-        dispatchToast({ message: "Campanha excluída.", type: "success" });
-      } catch (err) {
-        setError("Erro na exclusão.");
-        dispatchToast({ message: "Erro ao excluir campanha.", type: "error" });
-      }
-    }
-  };
-
-  const filteredCampaigns = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return campaigns.filter((campaign) => {
-      const matchesSearch = !normalizedSearch
-        || campaign.name?.toLowerCase().includes(normalizedSearch)
-        || campaign.masterName?.toLowerCase().includes(normalizedSearch);
-
-      const matchesFilter =
-        campaignFilter === "all"
-        || (campaignFilter === "master" && campaign.isMaster)
-        || (campaignFilter === "player" && !campaign.isMaster);
-
-      return matchesSearch && matchesFilter;
+  const handleDelete = async (campaign) => {
+    if (deletingId) return;
+    const confirmed = await confirm({
+      title: "Excluir campanha?",
+      message: `A campanha “${campaign.name}” e seus dados serão removidos permanentemente. Esta ação não poderá ser desfeita.`,
+      tone: "danger",
+      confirmLabel: "Excluir campanha",
     });
-  }, [campaignFilter, campaigns, searchTerm]);
-  if (loading) {
-      return (
-      <PageLoader title="Carregando campanhas" subtitle="Buscando operações ativas..." />
-    );
-  }
+    if (!confirmed) return;
+    setDeletingId(campaign._id);
+    try {
+      await api.delete(`/campaigns/${campaign._id}`);
+      setCampaigns((current) => current.filter((item) => item._id !== campaign._id));
+      dispatchToast({ message: "Campanha excluída.", type: "success" });
+    } catch {
+      dispatchToast({ message: "Não foi possível excluir a campanha.", type: "error" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  if (loading) return <SkeletonState variant="cards" count={3} label="Carregando campanhas" />;
+  if (error) return <div className="campaignList"><ErrorState title="Não foi possível carregar as campanhas" description="Verifique sua conexão e tente novamente." onRetry={fetchCampaigns} /></div>;
 
   return (
-    <>
-      <div className="campaignList">
-        <div className="campaign-list-header">
-          <div>
-            <h2>CAMPANHAS</h2>
-            <p>Gerencie suas operações, entre em mesas existentes ou inicie uma nova campanha.</p>
-          </div>
-          <div className="campaign-list-actions">
-            <button type="button" className="btn-open secondary" onClick={handleOpenJoinModal}>
-              Entrar com código
-            </button>
-            <button type="button" className="btn-open primary-action" onClick={() => navigate("/create-campaign")}>
-              Nova campanha
-            </button>
-          </div>
+    <div className="campaignList">
+      <header className="campaign-list-header">
+        <div><h1>Campanhas</h1><p>Abra uma mesa existente ou comece uma nova campanha.</p></div>
+        <div className="campaign-list-actions">
+          <button type="button" className="btn-open secondary" onClick={openJoinDialog}><FaSignInAlt /> Entrar com código</button>
+          <Link className="btn-open primary-action" to="/create-campaign"><FaPlus /> Criar campanha</Link>
         </div>
+      </header>
 
-        {campaigns.length > 0 && (
-          <div className="campaign-toolbar">
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Buscar campanha ou mestre..."
-              className="campaign-search"
-            />
-            <div className="campaign-filter-group">
-              <button type="button" className={campaignFilter === "all" ? "active" : ""} onClick={() => setCampaignFilter("all")}>Todas</button>
-              <button type="button" className={campaignFilter === "master" ? "active" : ""} onClick={() => setCampaignFilter("master")}>Sou mestre</button>
-              <button type="button" className={campaignFilter === "player" ? "active" : ""} onClick={() => setCampaignFilter("player")}>Jogando</button>
-            </div>
-          </div>
-        )}
-
-        {campaigns.length === 0 ? (
-          <div className="noCampaigns">
-            <EmptyState
-              title="Nenhuma missão ativa"
-              description="Crie uma campanha nova ou entre em uma operação existente com um código de convite."
-              action={(
-                <div className="campaign-empty-actions">
-                  <button type="button" className="btn-open" onClick={() => navigate("/create-campaign")}>
-                    Iniciar campanha
-                  </button>
-                  <button type="button" className="btn-open secondary" onClick={handleOpenJoinModal}>
-                    Entrar com código
-                  </button>
-                </div>
-              )}
-            />
-          </div>
-        ) : filteredCampaigns.length === 0 ? (
-          <div className="noCampaigns">
-            <EmptyState
-              title="Nenhuma campanha encontrada"
-              description="Ajuste a busca ou limpe os filtros para ver outras campanhas."
-            />
-          </div>
-        ) : (
-          <div className="campaignCards">
-            {filteredCampaigns.map((campaign, index) => (
-              <article
-                key={campaign._id}
-                className="campaignCard"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <CardMedia
-                  component="img"
-                  className="campaignCardImage"
-                  image={campaign.coverImageUrl || "https://images.unsplash.com/photo-1626262846282-e36214878a1a?q=80&w=1000&auto=format&fit=crop"}
-                  alt={campaign.name}
-                />
-
-                <div className="contentPane">
-                  <div className="campaignInfo">
-                    <Typography className="campaignName">{campaign.name}</Typography>
-
-                    <div className="infoRow">
-                      <span className="infoLabel">Assimilador</span>
-                      <span className="infoValue">{campaign.masterName || "N/A"}</span>
-                    </div>
-                    <div className="infoRow">
-                      <span className="infoLabel">Infectados</span>
-                      <span className="infoValue">{campaign.playersCount || 0}</span>
-                    </div>
-                    <div className="infoRow" style={{borderBottom: 'none'}}>
-                      <span className="infoLabel">Status</span>
-                      <span className={campaign.status === 'finished' ? 'status-inactive' : 'status-active'}>
-                        {campaign.status === 'finished' ? 'ENCERRADA' : 'EM ANDAMENTO'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="cardActions">
-                    <button
-                      className="btn-open"
-                      onClick={() => navigate(`/campaign-lobby/${campaign._id}`)}
-                    >
-                      ACESSAR
-                    </button>
-
-                    {user && campaign.isMaster && (
-                      <Tooltip title="Arquivar/Excluir">
-                        <button
-                          className="btn-delete"
-                          onClick={() => handleDelete(campaign._id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </button>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {openJoinModal && (
-        <div className="campaign-modal-backdrop" onClick={() => setOpenJoinModal(false)}>
-          <div className="campaign-modal" onClick={(event) => event.stopPropagation()}>
-            <div className="campaign-modal-header">
-              <span>Ingressar em operação</span>
-              <button type="button" onClick={() => setOpenJoinModal(false)}>x</button>
-            </div>
-
-            <div className="campaign-modal-body">
-              <label htmlFor="inviteCode">Código de acesso</label>
-              <input
-                id="inviteCode"
-                type="text"
-                value={inviteCode}
-                onChange={(event) => setInviteCode(event.target.value)}
-                placeholder="Cole o código de convite"
-                autoFocus
-              />
-
-              <label htmlFor="select-character">Selecionar agente (opcional)</label>
-              <select
-                id="select-character"
-                value={selectedChar}
-                onChange={(event) => setSelectedChar(event.target.value)}
-                disabled={modalLoading}
-              >
-                <option value="">Espectador / Apenas entrar</option>
-                {modalLoading ? (
-                  <option disabled>Buscando registros...</option>
-                ) : availableChars.length > 0 ? (
-                  availableChars.map((char) => (
-                    <option key={char._id} value={char._id}>
-                      {char.name} ({char.occupation})
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>Sem agentes disponíveis</option>
-                )}
-              </select>
-            </div>
-
-            <div className="campaign-modal-footer">
-              <button type="button" onClick={() => setOpenJoinModal(false)}>Cancelar</button>
-              <button type="button" className="primary" onClick={handleJoinCampaign}>Confirmar</button>
-            </div>
-          </div>
+      {!campaigns.length ? (
+        <EmptyState title="Você ainda não participa de nenhuma campanha" description="Crie sua própria mesa ou entre usando um código de convite." primaryAction={<Link className="btn-open" to="/create-campaign">Criar campanha</Link>} secondaryAction={<button type="button" className="btn-open secondary" onClick={openJoinDialog}>Entrar com código</button>} />
+      ) : (
+        <div className="campaignCards">
+          {campaigns.map((campaign) => <CampaignCard key={campaign._id} campaign={campaign} onDelete={handleDelete} deleting={deletingId === campaign._id} />)}
         </div>
       )}
-    </>
+
+      <Dialog open={joinOpen} onClose={() => !joinLoading && setJoinOpen(false)} title="Entrar com código" description="Informe o código enviado pelo mestre e escolha um personagem, se desejar." size="small" actions={<><button type="button" className="confirm-button" onClick={() => setJoinOpen(false)} disabled={joinLoading}>Cancelar</button><button type="button" className="confirm-button primary" onClick={handleJoin} disabled={joinLoading}>{joinLoading ? "Entrando..." : "Entrar na campanha"}</button></>}>
+        <div className="campaign-modal-body campaign-dialog-body">
+          <label htmlFor="inviteCode">Código de convite</label>
+          <input id="inviteCode" value={inviteCode} onChange={(event) => { setInviteCode(event.target.value.toUpperCase()); setJoinError(""); }} placeholder="Ex.: NERO47" autoComplete="off" />
+          <label htmlFor="select-character">Personagem opcional</label>
+          <select id="select-character" value={selectedChar} onChange={(event) => setSelectedChar(event.target.value)}><option value="">Entrar sem vincular personagem</option>{availableChars.map((character) => <option key={character._id} value={character._id}>{character.name} ({character.occupation || "Sem ocupação"})</option>)}</select>
+          {joinError && <p className="campaign-field-error" role="alert">{joinError}</p>}
+        </div>
+      </Dialog>
+    </div>
   );
 };
 

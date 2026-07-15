@@ -21,6 +21,7 @@ import { useConfirm } from "./notifications/ConfirmProvider";
 import SystemText from "./SystemText";
 import { dispatchToast } from "./notifications/ToastProvider";
 import EmptyState from "./ui/EmptyState";
+import Dialog from "./ui/Dialog";
 import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 
 // Mapeamento de categorias (Escassez)
@@ -258,14 +259,13 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
         ))}
       </div>
 
-      {/* Modal Unificado */}
-      {modalOpen && (
-        <div className="nero-modal-overlay" onClick={(e) => { if (e.target.className === 'nero-modal-overlay') handleCloseModal() }}>
-          <div className="nero-modal">
-            <div className="nero-modal-header">
-              {editingItem ? "EDITAR ITEM" : "CRIAR NOVO ITEM"}
-            </div>
-            
+      <Dialog
+        open={modalOpen}
+        onClose={handleCloseModal}
+        title={editingItem ? "Editar item" : "Criar novo item"}
+        size="medium"
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCloseModal}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSubmit}>Salvar</button></>}
+      >
             <div className="nero-modal-body">
               <div className="form-group">
                 <label>NOME</label>
@@ -393,18 +393,7 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
                 />
               </div>
             </div>
-
-            <div className="nero-modal-footer">
-              <button className="btn-nero btn-secondary" onClick={handleCloseModal}>
-                CANCELAR
-              </button>
-              <button className="btn-nero btn-primary" onClick={handleSubmit}>
-                SALVAR
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   );
 };

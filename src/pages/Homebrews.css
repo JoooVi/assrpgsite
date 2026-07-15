@@ -620,6 +620,36 @@
   }
 }
 
+@media (max-width: 480px) {
+  .homebrews-container {
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-inline: 10px;
+  }
+
+  .hb-panel {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .hb-hero,
+  .hb-content,
+  .hb-card,
+  .hb-form-grid {
+    min-width: 0;
+  }
+
+  .hb-tabs {
+    max-width: 100%;
+  }
+
+  .hb-tabs button,
+  .hb-actions button,
+  .hb-actions a {
+    min-height: 44px;
+  }
+}
+
 .hb-centered-page {
   align-items: center;
 }
@@ -916,6 +946,9 @@
   padding: 15px;
   background: #080808;
 }
+
+.hb-picker-dialog .nero-dialog-content { padding: 0; }
+.hb-picker-dialog .hb-picker-scroll { max-height: calc(86vh - 250px); }
 
 .hb-picker-item-grid {
   display: grid;

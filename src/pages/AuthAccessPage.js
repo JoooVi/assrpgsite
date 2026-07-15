@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -76,6 +76,10 @@ const AuthAccessPage = () => {
   const { status, error: loginError, isAuthenticated } = useSelector((state) => state.auth);
 
   const isRegisterMode = location.pathname === "/register";
+  const requestedLocation = location.state?.from;
+  const postAuthPath = requestedLocation?.pathname
+    ? `${requestedLocation.pathname}${requestedLocation.search || ""}${requestedLocation.hash || ""}`
+    : "/characters";
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -84,6 +88,8 @@ const AuthAccessPage = () => {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
+  const loginFaceRef = useRef(null);
+  const registerFaceRef = useRef(null);
 
   const cardClassName = useMemo(
     () => `auth-flip-card ${isRegisterMode ? "is-register" : ""}`,
@@ -92,9 +98,14 @@ const AuthAccessPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/characters");
+      navigate(postAuthPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, postAuthPath]);
+
+  useEffect(() => {
+    if (loginFaceRef.current) loginFaceRef.current.inert = isRegisterMode;
+    if (registerFaceRef.current) registerFaceRef.current.inert = !isRegisterMode;
+  }, [isRegisterMode]);
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
@@ -120,7 +131,7 @@ const AuthAccessPage = () => {
       });
 
       if (response.data.token) {
-        navigate("/login");
+        navigate("/login", { state: location.state, replace: true });
       } else {
         setRegisterError("Falha no registro.");
       }
@@ -139,7 +150,11 @@ const AuthAccessPage = () => {
     <div className="auth-container auth-flip-container">
       <div className="auth-flip-stage">
         <div className={cardClassName}>
-          <section className="auth-box auth-flip-face auth-flip-front">
+          <section
+            ref={loginFaceRef}
+            className="auth-box auth-flip-face auth-flip-front"
+            aria-hidden={isRegisterMode}
+          >
             <h2 className="auth-title">Acessar Sistema</h2>
             <p className="auth-subtitle">
               Entre na sua conta para acessar personagens, campanhas e ferramentas da mesa.
@@ -193,13 +208,17 @@ const AuthAccessPage = () => {
 
             <div className="auth-footer">
               <p>Não possui credenciais?</p>
-              <Button type="button" variant="outlined" fullWidth sx={outlineButtonSx} onClick={() => navigate("/register")}>
+              <Button type="button" variant="outlined" fullWidth sx={outlineButtonSx} onClick={() => navigate("/register", { state: location.state })}>
                 Solicitar Cadastro
               </Button>
             </div>
           </section>
 
-          <section className="auth-box auth-flip-face auth-flip-back">
+          <section
+            ref={registerFaceRef}
+            className="auth-box auth-flip-face auth-flip-back"
+            aria-hidden={!isRegisterMode}
+          >
             <h2 className="auth-title">Solicitar Cadastro</h2>
             <p className="auth-subtitle">
               Crie sua conta para registrar fichas, campanhas e conteúdos personalizados.
@@ -229,7 +248,7 @@ const AuthAccessPage = () => {
 
             <div className="auth-footer">
               <p>Já possui cadastro?</p>
-              <Button type="button" variant="outlined" fullWidth sx={outlineButtonSx} onClick={() => navigate("/login")}>
+              <Button type="button" variant="outlined" fullWidth sx={outlineButtonSx} onClick={() => navigate("/login", { state: location.state })}>
                 Acessar Sistema
               </Button>
             </div>

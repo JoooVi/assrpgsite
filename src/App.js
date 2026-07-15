@@ -1,4 +1,4 @@
-﻿// src/App.js
+// src/App.js
 import React, { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -27,6 +27,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CharacterPortraitPage from "./pages/CharacterPortraitPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import EditProfilePage from "./pages/EditProfilePage";
+import NotFoundPage from "./pages/NotFoundPage";
 // Hooks customizados
 import useTokenRefresh from "./hooks/useTokenRefresh";
 
@@ -68,6 +69,9 @@ const AppContent = () => {
   const routeTransitionKey = ['/login', '/register'].includes(location.pathname)
     ? 'auth-access'
     : location.pathname;
+  const requireAuth = (element) => isAuthenticated
+    ? element
+    : <Navigate to="/login" replace state={{ from: location }} />;
 
   useEffect(() => {
     const interceptorId = axios.interceptors.response.use(
@@ -115,40 +119,42 @@ const AppContent = () => {
             <Route path="/character-portrait/:id" element={<CharacterPortraitPage />} />
             
             {/* --- Rotas Protegidas --- */}
-            <Route path="/create" element={isAuthenticated ? <PageTransition><CharacterForm /></PageTransition> : <Navigate to="/login" replace />} />
-            <Route path="/perfil" element={isAuthenticated ? <PageTransition><ProfilePage /></PageTransition> : <Navigate to="/login" replace />} />
-            <Route path="/edit-profile" element={isAuthenticated ? <PageTransition><EditProfilePage /></PageTransition> : <Navigate to="/login" replace />} />
-            <Route path="/characters" element={isAuthenticated ? <PageTransition><CharacterList /></PageTransition> : <Navigate to="/login" replace />} />
-            <Route path="/character-sheet/:id" element={isAuthenticated ? (isEmbedMode ? <CharacterSheet /> : <PageTransition><CharacterSheet /></PageTransition>) : <Navigate to="/login" replace />} />
-            <Route path="/homebrews" element={isAuthenticated ? <PageTransition><Homebrews /></PageTransition> : <Navigate to="/login" replace />} />
-            <Route path="/campaigns" element={isAuthenticated ? <PageTransition><CampaignList /></PageTransition> : <Navigate to="/login" replace />} />
-            <Route path="/create-campaign" element={isAuthenticated ? <PageTransition><CampaignForm /></PageTransition> : <Navigate to="/login" replace />} />
+            <Route path="/create" element={requireAuth(<PageTransition><CharacterForm /></PageTransition>)} />
+            <Route path="/perfil" element={requireAuth(<PageTransition><ProfilePage /></PageTransition>)} />
+            <Route path="/edit-profile" element={requireAuth(<PageTransition><EditProfilePage /></PageTransition>)} />
+            <Route path="/characters" element={requireAuth(<PageTransition><CharacterList /></PageTransition>)} />
+            <Route path="/character-sheet/:id" element={requireAuth(isEmbedMode ? <CharacterSheet /> : <PageTransition><CharacterSheet /></PageTransition>)} />
+            <Route path="/homebrews" element={requireAuth(<PageTransition><Homebrews /></PageTransition>)} />
+            <Route path="/campaigns" element={requireAuth(<PageTransition><CampaignList /></PageTransition>)} />
+            <Route path="/create-campaign" element={requireAuth(<PageTransition><CampaignForm /></PageTransition>)} />
             
             {/* --- ROTAS DA CAMPANHA --- */}
             <Route
               path="/campaign-lobby/:id"
-              element={isAuthenticated ? <PageTransition><CampaignLobby /></PageTransition> : <Navigate to="/login" replace />}
+              element={requireAuth(<PageTransition><CampaignLobby /></PageTransition>)}
             />
             <Route
               path="/campaign-sheet/:id"
-              element={isAuthenticated ? <PageTransition><CampaignSheet /></PageTransition> : <Navigate to="/login" replace />}
+              element={requireAuth(<PageTransition><CampaignSheet /></PageTransition>)}
             />
             <Route
               path="/campaign/:id/refuges"
-              element={isAuthenticated ? <PageTransition><RefugeLobby /></PageTransition> : <Navigate to="/login" replace />}
+              element={requireAuth(<PageTransition><RefugeLobby /></PageTransition>)}
             />
             <Route
               path="/campaign/:id/refuge/:refugeId"
-              element={isAuthenticated ? <PageTransition><RefugeDashboard /></PageTransition> : <Navigate to="/login" replace />}
+              element={requireAuth(<PageTransition><RefugeDashboard /></PageTransition>)}
             />
             <Route
               path="/campaign/:id/refuge"
-              element={isAuthenticated ? <Navigate to={`/campaign/${location.pathname.split('/')[2]}/refuges`} replace /> : <Navigate to="/login" replace />}
+              element={requireAuth(<Navigate to={`/campaign/${location.pathname.split('/')[2]}/refuges`} replace />)}
             />
             <Route
               path="/campanha/:id/vtt"
-              element={isAuthenticated ? <VTT /> : <Navigate to="/login" replace />}
+              element={requireAuth(<VTT />)}
             />
+
+            <Route path="*" element={<PageTransition><NotFoundPage /></PageTransition>} />
 
           </Routes>
           </Suspense>

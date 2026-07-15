@@ -16,7 +16,7 @@ import {
   FaUpload, FaRuler, FaPencilAlt, FaUserShield, FaFolder, FaTimes,
   FaTh, FaGhost, FaCar, FaCrosshairs, FaBoxOpen, FaEllipsisH,
     FaFont, FaEraser, FaUndo, FaRedo, FaLayerGroup, FaUserSecret,
-    FaQuestionCircle, FaKeyboard, FaEye, FaEyeSlash, FaDiceD20,
+    FaQuestionCircle, FaEye, FaEyeSlash, FaDiceD20,
     FaUsers, FaImage, FaCircle, FaSquare, FaHeart, FaRegHeart, FaSlidersH, FaLock, FaUnlock, FaCopy, FaAlignLeft, FaAlignCenter, FaAlignRight, FaShapes, FaSlash, FaLowVision, FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown
 } from 'react-icons/fa';
 import MasterDiceRoller from '../components/MasterDiceRoller';
@@ -24,6 +24,7 @@ import EventDeckModal from '../components/EventDeckModal';
 import NPCGenerator from '../components/NPCGenerator';
 import { useConfirm } from '../components/notifications/ConfirmProvider';
 import { dispatchToast } from '../components/notifications/ToastProvider';
+import Dialog from '../components/ui/Dialog';
 import { API_BASE_URL } from '../config/apiConfig';
 import { setVttPerformanceMetric } from '../utils/vttPerformance';
 
@@ -2072,13 +2073,7 @@ const VTT = () => {
       )}
 
       {/* MODAL GERENCIADOR DE ASSETS */}
-      {isAssetManagerOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.sceneManagerBox} ${styles.assetManagerBox}`}>
-            <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Gerenciador de assets</h3>
-              <button onClick={() => setIsAssetManagerOpen(false)} className={styles.modalCloseBtn}><FaTimes size={18}/></button>
-            </div>
+      <Dialog open={isAssetManagerOpen} onClose={() => setIsAssetManagerOpen(false)} title="Gerenciador de assets" description="Uploads disponíveis para a mesa" size="large" className={`${styles.sceneManagerBox} ${styles.assetManagerBox} ${styles.vttDialog}`}>
             <div className={styles.modalScrollBody}>
               <div className={styles.modalToolbar}>
                 <div>
@@ -2113,9 +2108,7 @@ const VTT = () => {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       {/* BARRA SUPERIOR E GESTOR DE CENAS */}
       <div className={styles.topBar}>
@@ -2466,15 +2459,12 @@ const VTT = () => {
         )}
       </div>
 
-      {isSceneManagerOpen && isMaster && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.sceneManagerBox}>
-            <div className={styles.modalHeader}>
+      <Dialog open={isSceneManagerOpen && isMaster} onClose={() => setIsSceneManagerOpen(false)} title="Gerenciar cenas" description="Cenas, pastas e biblioteca da campanha" size="large" className={`${styles.sceneManagerBox} ${styles.vttDialog}`}>
+            <div>
               <div className={styles.managerTabs}>
                 <button onClick={() => setManagerTab('scenes')} className={`${styles.managerTabBtn} ${managerTab === 'scenes' ? styles.managerTabBtnActive : ''}`}>Cenas e pastas</button>
                 <button onClick={() => setManagerTab('assets')} className={`${styles.managerTabBtn} ${managerTab === 'assets' ? styles.managerTabBtnActive : ''}`}>Biblioteca oficial</button>
               </div>
-              <button onClick={() => setIsSceneManagerOpen(false)} className={styles.modalCloseBtn}><FaTimes size={18}/></button>
             </div>
 
             <div className={styles.modalBody}>
@@ -2557,22 +2547,12 @@ const VTT = () => {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       {/* EDITOR DE TOKEN */}
-      {editingToken && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.tokenEditBox}>
-            <div className={styles.tokenEditHeader}>
-              <div>
-                <h3 className={styles.tokenEditTitle}>Editar token</h3>
-                <p className={styles.tokenEditSubtitle}>{editingToken.name || 'Token sem nome'}</p>
-              </div>
-              <button type="button" onClick={() => setEditingToken(null)} className={styles.modalCloseBtn}><FaTimes /></button>
-            </div>
-
+      <Dialog open={!!editingToken} onClose={() => setEditingToken(null)} title="Editar token" description={editingToken?.name || 'Token sem nome'} size="large" className={`${styles.tokenEditBox} ${styles.vttDialog}`}>
+        {editingToken && (
+          <>
             <div className={styles.tokenEditPreview}>
               {editingToken.avatarUrl ? (
                 <img
@@ -2737,9 +2717,9 @@ const VTT = () => {
                 setEditingToken(null);
               }} className={styles.primaryBtn}>Salvar alterações</button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Dialog>
 
       {/* INPUT DE LABEL ABAIXO DO TOKEN (duplo clique) */}
       {editingLabel && (
@@ -3437,10 +3417,7 @@ const VTT = () => {
 
       <ConflictTracker open={openConflictModal} onClose={() => setOpenConflictModal(false)} onStartConflict={handleStartConflict} />
 
-      {isHelpOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsHelpOpen(false)}>
-          <div className={styles.tokenEditBox} style={{ maxWidth: 400, transform: 'translateY(-20vh)' }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0, color: '#ff3333', fontFamily: 'Orbitron', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}><FaKeyboard /> Atalhos do VTT</h3>
+      <Dialog open={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Atalhos do VTT" size="small" actions={<button type="button" onClick={() => setIsHelpOpen(false)} className={styles.primaryBtn}>Entendi</button>}>
             <ul style={{ listStyle: 'none', padding: 0, color: '#dce5ef', fontSize: 13, lineHeight: '2' }}>
               <li><strong>RMB (Direito)</strong>: Mover câmera (Pan) livre</li>
               <li><strong>V</strong>: Selecionar</li>
@@ -3453,42 +3430,19 @@ const VTT = () => {
               <li><strong>Ctrl + Z</strong>: Desfazer</li>
               <li><strong>Ctrl + Y</strong>: Refazer</li>
             </ul>
-            <button onClick={() => setIsHelpOpen(false)} className={styles.primaryBtn} style={{ marginTop: 15 }}>Entendi</button>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
-      {openNpcModal && (
-        <div className={styles.modalOverlay} onClick={() => setOpenNpcModal(false)}>
-           <div style={{ width: 800, background: '#111', border: '1px solid #333', borderRadius: 8, padding: 16 }} onClick={e => e.stopPropagation()}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15 }}>
-               <h3 style={{ margin: 0, color: '#fff', fontFamily: 'Orbitron' }}>Gerar NPC rápido</h3>
-               <button onClick={() => setOpenNpcModal(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 18 }}><FaTimes /></button>
-             </div>
+      <Dialog open={openNpcModal} onClose={() => setOpenNpcModal(false)} title="Gerar NPC rápido" size="large" className={styles.vttDialog}>
              <NPCGenerator campaignId={id} onNpcSaved={() => setOpenNpcModal(false)} onShareToChat={handleShareToChat} />
-           </div>
-        </div>
-      )}
+      </Dialog>
 
       <EventDeckModal open={openEventDeckModal} onClose={() => setOpenEventDeckModal(false)} onSelectEvent={() => setOpenEventDeckModal(false)} onShareToChat={handleShareToChat} />
 
-      {sheetOverlayCharId && (
-        <div className={styles.modalOverlay} onClick={() => setSheetOverlayCharId('')}>
-          <div className={styles.sheetModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.sheetModalHeader}>
-              <div>
-                <span className={styles.sheetModalKicker}>VTT</span>
-                <strong>Ficha integrada</strong>
-              </div>
-              <button type="button" onClick={() => setSheetOverlayCharId('')} className={styles.modalCloseBtn} title="Fechar ficha">
-                <FaTimes size={13} />
-                <span>Fechar</span>
-              </button>
-            </div>
+      <Dialog open={!!sheetOverlayCharId} onClose={() => setSheetOverlayCharId('')} title="Ficha integrada" description="Ficha aberta dentro do VTT" size="large" className={`${styles.sheetModal} ${styles.vttDialog}`}>
+        {sheetOverlayCharId && (
             <iframe title="Ficha do personagem" src={`/character-sheet/${sheetOverlayCharId}?embed=1&vtt=1`} className={styles.sheetModalFrame} />
-          </div>
-        </div>
-      )}
+        )}
+      </Dialog>
 
       <Profiler id="VTTMap" onRender={handleMapProfile}>
       <VTTMap

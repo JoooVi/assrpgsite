@@ -357,3 +357,8 @@ input[type=range].nero-range::-moz-range-thumb {
   box-shadow: 0 0 15px rgba(59, 71, 102, 0.1);
   background: linear-gradient(to bottom, #090b11, #080808) !important;
 }
+
+.character-create-button { align-items: center; background: #8a1c18; border: 1px solid #a82924; color: #fff; cursor: pointer; display: inline-flex; font: 800 .75rem/1 "Roboto Condensed", sans-serif; gap: 8px; justify-content: center; min-height: 44px; padding: 0 16px; text-decoration: none; text-transform: uppercase; }
+.characterGrid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: flex-start; }
+@media (max-width: 1024px) { .characterGrid { justify-content: center; } }
+@media (max-width: 600px) { .characterListContainer { padding-inline: 14px; } .listHeader { align-items: center; flex-direction: column; gap: 15px; text-align: center; } .character-create-button { width: 100%; } }

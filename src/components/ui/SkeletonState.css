@@ -1,0 +1,26 @@
+.skeleton-state {
+  display: grid;
+  gap: 18px;
+  margin: 110px auto 40px;
+  max-width: 1320px;
+  padding: 24px;
+  width: 100%;
+}
+
+.skeleton-cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.skeleton-list { grid-template-columns: 1fr; max-width: 920px; }
+.skeleton-item { background: #111; border: 1px solid #2b2b2b; min-height: 220px; padding: 14px; }
+.skeleton-list .skeleton-item { min-height: 96px; }
+.skeleton-media, .skeleton-line { background: #202020; display: block; overflow: hidden; position: relative; }
+.skeleton-media { height: 120px; margin-bottom: 18px; width: 100%; }
+.skeleton-list .skeleton-media { float: left; height: 66px; margin: 0 16px 0 0; width: 66px; }
+.skeleton-line { height: 10px; margin-top: 10px; width: 90%; }
+.skeleton-line-title { height: 15px; width: 62%; }
+.skeleton-line-short { width: 38%; }
+.skeleton-media::after, .skeleton-line::after { background: linear-gradient(90deg, transparent, rgba(138, 28, 24, 0.16), transparent); content: ""; inset: 0; position: absolute; transform: translateX(-100%); }
+.sr-only { height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton-media::after, .skeleton-line::after { animation: skeleton-sweep 1.35s infinite; }
+}
+@keyframes skeleton-sweep { to { transform: translateX(100%); } }

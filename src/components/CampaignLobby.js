@@ -8,8 +8,11 @@ import { useConfirm } from "./notifications/ConfirmProvider";
 import PageLoader from "./ui/PageLoader";
 import InlineLoader from "./ui/InlineLoader";
 import EmptyState from "./ui/EmptyState";
+import ErrorState from "./ui/ErrorState";
+import Dialog from "./ui/Dialog";
 import api from "../api";
 import { API_BASE_URL } from "../config/apiConfig";
+import { getPublicErrorMessage } from "../utils/httpErrors";
 
 // Ícones
 import {
@@ -21,7 +24,6 @@ import {
   FaTv,
   FaTrash,
   FaEye,
-  FaExclamationTriangle,
   FaSave,
   FaRandom,
   FaCopy,
@@ -69,6 +71,7 @@ const CampaignLobby = () => {
   const [coverImageUrl, setCoverImageUrl] = useState(null);
   const [inviteCodeDraft, setInviteCodeDraft] = useState("");
   const [isSavingInviteCode, setIsSavingInviteCode] = useState(false);
+  const [inviteCodeError, setInviteCodeError] = useState("");
 
   const [openCharModal, setOpenCharModal] = useState(false);
   const [availableChars, setAvailableChars] = useState([]);
@@ -113,7 +116,7 @@ const CampaignLobby = () => {
       }
       setCoverImageUrl(img || DEFAULT_COVER_IMAGE);
     } catch (err) {
-      setError("Falha ao carregar dados da campanha.");
+      setError(getPublicErrorMessage(err, "Falha ao carregar dados da campanha."));
     } finally {
       setLoading(false);
     }
@@ -149,7 +152,7 @@ const CampaignLobby = () => {
       setCoverImageUrl(newUrl || DEFAULT_COVER_IMAGE);
       showToast("Capa atualizada com sucesso!", "success");
     } catch (err) {
-      showToast("Erro ao atualizar capa.", "error");
+      showToast(getPublicErrorMessage(err, "Erro ao atualizar capa."), "error");
     } finally {
       setIsUploading(false);
     }
@@ -166,7 +169,7 @@ const CampaignLobby = () => {
       setAvailableChars(res.data);
       setOpenCharModal(true);
     } catch (err) {
-      showToast("Erro ao buscar personagens.", "error");
+      showToast(getPublicErrorMessage(err, "Erro ao buscar personagens."), "error");
     }
   };
 
@@ -177,7 +180,7 @@ const CampaignLobby = () => {
       fetchCampaignData();
       showToast("Agente adicionado à operação.");
     } catch (err) {
-      showToast("Erro ao adicionar agente.", "error");
+      showToast(getPublicErrorMessage(err, "Erro ao vincular personagem."), "error");
     }
   };
 
@@ -195,7 +198,7 @@ const CampaignLobby = () => {
       fetchCampaignData();
       showToast("Agente removido.");
     } catch (err) {
-      showToast("Erro ao remover agente.", "error");
+      showToast(getPublicErrorMessage(err, "Erro ao remover personagem."), "error");
     }
   };
 
@@ -212,12 +215,13 @@ const CampaignLobby = () => {
 
   const handleUpdateInviteCode = async ({ autoGenerate = false } = {}) => {
     const normalizedCode = inviteCodeDraft.replace(/\s+/g, "").toUpperCase();
+    setInviteCodeError("");
     if (!autoGenerate && !normalizedCode) {
-      showToast("Informe um código ou gere um automaticamente.", "warning");
+      setInviteCodeError("Informe um código ou gere um automaticamente.");
       return;
     }
     if (!autoGenerate && !/^[A-Z0-9]{4,12}$/.test(normalizedCode)) {
-      showToast("Código inválido. Use de 4 a 12 letras e números.", "warning");
+      setInviteCodeError("Use de 4 a 12 letras e números.");
       return;
     }
 
@@ -231,7 +235,7 @@ const CampaignLobby = () => {
       setCampaign((current) => ({ ...current, inviteCode: nextCode }));
       showToast(autoGenerate ? "Novo código gerado." : "Código atualizado.", "success");
     } catch (err) {
-      showToast(err.response?.data?.message || "Não foi possível atualizar o código.", "error");
+      setInviteCodeError(getPublicErrorMessage(err, "Não foi possível atualizar o código."));
     } finally {
       setIsSavingInviteCode(false);
     }
@@ -246,31 +250,12 @@ const CampaignLobby = () => {
 
   if (error || !campaign)
     return (
-      <div className="lobby-page" style={{ alignItems: "center" }}>
-        <div
-          className="lobby-panel"
-          style={{ textAlign: "center", maxWidth: "500px" }}
-        >
-          <FaExclamationTriangle
-            style={{ fontSize: "3rem", color: "#ff3333", marginBottom: "20px" }}
-          />
-          <h2>ACESSO NEGADO / ERRO</h2>
-          <p>{error || "Campanha não encontrada."}</p>
-          <Link
-            to="/campaigns"
-            className="btn-nero btn-secondary"
-            style={{ marginTop: "20px" }}
-          >
-            VOLTAR
-          </Link>
-        </div>
-      </div>
+      <div className="lobby-page"><ErrorState title="Não foi possível abrir a campanha" description={error || "Campanha não encontrada."} onRetry={fetchCampaignData} action={<Link to="/campaigns" className="btn-nero btn-secondary">Voltar às campanhas</Link>} /></div>
     );
 
   return (
     <div className="lobby-page">
       <div className="lobby-panel">
-
         {/* HEADER DA CAMPANHA */}
         <div className="lobby-header">
           {/* Capa com Upload */}
@@ -305,35 +290,24 @@ const CampaignLobby = () => {
         <div className="campaign-command-grid">
           <Link to={`/campanha/${campaignId}/vtt`} className="campaign-command-card primary">
             <FaTv />
-            <span>Entrar no VTT</span>
+            <span>Abrir VTT</span>
             <small>Mesa virtual da campanha</small>
           </Link>
 
           <Link to={`/campaign/${campaignId}/refuges`} className="campaign-command-card">
             <FaHome />
-            <span>Refúgios</span>
+            <span>Ver refúgios</span>
             <small>Bases, recursos e sala de guerra</small>
           </Link>
 
           {isMaster && (
             <Link to={`/campaign-sheet/${campaignId}`} className="campaign-command-card">
               <FaShieldAlt />
-              <span>Escudo do Mestre</span>
+              <span>Abrir escudo</span>
               <small>Controle da sessão e conflitos</small>
             </Link>
           )}
 
-          <button type="button" onClick={handleOpenCharModal} className="campaign-command-card">
-            <FaUserPlus />
-            <span>Adicionar agente</span>
-            <small>Vincular personagem à campanha</small>
-          </button>
-
-          <button type="button" onClick={handleInvite} className="campaign-command-card">
-            <FaUserFriends />
-            <span>Convidar</span>
-            <small>Copiar código de acesso</small>
-          </button>
         </div>
 
         {isMaster ? (
@@ -343,13 +317,14 @@ const CampaignLobby = () => {
               <input
                 id="campaign-invite-code"
                 value={inviteCodeDraft}
-                onChange={(event) => setInviteCodeDraft(event.target.value.replace(/\s+/g, "").toUpperCase())}
+                onChange={(event) => { setInviteCodeDraft(event.target.value.replace(/\s+/g, "").toUpperCase()); setInviteCodeError(""); }}
                 onKeyDown={(event) => { if (event.key === "Enter" && !isSavingInviteCode) handleUpdateInviteCode(); }}
                 maxLength={12}
                 placeholder="Nenhum código criado"
                 className="campaign-invite-input"
               />
             </div>
+            {inviteCodeError && <p className="campaign-invite-error" role="alert">{inviteCodeError}</p>}
             <div className="campaign-invite-actions">
               <button type="button" className="btn-nero btn-secondary" onClick={() => handleUpdateInviteCode()} disabled={isSavingInviteCode}>
                 <FaSave /> Salvar
@@ -378,7 +353,7 @@ const CampaignLobby = () => {
           <div className="char-section-header">
             <h3 className="char-section-title">AGENTES ATIVOS</h3>
             <button type="button" className="btn-nero btn-secondary" onClick={handleOpenCharModal}>
-              <FaUserPlus /> Adicionar agente
+              <FaUserPlus /> Vincular personagem
             </button>
           </div>
 
@@ -420,8 +395,9 @@ const CampaignLobby = () => {
                             target="_blank"
                             className="btn-icon-small view"
                             title="Ver Ficha"
+                            aria-label={`Abrir ficha de ${char.name}`}
                           >
-                            <FaEye />
+                            <FaEye aria-hidden="true" />
                           </Link>
                         ) : (
                           // Se for privada, mostra um cadeado cinza e não deixa clicar
@@ -429,8 +405,9 @@ const CampaignLobby = () => {
                             className="btn-icon-small"
                             style={{ cursor: "not-allowed", opacity: 0.5 }}
                             title="Ficha Privada"
+                            aria-label={`A ficha de ${char.name} é privada`}
                           >
-                            <FaShieldAlt />
+                            <FaShieldAlt aria-hidden="true" />
                           </span>
                         )}
 
@@ -439,19 +416,22 @@ const CampaignLobby = () => {
                           target="_blank"
                           className="btn-icon-small view"
                           title="Portrait Stream"
+                          aria-label={`Abrir portrait de ${char.name}`}
                         >
-                          <FaTv />
+                          <FaTv aria-hidden="true" />
                         </Link>
 
                         {(isMaster || isOwner) && (
                           <button
+                            type="button"
                             className="btn-icon-small delete"
                             onClick={() =>
                               handleRemoveCharacter(char._id, char.name)
                             }
                             title="Remover da Campanha"
+                            aria-label={`Remover ${char.name} da campanha`}
                           >
-                            <FaTrash />
+                            <FaTrash aria-hidden="true" />
                           </button>
                         )}
                       </div>
@@ -463,30 +443,20 @@ const CampaignLobby = () => {
                 compact
                 title="Nenhum agente registrado"
                 description="Adicione personagens para iniciar a operação."
-                action={(
-                  <button type="button" className="btn-nero btn-primary" onClick={handleOpenCharModal}>
-                    <FaUserPlus /> Adicionar agente
-                  </button>
-                )}
               />
             )}
           </div>
         </div>
       </div>
 
-      {/* MODAL DE ADICIONAR PERSONAGEM */}
-      {openCharModal && (
-        <div
-          className="nero-modal-overlay"
-          onClick={(e) => {
-            if (e.target.className === "nero-modal-overlay")
-              setOpenCharModal(false);
-          }}
-        >
-          <div className="nero-modal">
-            <div className="nero-modal-header">
-              SELECIONAR AGENTE PARA A MISSÃO
-            </div>
+      <Dialog
+        open={openCharModal}
+        onClose={() => setOpenCharModal(false)}
+        title="Adicionar personagem"
+        description="Selecione uma ficha disponível para vincular à campanha."
+        size="medium"
+        actions={<button type="button" className="confirm-button" onClick={() => setOpenCharModal(false)}>Fechar</button>}
+      >
             <div className="nero-modal-content">
               {availableChars.length > 0 ? (
                 availableChars.map((char) => (
@@ -526,17 +496,7 @@ const CampaignLobby = () => {
                 </p>
               )}
             </div>
-            <div className="nero-modal-actions">
-              <button
-                className="btn-nero btn-secondary"
-                onClick={() => setOpenCharModal(false)}
-              >
-                FECHAR
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   );
 };

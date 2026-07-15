@@ -309,3 +309,16 @@
 .form-actions {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
+ .campaign-code-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+ .campaign-code-actions .btn-nero { min-height: 40px; padding-block: 0; }
+ .campaign-created-state { align-items: center; display: flex; flex-direction: column; padding: clamp(20px, 5vw, 48px); text-align: center; }
+ .campaign-created-icon { color: #78d393; font-size: 2rem; }
+ .campaign-created-state > span { color: #78d393; font: 800 .7rem/1 "Roboto Condensed", sans-serif; letter-spacing: .12em; margin-top: 14px; text-transform: uppercase; }
+ .campaign-created-state h1 { color: #fff; font: 700 clamp(1.5rem, 4vw, 2.5rem)/1.15 "Orbitron", sans-serif; margin: 10px 0; text-transform: uppercase; }
+ .campaign-created-state > p { color: #999; max-width: 52ch; }
+ .campaign-created-code { align-items: center; background: #080808; border: 1px solid #333; display: grid; gap: 8px; margin: 20px 0; min-width: min(100%, 360px); padding: 16px; }
+ .campaign-created-code span { color: #777; font: 800 .66rem/1 "Roboto Condensed", sans-serif; text-transform: uppercase; }
+ .campaign-created-code strong { color: #fff; font: 700 1.4rem/1 "Orbitron", sans-serif; letter-spacing: .16em; }
+ .campaign-created-code button { background: #161616; border: 1px solid #444; color: #ddd; cursor: pointer; min-height: 40px; }
+ .campaign-created-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+ @media (max-width: 540px) { .campaign-created-actions { align-items: stretch; flex-direction: column; width: 100%; } }

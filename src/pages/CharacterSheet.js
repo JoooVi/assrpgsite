@@ -21,6 +21,7 @@ import DiceFace from "../components/DiceFace";
 import { dispatchToast } from "../components/notifications/ToastProvider";
 import PageLoader from "../components/ui/PageLoader";
 import EmptyState from "../components/ui/EmptyState";
+import Dialog from "../components/ui/Dialog";
 import api from "../api";
 import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 
@@ -292,28 +293,16 @@ const validateImageFile = (file) => {
 // ------------------------------------------
 
 const CustomModal = ({ open, onClose, title, children }) => {
-  if (!open) return null;
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
-      <div className={styles.modalPanel} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h3 className={styles.modalTitle}>{title}</h3>
-          <button className={styles.closeBtn} onClick={onClose}>
-            &times;
-          </button>
-        </div>
-        <div className={styles.modalContent}>{children}</div>
-        <div className={styles.modalActions}>
-          <button
-            className={`${styles.mainBtn}`}
-            onClick={onClose}
-            style={{ padding: "6px 12px", fontSize: "0.8rem" }}
-          >
-            Fechar
-          </button>
-        </div>
-      </div>
-    </div>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={title}
+      size="small"
+      actions={<button type="button" className={styles.mainBtn} onClick={onClose}>Fechar</button>}
+    >
+      <div className={styles.modalContent}>{children}</div>
+    </Dialog>
   );
 };
 
@@ -1200,8 +1189,13 @@ const CharacterSheet = () => {
                 SEM ID
               </div>
             )}
-            <label htmlFor="avatar-upload" className={styles.avatarEditOverlay}>
-              <PhotoCameraIcon style={{ color: "white", fontSize: 30 }} />
+            <label
+              htmlFor="avatar-upload"
+              className={styles.avatarEditOverlay}
+              aria-label="Alterar imagem do personagem"
+              title="Alterar imagem do personagem"
+            >
+              <PhotoCameraIcon aria-hidden="true" style={{ color: "white", fontSize: 30 }} />
             </label>
             <input
               id="avatar-upload"
@@ -1394,13 +1388,16 @@ const CharacterSheet = () => {
                           )}
                         </div>
                       ))}
-                      <div
-                        className={styles.heartIcon}
+                      <button
+                        type="button"
+                        className={`${styles.heartIcon} ${styles.iconButton}`}
                         onClick={() => handleHealthChange(idx, 0)}
                         style={{ marginLeft: "auto" }}
+                        aria-label={`Limpar pontos de ${info.name}`}
+                        title={`Limpar pontos de ${info.name}`}
                       >
-                        <DeleteIcon style={{ fontSize: 16, color: "#444" }} />
-                      </div>
+                        <DeleteIcon aria-hidden="true" style={{ fontSize: 16, color: "#777" }} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -1554,10 +1551,15 @@ const CharacterSheet = () => {
                         <SystemText text={c.description} />
                       </div>
                     </div>
-                    <DeleteIcon
+                    <button
+                      type="button"
+                      className={styles.iconButton}
                       onClick={() => handleDeleteItem(i, "trait")}
-                      style={{ cursor: "pointer", color: "#aaa" }}
-                    />
+                      aria-label={`Remover característica ${c.name}`}
+                      title={`Remover característica ${c.name}`}
+                    >
+                      <DeleteIcon aria-hidden="true" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -1592,10 +1594,15 @@ const CharacterSheet = () => {
                         <SystemText text={c.description} />
                       </div>
                     </div>
-                    <DeleteIcon
+                    <button
+                      type="button"
+                      className={styles.iconButton}
                       onClick={() => handleDeleteItem(i, "assimilations")}
-                      style={{ cursor: "pointer", color: "#aaa" }}
-                    />
+                      aria-label={`Remover assimilação ${c.name}`}
+                      title={`Remover assimilação ${c.name}`}
+                    >
+                      <DeleteIcon aria-hidden="true" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -1617,9 +1624,7 @@ const CharacterSheet = () => {
         onClose={() => setCustomToastOpen(false)}
       />
 
-      {/* Envolva os modais existentes no final do arquivo com o ReactDOM.createPortal */}
-      {ReactDOM.createPortal(
-        <>
+      <>
           <ItemsModal
             open={itemsModalOpen}
             handleClose={() => setItemsModalOpen(false)}
@@ -1661,9 +1666,7 @@ const CharacterSheet = () => {
               handleSaveEditedItem(originalItem, newItem)
             }
           />
-        </>,
-        document.body
-      )}
+      </>
       {/* --- INICIO DA ÁREA FLUTUANTE (PORTAL) --- */}
       {ReactDOM.createPortal(
         <>

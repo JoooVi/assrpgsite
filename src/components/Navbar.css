@@ -59,6 +59,11 @@ body.navbar-menu-open {
   justify-content: center;
 }
 
+.navbar-link-icon,
+.navbar-backdrop {
+  display: none;
+}
+
 .navbar-logo {
   align-items: center;
   display: inline-flex;
@@ -314,6 +319,16 @@ body.navbar-menu-open {
     z-index: 2000;
   }
 
+  .navbar-backdrop {
+    background: rgba(0, 0, 0, 0.58);
+    border: 0;
+    display: block;
+    inset: 0;
+    padding: 0;
+    position: fixed;
+    z-index: 1999;
+  }
+
   .navbar-center.active .navbar-link {
     font-family: "Orbitron", sans-serif;
     font-size: 1rem;
@@ -321,6 +336,12 @@ body.navbar-menu-open {
     min-height: 52px;
     padding-inline: 18px;
     width: 100%;
+  }
+
+  .navbar-center.active .navbar-link-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    font-size: 0.9rem;
   }
 
   .mobile-only-menu {

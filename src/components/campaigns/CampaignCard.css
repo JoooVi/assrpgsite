@@ -1,0 +1,25 @@
+.campaignCard { animation: campaignFadeIn .5s ease-out both; background: #0a0a0a; border: 1px solid #333; border-left: 4px solid #8a1c18; display: flex; flex-direction: column; min-width: 0; overflow: hidden; transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease; }
+.campaignCard.status-paused { border-left-color: #8b6d35; }
+.campaignCard.status-completed { border-left-color: #555; opacity: .82; }
+.campaignCard:hover, .campaignCard:focus-within { border-color: #666; border-left-color: #ff3333; box-shadow: 0 10px 30px rgba(0, 0, 0, .8); transform: translateY(-5px); }
+.campaignCardImage { border-bottom: 1px solid #333; filter: grayscale(80%) brightness(.7); height: 160px; object-fit: cover; transition: filter .35s ease; width: 100%; }
+.campaignCard:hover .campaignCardImage, .campaignCard:focus-within .campaignCardImage { filter: grayscale(0) brightness(1); }
+.contentPane { display: flex; flex: 1; flex-direction: column; justify-content: space-between; padding: 20px; }
+.campaignInfo { margin-bottom: 18px; }
+.campaignName { color: #fff; font: 700 1.2rem/1.25 "Orbitron", sans-serif; letter-spacing: 1px; margin: 0 0 10px; overflow-wrap: anywhere; text-transform: uppercase; }
+.infoRow { border-bottom: 1px dashed #333; color: #aaa; display: flex; font: 600 .95rem/1.2 "Rajdhani", sans-serif; justify-content: space-between; padding: 8px 0; }
+.infoRow.last { border-bottom: 0; }
+.infoLabel { color: #666; font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.infoValue { color: #ddd; text-align: right; }
+.campaignStatus.paused { color: #e0bc72; }
+.campaignStatus.completed { color: #888; }
+.campaignCardActions { display: flex; gap: 10px; }
+.campaignCardActions .btn-open { align-items: center; background: #1a1a1a; border: 1px solid #444; color: #fff; display: flex; flex: 1; font: 700 .78rem/1 "Orbitron", sans-serif; justify-content: center; min-height: 42px; padding: 0 12px; text-decoration: none; text-transform: uppercase; }
+.campaignCardActions .btn-open:hover, .campaignCardActions .btn-open:focus-visible { background: #8a1c18; border-color: #ff3333; outline: none; }
+.campaignCardActions .btn-delete { align-items: center; background: transparent; border: 1px solid #44201f; color: #ff6661; cursor: pointer; display: flex; height: 42px; justify-content: center; width: 42px; }
+.campaignCardActions .btn-delete:hover, .campaignCardActions .btn-delete:focus-visible { background: #8a1c18; border-color: #ff3333; color: #fff; outline: none; }
+.campaignCard.compact .campaignCardImage { height: 125px; }
+.campaignCard.compact .contentPane { padding: 16px; }
+.campaignCard.compact .campaignInfo { margin-bottom: 10px; }
+@keyframes campaignFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .campaignCard, .campaignCardImage { animation: none; transition: none; } }

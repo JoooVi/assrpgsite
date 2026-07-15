@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaFilter, FaPlus, FaSearch, FaTimes } from "react-icons/fa";
+import { FaFilter, FaPlus, FaSearch } from "react-icons/fa";
 import { fetchAllAssimilations } from "../redux/slices/assimilationsSlice";
 import EmptyState from "./ui/EmptyState";
 import PageLoader from "./ui/PageLoader";
 import SystemText from "./SystemText";
+import Dialog from "./ui/Dialog";
 import "../pages/Homebrews.css";
 
 const getEvolutionClass = (type) => {
@@ -27,17 +28,6 @@ const AssimilationsModal = ({ open, handleClose, onItemSelect }) => {
   useEffect(() => {
     if (open) dispatch(fetchAllAssimilations());
   }, [dispatch, open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") handleClose();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, open]);
 
   const combined = useMemo(() => (
     [...allAssimilations, ...userAssimilations].reduce((acc, current) => {
@@ -65,18 +55,7 @@ const AssimilationsModal = ({ open, handleClose, onItemSelect }) => {
   if (!open) return null;
 
   return (
-    <div className="hb-picker-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
-      <section className="hb-picker-panel">
-        <header className="hb-picker-header">
-          <div>
-            <span>Assimilação</span>
-            <h2>Selecionar assimilação</h2>
-          </div>
-          <button type="button" className="hb-picker-close" onClick={handleClose} aria-label="Fechar">
-            <FaTimes />
-          </button>
-        </header>
-
+    <Dialog open={open} onClose={handleClose} title="Selecionar assimilação" description="Assimilações disponíveis para a ficha" size="large" className="hb-picker-dialog">
         <div className="hb-picker-controls">
           <div className="hb-picker-filter-row">
             <label className="hb-picker-search">
@@ -150,8 +129,7 @@ const AssimilationsModal = ({ open, handleClose, onItemSelect }) => {
             </div>
           )}
         </div>
-      </section>
-    </div>
+    </Dialog>
   );
 };
 

@@ -18,6 +18,7 @@ import { useConfirm } from "./notifications/ConfirmProvider";
 import { dispatchToast } from "./notifications/ToastProvider";
 import EmptyState from "./ui/EmptyState";
 import SystemText from "./SystemText";
+import Dialog from "./ui/Dialog";
 
 const initialForm = {
   name: "",
@@ -195,18 +196,13 @@ const CharacteristicsList = ({ traits, onShare }) => {
         ))}
       </div>
 
-      {modalOpen && (
-        <div
-          className="nero-modal-overlay"
-          onClick={(event) => {
-            if (event.target.className === "nero-modal-overlay") handleCloseModal();
-          }}
-        >
-          <div className="nero-modal">
-            <div className="nero-modal-header">
-              {editingItem ? "Editar Característica" : "Nova Característica"}
-            </div>
-
+      <Dialog
+        open={modalOpen}
+        onClose={handleCloseModal}
+        title={editingItem ? "Editar característica" : "Nova característica"}
+        size="medium"
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCloseModal}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSubmit}>Salvar</button></>}
+      >
             <div className="nero-modal-body">
               <div className="form-group">
                 <label>Nome</label>
@@ -258,18 +254,7 @@ const CharacteristicsList = ({ traits, onShare }) => {
                 />
               </div>
             </div>
-
-            <div className="nero-modal-footer">
-              <button className="btn-nero btn-secondary" onClick={handleCloseModal}>
-                Cancelar
-              </button>
-              <button className="btn-nero btn-primary" onClick={handleSubmit}>
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   );
 };

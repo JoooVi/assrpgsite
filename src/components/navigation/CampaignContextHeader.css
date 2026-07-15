@@ -1,0 +1,10 @@
+.campaign-context { align-items: center; background: rgba(12, 12, 12, 0.92); border: 1px solid #2d2d2d; border-left: 3px solid var(--nero-red, #8a1c18); display: flex; gap: 18px; justify-content: space-between; margin-bottom: 18px; min-height: 58px; padding: 8px 10px; }
+.campaign-context-identity { align-items: center; display: flex; gap: 10px; min-width: 0; }
+.campaign-context-identity img, .campaign-context-placeholder { align-items: center; background: #080808; border: 1px solid #333; display: flex; flex: 0 0 40px; height: 40px; justify-content: center; object-fit: cover; width: 40px; }
+.campaign-context-identity div { display: grid; min-width: 0; }
+.campaign-context-identity strong { color: #fff; font: 700 0.82rem/1.2 var(--nero-font-display, "Roboto Condensed", sans-serif); letter-spacing: 0.05em; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.campaign-context-identity span { color: #888; font: 600 0.76rem/1.3 var(--nero-font-body, "Rajdhani", sans-serif); }
+.campaign-context nav { align-items: center; display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.campaign-context nav a { align-items: center; border: 1px solid transparent; color: #888; display: inline-flex; font: 700 0.67rem/1 var(--nero-font-display, "Roboto Condensed", sans-serif); gap: 6px; min-height: 36px; padding: 0 10px; text-decoration: none; text-transform: uppercase; }
+.campaign-context nav a:hover, .campaign-context nav a:focus-visible, .campaign-context nav a.active { background: rgba(138, 28, 24, 0.14); border-color: rgba(255, 51, 51, 0.3); color: #fff; outline: none; }
+@media (max-width: 700px) { .campaign-context { align-items: stretch; flex-direction: column; } .campaign-context nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; } .campaign-context nav a { flex: 0 0 auto; min-height: 44px; } }

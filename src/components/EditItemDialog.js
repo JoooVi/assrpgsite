@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CharacteristicsMenu from "./CharacteristicsMenu";
 import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
+import Dialog from "./ui/Dialog";
 
 // --- DADOS ESTÁTICOS ---
 const scarcityLevels = { 
@@ -130,15 +131,6 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
     }
   }, [editItem, onClose]);
 
-  useEffect(() => {
-    if (!editItem) return undefined;
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editItem, onClose]);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
@@ -198,18 +190,17 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
 
   return (
     <>
-      <div style={styles.overlay} onClick={onClose}>
-        <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-          
-          {/* Cabeçalho */}
-          <div style={styles.header}>
-            <div>
-              <span style={{display:'block', color:'#ff5555', fontSize:'0.68rem', fontWeight:800, letterSpacing:'0.18em', textTransform:'uppercase'}}>Inventário</span>
-              <span>Editar item</span>
-            </div>
-            <button type="button" aria-label="Fechar edição de item" onClick={onClose} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:'1.5rem'}}>×</button>
-          </div>
-
+      <Dialog
+        open={!!editItem && !!editedData}
+        onClose={onClose}
+        title="Editar item"
+        description="Inventário do personagem"
+        size="large"
+        className="edit-item-dialog"
+        closeOnEscape={!showCharacteristicsMenu}
+        closeOnOverlay={!showCharacteristicsMenu}
+        actions={<><button type="button" style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button><button type="button" style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar alterações</button></>}
+      >
           {/* Corpo do Formulário */}
           <div style={styles.body}>
             <div style={{
@@ -374,14 +365,7 @@ const EditItemDialog = ({ editItem, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Rodapé com Ações */}
-          <div style={styles.footer}>
-            <button type="button" style={{...styles.btn, ...styles.btnSecondary}} onClick={onClose}>Cancelar</button>
-            <button type="button" style={{...styles.btn, ...styles.btnPrimary}} onClick={handleSave}>Salvar</button>
-          </div>
-
-        </div>
-      </div>
+      </Dialog>
 
       {showCharacteristicsMenu && (
         <CharacteristicsMenu

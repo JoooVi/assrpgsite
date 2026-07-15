@@ -1,0 +1,31 @@
+.characterCard {
+  animation: fadeInData .55s ease-out both;
+  background: #080808;
+  border: 1px solid rgba(255, 255, 255, .15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .6);
+  height: 330px;
+  overflow: hidden;
+  position: relative;
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+  width: 230px;
+}
+
+.characterCardMain { color: inherit; display: block; height: 100%; text-decoration: none; width: 100%; }
+.cardImageContainer { height: 100%; inset: 0; position: absolute; width: 100%; }
+.cardImage { filter: brightness(.85) grayscale(20%); height: 100%; object-fit: cover; object-position: top center; transition: filter .3s ease, transform .45s ease; width: 100%; }
+.cardInfo { background: linear-gradient(to top, rgba(0, 0, 0, .96) 12%, rgba(0, 0, 0, .64) 55%, transparent 100%); bottom: 0; left: 0; padding: 54px 15px 15px; position: absolute; width: 100%; z-index: 2; }
+.characterName { color: #fff; font: 700 1.12rem/1.2 "Orbitron", sans-serif; letter-spacing: 1px; margin: 0; overflow-wrap: anywhere; text-shadow: 0 2px 4px #000; text-transform: uppercase; }
+.characterSubtitle { color: #bbb; font: 600 .88rem/1.25 "Rajdhani", sans-serif; letter-spacing: .5px; margin: 5px 0 0; text-transform: uppercase; }
+.cardHoverActions { display: flex; flex-direction: column; gap: 8px; opacity: 0; position: absolute; right: 12px; top: 12px; transform: translateX(8px); transition: opacity .2s ease, transform .2s ease; z-index: 4; }
+.actionIcon { align-items: center; backdrop-filter: blur(5px); background: rgba(0, 0, 0, .72); border: 1px solid rgba(255, 255, 255, .3); color: #fff; cursor: pointer; display: inline-flex; height: 38px; justify-content: center; padding: 0; text-decoration: none; width: 38px; }
+.actionIcon:hover, .actionIcon:focus-visible { background: #8a1c18; border-color: #ff3333; color: #fff; outline: none; }
+.actionIcon.danger { color: #ff7772; }
+.characterCard:hover, .characterCard:focus-within { border-color: #ff3333; box-shadow: inset 0 0 0 1px #ff3333, 0 15px 30px rgba(0, 0, 0, .8); transform: translateY(-5px); }
+.characterCard:hover .cardImage, .characterCard:focus-within .cardImage { filter: brightness(1) grayscale(0); transform: scale(1.06); }
+.characterCard:hover .cardHoverActions, .characterCard:focus-within .cardHoverActions { opacity: 1; transform: translateX(0); }
+.characterCard.compact { height: 285px; width: 200px; }
+
+@keyframes fadeInData { from { filter: blur(3px); opacity: 0; transform: translateY(12px); } to { filter: blur(0); opacity: 1; transform: translateY(0); } }
+@media (hover: none) { .cardHoverActions { opacity: 1; transform: none; } }
+@media (max-width: 600px) { .characterCard, .characterCard.compact { height: 360px; max-width: 300px; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .characterCard, .cardImage, .cardHoverActions { animation: none; transition: none; } }

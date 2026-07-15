@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaCube, FaPlus, FaSearch, FaStar, FaTimes, FaUser } from "react-icons/fa";
+import { FaCube, FaPlus, FaSearch, FaStar, FaUser } from "react-icons/fa";
 import { createItem, fetchItems } from "../redux/slices/itemsSlice";
 import "../pages/Homebrews.css";
 import EmptyState from "./ui/EmptyState";
 import PageLoader from "./ui/PageLoader";
 import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 import { dispatchToast } from "./notifications/ToastProvider";
+import Dialog from "./ui/Dialog";
 
 const initialItemForm = {
   name: "",
@@ -47,20 +48,6 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
       setActiveTab("system");
     }
   }, [dispatch, open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        if (isCreating) setIsCreating(false);
-        else handleClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, isCreating, open]);
 
   const filteredItems = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
@@ -133,25 +120,14 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
   );
 
   return (
-    <div className="hb-picker-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
-      <section className="hb-picker-panel hb-picker-panel-wide">
-        <header className="hb-picker-header">
-          <div>
-            <span>Arsenal</span>
-            <h2>{isCreating ? "Criar item" : "Adicionar item"}</h2>
-          </div>
-          <button type="button" className="hb-picker-close" onClick={handleClose} aria-label="Fechar">
-            <FaTimes />
-          </button>
-        </header>
-
+    <Dialog open={open} onClose={handleClose} title={isCreating ? "Criar item" : "Adicionar item"} description="Arsenal da ficha" size="large" className="hb-picker-dialog">
         <div className="hb-picker-controls">
           {!isCreating && (
             <label className="hb-picker-search">
               <FaSearch />
               <input
                 className="nero-input"
-                placeholder="Buscar por nome, tipo ou descri??o..."
+                placeholder="Buscar por nome, tipo ou descrição..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
@@ -194,7 +170,7 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
 
         <div className="hb-picker-scroll">
           {loading ? (
-            <PageLoader title="Carregando arsenal" subtitle="Listando itens dispon?veis..." compact />
+            <PageLoader title="Carregando arsenal" subtitle="Listando itens disponíveis..." compact />
           ) : isCreating ? (
             <div className="nero-modal-body" style={{ padding: 0 }}>
               <div className="hb-item-preview-row">
@@ -225,11 +201,11 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
               <div className="hb-form-grid hb-form-grid-two">
                 <div className="form-group">
                   <label>NOME</label>
-                  <input className="nero-input" value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="Ex: Rifle de Precis?o" />
+                  <input className="nero-input" value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="Ex: Rifle de Precisão" />
                 </div>
                 <div className="form-group">
                   <label>TIPO</label>
-                  <input className="nero-input" value={formData.type} onChange={(event) => setFormData({ ...formData, type: event.target.value })} placeholder="Equipamento, Arma, Consum?vel..." />
+                  <input className="nero-input" value={formData.type} onChange={(event) => setFormData({ ...formData, type: event.target.value })} placeholder="Equipamento, Arma, Consumível..." />
                 </div>
               </div>
 
@@ -246,11 +222,11 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
 
               <div className="form-group">
                 <label>MODIFICADORES</label>
-                <input className="nero-input" value={formData.modifiers} onChange={(event) => setFormData({ ...formData, modifiers: event.target.value })} placeholder="Pesado, Ruidoso, Fr?gil" />
+                <input className="nero-input" value={formData.modifiers} onChange={(event) => setFormData({ ...formData, modifiers: event.target.value })} placeholder="Pesado, Ruidoso, Frágil" />
               </div>
 
               <div className="form-group">
-                <label>DESCRI??O</label>
+                <label>DESCRIÇÃO</label>
                 <textarea className="nero-textarea" rows="3" value={formData.description} onChange={(event) => setFormData({ ...formData, description: event.target.value })} placeholder="Detalhes sobre o item..." />
               </div>
 
@@ -260,7 +236,7 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
               </label>
               <label className="hb-checkbox-row">
                 <input type="checkbox" checked={!!formData.isConsumable} onChange={(event) => setFormData({ ...formData, isConsumable: event.target.checked })} />
-                Consum?vel
+                Consumível
               </label>
 
               <div className="nero-modal-footer" style={{ paddingInline: 0 }}>
@@ -276,7 +252,7 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
                 <div className="hb-picker-empty">
                   <EmptyState
                     compact
-                    title={activeTab === "system" ? "Nenhum item encontrado" : "Nenhum item pr?prio"}
+                    title={activeTab === "system" ? "Nenhum item encontrado" : "Nenhum item próprio"}
                     description={activeTab === "system" ? "Tente ajustar a busca." : "Crie itens customizados por aqui ou na ?rea de Homebrews."}
                   />
                 </div>
@@ -284,8 +260,7 @@ const ItemsModal = ({ open, handleClose, onItemSelect }) => {
             </div>
           )}
         </div>
-      </section>
-    </div>
+    </Dialog>
   );
 };
 

@@ -1,17 +1,58 @@
 :root {
   --nero-bg: #050505;
+  --nero-bg-secondary: #080808;
   --nero-panel: #111;
+  --nero-surface: #111;
+  --nero-surface-raised: #151515;
   --nero-panel-soft: #151515;
   --nero-panel-hover: #1a1a1a;
   --nero-border: #333;
   --nero-border-strong: #444;
   --nero-red: #8a1c18;
+  --nero-accent: #8a1c18;
   --nero-red-hot: #ff3333;
+  --nero-accent-hot: #ff3333;
   --nero-red-dark: #500;
   --nero-text: #dcdcdc;
+  --nero-text-strong: #fff;
+  --nero-text-muted: #888;
+  --nero-text-disabled: #666;
   --nero-muted: #888;
   --nero-muted-dark: #666;
+  --nero-success: #52b788;
+  --nero-warning: #e6a23c;
+  --nero-danger: #ff5555;
+  --nero-info: #4a9eff;
+  --nero-overlay: rgba(0, 0, 0, 0.82);
+  --nero-focus-ring: #ff6969;
+  --nero-font-display: "Orbitron", "Roboto Condensed", sans-serif;
+  --nero-font-body: "Rajdhani", "Roboto Condensed", sans-serif;
+  --nero-space-1: 4px;
+  --nero-space-2: 8px;
+  --nero-space-3: 12px;
+  --nero-space-4: 16px;
+  --nero-space-5: 24px;
+  --nero-space-6: 32px;
+  --nero-space-7: 48px;
+  --nero-radius-sm: 0;
+  --nero-radius-md: 0;
+  --nero-control-height: 42px;
+  --nero-touch-target: 44px;
+  --nero-duration-fast: 140ms;
+  --nero-duration-normal: 220ms;
+  --nero-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --nero-z-base: 1;
+  --nero-z-navbar: 1000;
+  --nero-z-popover: 1200;
+  --nero-z-modal: 2000;
+  --nero-z-toast: 3000;
   --nero-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+  --nero-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.8);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--nero-focus-ring);
+  outline-offset: 2px;
 }
 
 /* Buttons: dark industrial base, red action language. */

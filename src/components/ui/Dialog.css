@@ -1,0 +1,114 @@
+.nero-dialog-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.84);
+  backdrop-filter: blur(6px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 21000;
+}
+
+.nero-dialog-overlay-nested {
+  z-index: 22000;
+}
+
+.nero-dialog {
+  --dialog-accent: var(--nero-red, #8a1c18);
+  background: linear-gradient(145deg, #151515, #0a0a0a);
+  border: 1px solid var(--nero-border, #333);
+  border-top: 3px solid var(--dialog-accent);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
+  color: var(--nero-text, #dcdcdc);
+  max-height: min(86vh, 820px);
+  overflow: hidden;
+  width: 100%;
+}
+
+.nero-dialog-small { max-width: 440px; }
+.nero-dialog-medium { max-width: 620px; }
+.nero-dialog-large { max-width: 880px; }
+.nero-dialog-danger { --dialog-accent: var(--nero-danger, #ff5555); }
+
+.nero-dialog-header {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--nero-border, #333);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+}
+
+.nero-dialog-header h2 {
+  color: #fff;
+  font-family: var(--nero-font-display, "Roboto Condensed", sans-serif);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.nero-dialog-header p {
+  color: var(--nero-text-muted, #999);
+  font-family: var(--nero-font-body, "Rajdhani", sans-serif);
+  line-height: 1.4;
+  margin: 7px 0 0;
+}
+
+.nero-dialog-close {
+  align-items: center;
+  background: #0b0b0b;
+  border: 1px solid #3a3a3a;
+  color: #aaa;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 36px;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.nero-dialog-close:hover,
+.nero-dialog-close:focus-visible {
+  border-color: var(--dialog-accent);
+  color: #fff;
+  outline: none;
+}
+
+.nero-dialog-content {
+  max-height: calc(86vh - 150px);
+  overflow: auto;
+  padding: 20px;
+}
+
+.nero-dialog-actions {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.025);
+  border-top: 1px solid var(--nero-border, #333);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px 20px;
+}
+
+@media (max-width: 600px) {
+  .nero-dialog-overlay { align-items: flex-end; padding: 10px; }
+  .nero-dialog { max-height: calc(100dvh - 20px); max-width: calc(100vw - 20px); }
+  .nero-dialog-header { padding: 14px; }
+  .nero-dialog-content { max-height: calc(100dvh - 174px); padding: 14px; overscroll-behavior: contain; }
+  .nero-dialog-content input,
+  .nero-dialog-content select,
+  .nero-dialog-content textarea { font-size: max(16px, 1em); }
+  .nero-dialog-actions { align-items: stretch; flex-direction: column-reverse; }
+  .nero-dialog-actions > button,
+  .nero-dialog-actions > a { width: 100%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nero-dialog-overlay { animation: nero-dialog-fade 140ms ease-out; }
+  .nero-dialog { animation: nero-dialog-enter 170ms ease-out; }
+}
+
+@keyframes nero-dialog-fade { from { opacity: 0; } }
+@keyframes nero-dialog-enter { from { opacity: 0; transform: translateY(10px) scale(0.985); } }

@@ -34,6 +34,9 @@ import { useConfirm } from "../components/notifications/ConfirmProvider";
 import PageLoader from "../components/ui/PageLoader";
 import EmptyState from "../components/ui/EmptyState";
 import InlineLoader from "../components/ui/InlineLoader";
+import ErrorState from "../components/ui/ErrorState";
+import Breadcrumbs from "../components/navigation/Breadcrumbs";
+import CampaignContextHeader from "../components/navigation/CampaignContextHeader";
 import api from "../api";
 
 const DEFAULT_REFUGE_IMAGE =
@@ -140,11 +143,14 @@ const calculateRefugeLimits = (currentRefuge) => {
 
 const RefugeDashboard = () => {
   const { id: campaignId, refugeId } = useParams();
-  const { token } = useSelector((state) => state.auth);
+  const { token, user } = useSelector((state) => state.auth);
   const { confirm } = useConfirm();
 
   const [refuge, setRefuge] = useState(null);
+  const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [isMaster, setIsMaster] = useState(false);
@@ -174,10 +180,10 @@ const RefugeDashboard = () => {
       const query = targetRefugeId ? `?refugeId=${targetRefugeId}` : "";
       const res = await api.get(`/refuge/campaign/${campaignId}${query}`);
       setRefuge(res.data);
-      setIsMaster(true);
       return res.data;
     } catch (error) {
       console.error(error);
+      setLoadError(true);
       dispatchToast({ message: "Erro ao carregar dados do refúgio.", type: "error" });
       return null;
     }
@@ -189,6 +195,11 @@ const RefugeDashboard = () => {
 
       try {
         setLoading(true);
+        setLoadError(false);
+        const campaignResponse = await api.get(`/campaigns/${campaignId}`);
+        const campaignData = campaignResponse.data;
+        setCampaign(campaignData);
+        setIsMaster(Boolean(user && campaignData?.master && (campaignData.master._id || campaignData.master) === user._id));
         let list = await fetchRefugeList();
 
         if (!list.length) {
@@ -207,6 +218,7 @@ const RefugeDashboard = () => {
         }
       } catch (error) {
         console.error(error);
+        setLoadError(true);
         dispatchToast({ message: "Erro ao preparar o painel do refúgio.", type: "error" });
       } finally {
         setLoading(false);
@@ -214,7 +226,7 @@ const RefugeDashboard = () => {
     };
 
     bootstrap();
-  }, [fetchRefuge, fetchRefugeList, refugeId, token]);
+  }, [campaignId, fetchRefuge, fetchRefugeList, refugeId, retryKey, token, user]);
 
   const saveRefugeUpdate = async (updatedData, successMessage = "") => {
     const previousRefuge = refuge;
@@ -494,6 +506,18 @@ const RefugeDashboard = () => {
     return <PageLoader title="Carregando base" subtitle="Atualizando recursos, estruturas e ameaças..." />;
   }
 
+  if (loadError) {
+    return (
+      <div className="refuge-container">
+        <ErrorState
+          title="Não foi possível abrir o refúgio"
+          description="Os dados não foram alterados. Tente carregar a base novamente."
+          onRetry={() => setRetryKey((current) => current + 1)}
+        />
+      </div>
+    );
+  }
+
   if (!refuge) {
     return (
       <div className="refuge-container">
@@ -524,6 +548,17 @@ const RefugeDashboard = () => {
   return (
     <div className="refuge-container">
       <div className="refuge-panel">
+        <Breadcrumbs items={[
+          { label: "Campanhas", to: "/campaigns" },
+          { label: "Lobby", to: `/campaign-lobby/${campaignId}` },
+          { label: "Refúgios", to: `/campaign/${campaignId}/refuges` },
+          { label: refuge.name || "Base" },
+        ]} />
+        <CampaignContextHeader
+          campaign={campaign}
+          campaignId={campaignId}
+          isMaster={isMaster}
+        />
         <div className="refuge-header" style={{ backgroundImage: `url(${refuge.image || DEFAULT_REFUGE_IMAGE})` }}>
           <div className="header-content">
             <div className="refuge-heading-block">

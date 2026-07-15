@@ -5,8 +5,10 @@ import "./EmptyState.css";
 const EmptyState = ({
   icon,
   title = "Nada encontrado",
-  description = "Nao ha dados para exibir agora.",
+  description = "Não há dados para exibir agora.",
   action,
+  primaryAction,
+  secondaryAction,
   compact = false,
 }) => {
   return (
@@ -18,7 +20,11 @@ const EmptyState = ({
         <h3>{title}</h3>
         {description && <p>{description}</p>}
       </div>
-      {action && <div className="empty-state-action">{action}</div>}
+      {(action || primaryAction || secondaryAction) && (
+        <div className="empty-state-action">
+          {action || <>{primaryAction}{secondaryAction}</>}
+        </div>
+      )}
     </div>
   );
 };

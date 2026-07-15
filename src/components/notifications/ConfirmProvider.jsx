@@ -1,17 +1,15 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
+import Dialog from "../ui/Dialog";
 import "./ConfirmProvider.css";
 
 const ConfirmContext = createContext(null);
 
 const normalizeConfirm = (input) => {
-  if (typeof input === "string") {
-    return { message: input };
-  }
-
+  if (typeof input === "string") return { message: input };
   return {
     title: input?.title,
-    message: input?.message || input?.msg || "Confirmar acao?",
+    message: input?.message || input?.msg || "Deseja confirmar esta ação?",
     confirmLabel: input?.confirmLabel,
     cancelLabel: input?.cancelLabel,
     tone: input?.tone,
@@ -20,29 +18,28 @@ const normalizeConfirm = (input) => {
 
 const inferTone = (message = "") => {
   const text = message.toLowerCase();
-  if (text.includes("excluir") || text.includes("deletar") || text.includes("apagar") || text.includes("permanent")) {
-    return "danger";
-  }
-  if (text.includes("encerrar") || text.includes("remover") || text.includes("cancelar")) {
-    return "warning";
-  }
+  if (["excluir", "deletar", "apagar", "permanent"].some((term) => text.includes(term))) return "danger";
+  if (["encerrar", "remover", "cancelar"].some((term) => text.includes(term))) return "warning";
   return "info";
 };
 
 export const ConfirmProvider = ({ children }) => {
   const [request, setRequest] = useState(null);
+  const cancelRef = useRef(null);
 
   const confirm = useCallback((input) => {
     const options = normalizeConfirm(input);
-
     return new Promise((resolve) => {
-      setRequest({
-        ...options,
-        tone: options.tone || inferTone(options.message),
-        title: options.title || "Confirmar acao",
-        confirmLabel: options.confirmLabel || "Confirmar",
-        cancelLabel: options.cancelLabel || "Cancelar",
-        resolve,
+      setRequest((current) => {
+        current?.resolve(false);
+        return {
+          ...options,
+          tone: options.tone || inferTone(options.message),
+          title: options.title || "Confirmar ação",
+          confirmLabel: options.confirmLabel || "Confirmar",
+          cancelLabel: options.cancelLabel || "Cancelar",
+          resolve,
+        };
       });
     });
   }, []);
@@ -54,72 +51,44 @@ export const ConfirmProvider = ({ children }) => {
     });
   }, []);
 
-  useEffect(() => {
-    if (!request) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") close(false);
-      if (event.key === "Enter") close(true);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [close, request]);
-
-  useEffect(() => {
-    const originalConfirm = window.confirm;
-
-    window.confirm = (message) => {
-      const options = normalizeConfirm(message);
-      const result = originalConfirm(options.message);
-      return result;
-    };
-
-    return () => {
-      window.confirm = originalConfirm;
-    };
-  }, []);
-
   const value = useMemo(() => ({ confirm }), [confirm]);
 
   return (
     <ConfirmContext.Provider value={value}>
       {children}
-      {request && (
-        <div className="confirm-overlay" onMouseDown={() => close(false)}>
-          <div
-            className={`confirm-dialog ${request.tone}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="confirm-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="confirm-header">
-              <div className="confirm-icon">
-                <FaExclamationTriangle />
-              </div>
-              <h2 id="confirm-title" className="confirm-title">{request.title}</h2>
-            </div>
-            <div className="confirm-body">{request.message}</div>
-            <div className="confirm-actions">
-              <button type="button" className="confirm-button" onClick={() => close(false)}>
-                {request.cancelLabel}
-              </button>
-              <button type="button" className="confirm-button primary" onClick={() => close(true)}>
-                {request.confirmLabel}
-              </button>
-            </div>
+      <Dialog
+        open={Boolean(request)}
+        onClose={() => close(false)}
+        title={request?.title || "Confirmar ação"}
+        description={request?.message}
+        size="small"
+        tone={request?.tone === "danger" ? "danger" : "default"}
+        initialFocusRef={cancelRef}
+        showCloseButton={false}
+        actions={request && (
+          <>
+            <button ref={cancelRef} type="button" className="confirm-button" onClick={() => close(false)}>
+              {request.cancelLabel}
+            </button>
+            <button type="button" className="confirm-button primary" onClick={() => close(true)}>
+              {request.confirmLabel}
+            </button>
+          </>
+        )}
+      >
+        {request && (
+          <div className={`confirm-summary ${request.tone}`}>
+            <span className="confirm-icon" aria-hidden="true"><FaExclamationTriangle /></span>
+            <span>Revise a ação antes de continuar.</span>
           </div>
-        </div>
-      )}
+        )}
+      </Dialog>
     </ConfirmContext.Provider>
   );
 };
 
 export const useConfirm = () => {
   const context = useContext(ConfirmContext);
-  if (!context) {
-    throw new Error("useConfirm deve ser usado dentro de ConfirmProvider");
-  }
+  if (!context) throw new Error("useConfirm deve ser usado dentro de ConfirmProvider");
   return context;
 };

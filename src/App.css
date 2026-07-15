@@ -26,15 +26,6 @@ body {
   line-height: 1.6;
 }
 
-button,
-a,
-input,
-select,
-textarea {
-  transition-duration: 180ms;
-  transition-timing-function: ease;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -43,43 +34,5 @@ textarea {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 24px;
-}
-
-@media (max-width: 768px) {
-  h1 {
-    font-size: 20px;
-  }
-
-  form {
-    padding: 15px;
-  }
-
-  input,
-  button {
-    padding: 12px;
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 10px;
-  }
-
-  input,
-  button {
-    padding: 15px;
-    font-size: 14px;
-  }
-
-  h1 {
-    font-size: 18px;
   }
 }

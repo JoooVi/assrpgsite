@@ -35,9 +35,9 @@ const scrollSections = [
   },
   {
     eyebrow: "Refúgios e VTT",
-    title: "Prepare refúgios, campanhas e a base para a mesa virtual.",
+    title: "Prepare refúgios e jogue no VTT integrado.",
     text:
-      "A proposta é conectar as ferramentas do site com o VTT: personagens, campanhas, mapas, tokens e recursos da mesa em um fluxo só.",
+      "Abra mapas, organize cenas e tokens, use Fog of War, chat e rolagens conectados aos personagens da campanha.",
     image: vttArt,
     align: "right",
   },
@@ -102,9 +102,9 @@ const HomePage = () => {
             <p>
               Tudo para sua mesa de Assimilação em um só lugar.
             </p>
-            <p3>Crie fichas de personagens, organize campanhas, monte refúgios e
+            <p>Crie fichas de personagens, organize campanhas, monte refúgios e
               registre itens, assimilações e características personalizados para sua mesa.
-              </p3>
+            </p>
           </div>
 
           <div className="homepage-links">
@@ -149,12 +149,11 @@ const HomePage = () => {
         <div className="home-screen-effects" aria-hidden="true" />
 
         <article className="home-story-copy home-reveal">
-          <span className="section-code">Disponível agora</span>
-          <h2>O site já cobre a preparação principal da mesa.</h2>
+          <span className="section-code">VTT Alpha disponível</span>
+          <h2>Prepare a mesa e continue a sessão no mesmo lugar.</h2>
           <p>
-            Hoje você já consegue criar fichas, organizar campanhas, montar refúgios
-            e registrar conteúdos próprios como itens, assimilações e características.
-            O VTT entra depois para conectar tudo isso em jogo.
+            Crie fichas, organize campanhas e refúgios, registre conteúdos próprios
+            e abra o VTT Alpha para usar mapas, tokens, rolagens e ferramentas do mestre.
           </p>
 
           <ul className="available-list" aria-label="Recursos disponíveis agora">
@@ -176,8 +175,8 @@ const HomePage = () => {
           <span className="section-code">Acesso ao sistema</span>
           <h2>Comece pela ficha, organize a campanha e expanda sua mesa.</h2>
           <p>
-            O site centraliza as ferramentas principais de Assimilação: personagens,
-            campanhas, refúgios, itens, assimilações, características e, por último, o VTT.
+            O site centraliza personagens, campanhas, refúgios, itens, assimilações,
+            características e o VTT Alpha em um único fluxo para a mesa.
           </p>
           <div className="homepage-links">
             <Link to="/register" className="btn-home home-primary">

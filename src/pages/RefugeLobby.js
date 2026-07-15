@@ -10,8 +10,12 @@ import {
   FaTrash,
   FaUsers,
 } from "react-icons/fa";
-import PageLoader from "../components/ui/PageLoader";
 import EmptyState from "../components/ui/EmptyState";
+import ErrorState from "../components/ui/ErrorState";
+import Dialog from "../components/ui/Dialog";
+import Breadcrumbs from "../components/navigation/Breadcrumbs";
+import CampaignContextHeader from "../components/navigation/CampaignContextHeader";
+import SkeletonState from "../components/ui/SkeletonState";
 import { dispatchToast } from "../components/notifications/ToastProvider";
 import { useConfirm } from "../components/notifications/ConfirmProvider";
 import api from "../api";
@@ -23,15 +27,18 @@ const DEFAULT_REFUGE_IMAGE =
 const RefugeLobby = () => {
   const { id: campaignId } = useParams();
   const navigate = useNavigate();
-  const { token } = useSelector((state) => state.auth);
+  const { token, user } = useSelector((state) => state.auth);
   const { confirm } = useConfirm();
 
   const [refuges, setRefuges] = useState([]);
+  const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [newRefuge, setNewRefuge] = useState({ name: "", location: "", description: "" });
   const [newRefugeImage, setNewRefugeImage] = useState(null);
   const [newRefugeImagePreview, setNewRefugeImagePreview] = useState("");
+  const isMaster = Boolean(user && campaign?.master && (campaign.master._id || campaign.master) === user._id);
 
   const fetchRefugeList = useCallback(async () => {
     const res = await api.get(`/refuge/campaign/${campaignId}/refuges`);
@@ -43,7 +50,10 @@ const RefugeLobby = () => {
 
     try {
       setLoading(true);
+      setLoadError(false);
       let list = await fetchRefugeList();
+      const campaignResponse = await api.get(`/campaigns/${campaignId}`);
+      setCampaign(campaignResponse.data);
 
       if (!list.length) {
         await api.get(`/refuge/campaign/${campaignId}`);
@@ -53,6 +63,7 @@ const RefugeLobby = () => {
       setRefuges(list);
     } catch (error) {
       console.error(error);
+      setLoadError(true);
       dispatchToast({ message: "Erro ao carregar refúgios.", type: "error" });
     } finally {
       setLoading(false);
@@ -131,12 +142,34 @@ const RefugeLobby = () => {
   };
 
   if (loading) {
-    return <PageLoader title="Carregando refúgios" subtitle="Localizando bases da campanha..." />;
+    return <SkeletonState variant="cards" count={3} label="Carregando refúgios" />;
+  }
+
+  if (loadError) {
+    return (
+      <div className="refuge-lobby-page">
+        <ErrorState
+          title="Não foi possível carregar os refúgios"
+          description="A campanha continua segura. Tente buscar as bases novamente."
+          onRetry={loadRefuges}
+        />
+      </div>
+    );
   }
 
   return (
     <div className="refuge-lobby-page">
       <div className="refuge-lobby-shell">
+        <Breadcrumbs items={[
+          { label: "Campanhas", to: "/campaigns" },
+          { label: "Lobby", to: `/campaign-lobby/${campaignId}` },
+          { label: "Refúgios" },
+        ]} />
+        <CampaignContextHeader
+          campaign={campaign}
+          campaignId={campaignId}
+          isMaster={isMaster}
+        />
         <div className="refuge-lobby-hero">
           <div>
             <h1>Refúgios</h1>
@@ -145,9 +178,11 @@ const RefugeLobby = () => {
             <Link to={`/campaign-lobby/${campaignId}`} className="refuge-lobby-back">
               <FaArrowLeft /> Voltar
             </Link>
-            <button className="refuge-lobby-primary" onClick={() => setModalOpen(true)}>
-              <FaPlus /> Novo refúgio
-            </button>
+            {isMaster && (
+              <button className="refuge-lobby-primary" onClick={() => setModalOpen(true)}>
+                <FaPlus /> Novo refúgio
+              </button>
+            )}
           </div>
         </div>
 
@@ -156,11 +191,11 @@ const RefugeLobby = () => {
             <EmptyState
               title="Nenhum refúgio cadastrado"
               description="Crie a primeira base da campanha para organizar população, defesas, projetos e ameaças."
-              action={(
+              action={isMaster ? (
                 <button className="refuge-lobby-primary" onClick={() => setModalOpen(true)}>
                   <FaPlus /> Criar primeiro refúgio
                 </button>
-              )}
+              ) : null}
             />
           </div>
         ) : (
@@ -171,11 +206,18 @@ const RefugeLobby = () => {
               const threats = refuge.activeThreats?.length ?? 0;
 
               return (
-                <button
+                <article
                   key={refuge._id}
-                  type="button"
                   className="refuge-lobby-card"
+                  role="link"
+                  tabIndex={0}
                   onClick={() => navigate(`/campaign/${campaignId}/refuge/${refuge._id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigate(`/campaign/${campaignId}/refuge/${refuge._id}`);
+                    }
+                  }}
                 >
                   <div
                     className="refuge-lobby-card-image"
@@ -186,14 +228,14 @@ const RefugeLobby = () => {
                   <div className="refuge-lobby-card-body">
                     <div className="refuge-lobby-card-topline">
                       <span>Entrar na base</span>
-                      <button
+                      {isMaster && <button
                         type="button"
                         className="refuge-lobby-delete"
                         onClick={(event) => handleDeleteRefuge(event, refuge)}
                         title="Deletar refúgio"
                       >
                         <FaTrash />
-                      </button>
+                      </button>}
                     </div>
                     <h2>{refuge.name}</h2>
                     <p>
@@ -205,21 +247,27 @@ const RefugeLobby = () => {
                       <span className={threats ? "danger" : ""}><FaSkull /> {threats}</span>
                     </div>
                   </div>
-                </button>
+                </article>
               );
             })}
           </div>
         )}
       </div>
 
-      {modalOpen && (
-        <div className="refuge-lobby-modal-backdrop" onClick={closeCreateModal}>
-          <div className="refuge-lobby-modal" onClick={(event) => event.stopPropagation()}>
-            <div className="refuge-lobby-modal-header">
-              <span>Novo refúgio</span>
-              <button onClick={closeCreateModal}>x</button>
-            </div>
-            <div className="refuge-lobby-modal-body">
+      <Dialog
+        open={modalOpen}
+        onClose={closeCreateModal}
+        title="Novo refúgio"
+        description="Cadastre uma nova base para esta campanha."
+        size="medium"
+        actions={(
+          <>
+            <button type="button" className="confirm-button" onClick={closeCreateModal}>Cancelar</button>
+            <button type="button" className="confirm-button primary" onClick={handleCreateRefuge}>Criar refúgio</button>
+          </>
+        )}
+      >
+            <div className="refuge-lobby-modal-body refuge-dialog-body">
               <label>Nome</label>
               <input
                 value={newRefuge.name}
@@ -248,13 +296,7 @@ const RefugeLobby = () => {
                 onChange={(event) => setNewRefugeImage(event.target.files?.[0] || null)}
               />
             </div>
-            <div className="refuge-lobby-modal-footer">
-              <button onClick={closeCreateModal}>Cancelar</button>
-              <button className="primary" onClick={handleCreateRefuge}>Criar refúgio</button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   );
 };

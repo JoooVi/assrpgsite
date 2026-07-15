@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaArrowRight, FaCheck, FaUpload } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaCopy, FaRandom, FaTv, FaUpload } from "react-icons/fa";
 import InlineLoader from "../components/ui/InlineLoader";
 import { dispatchToast } from "../components/notifications/ToastProvider";
 import api from "../api";
+import { getPublicErrorMessage } from "../utils/httpErrors";
+import Breadcrumbs from "../components/navigation/Breadcrumbs";
 import "./CampaignForm.css";
 
 const steps = ["Informações Básicas", "Configurações Adicionais"];
@@ -27,6 +29,7 @@ export default function CampaignForm() {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [createdCampaign, setCreatedCampaign] = useState(null);
 
   useEffect(() => {
     if (!coverImageFile) {
@@ -42,11 +45,21 @@ export default function CampaignForm() {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setCampaign((prev) => ({ ...prev, [name]: value }));
+    setCampaign((prev) => ({
+      ...prev,
+      [name]: name === "inviteCode" ? value.replace(/\s+/g, "").toUpperCase() : value,
+    }));
 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const generateInviteCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    setCampaign((current) => ({ ...current, inviteCode: code }));
+    setErrors((current) => ({ ...current, inviteCode: "" }));
   };
 
   const handleFileChange = (event) => {
@@ -121,16 +134,28 @@ export default function CampaignForm() {
     try {
       const response = await api.post("/campaigns", formData);
 
-      const createdCampaignId = response.data?._id || response.data?.campaign?._id;
-      dispatchToast({ message: "Campanha criada. Abrindo lobby...", type: "success" });
-      setTimeout(
-        () => navigate(createdCampaignId ? `/campaign-lobby/${createdCampaignId}` : "/campaigns"),
-        900
-      );
+      const created = response.data?.campaign || response.data;
+      setCreatedCampaign(created);
+      dispatchToast({ message: "Campanha criada com sucesso.", type: "success" });
     } catch (err) {
-      dispatchToast({ message: "Falha ao criar campanha. Verifique os dados.", type: "error" });
+      const message = getPublicErrorMessage(err, "Falha ao criar campanha. Verifique os dados.");
+      if (err.response?.status === 409) {
+        setErrors((prev) => ({ ...prev, inviteCode: message }));
+      }
+      dispatchToast({ message, type: "error" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copyInviteCode = async () => {
+    const code = createdCampaign?.inviteCode || campaign.inviteCode;
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      dispatchToast({ message: "Código de convite copiado.", type: "success" });
+    } catch {
+      dispatchToast({ message: `Código de convite: ${code}`, type: "info" });
     }
   };
 
@@ -198,7 +223,12 @@ export default function CampaignForm() {
                 onChange={handleInputChange}
                 placeholder="Opcional, exemplo: NERO47"
               />
-              <span className="helper-text">Se ficar em branco, um código único será gerado automaticamente.</span>
+              <span className="helper-text">Use de 4 a 12 letras e números. Espaços são removidos e letras ficam maiúsculas. Se ficar em branco, o sistema gera um código único.</span>
+              {errors.inviteCode && <span className="error-text">{errors.inviteCode}</span>}
+              <div className="campaign-code-actions">
+                <button type="button" className="btn-nero btn-secondary" onClick={generateInviteCode}><FaRandom /> Gerar código</button>
+                {campaign.inviteCode && <button type="button" className="btn-nero btn-secondary" onClick={() => setCampaign((current) => ({ ...current, inviteCode: "" }))}>Limpar</button>}
+              </div>
             </div>
 
             <div className="form-group">
@@ -223,6 +253,30 @@ export default function CampaignForm() {
   return (
     <div className="campaign-form-page">
       <div className="nero-form-card">
+        <Breadcrumbs items={[
+          { label: "Campanhas", to: "/campaigns" },
+          { label: "Nova campanha" },
+        ]} />
+        {createdCampaign ? (
+          <section className="campaign-created-state" aria-labelledby="campaign-created-title">
+            <FaCheck className="campaign-created-icon" aria-hidden="true" />
+            <span>Campanha criada</span>
+            <h1 id="campaign-created-title">{createdCampaign.name || campaign.name}</h1>
+            <p>Sua campanha está pronta. Compartilhe o código ou abra uma das áreas abaixo.</p>
+            {(createdCampaign.inviteCode || campaign.inviteCode) && (
+              <div className="campaign-created-code">
+                <span>Código de convite</span>
+                <strong>{createdCampaign.inviteCode || campaign.inviteCode}</strong>
+                <button type="button" onClick={copyInviteCode}><FaCopy /> Copiar</button>
+              </div>
+            )}
+            <div className="campaign-created-actions">
+              <button type="button" className="btn-nero btn-primary" onClick={() => navigate(`/campaign-lobby/${createdCampaign._id}`)}>Abrir campanha</button>
+              <button type="button" className="btn-nero btn-secondary" onClick={() => navigate(`/campanha/${createdCampaign._id}/vtt`)}><FaTv /> Abrir VTT</button>
+              <button type="button" className="btn-nero btn-secondary" onClick={() => navigate("/campaigns")}>Ver campanhas</button>
+            </div>
+          </section>
+        ) : <>
         <div className="form-title">INICIAR NOVA CAMPANHA</div>
 
         <div className="nero-stepper">
@@ -267,6 +321,7 @@ export default function CampaignForm() {
             )}
           </div>
         </form>
+        </>}
       </div>
     </div>
   );

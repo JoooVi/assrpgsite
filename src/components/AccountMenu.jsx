@@ -9,8 +9,9 @@ import Divider from "@mui/material/Divider";
 import Tooltip from "@mui/material/Tooltip";
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
+import HelpOutline from "@mui/icons-material/HelpOutline";
 
-export default function AccountMenu({ handleLogout, user }) {
+export default function AccountMenu({ handleLogout, user, isLoggingOut = false }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
@@ -167,7 +168,15 @@ export default function AccountMenu({ handleLogout, user }) {
           Configurações
         </MenuItem>
 
+        <MenuItem component="a" href="https://discord.gg/tzrezdyzhs" target="_blank" rel="noopener noreferrer">
+          <ListItemIcon>
+            <HelpOutline fontSize="small" sx={{ color: "#aaa" }} />
+          </ListItemIcon>
+          Suporte
+        </MenuItem>
+
         <MenuItem
+          disabled={isLoggingOut}
           onClick={() => {
             handleClose();
             handleLogout();
@@ -176,7 +185,7 @@ export default function AccountMenu({ handleLogout, user }) {
           <ListItemIcon>
             <Logout fontSize="small" sx={{ color: "#ff5555" }} />
           </ListItemIcon>
-          <span style={{ color: "#ff5555" }}>Sair</span>
+          <span style={{ color: "#ff5555" }}>{isLoggingOut ? "Saindo..." : "Sair"}</span>
         </MenuItem>
       </Menu>
     </React.Fragment>

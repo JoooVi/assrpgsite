@@ -8,6 +8,9 @@ import CharacteristicsList from "../components/CharacteristicsList";
 import ItemsList from "../components/ItemsList";
 import { dispatchToast } from "../components/notifications/ToastProvider";
 import api from "../api";
+import ErrorState from "../components/ui/ErrorState";
+import SkeletonState from "../components/ui/SkeletonState";
+import { getPublicErrorMessage } from "../utils/httpErrors";
 import "./Homebrews.css";
 
 const matchesSearch = (entry, search, fields) => (
@@ -18,9 +21,9 @@ const Homebrews = () => {
   const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.auth.user);
   const token = useSelector((state) => state.auth.token);
-  const { items = [] } = useSelector((state) => state.items);
-  const { assimilations = [] } = useSelector((state) => state.assimilations);
-  const { characterTraits = [] } = useSelector((state) => state.characteristics);
+  const { items = [], loading: itemsLoading, error: itemsError } = useSelector((state) => state.items);
+  const { assimilations = [], loading: assimilationsLoading, error: assimilationsError } = useSelector((state) => state.assimilations);
+  const { characterTraits = [], loading: traitsLoading, error: traitsError } = useSelector((state) => state.characteristics);
 
   const [activeTab, setActiveTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,12 +51,37 @@ const Homebrews = () => {
     { label: "Características", count: userTraits.length },
   ];
 
+  const loadHomebrews = React.useCallback(() => {
+    if (!currentUser || !token) return Promise.resolve();
+    return Promise.all([
+      dispatch(fetchAllAssimilations()),
+      dispatch(fetchItems()),
+      dispatch(fetchCharacterTraits()),
+    ]);
+  }, [currentUser, dispatch, token]);
+
   useEffect(() => {
-    if (!currentUser || !token) return;
-    dispatch(fetchAllAssimilations());
-    dispatch(fetchItems());
-    dispatch(fetchCharacterTraits());
-  }, [dispatch, currentUser, token]);
+    loadHomebrews();
+  }, [loadHomebrews]);
+
+  const loading = itemsLoading || assimilationsLoading || traitsLoading;
+  const loadError = itemsError || assimilationsError || traitsError;
+
+  if (loading && !items.length && !assimilations.length && !characterTraits.length) {
+    return <SkeletonState variant="cards" count={3} label="Carregando homebrews" />;
+  }
+
+  if (loadError && !items.length && !assimilations.length && !characterTraits.length) {
+    return (
+      <div className="homebrews-container">
+        <ErrorState
+          title="Não foi possível carregar os homebrews"
+          description="Seus conteúdos não foram alterados. Tente sincronizar novamente."
+          onRetry={loadHomebrews}
+        />
+      </div>
+    );
+  }
 
   const handleShare = async (type, data) => {
     try {
@@ -68,7 +96,7 @@ const Homebrews = () => {
       }
     } catch (error) {
       console.error("Erro ao compartilhar homebrew:", error);
-      dispatchToast({ message: "Erro ao gerar link de compartilhamento.", type: "error" });
+      dispatchToast({ message: getPublicErrorMessage(error, "Erro ao gerar link de compartilhamento."), type: "error" });
     }
   };
 
