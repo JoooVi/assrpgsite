@@ -763,6 +763,7 @@ const VTT = () => {
         setConnectionStatus(isReconnect ? 'syncing' : 'connected');
         newSocket.emit('joinCampaign', id);
         if (isReconnect) {
+          fetchRecentRolls();
           window.clearTimeout(reconnectSnapshotTimerRef.current);
           reconnectSnapshotTimerRef.current = window.setTimeout(() => {
             newSocket.emit('requestVttSnapshot', { campaignId: id });
@@ -1008,7 +1009,9 @@ const VTT = () => {
   }, [assimilateInstinctA, assimilateInstinctB, availableInstinctKeys, availableSkillKeys, selectedInstinctKey, selectedSkillKey]);
   useEffect(() => {
     if (!token || !id) return undefined;
-    const interval = setInterval(() => { fetchRecentRolls(); fetchConflict(); }, 3500);
+    // Socket.IO entrega rolagens em tempo real; este ciclo serve apenas como
+    // recuperação caso algum evento seja perdido durante uma reconexão.
+    const interval = setInterval(() => { fetchRecentRolls(); fetchConflict(); }, 20000);
     return () => clearInterval(interval);
   }, [fetchConflict, fetchRecentRolls, id, token]);
 

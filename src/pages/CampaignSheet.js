@@ -145,7 +145,9 @@ const CampaignSheet = () => {
 
   useEffect(() => {
     if (isMaster) {
-      const interval = setInterval(fetchDynamicData, 7000);
+      // As rolagens chegam por Socket.IO. O polling é somente uma rede de
+      // segurança para reconexões e não deve saturar a API durante a sessão.
+      const interval = setInterval(fetchDynamicData, 20000);
       return () => clearInterval(interval);
     }
     return undefined;
@@ -163,14 +165,17 @@ const CampaignSheet = () => {
       timeout: 10000,
     });
 
-    campaignSocket.on("connect", () => campaignSocket.emit("joinCampaign", campaignId));
+    campaignSocket.on("connect", () => {
+      campaignSocket.emit("joinCampaign", campaignId);
+      fetchDynamicData();
+    });
     campaignSocket.on("rollCreated", ({ campaignId: incomingCampaignId, roll } = {}) => {
       if (String(incomingCampaignId) !== String(campaignId)) return;
       handleRollCreated(roll);
     });
 
     return () => campaignSocket.disconnect();
-  }, [campaignId, handleRollCreated, isMaster, token, user]);
+  }, [campaignId, fetchDynamicData, handleRollCreated, isMaster, token, user]);
 
   const handleSaveNotes = async () => {
     try {
