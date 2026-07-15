@@ -270,45 +270,6 @@
   cursor: not-allowed;
 }
 
-/* Saúde */
-.healthRow {
-  margin-bottom: 15px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding-bottom: 8px;
-}
-
-.healthHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-  cursor: pointer;
-}
-
-.healthName {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-dim);
-}
-.healthNameActive {
-  color: var(--accent-red);
-  text-shadow: 0 0 5px rgba(183, 28, 28, 0.5);
-}
-
-.heartContainer {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap; /* Para telas pequenas, corações quebram linha */
-}
-
-.heartIcon {
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-.heartIcon:hover {
-  transform: scale(1.1);
-}
-
 /* Tabs & Paineis Direitos */
 .tabsContainer {
   display: flex;
@@ -785,26 +746,241 @@
 }
 .rollBtn:hover:not(:disabled) { background-color: var(--accent-red); }
 
-/* Vida / Saúde */
-.healthRow {
-  margin-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding-bottom: 6px;
+.vitalStatusSection {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
-.healthHeader {
-  display: flex; justify-content: space-between; margin-bottom: 4px; cursor: pointer;
-}
-.healthNameActive { color: var(--accent-red); font-weight: bold; }
-.heartContainer { display: flex; gap: 4px; flex-wrap: wrap; }
-.heartIcon:hover { transform: scale(1.15); cursor: pointer; }
 
-.healthRowActive {
-  padding: 8px;
-  border: 1px solid rgba(183, 28, 28, 0.45);
-  border-left: 3px solid var(--accent-red);
-  border-radius: 8px;
-  background: rgba(183, 28, 28, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+.vitalStatusTitleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vitalStatusFormula {
+  color: #666;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vitalStatusFocus {
+  margin-top: 9px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 3px solid #555;
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(29, 29, 29, 0.98), rgba(12, 12, 12, 0.98));
+}
+
+.vitalStatusFocusCurrent {
+  border-left-color: var(--accent-red);
+  box-shadow: inset 14px 0 24px -24px rgba(255, 51, 51, 0.9);
+}
+
+.vitalStatusFocusHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vitalStatusFocusHeader > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vitalStatusFocusHeader strong {
+  color: #f2f2f2;
+  font-size: 15px;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.vitalStatusEyebrow {
+  color: var(--accent-red);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vitalStatusValue {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vitalStatusDescription {
+  margin: 8px 0 10px;
+  color: #8e8e8e;
+  font-size: 11px;
+  line-height: 1.42;
+}
+
+.vitalHeartEditor {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.vitalHeartButton {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.vitalHeartButton svg {
+  fill: #b71c1c;
+  filter: drop-shadow(0 0 4px rgba(183, 28, 28, 0.28));
+}
+
+.vitalHeartButton:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.08);
+  filter: brightness(1.25);
+}
+
+.vitalHeartButton:disabled,
+.vitalClearButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.vitalClearButton {
+  display: inline-flex;
+  min-height: 27px;
+  margin-left: auto;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 4px;
+  background: #111;
+  color: #777;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vitalClearButton svg {
+  font-size: 13px;
+}
+
+.vitalClearButton:hover:not(:disabled) {
+  border-color: rgba(255, 51, 51, 0.45);
+  color: #ff6565;
+}
+
+.vitalStatusTrack {
+  position: relative;
+  display: grid;
+  margin-top: 9px;
+  gap: 3px;
+}
+
+.vitalStatusTrack::before {
+  position: absolute;
+  top: 13px;
+  bottom: 13px;
+  left: 12px;
+  width: 1px;
+  background: linear-gradient(#5b7d62, #8a1c18);
+  content: "";
+  opacity: 0.45;
+}
+
+.vitalStatusStep {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 27px;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 7px 2px 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #777;
+  cursor: pointer;
+  text-align: left;
+}
+
+.vitalStatusStep:hover,
+.vitalStatusStepExpanded {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  color: #bcbcbc;
+}
+
+.vitalStatusStepCurrent {
+  color: #fff;
+}
+
+.vitalStatusNode {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid #393939;
+  border-radius: 50%;
+  background: #101010;
+  color: #777;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.vitalStatusStepCurrent .vitalStatusNode {
+  border-color: var(--accent-red);
+  background: #2b0d0d;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(183, 28, 28, 0.32);
+}
+
+.vitalStatusStepName {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vitalStatusStepValue {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.vitalReturnButton {
+  display: block;
+  margin: 7px 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8e8e8e;
+  cursor: pointer;
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.vitalReturnButton:hover {
+  color: #fff;
 }
 
 /* Grid e Tabs */
@@ -1037,29 +1213,76 @@
 
 /* --- CSS CORRIGIDO PARA ELEMENTOS FLUTUANTES --- */
 
-/* 1. Botão Redondo do Histórico (Fixo no canto inferior direito) */
+/* Acionador compacto do histórico, fixo no canto inferior direito. */
 .fabHistory {
-  position: fixed; /* Garante que fique preso na TELA, não na página */
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: var(--accent-red);
-  color: white;
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  min-width: 122px;
+  height: 38px;
+  padding: 0 13px 0 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  background: linear-gradient(180deg, rgba(24, 22, 22, 0.96), rgba(9, 9, 9, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-left-color: rgba(220, 38, 38, 0.72);
+  border-radius: 6px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  border: 2px solid rgba(255,255,255,0.1);
-  z-index: 10000; /* Z-index bem alto para ficar acima de tudo */
-  transition: transform 0.2s, background-color 0.2s;
+  z-index: 99999;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
 .fabHistory:hover {
-  transform: scale(1.1);
-  background-color: var(--accent-hover);
+  color: #fff;
+  background: linear-gradient(180deg, rgba(46, 24, 24, 0.98), rgba(15, 10, 10, 0.98));
+  border-color: rgba(239, 68, 68, 0.62);
+  transform: translateY(-1px);
+}
+
+.fabHistory:focus-visible {
+  outline: 2px solid rgba(255, 72, 72, 0.92);
+  outline-offset: 3px;
+}
+
+.fabHistoryOpen {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(126, 24, 21, 0.96), rgba(72, 12, 10, 0.98));
+  border-color: rgba(255, 64, 64, 0.75);
+}
+
+.fabHistoryIcon {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 25px;
+  color: #ff5151;
+  background: rgba(183, 28, 28, 0.14);
+  border: 1px solid rgba(255, 67, 67, 0.26);
+  border-radius: 4px;
+}
+
+.fabHistoryIcon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.fabHistoryOpen .fabHistoryIcon {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.fabHistoryLabel {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.59rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 /* 2. Janela de Histórico (Pop-over) */
@@ -1194,8 +1417,8 @@
 /* Janela Flutuante */
 .historyPopover {
   position: fixed !important;
-  bottom: 100px !important;
-  right: 30px !important;
+  bottom: 70px !important;
+  right: 24px !important;
   
   width: 340px;
   max-height: 60vh; /* Altura máxima maior */
@@ -1263,6 +1486,22 @@
 .historyItem:hover {
   background-color: rgba(255,255,255,0.02);
   border-color: #555;
+}
+
+@media (max-width: 600px) {
+  .fabHistory {
+    right: 14px;
+    bottom: 14px;
+    min-width: 108px;
+    height: 36px;
+  }
+
+  .historyPopover {
+    right: 14px !important;
+    bottom: 60px !important;
+    width: calc(100vw - 28px);
+    max-height: 62vh;
+  }
 }
 
 /* Linha Superior do Item (Nome e Hora) */
@@ -1650,6 +1889,104 @@
   margin-top: 24px;
   padding-top: 22px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rollResourceControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+  margin: 0 0 7px;
+  padding: 3px 4px 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 5px;
+  background: rgba(5, 5, 5, 0.48);
+}
+
+.rollResourceCounters {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.rollResourceCounters > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #d5d5d5;
+  font: 700 0.62rem/1 "Share Tech Mono", monospace;
+}
+
+.rollResourceCounters img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.rollResourceCounters small { color: #626262; font-size: 0.52rem; }
+
+.rollResourceCounters em {
+  overflow: hidden;
+  padding-left: 7px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8f8f8f;
+  font: 700 0.5rem/1 "Orbitron", sans-serif;
+  font-style: normal;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rollResourceSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  padding: 0 7px 0 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #7f7f7f;
+  background: #111;
+  font: 700 0.55rem/1 "Orbitron", sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rollResourceSwitch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rollResourceSwitch i {
+  width: 7px;
+  height: 7px;
+  border: 1px solid #5b5b5b;
+  border-radius: 50%;
+  background: #181818;
+}
+
+.rollResourceSwitch small { color: #6f6f6f; font: 700 0.5rem/1 "Rajdhani", sans-serif; }
+
+.rollResourceSwitchActive {
+  border-color: rgba(255, 51, 51, 0.52);
+  color: #fff;
+  background: rgba(138, 28, 24, 0.22);
+}
+
+.rollResourceSwitchActive i {
+  border-color: #ff4a4a;
+  background: #ff3333;
+  box-shadow: 0 0 7px rgba(255, 51, 51, 0.55);
+}
+
+.rollResourceSwitch:has(input:disabled) { cursor: not-allowed; opacity: 0.38; }
+
+@media (max-width: 520px) {
+  .rollResourceCounters em { display: none; }
+  .rollResourceSwitch small { display: none; }
 }
 
 .iconButton {

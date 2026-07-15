@@ -1,0 +1,242 @@
+.roll-result-card {
+  --roll-accent: #ff3333;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 13px;
+  color: #f3eeee;
+  background: rgba(12, 10, 10, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left-color: rgba(255, 51, 51, 0.7);
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.roll-result-card__header,
+.roll-result-card__footer,
+.roll-result-card__technical {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.roll-result-card__identity {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.roll-result-card__identity strong,
+.roll-result-card__identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roll-result-card__identity strong {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.roll-result-card__identity span,
+.roll-result-card time,
+.roll-result-card__technical {
+  color: rgba(235, 225, 225, 0.58);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 0.67rem;
+}
+
+.roll-result-card time { flex: 0 0 auto; }
+
+.roll-result-card__result {
+  margin: 10px 0 8px;
+  display: grid;
+  gap: 3px;
+}
+
+.roll-result-card__result > span {
+  color: rgba(235, 225, 225, 0.55);
+  font: 700 0.68rem/1.15 "Rajdhani", sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.roll-result-card__result > strong {
+  color: #fff;
+  font: 900 1.05rem/1.05 "Orbitron", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.roll-result-card__dice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 3px 0;
+}
+
+.roll-result-card__dice .dice-face {
+  min-width: var(--dice-face-size);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.roll-result-card__kept {
+  min-width: 0;
+  margin-bottom: 9px;
+}
+
+.roll-result-card__kept--selected {
+  position: relative;
+  padding: 8px 9px;
+  background: linear-gradient(90deg, rgba(118, 18, 15, 0.2), rgba(30, 10, 10, 0.08));
+  border: 1px solid rgba(255, 57, 57, 0.2);
+  border-radius: 8px;
+  box-shadow: inset 2px 0 0 rgba(255, 51, 51, 0.68);
+}
+
+.roll-result-card__dice-label {
+  display: block;
+  margin-bottom: 3px;
+  color: rgba(255, 218, 218, 0.58);
+  font: 800 0.55rem/1 "Orbitron", sans-serif;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.roll-result-card__dice .dice-face--kept {
+  filter: drop-shadow(0 0 8px rgba(255, 42, 42, 0.18));
+}
+
+.roll-result-card__discarded {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  margin: -2px 0 9px;
+  padding: 5px 0 1px;
+}
+
+.roll-result-card__discarded .roll-result-card__dice-label {
+  flex: 0 0 auto;
+  margin: 0;
+  color: rgba(235, 225, 225, 0.34);
+}
+
+.roll-result-card__discarded-dice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.roll-result-card__discarded-dice .dice-face {
+  min-width: var(--dice-face-size);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.roll-result-card__discarded-dice .dice-face--discarded {
+  filter: grayscale(0.95);
+  opacity: 0.26;
+}
+
+.roll-result-card__footer {
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.roll-result-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+}
+
+.roll-result-card__metric,
+.roll-result-card__empty {
+  position: relative;
+  padding-left: 9px;
+  color: rgba(248, 241, 241, 0.82);
+  font: 700 0.68rem/1.2 "Rajdhani", sans-serif;
+}
+
+.roll-result-card__metric::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--roll-accent);
+  transform: translateY(-50%);
+  box-shadow: 0 0 6px currentColor;
+}
+
+.roll-result-card__metric--adaptation::before { background: #dfc64e; }
+.roll-result-card__metric--pressure::before { background: #4da4d8; }
+
+.roll-result-card__technical {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.roll-result-card__technical span {
+  color: rgba(255, 255, 255, 0.42);
+  font: 700 0.58rem/1 "Rajdhani", sans-serif;
+  text-transform: uppercase;
+}
+
+.roll-result-card__technical code {
+  color: rgba(255, 210, 210, 0.65);
+  font: 600 0.62rem/1 "Share Tech Mono", monospace;
+}
+
+.roll-result-card--compact {
+  padding: 9px 10px;
+  background: rgba(8, 8, 8, 0.42);
+  border-left-color: rgba(255, 51, 51, 0.35);
+}
+
+.roll-result-card--compact .roll-result-card__result {
+  margin: 6px 0;
+}
+
+.roll-result-card--compact .roll-result-card__result > span { font-size: 0.6rem; }
+.roll-result-card--compact .roll-result-card__result > strong { font-size: 0.9rem; }
+.roll-result-card--compact .roll-result-card__dice { gap: 5px; }
+.roll-result-card--compact .roll-result-card__identity strong { font-size: 0.64rem; }
+.roll-result-card--compact .roll-result-card__kept--selected { padding: 6px 7px; }
+.roll-result-card--compact .roll-result-card__discarded { margin-bottom: 7px; }
+
+.roll-result-card--latest,
+.roll-result-card--recent {
+  border-color: rgba(255, 51, 51, 0.32);
+  box-shadow: 0 0 22px rgba(255, 31, 31, 0.08);
+}
+
+.roll-result-card--recent {
+  animation: roll-result-enter 300ms ease-out both;
+}
+
+@keyframes roll-result-enter {
+  from { opacity: 0; transform: translateY(5px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roll-result-card--recent { animation: none; }
+}
+
+@media (max-width: 420px) {
+  .roll-result-card { padding: 10px; }
+  .roll-result-card__result > strong { font-size: 0.96rem; }
+  .roll-result-card__discarded { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .roll-result-card__technical { width: 100%; justify-content: flex-start; margin-left: 0; }
+}

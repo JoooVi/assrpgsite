@@ -19,16 +19,10 @@ import incapacitatedOverlay from '../assets/damage_overlays/incapacitado.png';
 
 // --- ADICIONEI AQUI: Import do fundo do dado ---
 import diceBg from '../assets/tras.png'; 
+import { HEALTH_LEVEL_DETAILS, normalizeCharacterHealth } from '../utils/characterHealth';
 
 // Helpers
-const healthLevelDetails = {
-    6: { name: "Saudável" },
-    5: { name: "Escoriado" },
-    4: { name: "Lacerado" },
-    3: { name: "Ferido" },
-    2: { name: "Arrebentado" },
-    1: { name: "Incapacitado" },
-};
+const healthLevelDetails = HEALTH_LEVEL_DETAILS;
 
 const healthLevelColors = {
     6: "#4caf50", 5: "#fdd835", 4: "#fb8c00", 3: "#f44336", 2: "#d32f2f", 1: "#b71c1c",
@@ -166,10 +160,11 @@ const CharacterPortraitPage = () => {
   }
 
   // Cálculos de Status
-  const currentHealthLevel = character.currentHealthLevel || 6;
+  const normalizedHealth = normalizeCharacterHealth(character);
+  const currentHealthLevel = normalizedHealth.currentLevel;
   const currentHealthInfo = healthLevelDetails[currentHealthLevel] || { name: "Desconhecido" };
-  const currentHealthPoints = character.healthLevels ? character.healthLevels[6 - currentHealthLevel] : 0; 
-  const maxHealthPerLevel = 1 + (character.instincts?.potency || 0) + (character.instincts?.resolution || 0);
+  const currentHealthPoints = normalizedHealth.healthLevels[6 - currentHealthLevel];
+  const maxHealthPerLevel = normalizedHealth.maxPerLevel;
   const { determinationLevel, determinationPoints, assimilationLevel, assimilationPoints } = character;
   const currentDamageOverlay = damageOverlays[currentHealthLevel];
 

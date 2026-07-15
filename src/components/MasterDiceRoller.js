@@ -3,137 +3,65 @@ import {
   Box,
   TextField,
   Button,
-  Typography,
-  Grid,
 } from "@mui/material";
 import { useSelector } from "react-redux";
 import { ReactComponent as D20Icon } from "../assets/d12.svg";
 import { dispatchToast } from "./notifications/ToastProvider";
-import DiceFace from "./DiceFace";
+import RollResultCard from "./RollResultCard";
+import RollKeepSelector from "./RollKeepSelector";
 import api from "../api";
-
-// --- Dice Assets (Replicar do CharacterSheet.js) ---
-const dados = {
-  d6: {
-    1: [],
-    2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png")],
-    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-  },
-  d10: {
-    1: [],
-    2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png")],
-    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-    7: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-    ],
-    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
-    9: [
-      require("../assets/Cervo_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    10: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-  },
-  d12: {
-    1: [],
-    2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png")],
-    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-    7: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-    ],
-    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
-    9: [
-      require("../assets/Cervo_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    10: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    11: [
-      require("../assets/Cervo_1.png"),
-      require("../assets/Cervo_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    12: [require("../assets/Coruja_1.png"), require("../assets/Coruja_1.png")],
-  },
-};
-// --- END Dice Assets ---
-
-const rollCustomDice = (formula) => {
-  // Mantem a rolagem customizada do sistema.
-  const regex = /(\d+)d(\d+)/g;
-  let match;
-  const results = [];
-
-  while ((match = regex.exec(formula)) !== null) {
-    const [, count, sides] = match;
-    const countInt = parseInt(count);
-    const sidesInt = parseInt(sides);
-
-    if (!dados[`d${sidesInt}`]) {
-      console.warn(`Dado d${sidesInt} nao definido.`);
-      continue;
-    }
-
-    for (let i = 0; i < countInt; i++) {
-      const face = Math.floor(Math.random() * sidesInt) + 1;
-      const result = dados[`d${sidesInt}`][face] || [];
-      results.push({ face, result, sides: sidesInt });
-    }
-  }
-  return results;
-};
+import { applyRollSelectionFallback, isValidRollFormula, normalizeRollFormula, rollAssimilationDice } from "../utils/assimilationDice";
 
 const MasterDiceRoller = forwardRef(({ campaignId, onRollCreated }, ref) => {
   const { user } = useSelector((state) => state.auth);
   // Estado interno para o TextField (rolagem manual)
   const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [rollResult, setRollResult] = useState(null); // Store roll result for display
+  const [pendingRoll, setPendingRoll] = useState(null);
 
   // Executa a rolagem interna ou acionada pelo painel da campanha.
-  const executeRoll = useCallback(async (formulaToRoll) => {
-    if (!formulaToRoll || !formulaToRoll.trim()) {
-      dispatchToast({ message: "Por favor, insira uma formula de dados.", type: "warning" });
+  const executeRoll = useCallback((formulaToRoll) => {
+    const normalizedFormula = normalizeRollFormula(formulaToRoll);
+    if (!isValidRollFormula(normalizedFormula)) {
+      dispatchToast({ message: "Use uma fórmula válida, como 1d6+2d10.", type: "warning" });
       return;
     }
 
-    try {
-      const results = rollCustomDice(formulaToRoll);
-      // Atualiza o display local com o resultado da rolagem
-      setRollResult({ formula: formulaToRoll, roll: results }); 
+    const results = rollAssimilationDice(normalizedFormula);
+    setPendingRoll({
+      formula: normalizedFormula,
+      roll: results,
+      skill: "Rolagem do Mestre",
+      rollMode: "manual",
+      selectionRule: { label: "Escolha padrão", reason: "Mantenha um resultado desta pilha." },
+    });
+  }, []);
 
-      // Envia a rolagem para o backend (para o RecentRollsFeed)
+  const publishRoll = useCallback(async (selectedRoll) => {
+    try {
+      const confirmedAt = new Date().toISOString();
+      const localRoll = { ...selectedRoll, timestamp: confirmedAt };
+      setRollResult(localRoll);
       const response = await api.post(
         `/campaigns/${campaignId}/roll`,
         {
           rollerId: user._id,
           rollerName: user.name || "Mestre", // Garante um nome
-          formula: formulaToRoll,
-          roll: results,
-          timestamp: new Date(),
+          formula: selectedRoll.formula,
+          skill: selectedRoll.skill,
+          rollMode: selectedRoll.rollMode,
+          selection: selectedRoll.selection,
+          pileSources: selectedRoll.pileSources,
+          roll: selectedRoll.roll,
+          timestamp: confirmedAt,
         }
       );
 
-      const createdRoll = response.data?.roll || (Array.isArray(response.data) ? response.data[0] : null);
+      const createdRoll = applyRollSelectionFallback(
+        response.data?.roll || (Array.isArray(response.data) ? response.data[0] : null),
+        localRoll,
+      );
+      if (createdRoll) setRollResult(createdRoll);
       if (createdRoll) onRollCreated?.(createdRoll);
 
       dispatchToast({ message: "Rolagem realizada com sucesso!", type: "success" });
@@ -222,36 +150,29 @@ const MasterDiceRoller = forwardRef(({ campaignId, onRollCreated }, ref) => {
 
       {/* O display de resultado (exibido localmente) permanece igual */}
       {rollResult && (
-        <Box
-          sx={{
-            mt: 2,
-            p: 1.25,
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderLeft: "3px solid rgba(138,28,24,0.85)",
-            borderRadius: "10px",
-            bgcolor: "#101010",
-          }}
-        >
-          <Typography variant="body2" sx={{ color: "#ffb3b3", fontFamily: "Orbitron, sans-serif", fontSize: "0.68rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            Rolagem: {rollResult.formula}
-          </Typography>
-          <Grid container spacing={1} sx={{ mt: 1 }}>
-            {rollResult.roll.map((die, index) => (
-              <Grid
-                item
-                key={index}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <DiceFace die={die} size={44} />
-              </Grid>
-            ))}
-          </Grid>
+        <Box sx={{ mt: 2 }}>
+          <RollResultCard
+            roll={rollResult.roll}
+            actorName={user?.name || "Mestre"}
+            actionLabel={rollResult.skill || "Rolagem livre"}
+            formula={rollResult.formula}
+            timestamp={rollResult.timestamp}
+            selection={rollResult.selection}
+            variant="latest"
+            recent
+          />
         </Box>
       )}
+      <RollKeepSelector
+        open={!!pendingRoll}
+        rollData={pendingRoll}
+        keepCount={1}
+        onCancel={() => setPendingRoll(null)}
+        onConfirm={(selectedRoll) => {
+          setPendingRoll(null);
+          publishRoll(selectedRoll);
+        }}
+      />
     </Box>
   );
 }); // Fim do forwardRef

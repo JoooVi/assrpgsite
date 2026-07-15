@@ -1,0 +1,156 @@
+.roll-keep-dialog { max-width: 620px; }
+
+.roll-keep-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  font: 700 0.78rem/1.2 "Rajdhani", sans-serif;
+}
+
+.roll-keep-context > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.roll-keep-kicker {
+  color: #ff5151;
+  font: 800 0.52rem/1 "Orbitron", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.roll-keep-context code {
+  color: rgba(255, 190, 190, 0.66);
+  font: 600 0.68rem/1 "Share Tech Mono", monospace;
+}
+
+.roll-keep-rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: linear-gradient(90deg, rgba(126, 15, 15, 0.2), rgba(18, 10, 10, 0.18));
+  border: 1px solid rgba(255, 51, 51, 0.2);
+  border-left: 2px solid rgba(255, 51, 51, 0.72);
+  border-radius: 6px;
+}
+
+.roll-keep-rule > div { display: grid; gap: 2px; }
+.roll-keep-rule strong { color: #fff; font: 800 0.68rem/1 "Orbitron", sans-serif; }
+.roll-keep-rule span { color: rgba(255, 255, 255, 0.52); font: 600 0.7rem/1.2 "Rajdhani", sans-serif; }
+.roll-keep-rule > b { color: #ff6262; font: 900 0.86rem/1 "Share Tech Mono", monospace; }
+
+.roll-keep-pile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.roll-keep-pile > span {
+  min-width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  padding: 5px 7px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+}
+
+.roll-keep-pile small { color: rgba(255, 255, 255, 0.4); font: 700 0.58rem/1 "Rajdhani", sans-serif; }
+.roll-keep-pile strong { color: rgba(255, 225, 225, 0.8); font: 800 0.62rem/1 "Share Tech Mono", monospace; }
+
+.roll-keep-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: 8px;
+  max-height: min(46vh, 390px);
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.roll-keep-die {
+  min-width: 0;
+  min-height: 102px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  padding: 9px 6px;
+  color: rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.roll-keep-die:hover {
+  color: #fff;
+  border-color: rgba(255, 51, 51, 0.45);
+  transform: translateY(-1px);
+}
+
+.roll-keep-die--selected {
+  color: #fff;
+  background: rgba(126, 15, 15, 0.2);
+  border-color: #ff3333;
+  box-shadow: inset 0 0 18px rgba(255, 35, 35, 0.08), 0 0 14px rgba(255, 35, 35, 0.08);
+}
+
+.roll-keep-die > span {
+  font: 800 0.58rem/1 "Orbitron", sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.roll-keep-summary {
+  min-height: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.68);
+  font: 700 0.72rem/1.2 "Rajdhani", sans-serif;
+}
+
+.roll-keep-summary strong { color: #fff; }
+
+.roll-keep-cancel,
+.roll-keep-confirm {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font: 800 0.64rem/1 "Orbitron", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roll-keep-cancel {
+  color: rgba(255, 255, 255, 0.72);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.roll-keep-confirm {
+  color: #fff;
+  background: linear-gradient(180deg, #9f1c18, #5e100e);
+  border: 1px solid rgba(255, 51, 51, 0.65);
+}
+
+.roll-keep-confirm:disabled { cursor: not-allowed; opacity: 0.38; }
+
+@media (max-width: 520px) {
+  .roll-keep-grid { grid-template-columns: repeat(3, minmax(74px, 1fr)); }
+  .roll-keep-context { align-items: flex-start; flex-direction: column; gap: 4px; }
+}

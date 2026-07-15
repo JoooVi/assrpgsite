@@ -5,6 +5,11 @@ import { MemoryRouter } from "react-router-dom";
 import CampaignCard from "./campaigns/CampaignCard";
 import CharacterCard from "./characters/CharacterCard";
 
+jest.mock("@dicebear/core", () => ({
+  createAvatar: () => ({ toString: () => '<svg xmlns="http://www.w3.org/2000/svg" />' }),
+}));
+jest.mock("@dicebear/collection", () => ({ adventurerNeutral: {} }));
+
 describe("cards semânticos", () => {
   test("CampaignCard usa link e mostra status traduzido", () => {
     render(<MemoryRouter><CampaignCard campaign={{ _id: "c1", name: "A Busca", status: "paused", isMaster: false, masterName: "Lia" }} /></MemoryRouter>);

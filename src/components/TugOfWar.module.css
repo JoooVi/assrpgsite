@@ -1,0 +1,68 @@
+.tugOfWar {
+  container-type: inline-size;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d7d7d7;
+}
+
+.titleRow,
+.resourceHeader,
+.pointsRow,
+.balanceSlider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titleRow { min-height: 28px; margin-bottom: 12px; border-bottom: 2px solid #222; }
+.titleRow h3 { margin: 0 0 8px; color: #e0e0e0; font: 800 0.88rem/1 "Orbitron", sans-serif; letter-spacing: 0.05em; text-transform: uppercase; }
+.titleRow > span { margin-bottom: 8px; color: #bb9454; font: 700 0.52rem/1 "Orbitron", sans-serif; text-transform: uppercase; }
+
+.meters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.resourceMeter {
+  --resource-accent: color-mix(in srgb, var(--resource-color) 58%, white);
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 2px solid var(--resource-color);
+  border-radius: 5px;
+  background: rgba(5, 5, 5, 0.38);
+}
+
+.resourceHeader { gap: 8px; min-width: 0; }
+.resourceName { display: flex; align-items: center; gap: 7px; min-width: 0; overflow: hidden; color: #d5d5d5; font: 800 0.63rem/1 "Orbitron", sans-serif; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.resourceName img { flex: 0 0 auto; width: 21px; height: 21px; object-fit: contain; }
+
+.levelField { display: flex; align-items: center; gap: 5px; color: #6d6d6d; font: 700 0.47rem/1 "Orbitron", sans-serif; text-transform: uppercase; }
+.levelField input { width: 34px; height: 25px; padding: 0; border: 1px solid color-mix(in srgb, var(--resource-color) 70%, #363636); border-radius: 3px; color: var(--resource-accent); background: #090909; font: 900 0.82rem/1 "Share Tech Mono", monospace; text-align: center; }
+.levelField input::-webkit-inner-spin-button { display: none; }
+
+.pointsRow { margin-top: 10px; color: #777; font: 600 0.68rem/1 "Rajdhani", sans-serif; }
+.pointsRow strong { color: var(--resource-accent); font: 800 0.82rem/1 "Share Tech Mono", monospace; }
+.pointsRow small { color: #5f5f5f; font-size: 0.59rem; }
+.warningValue { color: #c59d59 !important; }
+
+.pointTrack { display: grid; grid-template-columns: repeat(10, minmax(4px, 1fr)); gap: 3px; margin-top: 8px; }
+.point { height: 11px; padding: 0; border: 1px solid #303030; border-radius: 2px; background: #151515; cursor: pointer; transition: filter 0.14s ease, transform 0.14s ease; }
+.pointAvailable { border-color: var(--resource-color); background: var(--resource-color); box-shadow: none; }
+.pointBeyondLevel { opacity: 0.34; border-style: dashed; }
+.point:disabled { cursor: default; }
+.point:hover:not(:disabled) { filter: brightness(1.22); transform: translateY(-1px); }
+
+.balanceSlider { gap: 12px; margin-top: 12px; padding: 10px 5px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); color: #737373; font: 700 0.52rem/1 "Orbitron", sans-serif; text-transform: uppercase; }
+.balanceSlider input { flex: 1; min-width: 80px; height: 5px; accent-color: #b71c1c; }
+
+.status { margin: 9px 0 0; color: #a98751; font: 600 0.66rem/1.2 "Rajdhani", sans-serif; text-align: center; }
+
+@media (max-width: 420px) {
+  .meters { grid-template-columns: 1fr; }
+  .levelField small { display: none; }
+}
+
+@container (max-width: 430px) {
+  .meters { grid-template-columns: 1fr; }
+  .levelField small { display: inline; }
+}

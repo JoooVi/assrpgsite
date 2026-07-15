@@ -9,6 +9,10 @@ import { ConfirmProvider } from "../components/notifications/ConfirmProvider";
 import CharacterList from "./CharacterList";
 
 jest.mock("../api", () => ({ __esModule: true, default: { get: jest.fn(), delete: jest.fn() } }));
+jest.mock("@dicebear/core", () => ({
+  createAvatar: () => ({ toString: () => '<svg xmlns="http://www.w3.org/2000/svg" />' }),
+}));
+jest.mock("@dicebear/collection", () => ({ adventurerNeutral: {} }));
 
 const renderList = () => {
   const store = configureStore({ reducer: { auth: (state = { token: "token", isAuthenticated: true }) => state } });
@@ -22,6 +26,7 @@ describe("lista de personagens", () => {
     renderList();
     await waitFor(() => expect(screen.getByText("Yuri")).toBeInTheDocument());
     expect(screen.getByRole("link", { name: "Abrir ficha de Yuri" })).toHaveAttribute("href", "/character-sheet/p1");
+    expect(screen.getByAltText("Retrato de Yuri").getAttribute("src")).toMatch(/^data:image\/svg\+xml/);
   });
 
   test("não exibe filtros para uma lista pequena de personagens", async () => {

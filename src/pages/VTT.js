@@ -7,10 +7,8 @@ import styles from './VTT.module.css';
 import VTTMap from '../components/VTT/VTTMap';
 import VTTPerformancePanel from '../components/VTT/VTTPerformancePanel';
 import ConflictTracker from '../components/ConflictTracker';
-import DiceFace from '../components/DiceFace';
-import coruja from '../assets/Coruja_1.png';
-import cervo from '../assets/Cervo_1.png';
-import joaninha from '../assets/Joaninha_1.png';
+import RollResultCard from '../components/RollResultCard';
+import RollKeepSelector from '../components/RollKeepSelector';
 import {
   FaBullseye, FaHandPaper, FaThLarge, FaMapMarkedAlt, FaPlus, FaTrash,
   FaUpload, FaRuler, FaPencilAlt, FaUserShield, FaFolder, FaTimes,
@@ -27,6 +25,10 @@ import { dispatchToast } from '../components/notifications/ToastProvider';
 import Dialog from '../components/ui/Dialog';
 import { API_BASE_URL } from '../config/apiConfig';
 import { setVttPerformanceMetric } from '../utils/vttPerformance';
+import { applyRollSelectionFallback, isValidRollFormula, normalizeRollFormula, rollAssimilationDice } from '../utils/assimilationDice';
+import determinationPointIcon from '../assets/icons/ICONES_PONTOS_NIVEIS_ASSIMILACAO_DETERMINACAO_pontos_determinacao_cima_NOVO.png';
+import assimilationPointIcon from '../assets/icons/ICONES_PONTOS_NIVEIS_ASSIMILACAO_DETERMINACAO_pontos_assimilacao_baixo_NOVA.png';
+import { HEALTH_LEVEL_DETAILS, getCharacterHealthSummary } from '../utils/characterHealth';
 
 const API_BASE = API_BASE_URL;
 const DEBUG_VTT_ROLLS = process.env.REACT_APP_DEBUG_VTT_ROLLS === 'true';
@@ -52,40 +54,8 @@ const translations = {
   perception: 'Percepção', potency: 'Potência', influence: 'Influência', resolution: 'Resolução', sagacity: 'Sagacidade', reaction: 'Reação'
 };
 
-const healthLevelDetails = {
-  6: { name: 'Saudável', description: 'Recuperação ativa após repouso completo.', severity: 'healthy' },
-  5: { name: 'Escoriado', description: 'Recuperação ativa após repouso completo.', severity: 'bruised' },
-  4: { name: 'Lacerado', description: 'Ativa Recuperação após uma semana. Menos 1 em todos os testes.', severity: 'wounded' },
-  3: { name: 'Ferido', description: 'Ativa Recuperação após uma semana. Menos 1 em todos os testes.', severity: 'wounded' },
-  2: { name: 'Arrebentado', description: 'Incapaz de agir, mas mantém a consciência. Menos 2 em todos os testes.', severity: 'critical' },
-  1: { name: 'Incapacitado', description: 'Inconsciente. Qualquer ação com teste exige 2 de Adaptação para ativar.', severity: 'collapsed' },
-};
+const healthLevelDetails = HEALTH_LEVEL_DETAILS;
 
-const diceSymbols = {
-  d6: { 1: [], 2: [], 3: [coruja], 4: [coruja], 5: [cervo, coruja], 6: [joaninha] },
-  d10: { 1: [], 2: [], 3: [coruja], 4: [coruja], 5: [cervo, coruja], 6: [joaninha], 7: [joaninha, joaninha], 8: [cervo, joaninha], 9: [cervo, joaninha, coruja], 10: [joaninha, joaninha, coruja] },
-  d12: { 1: [], 2: [], 3: [coruja], 4: [coruja], 5: [cervo, coruja], 6: [joaninha], 7: [joaninha, joaninha], 8: [cervo, joaninha], 9: [cervo, joaninha, coruja], 10: [joaninha, joaninha, coruja], 11: [cervo, cervo, joaninha, coruja], 12: [coruja, coruja] }
-};
-
-const rollCustomDice = (formula) => {
-  const regex = /(\d+)d(\d+)/g;
-  const results = [];
-  let match;
-  while ((match = regex.exec(formula)) !== null) {
-    const count = parseInt(match[1], 10);
-    const sides = parseInt(match[2], 10);
-    const key = `d${sides}`;
-    if (!diceSymbols[key]) continue;
-    for (let i = 0; i < count; i += 1) {
-      const face = Math.floor(Math.random() * sides) + 1;
-      results.push({ face, sides, result: diceSymbols[key][face] || [] });
-    }
-  }
-  return results;
-};
-
-const normalizeRollFormula = (formula) => String(formula || '').replace(/\s+/g, '').toLowerCase();
-const isValidRollFormula = (formula) => /^(?:[1-9]\d?d(?:6|10|12))(?:\+[1-9]\d?d(?:6|10|12))*$/.test(normalizeRollFormula(formula));
 const simplifyDrawingPoints = (points, minDistance = 1.5) => {
   if (!Array.isArray(points) || points.length <= 4) return points || [];
   const simplified = [points[0], points[1]];
@@ -135,44 +105,7 @@ const prettyMeta = (value, fallback = 'Não informado') => {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 };
 
-const normalizeHealth = (character) => {
-  const maxPerLevel = Math.max(
-    1,
-    1 + Number(character?.instincts?.potency || 0) + Number(character?.instincts?.resolution || 0)
-  );
-  const currentLevel = Math.min(6, Math.max(1, Number(character?.currentHealthLevel || 6)));
-  const rawLevels = Array.isArray(character?.healthLevels) ? character.healthLevels : [];
-  const healthLevels = Array.from({ length: 6 }, (_, index) => {
-    const value = Number(rawLevels[index]);
-    if (!Number.isFinite(value)) return maxPerLevel;
-    return Math.min(maxPerLevel, Math.max(0, value));
-  });
-
-  return { maxPerLevel, currentLevel, healthLevels };
-};
-
-const getHealthSummary = (character) => {
-  const { maxPerLevel, currentLevel, healthLevels } = normalizeHealth(character);
-  const currentIndex = 6 - currentLevel;
-  const currentValue = Number(healthLevels[currentIndex] ?? maxPerLevel);
-  const currentInfo = healthLevelDetails[currentLevel] || healthLevelDetails[6];
-  const totalRemaining = healthLevels.reduce((sum, value) => sum + Number(value || 0), 0);
-  const totalMax = maxPerLevel * 6;
-
-  return {
-    maxPerLevel,
-    currentLevel,
-    currentIndex,
-    currentValue,
-    currentName: currentInfo.name,
-    currentDescription: currentInfo.description,
-    severity: currentInfo.severity,
-    healthLevels,
-    isCritical: currentLevel <= 2,
-    totalRemaining,
-    totalMax,
-  };
-};
+const getHealthSummary = getCharacterHealthSummary;
 
 const repairPortugueseText = (value) => {
   if (typeof value !== 'string') return value;
@@ -216,29 +149,6 @@ const clampOverlayPosition = (x, y, width = 300, height = 140, margin = 12) => (
   top: Math.min(Math.max(Number(y || 0), margin), Math.max(margin, window.innerHeight - height - margin)),
 });
 
-const summarizeRollSymbols = (roll = []) => {
-  const flatSymbols = roll.flatMap((die) => die.result || []);
-  const countBySymbol = (symbol) => flatSymbols.filter((item) => item === symbol).length;
-  const successes = countBySymbol(joaninha);
-  const instincts = countBySymbol(coruja);
-  const strain = countBySymbol(cervo);
-
-  return {
-    successes,
-    instincts,
-    strain,
-    blanks: roll.filter((die) => !(die.result || []).length).length,
-    totalDice: roll.length,
-  };
-};
-
-const formatRollSummary = (summary) => {
-  const successes = `${summary.successes} ${summary.successes === 1 ? 'Sucesso' : 'Sucessos'}`;
-  const pressures = `${summary.instincts} ${summary.instincts === 1 ? 'Pressão' : 'Pressões'}`;
-  const adaptations = `${summary.strain} ${summary.strain === 1 ? 'Adaptação' : 'Adaptações'}`;
-  return `${successes} • ${pressures} • ${adaptations}`;
-};
-
 const formatPlural = (count, singular, plural) => `${count} ${count === 1 ? singular : plural}`;
 
 const getChatEntryId = (entry, type = 'text') => {
@@ -252,15 +162,27 @@ const getChatEntryId = (entry, type = 'text') => {
 };
 
 const mergeChatItems = (current, incoming, type, limit) => {
-  const merged = [...current];
-  const known = new Set(current.map((item) => getChatEntryId(item, type)));
+  const mergedById = new Map(current.map((item) => [getChatEntryId(item, type), item]));
   (Array.isArray(incoming) ? incoming : [incoming]).filter(Boolean).forEach((item) => {
     const key = getChatEntryId(item, type);
-    if (known.has(key)) return;
-    known.add(key);
-    merged.push(item);
+    const existing = mergedById.get(key);
+    if (!existing) {
+      mergedById.set(key, item);
+      return;
+    }
+
+    if (type !== 'roll') {
+      mergedById.set(key, { ...existing, ...item });
+      return;
+    }
+
+    const existingHasSelection = (existing.roll || []).some((die) => typeof die?.kept === 'boolean');
+    const incomingHasSelection = (item.roll || []).some((die) => typeof die?.kept === 'boolean');
+    mergedById.set(key, existingHasSelection && !incomingHasSelection
+      ? { ...item, ...existing }
+      : { ...existing, ...item });
   });
-  return merged
+  return [...mergedById.values()]
     .sort((a, b) => new Date(a?.timestamp || 0).getTime() - new Date(b?.timestamp || 0).getTime())
     .slice(-limit);
 };
@@ -446,7 +368,9 @@ const VTT = () => {
   const [selectedInstinctKey, setSelectedInstinctKey] = useState('');
   const [assimilateInstinctA, setAssimilateInstinctA] = useState('');
   const [assimilateInstinctB, setAssimilateInstinctB] = useState('');
+  const [useDeterminationForRoll, setUseDeterminationForRoll] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
+  const [pendingRoll, setPendingRoll] = useState(null);
   const [recentRolls, setRecentRolls] = useState([]);
   const [systemMessages, setSystemMessages] = useState([]);
 
@@ -564,6 +488,29 @@ const VTT = () => {
     Object.entries(activeRulers).filter(([, ruler]) => String(ruler?.sceneId) === String(viewingSceneId))
   ), [activeRulers, viewingSceneId]);
 
+  const applyCharacterHealthPatch = useCallback((payload = {}) => {
+    if (!payload.characterId) return;
+    const characterPatch = {
+      ...(Array.isArray(payload.healthLevels) ? { healthLevels: payload.healthLevels } : {}),
+      ...(payload.currentHealthLevel !== undefined ? { currentHealthLevel: payload.currentHealthLevel } : {}),
+      ...(payload.instincts ? { instincts: payload.instincts } : {}),
+    };
+    setAvailableChars((prev) => prev.map((char) => (
+      String(char._id) === String(payload.characterId) ? { ...char, ...characterPatch } : char
+    )));
+    setCampaignData((prev) => {
+      if (!prev?.players) return prev;
+      return {
+        ...prev,
+        players: prev.players.map((entry) => {
+          const entryCharacter = entry?.character;
+          if (!entryCharacter || String(entryCharacter._id) !== String(payload.characterId)) return entry;
+          return { ...entry, character: { ...entryCharacter, ...characterPatch } };
+        }),
+      };
+    });
+  }, []);
+
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
     window.addEventListener('click', closeMenu);
@@ -580,33 +527,12 @@ const VTT = () => {
       }
       if (payload.type !== 'ASSIMILACAO_CHARACTER_HEALTH_UPDATED' || !payload.characterId) return;
 
-      const characterPatch = {
-        healthLevels: Array.isArray(payload.healthLevels) ? payload.healthLevels : undefined,
-        currentHealthLevel: payload.currentHealthLevel,
-      };
-
-      setAvailableChars((prev) => prev.map((char) => (
-        String(char._id) === String(payload.characterId)
-          ? { ...char, ...characterPatch }
-          : char
-      )));
-
-      setCampaignData((prev) => {
-        if (!prev?.players) return prev;
-        return {
-          ...prev,
-          players: prev.players.map((entry) => {
-            const entryCharacter = entry?.character;
-            if (!entryCharacter || String(entryCharacter._id) !== String(payload.characterId)) return entry;
-            return { ...entry, character: { ...entryCharacter, ...characterPatch } };
-          }),
-        };
-      });
+      applyCharacterHealthPatch(payload);
     };
 
     window.addEventListener('message', handleEmbeddedSheetMessage);
     return () => window.removeEventListener('message', handleEmbeddedSheetMessage);
-  }, []);
+  }, [applyCharacterHealthPatch]);
 
   // RASTREADOR DE MOUSE E INTERCEPTADOR DE COLAR (CTRL+V)
   useEffect(() => {
@@ -886,6 +812,7 @@ const VTT = () => {
         debugVttRoll('[ROLL] socket received', roll);
         setRecentRolls((prev) => mergeChatItems(prev, roll, 'roll', 100));
       });
+      newSocket.on('characterHealthUpdated', applyCharacterHealthPatch);
 
       newSocket.on('activeSceneChanged', (incoming) => {
         const sceneId = typeof incoming === 'string' ? incoming : incoming?.sceneId;
@@ -895,6 +822,14 @@ const VTT = () => {
         setSystemMessages((prev) => [...prev, { message: 'Atenção: A party foi movida para uma nova cena!', timestamp: Date.now() }]);
       });
       newSocket.on('sceneCreated', (newScene) => setScenes((prev) => [...prev, newScene]));
+      newSocket.on('sceneDeleted', ({ sceneId, nextSceneId, activeSceneChanged, revision, clientMutationId } = {}) => {
+        if (!acceptIncomingMutation({ revision, clientMutationId }) || !sceneId) return;
+        setScenes((prev) => prev.filter((scene) => String(scene.id) !== String(sceneId)));
+        setViewingSceneId((current) => (String(current) === String(sceneId) ? nextSceneId : current));
+        if (activeSceneChanged && nextSceneId) setPartySceneId(nextSceneId);
+        setSelectedTokenId(null);
+        setSelectedTokenIds([]);
+      });
       newSocket.on('vttSnapshot', ({ vttState }) => {
         if (!vttState) return;
         const incomingRevision = Number(vttState.revision || 0);
@@ -1018,7 +953,7 @@ const VTT = () => {
         newSocket.disconnect();
       }
     };
-  }, [acceptIncomingMutation, changeViewingScene, currentUserId, fetchConflict, fetchMyAssets, fetchRecentRolls, gridStorageKey, id, navigate, token, user]);
+  }, [acceptIncomingMutation, applyCharacterHealthPatch, changeViewingScene, currentUserId, fetchConflict, fetchMyAssets, fetchRecentRolls, gridStorageKey, id, navigate, token, user]);
 
   useEffect(() => {
     if (!hasLoadedCampaign || !isMaster || !token || !id || connectionStatus !== 'connected' || pendingMutationCount > 0) return undefined;
@@ -1245,6 +1180,35 @@ const VTT = () => {
     setScenes(prev => [...prev, newScene]);
     changeViewingScene(newScene.id);
     if (socket) socket.emit('createScene', { campaignId: id, newScene });
+  };
+
+  const handleDeleteScene = async (scene) => {
+    const currentScenes = scenesRef.current;
+    if (currentScenes.length <= 1) {
+      dispatchToast({ message: 'A mesa precisa manter pelo menos uma cena.', type: 'warning' });
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'Excluir cena',
+      message: `Excluir "${scene.name || 'Cena sem nome'}" e todo o conteúdo dela? Esta ação não pode ser desfeita.`,
+      tone: 'danger',
+      confirmLabel: 'Excluir cena',
+    });
+    if (!confirmed) return;
+
+    const remainingScenes = currentScenes.filter((item) => String(item.id) !== String(scene.id));
+    const fallbackScene = remainingScenes.find((item) => String(item.id) === String(partySceneId)) || remainingScenes[0];
+    if (!fallbackScene) return;
+
+    window.clearTimeout(vttSaveTimeoutRef.current);
+    scenesRef.current = remainingScenes;
+    setScenes(remainingScenes);
+    if (String(viewingSceneId) === String(scene.id)) changeViewingScene(fallbackScene.id);
+    if (String(partySceneId) === String(scene.id)) setPartySceneId(fallbackScene.id);
+    setSelectedTokenId(null);
+    setSelectedTokenIds([]);
+    emitCriticalMutation('deleteScene', { sceneId: scene.id });
   };
 
   const handleCreateFolder = () => {
@@ -1867,15 +1831,33 @@ const VTT = () => {
     });
   }, [closeFloatingMenus, isMaster, myCharacter, scenes, viewingSceneId]);
 
+  const publishRoll = useCallback(async (payload) => {
+    debugVttRoll('[ROLL] sending to backend', payload);
+    setIsRolling(true);
+    try {
+      const response = await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      const createdRoll = applyRollSelectionFallback(getCreatedRollFromResponse(response.data), payload);
+      if (createdRoll) {
+        setRecentRolls((prev) => mergeChatItems(prev, createdRoll, 'roll', 100));
+      } else {
+        await fetchRecentRolls();
+      }
+    } catch (error) {
+      if (DEBUG_VTT_ROLLS) console.error('[ROLL] failed', error);
+      dispatchToast({ message: error.response?.data?.message || 'Não foi possível registrar a rolagem.', type: 'error' });
+    } finally {
+      setIsRolling(false);
+    }
+  }, [fetchRecentRolls, id, token]);
+
   const submitRoll = useCallback(async () => {
     debugVttRoll('[ROLL] click roll button', rollMode === 'manual' ? manualRollFormula : rollMode);
     if (rollMode !== 'manual' && !activeRollCharacter?._id) { dispatchToast({ message: 'Abra ou selecione uma ficha para rolar.', type: 'warning' }); return; }
-    let formula = ''; let roll = []; let skillLabel = '';
+    let formula = ''; let roll = []; let skillLabel = ''; let pileSources = [];
     if (rollMode === 'manual') {
       formula = normalizeRollFormula(manualRollFormula);
       if (!formula) { dispatchToast({ message: 'Informe uma fórmula para rolar.', type: 'warning' }); return; }
       if (!isValidRollFormula(formula)) { dispatchToast({ message: 'Fórmula inválida. Use algo como 1d6+2d10.', type: 'warning' }); return; }
-      roll = rollCustomDice(formula);
       skillLabel = 'Rolagem livre';
     } else if (rollMode === 'skill') {
       if (!selectedSkillKey || !selectedInstinctKey) { dispatchToast({ message: 'Selecione perícia e instinto.', type: 'warning' }); return; }
@@ -1886,37 +1868,79 @@ const VTT = () => {
       if (instinctValue > 0) parts.push(`${instinctValue}d6`);
       formula = parts.join('+');
       if (!formula) { dispatchToast({ message: 'Valores zerados para esta combinação.', type: 'warning' }); return; }
-      roll = rollCustomDice(formula);
       skillLabel = `${t(selectedSkillKey)} (${getSkillTypeLabel(selectedSkillKey)}) + ${t(selectedInstinctKey)}`;
+      pileSources = [
+        { label: t(selectedSkillKey), count: skillValue, sides: 10 },
+        { label: t(selectedInstinctKey), count: instinctValue, sides: 6 },
+      ].filter((source) => source.count > 0);
     } else {
       if (!assimilateInstinctA || !assimilateInstinctB) { dispatchToast({ message: 'Selecione os dois instintos para assimilação.', type: 'warning' }); return; }
       const total = Number(activeCharacterInstincts[assimilateInstinctA] || 0) + Number(activeCharacterInstincts[assimilateInstinctB] || 0);
       if (!total) { dispatchToast({ message: 'Valores zerados para assimilação.', type: 'warning' }); return; }
       formula = `${total}d12`;
-      roll = rollCustomDice(formula);
       skillLabel = `Assimilação: ${t(assimilateInstinctA)} + ${t(assimilateInstinctB)}`;
+      pileSources = [{ label: 'Assimilação', count: total, sides: 12 }];
     }
+
+    let keepCount = rollMode === 'assimilation' ? 2 : 1;
+    let resourceSpend = null;
+    const shouldPrepareResources = rollMode === 'assimilation' || (rollMode === 'skill' && useDeterminationForRoll);
+
+    if (shouldPrepareResources) {
+      try {
+        const response = await axios.post(
+          `${API_BASE}/api/characters/${activeRollCharacter._id}/prepare-roll`,
+          { rollMode, useDetermination: useDeterminationForRoll },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        keepCount = Number(response.data?.keepCount) || keepCount;
+        resourceSpend = response.data?.resourceSpend || null;
+        const updatedCharacter = response.data?.character;
+        if (updatedCharacter?._id) {
+          setAvailableChars((prev) => prev.map((char) => String(char._id) === String(updatedCharacter._id) ? { ...char, ...updatedCharacter } : char));
+          setCampaignData((prev) => prev?.players ? {
+            ...prev,
+            players: prev.players.map((entry) => String(entry?.character?._id) === String(updatedCharacter._id)
+              ? { ...entry, character: { ...entry.character, ...updatedCharacter } }
+              : entry),
+          } : prev);
+        }
+      } catch (error) {
+        dispatchToast({
+          message: error.response?.data?.message || 'Não foi possível reservar os recursos desta rolagem.',
+          type: 'warning',
+        });
+        return;
+      }
+    }
+
+    roll = rollAssimilationDice(formula);
     if (!roll.length) { dispatchToast({ message: 'Rolagem inválida.', type: 'warning' }); return; }
     const rollerName = (chatIdentity === 'gm' && isMaster)
       ? `[GM] ${user?.name || 'Mestre'}`
       : (activeRollCharacter?.name || user?.name || 'Jogador');
-    const payload = { rollerId: user?._id, rollerName, characterId: chatIdentity === 'gm' ? null : (activeRollCharacter?._id || null), formula, skill: skillLabel, roll, timestamp: new Date() };
+    const payload = {
+      rollerId: user?._id,
+      rollerName,
+      characterId: chatIdentity === 'gm' ? null : (activeRollCharacter?._id || null),
+      formula,
+      skill: skillLabel,
+      rollMode,
+      pileSources,
+      resourceSpend,
+      selectionRule: {
+        label: rollMode === 'assimilation'
+          ? (useDeterminationForRoll ? 'Instinto + Empenho' : 'Escolha assimilada')
+          : (useDeterminationForRoll ? 'Empenho' : 'Escolha padrão'),
+        reason: keepCount > 1 ? `Mantenha ${keepCount} resultados desta pilha.` : 'Mantenha um resultado desta pilha.',
+      },
+      roll,
+      timestamp: new Date(),
+    };
     debugVttRoll('[ROLL] result', { formula, roll });
-    debugVttRoll('[ROLL] sending to backend', payload);
-    setIsRolling(true);
-    try {
-      const response = await axios.post(`${API_BASE}/api/campaigns/${id}/roll`, payload, { headers: { Authorization: `Bearer ${token}` } });
-      const createdRoll = getCreatedRollFromResponse(response.data);
-      if (createdRoll) {
-        setRecentRolls((prev) => mergeChatItems(prev, createdRoll, 'roll', 100));
-      } else {
-        await fetchRecentRolls();
-      }
-    } catch (error) {
-      if (DEBUG_VTT_ROLLS) console.error('[ROLL] failed', error);
-      dispatchToast({ message: error.response?.data?.message || 'Não foi possível registrar a rolagem.', type: 'error' });
-    } finally { setIsRolling(false); }
-  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, fetchRecentRolls, id, isMaster, manualRollFormula, rollMode, selectedInstinctKey, selectedSkillKey, token, user]);
+    setPendingRoll({ payload, keepCount });
+    setUseDeterminationForRoll(false);
+  }, [activeCharacterInstincts, activeCharacterSkills, activeRollCharacter, assimilateInstinctA, assimilateInstinctB, chatIdentity, isMaster, manualRollFormula, rollMode, selectedInstinctKey, selectedSkillKey, token, useDeterminationForRoll, user]);
 
   const sendTextMessage = () => {
     const text = chatInput.trim();
@@ -1983,29 +2007,43 @@ const VTT = () => {
     const tokenCount = (scene.tokens || []).length;
 
     return (
-      <button
+      <div
         key={scene.id}
-        type="button"
-        onClick={() => {
-          handleChangeViewingScene(scene.id);
-          setIsSceneManagerOpen(false);
-        }}
         className={`${styles.sceneCard} ${isViewing ? styles.sceneCardActive : ''}`}
       >
-        <div className={styles.sceneThumb}>
-          {scene.mapUrl ? (
-            <img src={scene.mapUrl} alt={scene.name || 'Mapa da cena'} />
-          ) : (
-            <div className={styles.sceneNoImage}><FaImage size={24} /></div>
-          )}
-          {isParty && <span className={`${styles.sceneBadge} ${styles.sceneBadgeParty}`}><FaUsers /> Party</span>}
-          {isViewing && <span className={`${styles.sceneBadge} ${styles.sceneBadgeViewing}`}><FaEye /> Vendo</span>}
-        </div>
-        <div className={styles.sceneCardFooter}>
-          <span className={styles.sceneName}>{scene.name || 'Cena sem nome'}</span>
-          <span className={styles.sceneMeta}>{tokenCount} token{tokenCount !== 1 ? 's' : ''}</span>
-        </div>
-      </button>
+        <button
+          type="button"
+          className={styles.sceneCardOpen}
+          onClick={() => {
+            handleChangeViewingScene(scene.id);
+            setIsSceneManagerOpen(false);
+          }}
+        >
+          <div className={styles.sceneThumb}>
+            {scene.mapUrl ? (
+              <img src={scene.mapUrl} alt={scene.name || 'Mapa da cena'} />
+            ) : (
+              <div className={styles.sceneNoImage}><FaImage size={24} /></div>
+            )}
+            {isParty && <span className={`${styles.sceneBadge} ${styles.sceneBadgeParty}`}><FaUsers /> Party</span>}
+            {isViewing && <span className={`${styles.sceneBadge} ${styles.sceneBadgeViewing}`}><FaEye /> Vendo</span>}
+          </div>
+          <div className={styles.sceneCardFooter}>
+            <span className={styles.sceneName}>{scene.name || 'Cena sem nome'}</span>
+            <span className={styles.sceneMeta}>{tokenCount} token{tokenCount !== 1 ? 's' : ''}</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          className={styles.sceneDeleteBtn}
+          onClick={() => handleDeleteScene(scene)}
+          disabled={scenes.length <= 1}
+          title={scenes.length <= 1 ? 'A mesa precisa manter uma cena' : `Excluir ${scene.name || 'cena'}`}
+          aria-label={`Excluir ${scene.name || 'cena'}`}
+        >
+          <FaTrash size={11} />
+        </button>
+      </div>
     );
   };
 
@@ -3085,28 +3123,17 @@ const VTT = () => {
 
                 const roll = entry.data;
                 const actorName = repairPortugueseText(charNameById.get(String(roll.characterId)) || roll.rollerName || 'Personagem');
-                const rollSummary = summarizeRollSymbols(roll.roll || []);
                 return (
-                  <div key={`roll-${idx}-${entry.ts}`} className={styles.chatRollCard}>
-                    <div className={styles.chatRollHeader}>
-                      <div>
-                        <div className={styles.chatRollTitle}>{actorName}</div>
-                        <div className={styles.chatRollSubtitle}>{repairPortugueseText(roll.skill || 'Instinto + Conhecimento/Prática')} + {roll.formula}</div>
-                      </div>
-                      <span className={styles.chatRollTime}>{timeFmt(entry.ts)}</span>
-                    </div>
-                    <div className={styles.chatRollResult}>
-                      <strong>{formatRollSummary(rollSummary)}</strong>
-                      <span>{formatPlural(rollSummary.totalDice, 'dado', 'dados')} + {formatPlural(rollSummary.blanks, 'vazio', 'vazios')}</span>
-                    </div>
-                    <div className={styles.chatRollDiceList}>
-                      {(roll.roll || []).map((die, dieIndex) => (
-                        <div key={`${die.sides}-${die.face}-${dieIndex}`} className={styles.chatRollDie}>
-                          <DiceFace die={die} size={46} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <RollResultCard
+                    key={`roll-${idx}-${entry.ts}`}
+                    roll={roll.roll || []}
+                    actorName={actorName}
+                    actionLabel={repairPortugueseText(roll.skill || 'Instinto + Conhecimento/Prática')}
+                    formula={roll.formula}
+                    timestamp={roll.timestamp || entry.ts}
+                    selection={roll.selection}
+                    variant="full"
+                  />
                 );
               })}
               <div ref={chatEndRef} className={styles.chatEndAnchor} />
@@ -3165,6 +3192,41 @@ const VTT = () => {
                     {availableInstinctKeys.map((key) => <option key={key} value={key}>{t(key)}</option>)}
                   </select>
                 </>
+              )}
+
+              {rollMode !== 'manual' && activeRollCharacter && (
+                <div className={styles.rollResourceBar}>
+                  <div className={styles.rollResourceBalance} aria-label="Recursos do Cabo de Guerra">
+                    <span title="Pontos de Determinação disponíveis">
+                      <img src={determinationPointIcon} alt="" />
+                      <strong>{Number(activeRollCharacter.determinationPoints || 0)}</strong>
+                      <small>/{Number(activeRollCharacter.determinationLevel || 0)}</small>
+                    </span>
+                    <span title="Pontos de Assimilação disponíveis">
+                      <img src={assimilationPointIcon} alt="" />
+                      <strong>{Number(activeRollCharacter.assimilationPoints || 0)}</strong>
+                      <small>/{Number(activeRollCharacter.assimilationLevel || 0)}</small>
+                    </span>
+                    {rollMode === 'assimilation' && (
+                      <em title="Custo de Agir por Instinto">
+                        Instinto -{Number(activeRollCharacter.assimilationPoints || 0) > 0 ? '1 ASS' : '2 DET'}
+                      </em>
+                    )}
+                  </div>
+                  <label
+                    className={`${styles.rollResourceToggle} ${useDeterminationForRoll ? styles.rollResourceToggleActive : ''}`}
+                    title="Empenho: gaste 1 Ponto de Determinação antes da rolagem para manter um dado adicional. Máximo de uma vez por rodada."
+                  >
+                    <input
+                      type="checkbox"
+                      checked={useDeterminationForRoll}
+                      onChange={(event) => setUseDeterminationForRoll(event.target.checked)}
+                      disabled={Number(activeRollCharacter.determinationPoints || 0) < (rollMode === 'assimilation' && Number(activeRollCharacter.assimilationPoints || 0) < 1 ? 3 : 1)}
+                    />
+                    <i aria-hidden="true" />
+                    <span>Empenho <small>+1 dado</small></span>
+                  </label>
+                </div>
               )}
 
               <button type="button" onClick={submitRoll} disabled={isRolling} className={styles.primaryBtn} style={{ opacity: isRolling ? 0.6 : 1 }}>{isRolling ? 'Rolando...' : 'Rolar dados'}</button>
@@ -3416,6 +3478,17 @@ const VTT = () => {
       </div>
 
       <ConflictTracker open={openConflictModal} onClose={() => setOpenConflictModal(false)} onStartConflict={handleStartConflict} />
+
+      <RollKeepSelector
+        open={!!pendingRoll}
+        rollData={pendingRoll?.payload}
+        keepCount={pendingRoll?.keepCount || 1}
+        onCancel={() => setPendingRoll(null)}
+        onConfirm={(selectedRoll) => {
+          setPendingRoll(null);
+          publishRoll(selectedRoll);
+        }}
+      />
 
       <Dialog open={isHelpOpen} onClose={() => setIsHelpOpen(false)} title="Atalhos do VTT" size="small" actions={<button type="button" onClick={() => setIsHelpOpen(false)} className={styles.primaryBtn}>Entendi</button>}>
             <ul style={{ listStyle: 'none', padding: 0, color: '#dce5ef', fontSize: 13, lineHeight: '2' }}>

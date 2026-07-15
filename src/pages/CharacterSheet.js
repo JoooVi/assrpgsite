@@ -17,18 +17,22 @@ import ItemsModal from "../components/ItemsModal";
 import AssimilationsModal from "../components/AssimilationsModal";
 import CharacteristicsModal from "../components/CharacteristicsModal";
 import SystemText from "../components/SystemText";
-import DiceFace from "../components/DiceFace";
+import RollResultCard from "../components/RollResultCard";
+import RollKeepSelector from "../components/RollKeepSelector";
 import { dispatchToast } from "../components/notifications/ToastProvider";
 import PageLoader from "../components/ui/PageLoader";
 import EmptyState from "../components/ui/EmptyState";
 import Dialog from "../components/ui/Dialog";
 import api from "../api";
 import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
+import { applyRollSelectionFallback, rollAssimilationDice } from "../utils/assimilationDice";
+import { HEALTH_LEVEL_DETAILS, normalizeCharacterHealth } from "../utils/characterHealth";
 
 // Icons (Apenas ícones visuais para UI interna)
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
+import CloseIcon from "@mui/icons-material/Close";
 
 // SVG Components
 import { ReactComponent as MeuIcone } from "../assets/icons/d10_forma.svg";
@@ -43,6 +47,8 @@ import ConsumivelPlaceholder from "../assets/consumivel_placeholder.svg";
 import conhecimentosIcon from "../assets/icons/conhecimentos.png";
 import praticasIcon from "../assets/icons/praticas.png";
 import instintosIcon from "../assets/icons/instintos.png";
+import determinationPointIcon from "../assets/icons/ICONES_PONTOS_NIVEIS_ASSIMILACAO_DETERMINACAO_pontos_determinacao_cima_NOVO.png";
+import assimilationPointIcon from "../assets/icons/ICONES_PONTOS_NIVEIS_ASSIMILACAO_DETERMINACAO_pontos_assimilacao_baixo_NOVA.png";
 
 // Procure por volta da linha 25 e adicione:
 import LockIcon from "@mui/icons-material/Lock";
@@ -54,93 +60,6 @@ import styles from "./CharacterSheet.module.css";
 // ------------------------------------------
 // LÓGICA DE DADOS (DADOS E FÓRMULAS)
 // ------------------------------------------
-
-const dados = {
-  d6: {
-    1: [],
-    2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png")],
-    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-  },
-  d10: {
-    1: [],
-    2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png")],
-    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-    7: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-    ],
-    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
-    9: [
-      require("../assets/Cervo_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    10: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-  },
-  d12: {
-    1: [],
-    2: [],
-    3: [require("../assets/Coruja_1.png")],
-    4: [require("../assets/Coruja_1.png")],
-    5: [require("../assets/Cervo_1.png"), require("../assets/Coruja_1.png")],
-    6: [require("../assets/Joaninha_1.png")],
-    7: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-    ],
-    8: [require("../assets/Cervo_1.png"), require("../assets/Joaninha_1.png")],
-    9: [
-      require("../assets/Cervo_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    10: [
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    11: [
-      require("../assets/Cervo_1.png"),
-      require("../assets/Cervo_1.png"),
-      require("../assets/Joaninha_1.png"),
-      require("../assets/Coruja_1.png"),
-    ],
-    12: [require("../assets/Coruja_1.png"), require("../assets/Coruja_1.png")],
-  },
-};
-
-const rollCustomDice = (formula) => {
-  const regex = /(\d+)d(\d+)/g;
-  let match;
-  const results = [];
-
-  while ((match = regex.exec(formula)) !== null) {
-    const [, count, sides] = match;
-    const countInt = parseInt(count);
-    const sidesInt = parseInt(sides);
-    if (!dados[`d${sidesInt}`]) {
-      continue;
-    }
-
-    for (let i = 0; i < countInt; i++) {
-      const face = Math.floor(Math.random() * sidesInt) + 1;
-      const result = dados[`d${sidesInt}`][face] || [];
-      results.push({ face, result, sides: sidesInt });
-    }
-  }
-
-  return results;
-};
 
 // ------------------------------------------
 // TRADUÇÕES E CONFIGURAÇÕES
@@ -224,36 +143,7 @@ const translateKey = (key) => {
   return translations[key] || key;
 };
 
-const healthLevelDetails = {
-  6: {
-    name: "Saudável",
-    description: "Recuperação ativa após repouso completo.",
-  },
-  5: {
-    name: "Escoriado",
-    description: "Recuperação ativa após repouso completo.",
-  },
-  4: {
-    name: "Lacerado",
-    description:
-      "Ativa Recuperação após uma semana. Menos 1 em todos os testes.",
-  },
-  3: {
-    name: "Ferido",
-    description:
-      "Ativa Recuperação após uma semana. Menos 1 em todos os testes.",
-  },
-  2: {
-    name: "Arrebentado",
-    description:
-      "Incapaz de agir, mas mantém a consciência. Menos 2 em todos os testes.",
-  },
-  1: {
-    name: "Incapacitado",
-    description:
-      "Inconsciente. Qualquer Ação com teste exige 2 de Adaptação para ativar.",
-  },
-};
+const healthLevelDetails = HEALTH_LEVEL_DETAILS;
 
 const qualityLevels = {
   0: "Quebrado",
@@ -319,23 +209,6 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
 
   return ReactDOM.createPortal(
     <div className={styles.toastContainer} onClick={onClose}>
-      {/* Cabeçalho do Toast */}
-      <div className={styles.toastHeader}>
-        <span className={styles.toastLabel}>RESULTADO</span>
-        <span
-          className={styles.toastTitle}
-          title={
-            displayData.skill
-              ? translateKey(displayData.skill)
-              : displayData.formula
-          }
-        >
-          {displayData.skill
-            ? translateKey(displayData.skill)
-            : displayData.formula || "Manual"}
-        </span>
-      </div>
-
       {displayData.effectMessage && (
         <div
           style={{
@@ -349,17 +222,55 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
         </div>
       )}
 
-      {/* Área dos Dados */}
-      <div className={styles.toastDiceContainer}>
-        {displayData.roll &&
-          displayData.roll.map((die, i) => (
-            <div key={i} className={styles.toastDieBox}>
-              <DiceFace die={die} size={50} />
-            </div>
-          ))}
-      </div>
+      <RollResultCard
+        roll={displayData.roll || []}
+        actionLabel={displayData.skill ? translateKey(displayData.skill) : "Rolagem livre"}
+        formula={displayData.formula}
+        timestamp={displayData.timestamp || Date.now()}
+        selection={displayData.selection}
+        variant="latest"
+        recent
+      />
     </div>,
     document.body
+  );
+};
+
+const RollResourceControl = ({
+  character,
+  checked,
+  disabled,
+  onChange,
+  assimilation = false,
+}) => {
+  const determinationPoints = Number(character?.determinationPoints || 0);
+  const determinationLevel = Number(character?.determinationLevel || 0);
+  const assimilationPoints = Number(character?.assimilationPoints || 0);
+  const assimilationLevel = Number(character?.assimilationLevel || 0);
+  const instinctCost = assimilationPoints > 0 ? "1 ASS" : "2 DET";
+
+  return (
+    <div className={styles.rollResourceControl}>
+      <div className={styles.rollResourceCounters} aria-label="Recursos do Cabo de Guerra">
+        <span title="Pontos de Determinação disponíveis">
+          <img src={determinationPointIcon} alt="" />
+          <b>{determinationPoints}</b><small>/{determinationLevel}</small>
+        </span>
+        <span title="Pontos de Assimilação disponíveis">
+          <img src={assimilationPointIcon} alt="" />
+          <b>{assimilationPoints}</b><small>/{assimilationLevel}</small>
+        </span>
+        {assimilation && <em title="Custo de Agir por Instinto">Instinto -{instinctCost}</em>}
+      </div>
+      <label
+        className={`${styles.rollResourceSwitch} ${checked ? styles.rollResourceSwitchActive : ""}`}
+        title="Empenho: gaste 1 Ponto de Determinação antes da rolagem para manter um dado adicional. Máximo de uma vez por rodada."
+      >
+        <input type="checkbox" checked={checked} disabled={disabled} onChange={onChange} />
+        <i aria-hidden="true" />
+        <span>Empenho <small>+1 dado</small></span>
+      </label>
+    </div>
   );
 };
 
@@ -367,7 +278,7 @@ const CustomToast = ({ open, rollResult, customRollResult, onClose }) => {
 // COMPONENTES DE FICHA
 // ------------------------------------------
 
-const SkillList = ({ title, id, addRollToHistory, character }) => {
+const SkillList = ({ title, id, addRollToHistory, character, onCharacterResourcesUpdated }) => {
   const dispatch = useDispatch();
   const globalSkills = useSelector((state) => state.skills?.skills || {});
   const selectedInstinct = useSelector(
@@ -382,6 +293,8 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   });
   const [rollToastOpen, setRollToastOpen] = useState(false);
   const [currentRoll, setCurrentRoll] = useState(null);
+  const [pendingSkillRoll, setPendingSkillRoll] = useState(null);
+  const [useDetermination, setUseDetermination] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -414,17 +327,48 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
     if (skillVal > 0) formulaParts.push(`${skillVal}d10`);
     if (instVal > 0) formulaParts.push(`${instVal}d6`);
 
-    const formula = formulaParts.join("+") || "0d0";
-    const result = rollCustomDice(formula);
+    if (!formulaParts.length) {
+      dispatchToast({ message: "Os valores desta rolagem estão zerados.", type: "warning" });
+      return;
+    }
+    const formula = formulaParts.join("+");
+    let keepCount = 1;
+
+    if (useDetermination) {
+      try {
+        const response = await api.post(`/characters/${id}/prepare-roll`, {
+          rollMode: "skill",
+          useDetermination: true,
+        });
+        keepCount = Number(response.data?.keepCount) || 2;
+        onCharacterResourcesUpdated?.(response.data?.character);
+        setUseDetermination(false);
+      } catch (error) {
+        dispatchToast({
+          message: error.response?.data?.message || "Não foi possível usar Empenho.",
+          type: "warning",
+        });
+        return;
+      }
+    }
+
+    const result = rollAssimilationDice(formula);
 
     const rollData = {
       skill: `${translateKey(key)} + ${translateKey(instinctKey)}`,
       formula,
+      rollMode: "skill",
+      pileSources: [
+        { label: translateKey(key), count: skillVal, sides: 10 },
+        { label: translateKey(instinctKey), count: instVal, sides: 6 },
+      ].filter((source) => source.count > 0),
+      selectionRule: {
+        label: keepCount > 1 ? "Empenho" : "Escolha padrão",
+        reason: keepCount > 1 ? "Mantenha 2 resultados desta pilha." : "Mantenha um resultado desta pilha.",
+      },
       roll: result,
     };
-    setCurrentRoll(rollData);
-    setRollToastOpen(true);
-    addRollToHistory(rollData);
+    setPendingSkillRoll({ rollData, keepCount });
   };
 
   const handleEditSkill = (key, val) => {
@@ -493,6 +437,12 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
   return (
     <>
       <div className={styles.sectionTitle}>{translateKey(title)}</div>
+      <RollResourceControl
+        character={character}
+        checked={useDetermination}
+        disabled={Number(character?.determinationPoints || 0) < 1}
+        onChange={(event) => setUseDetermination(event.target.checked)}
+      />
 
       {/* Aqui fazemos o loop para mostrar as skills com a cor nova */}
       {Object.entries(globalSkills).map(([key, val]) => (
@@ -585,6 +535,18 @@ const SkillList = ({ title, id, addRollToHistory, character }) => {
         onClose={() => setRollToastOpen(false)}
         rollResult={currentRoll}
       />
+      <RollKeepSelector
+        open={!!pendingSkillRoll}
+        rollData={pendingSkillRoll?.rollData}
+        keepCount={pendingSkillRoll?.keepCount || 1}
+        onCancel={() => setPendingSkillRoll(null)}
+        onConfirm={(selectedRoll) => {
+          setPendingSkillRoll(null);
+          setCurrentRoll(selectedRoll);
+          setRollToastOpen(true);
+          addRollToHistory(selectedRoll);
+        }}
+      />
     </>
   );
 };
@@ -595,7 +557,9 @@ const InstinctList = ({
   selectedInstinct,
   handleInstinctChange,
   onAssimilatedRoll,
+  onHealthUpdated,
   id,
+  character,
 }) => {
   const dispatch = useDispatch();
   const [descModalOpen, setDescModalOpen] = useState(false);
@@ -603,6 +567,7 @@ const InstinctList = ({
     key: "",
     desc: "",
   });
+  const [useDetermination, setUseDetermination] = useState(false);
 
   const updateInstinctValue = async (key, val) => {
     const newValue = Number(val);
@@ -610,7 +575,8 @@ const InstinctList = ({
     dispatch(updateInstincts(updated));
 
     try {
-      await api.put(`/characters/${id}/instincts`, { instincts: updated });
+      const response = await api.put(`/characters/${id}/instincts`, { instincts: updated });
+      onHealthUpdated?.(response.data);
     } catch (err) {
       console.error("Error updating instincts", err);
     }
@@ -641,6 +607,13 @@ const InstinctList = ({
         <img src={instintosIcon} alt="" style={{ width: 18, height: 18, objectFit: "contain", marginRight: 8, verticalAlign: "-4px" }} />
         {translateKey(title)}
       </div>
+      <RollResourceControl
+        character={character}
+        checked={useDetermination}
+        disabled={Number(character?.determinationPoints || 0) < (Number(character?.assimilationPoints || 0) > 0 ? 1 : 3)}
+        onChange={(event) => setUseDetermination(event.target.checked)}
+        assimilation
+      />
       {Object.entries(instincts).map(([key, val]) => (
         <div key={key} className={styles.rowItem}>
           <div className={styles.itemName} onClick={() => showDesc(key)}>
@@ -671,7 +644,9 @@ const InstinctList = ({
           </div>
           <button
             className={styles.rollBtn}
-            onClick={() => onAssimilatedRoll(key, selectedInstinct[key])}
+            onClick={() => onAssimilatedRoll(key, selectedInstinct[key], useDetermination).then((success) => {
+              if (success) setUseDetermination(false);
+            })}
             title="Rolar Assimilado"
           >
             <MeuIcone2 style={{ width: 20, height: 20 }} />
@@ -714,11 +689,8 @@ const CharacterSheet = () => {
   const [customDiceFormula, setCustomDiceFormula] = useState("");
   const [customToastOpen, setCustomToastOpen] = useState(false);
   const [lastCustomRoll, setLastCustomRoll] = useState(null);
-  const [healthModalOpen, setHealthModalOpen] = useState(false);
-  const [selectedHealthInfo, setSelectedHealthInfo] = useState({
-    name: "",
-    desc: "",
-  });
+  const [pendingRollSelection, setPendingRollSelection] = useState(null);
+  const [expandedHealthLevel, setExpandedHealthLevel] = useState(null);
 
   const [editItem, setEditItem] = useState(null);
   const [itemsModalOpen, setItemsModalOpen] = useState(false);
@@ -1034,16 +1006,14 @@ const CharacterSheet = () => {
   };
 
   const handleHealthChange = (index, value) => {
-    const max =
-      1 +
-      Number(character.instincts?.potency || 0) +
-      Number(character.instincts?.resolution || 0);
-    const updatedLevels = Array.from({ length: 6 }, (_, levelIndex) => {
-      const currentValue = Number(character.healthLevels?.[levelIndex]);
-      return Math.min(max, Math.max(0, Number.isFinite(currentValue) ? currentValue : max));
-    });
-    updatedLevels[index] = Math.min(max, Math.max(0, Number(value || 0)));
-    const currentLevel = 6 - index;
+    if (!canEditSheet) return;
+    const normalized = normalizeCharacterHealth(character);
+    const updatedLevels = [...normalized.healthLevels];
+    const nextValue = Math.min(normalized.maxPerLevel, Math.max(0, Number(value || 0)));
+    updatedLevels[index] = nextValue;
+    const selectedLevel = 6 - index;
+    const currentLevel = nextValue === 0 && selectedLevel > 1 ? selectedLevel - 1 : selectedLevel;
+    setExpandedHealthLevel(currentLevel);
     setCharacter((prev) => ({
       ...prev,
       healthLevels: updatedLevels,
@@ -1080,7 +1050,10 @@ const CharacterSheet = () => {
     if (character.campaign) {
       api.post(`/campaigns/${character.campaign}/roll`, { ...entry, rollerId: user?._id, characterId: id })
         .then((response) => {
-          const createdRoll = response.data?.roll || (Array.isArray(response.data) ? response.data[0] : entry);
+          const createdRoll = applyRollSelectionFallback(
+            response.data?.roll || (Array.isArray(response.data) ? response.data[0] : entry),
+            entry,
+          );
           const params = new URLSearchParams(window.location.search);
           if (params.get("vtt") === "1" && window.parent && window.parent !== window) {
             window.parent.postMessage({
@@ -1104,30 +1077,79 @@ const CharacterSheet = () => {
       dispatchToast({ message: "Informe uma fórmula antes de rolar.", type: "warning" });
       return;
     }
-    const res = rollCustomDice(customDiceFormula);
-    addRollToHistory({ formula: customDiceFormula, roll: res }, true);
+    const res = rollAssimilationDice(customDiceFormula);
+    if (!res.length) {
+      dispatchToast({ message: "Use uma fórmula válida, como 1d6+2d10.", type: "warning" });
+      return;
+    }
+    setPendingRollSelection({
+      rollData: {
+        formula: customDiceFormula,
+        rollMode: "manual",
+        selectionRule: { label: "Escolha padrão", reason: "Mantenha um resultado desta pilha." },
+        roll: res,
+      },
+      display: true,
+      keepCount: 1,
+    });
   };
 
   const handleInstinctChange = (key, val) =>
     setSelectedInstinct((prev) => ({ ...prev, [key]: val }));
-  const handleAssimilatedRoll = (k1, k2) => {
+  const handleAssimilatedRoll = async (k1, k2, useDetermination = false) => {
     if (!k2) {
       dispatchToast({ message: "Combine os instintos antes de rolar.", type: "warning" });
-      return;
+      return false;
     }
     const total = (instincts[k1] || 0) + (instincts[k2] || 0);
-    const res = rollCustomDice(`${total}d12`);
-    addRollToHistory(
-      {
+    if (!total) {
+      dispatchToast({ message: "Os instintos selecionados estão zerados.", type: "warning" });
+      return false;
+    }
+
+    let preparation;
+    try {
+      const response = await api.post(`/characters/${id}/prepare-roll`, {
+        rollMode: "assimilation",
+        useDetermination,
+      });
+      preparation = response.data;
+      if (preparation?.character) setCharacter(preparation.character);
+    } catch (error) {
+      dispatchToast({
+        message: error.response?.data?.message || "Não foi possível pagar o custo de Agir por Instinto.",
+        type: "warning",
+      });
+      return false;
+    }
+
+    const res = rollAssimilationDice(`${total}d12`);
+    const keepCount = Number(preparation?.keepCount) || (useDetermination ? 3 : 2);
+    setPendingRollSelection({
+      rollData: {
         skill: `Assimilação: ${translateKey(k1)} + ${translateKey(k2)}`,
         formula: `${total}d12`,
+        rollMode: "assimilation",
+        pileSources: [{ label: "Assimilação", count: total, sides: 12 }],
+        resourceSpend: preparation?.resourceSpend,
+        selectionRule: {
+          label: useDetermination ? "Instinto + Empenho" : "Escolha assimilada",
+          reason: `Mantenha ${keepCount} resultados desta pilha.`,
+        },
         roll: res,
       },
-      true
-    );
+      display: true,
+      keepCount,
+    });
+    return true;
   };
 
   // Render
+  const normalizedHealth = normalizeCharacterHealth(character || {});
+  const displayedHealthLevel = expandedHealthLevel || normalizedHealth.currentLevel;
+  const displayedHealthIndex = 6 - displayedHealthLevel;
+  const displayedHealthValue = normalizedHealth.healthLevels[displayedHealthIndex];
+  const displayedHealthInfo = healthLevelDetails[displayedHealthLevel] || healthLevelDetails[6];
   if (error)
     return (
       <div className={styles.loaderBox}>
@@ -1266,7 +1288,7 @@ const CharacterSheet = () => {
             {/* Linha 2: Propósitos (Grid 4 colunas) */}
             <div className={styles.headerPurposeRow}>
               <div className={styles.inputGroup}>
-                <span className={styles.label} style={{ color: "#a87575" }}>
+                <span className={styles.label} style={{ color: "#8b3434" }}>
                   Propósito Individual 1
                 </span>
                 <input
@@ -1278,7 +1300,7 @@ const CharacterSheet = () => {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <span className={styles.label} style={{ color: "#a87575" }}>
+                <span className={styles.label} style={{ color: "#8b3434" }}>
                   Propósito Individual 2
                 </span>
                 <input
@@ -1290,7 +1312,7 @@ const CharacterSheet = () => {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <span className={styles.label} style={{ color: "#758ca8" }}>
+                <span className={styles.label} style={{ color: "#167695" }}>
                   Prop. Relacional 1
                 </span>
                 <input
@@ -1302,7 +1324,7 @@ const CharacterSheet = () => {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <span className={styles.label} style={{ color: "#758ca8" }}>
+                <span className={styles.label} style={{ color: "#167695" }}>
                   Prop. Relacional 2
                 </span>
                 <input
@@ -1327,82 +1349,102 @@ const CharacterSheet = () => {
               selectedInstinct={selectedInstinct}
               handleInstinctChange={handleInstinctChange}
               onAssimilatedRoll={handleAssimilatedRoll}
-              id={id}
-            />
-            <div
-              style={{
-                marginTop: 30,
-                borderTop: "2px solid #222",
-                paddingTop: 20,
+              onHealthUpdated={(payload) => {
+                setCharacter((prev) => ({
+                  ...prev,
+                  instincts: payload.instincts || prev.instincts,
+                  healthLevels: Array.isArray(payload.healthLevels) ? payload.healthLevels : prev.healthLevels,
+                  currentHealthLevel: payload.currentHealthLevel ?? prev.currentHealthLevel,
+                }));
+                const params = new URLSearchParams(window.location.search);
+                if (params.get("vtt") === "1" && window.parent && window.parent !== window) {
+                  window.parent.postMessage({
+                    type: "ASSIMILACAO_CHARACTER_HEALTH_UPDATED",
+                    characterId: id,
+                    healthLevels: payload.healthLevels,
+                    currentHealthLevel: payload.currentHealthLevel,
+                    instincts: payload.instincts,
+                  }, window.location.origin);
+                }
               }}
-            >
-              <h3 className={styles.sectionTitle}>Status Vital</h3>
-              {character.healthLevels.map((val, idx) => {
-                const level = 6 - idx;
-                const info = healthLevelDetails[level];
-                const max =
-                  1 +
-                  (character.instincts?.potency || 0) +
-                  (character.instincts?.resolution || 0);
-                return (
-                  <div key={level} className={`${styles.healthRow} ${character.currentHealthLevel === level ? styles.healthRowActive : ""}`}>
-                    <div
-                      className={styles.healthHeader}
-                      onClick={() => {
-                        setSelectedHealthInfo(info);
-                        setHealthModalOpen(true);
-                      }}
-                    >
-                      <span
-                        className={`${styles.healthName} ${
-                          character.currentHealthLevel === level
-                            ? styles.healthNameActive
-                            : ""
-                        }`}
-                      >
-                        {info.name}
-                      </span>
-                      <span style={{ fontSize: "0.8em", color: "#666" }}>
-                        {val} / {max}
-                      </span>
-                    </div>
-                    <div className={styles.heartContainer}>
-                      {[...Array(max)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={styles.heartIcon}
-                          onClick={() => handleHealthChange(idx, i + 1)}
-                        >
-                          {i < val ? (
-                            <HeartFullIcon
-                              width={22}
-                              height={22}
-                              style={{ fill: "#b71c1c" }}
-                            />
-                          ) : (
-                            <HeartEmptyIcon
-                              width={22}
-                              height={22}
-                              style={{ fill: "#222" }}
-                            />
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        className={`${styles.heartIcon} ${styles.iconButton}`}
-                        onClick={() => handleHealthChange(idx, 0)}
-                        style={{ marginLeft: "auto" }}
-                        aria-label={`Limpar pontos de ${info.name}`}
-                        title={`Limpar pontos de ${info.name}`}
-                      >
-                        <DeleteIcon aria-hidden="true" style={{ fontSize: 16, color: "#777" }} />
-                      </button>
-                    </div>
+              id={id}
+              character={character}
+            />
+            <section className={styles.vitalStatusSection}>
+              <div className={styles.vitalStatusTitleRow}>
+                <h3 className={styles.sectionTitle}>Status Vital</h3>
+                <span className={styles.vitalStatusFormula}>1 + Potência + Resolução</span>
+              </div>
+
+              <div className={`${styles.vitalStatusFocus} ${displayedHealthLevel === normalizedHealth.currentLevel ? styles.vitalStatusFocusCurrent : ""}`}>
+                <div className={styles.vitalStatusFocusHeader}>
+                  <div>
+                    <span className={styles.vitalStatusEyebrow}>
+                      {displayedHealthLevel === normalizedHealth.currentLevel ? "Estado atual" : "Ajuste manual"}
+                    </span>
+                    <strong>{displayedHealthInfo.name}</strong>
                   </div>
-                );
-              })}
-            </div>
+                  <span className={styles.vitalStatusValue}>{displayedHealthValue}/{normalizedHealth.maxPerLevel}</span>
+                </div>
+
+                <p className={styles.vitalStatusDescription}>{displayedHealthInfo.description}</p>
+
+                <div className={styles.vitalHeartEditor} aria-label={`Pontos de ${displayedHealthInfo.name}`}>
+                  {Array.from({ length: normalizedHealth.maxPerLevel }, (_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={styles.vitalHeartButton}
+                      onClick={() => handleHealthChange(displayedHealthIndex, index + 1)}
+                      disabled={!canEditSheet}
+                      aria-label={`Definir ${index + 1} ponto${index === 0 ? "" : "s"} em ${displayedHealthInfo.name}`}
+                    >
+                      {index < displayedHealthValue
+                        ? <HeartFullIcon width={23} height={23} style={{ fill: "#b71c1c" }} />
+                        : <HeartEmptyIcon width={23} height={23} style={{ fill: "#292929" }} />}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className={styles.vitalClearButton}
+                    onClick={() => handleHealthChange(displayedHealthIndex, 0)}
+                    disabled={!canEditSheet || displayedHealthValue === 0}
+                    title={`Zerar ${displayedHealthInfo.name}`}
+                  >
+                    <DeleteIcon aria-hidden="true" />
+                    Zerar
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.vitalStatusTrack} aria-label="Trilha do Status Vital">
+                {[6, 5, 4, 3, 2, 1].map((level) => {
+                  const index = 6 - level;
+                  const info = healthLevelDetails[level];
+                  const isCurrent = level === normalizedHealth.currentLevel;
+                  const isExpanded = level === displayedHealthLevel;
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      className={`${styles.vitalStatusStep} ${isCurrent ? styles.vitalStatusStepCurrent : ""} ${isExpanded ? styles.vitalStatusStepExpanded : ""}`}
+                      onClick={() => setExpandedHealthLevel(level)}
+                      aria-pressed={isExpanded}
+                    >
+                      <span className={styles.vitalStatusNode}>{level}</span>
+                      <span className={styles.vitalStatusStepName}>{info.name}</span>
+                      <span className={styles.vitalStatusStepValue}>{normalizedHealth.healthLevels[index]}/{normalizedHealth.maxPerLevel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {displayedHealthLevel !== normalizedHealth.currentLevel && (
+                <button type="button" className={styles.vitalReturnButton} onClick={() => setExpandedHealthLevel(null)}>
+                  Voltar ao estado atual
+                </button>
+              )}
+            </section>
           </div>
 
           <div className={styles.colCenter}>
@@ -1411,6 +1453,9 @@ const CharacterSheet = () => {
               id={id}
               character={character}
               addRollToHistory={addRollToHistory}
+              onCharacterResourcesUpdated={(updatedCharacter) => {
+                if (updatedCharacter) setCharacter(updatedCharacter);
+              }}
             />
             <div className={styles.tugOfWarBlock}>
               <TugOfWar character={character} setCharacter={setCharacter} />
@@ -1610,13 +1655,6 @@ const CharacterSheet = () => {
           </div>
         </div>
       </div>
-      <CustomModal
-        open={healthModalOpen}
-        onClose={() => setHealthModalOpen(false)}
-        title={selectedHealthInfo.name}
-      >
-        <p><SystemText text={selectedHealthInfo.description} /></p>
-      </CustomModal>
       <CustomToast
         open={customToastOpen}
         rollResult={null}
@@ -1666,22 +1704,34 @@ const CharacterSheet = () => {
               handleSaveEditedItem(originalItem, newItem)
             }
           />
+          <RollKeepSelector
+            open={!!pendingRollSelection}
+            rollData={pendingRollSelection?.rollData}
+            keepCount={pendingRollSelection?.keepCount || 1}
+            onCancel={() => setPendingRollSelection(null)}
+            onConfirm={(selectedRoll) => {
+              const shouldDisplay = pendingRollSelection?.display;
+              setPendingRollSelection(null);
+              addRollToHistory(selectedRoll, shouldDisplay);
+            }}
+          />
       </>
       {/* --- INICIO DA ÁREA FLUTUANTE (PORTAL) --- */}
       {ReactDOM.createPortal(
         <>
           {/* Botão de Histórico (Fixo) */}
           <button
-            className={styles.fabHistory}
-            onClick={() => setHistoryOpen(!historyOpen)}
-            style={{ zIndex: 99999 }}
-            title={historyOpen ? "Fechar Histórico" : "Abrir Histórico"}
+            type="button"
+            className={`${styles.fabHistory} ${historyOpen ? styles.fabHistoryOpen : ""}`}
+            onClick={() => setHistoryOpen((isOpen) => !isOpen)}
+            title={historyOpen ? "Fechar histórico de rolagens" : "Abrir histórico de rolagens"}
+            aria-label={historyOpen ? "Fechar histórico de rolagens" : "Abrir histórico de rolagens"}
+            aria-expanded={historyOpen}
           >
-            {historyOpen ? (
-              <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>x</span>
-            ) : (
-              <HistoryIcon />
-            )}
+            <span className={styles.fabHistoryIcon} aria-hidden="true">
+              {historyOpen ? <CloseIcon /> : <HistoryIcon />}
+            </span>
+            <span className={styles.fabHistoryLabel}>Rolagens</span>
           </button>
 
           {/* Popover do Histórico (Janela) */}
@@ -1717,34 +1767,16 @@ const CharacterSheet = () => {
                   .slice()
                   .reverse()
                   .map((h, i) => (
-                    <div key={i} className={styles.historyItem}>
-                      {/* Título e Hora */}
-                      <div className={styles.histTopRow}>
-                        <span
-                          className={styles.histSkillName}
-                          title={h.skill ? translateKey(h.skill) : h.formula}
-                        >
-                          {h.skill
-                            ? translateKey(h.skill)
-                            : h.formula || "Rolagem Manual"}
-                        </span>
-                        <span className={styles.histTime}>
-                          {new Date(h.timestamp).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-
-                      {/* Dados */}
-                      <div className={styles.histDiceGrid}>
-                        {h.roll.map((die, idx) => (
-                          <div key={idx} className={styles.histDie}>
-                            <DiceFace die={die} size={42} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <RollResultCard
+                      key={h._id || h.id || h.timestamp || i}
+                      roll={h.roll || []}
+                      actorName={character?.name}
+                      actionLabel={h.skill ? translateKey(h.skill) : "Rolagem manual"}
+                      formula={h.formula}
+                      timestamp={h.timestamp}
+                      selection={h.selection}
+                      variant="compact"
+                    />
                   ))}
               </div>
             </div>

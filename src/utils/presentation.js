@@ -1,3 +1,5 @@
+import { HEALTH_LEVEL_DETAILS } from "./characterHealth";
+
 export const CAMPAIGN_STATUS = {
   active: { label: "Ativa", className: "active" },
   paused: { label: "Pausada", className: "paused" },
@@ -22,14 +24,9 @@ export const formatRelativeDate = (value) => {
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 };
 
-const HEALTH_LABELS = {
-  6: "Saudável",
-  5: "Escoriado",
-  4: "Lacerado",
-  3: "Ferido",
-  2: "Arrebentado",
-  1: "Incapacitado",
-};
+const HEALTH_LABELS = Object.fromEntries(
+  Object.entries(HEALTH_LEVEL_DETAILS).map(([level, details]) => [level, details.name])
+);
 
 export const getCharacterHealth = (character = {}) => {
   const level = Number(character.currentHealthLevel || character.healthLevel || 6);
