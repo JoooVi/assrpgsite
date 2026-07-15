@@ -88,7 +88,7 @@ const RollResultCard = ({
 
       {discardedDice.length > 0 && (
         <div className="roll-result-card__discarded">
-          <span className="roll-result-card__dice-label">Pilha descartada</span>
+          <span className="roll-result-card__dice-label">Dado Descartado</span>
           <div className="roll-result-card__discarded-dice" aria-hidden="true">
             {discardedDice.map((die, index) => (
           <DiceFace

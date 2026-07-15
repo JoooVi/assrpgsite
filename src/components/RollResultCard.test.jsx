@@ -22,7 +22,7 @@ describe("RollResultCard", () => {
     expect(screen.getByText("1 Sucesso")).toBeTruthy();
     expect(screen.queryByText(/Adaptação/)).toBeNull();
     expect(screen.getByText("Resultado escolhido")).toBeTruthy();
-    expect(screen.getByText("Pilha descartada")).toBeTruthy();
+    expect(screen.getByText("Dado Descartado")).toBeTruthy();
     expect(screen.getByLabelText(/Yuri realizou uma rolagem/)).toBeTruthy();
     expect(screen.getByText("1d6+1d10")).toBeTruthy();
   });

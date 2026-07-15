@@ -1045,26 +1045,18 @@ const CharacterSheet = () => {
     };
     setRollHistory((prev) => [...prev, entry].slice(-20));
 
-    api.put(`/characters/${id}/last-roll`, { lastRoll: entry });
-
-    if (character.campaign) {
-      api.post(`/campaigns/${character.campaign}/roll`, { ...entry, rollerId: user?._id, characterId: id })
-        .then((response) => {
-          const createdRoll = applyRollSelectionFallback(
-            response.data?.roll || (Array.isArray(response.data) ? response.data[0] : entry),
-            entry,
-          );
-          const params = new URLSearchParams(window.location.search);
-          if (params.get("vtt") === "1" && window.parent && window.parent !== window) {
-            window.parent.postMessage({
-              type: "ASSIMILACAO_CHARACTER_ROLL_CREATED",
-              roll: createdRoll,
-            }, window.location.origin);
-          }
-        })
-        .catch(() => {
-          dispatchToast({ message: "A rolagem foi feita, mas não pôde ser registrada na campanha.", type: "error" });
-        });
+    try {
+      const response = await api.put(`/characters/${id}/last-roll`, { lastRoll: entry });
+      const createdRoll = applyRollSelectionFallback(response.data?.campaignRoll, entry);
+      const params = new URLSearchParams(window.location.search);
+      if (createdRoll && params.get("vtt") === "1" && window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: "ASSIMILACAO_CHARACTER_ROLL_CREATED",
+          roll: createdRoll,
+        }, window.location.origin);
+      }
+    } catch (error) {
+      dispatchToast({ message: "A rolagem foi feita, mas não pôde ser registrada na campanha.", type: "error" });
     }
     if (display) {
       setLastCustomRoll(rollData);
