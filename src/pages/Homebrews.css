@@ -361,6 +361,14 @@
   margin-bottom: 20px;
 }
 
+.hb-item-editor-dialog .nero-dialog-content {
+  padding: 0;
+}
+
+.hb-item-editor-form {
+  padding: 22px;
+}
+
 .hb-checkbox-row {
   display: flex;
   align-items: center;

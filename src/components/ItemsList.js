@@ -71,6 +71,7 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
   };
   const [formData, setFormData] = useState(initialForm);
   const [imageFile, setImageFile] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Estado auxiliar para o input de texto dos modificadores (separados por vírgula)
   const [modifiersInput, setModifiersInput] = useState("");
@@ -125,20 +126,32 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
     return multipart;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (isSaving) return;
     if (!formData.name.trim()) {
       dispatchToast({ message: "Nome é obrigatório.", type: "warning" });
       return;
     }
 
     const payload = buildItemPayload();
-
-    if (editingItem) {
-      dispatch(updateItem({ id: editingItem._id, data: payload }));
-    } else {
-      dispatch(createItem(payload));
+    try {
+      setIsSaving(true);
+      if (editingItem) {
+        await dispatch(updateItem({ id: editingItem._id, data: payload })).unwrap();
+        dispatchToast({ message: "Item atualizado.", type: "success" });
+      } else {
+        await dispatch(createItem(payload)).unwrap();
+        dispatchToast({ message: "Item criado.", type: "success" });
+      }
+      handleCloseModal();
+    } catch (error) {
+      dispatchToast({
+        message: error?.message || "Não foi possível salvar o item.",
+        type: "error",
+      });
+    } finally {
+      setIsSaving(false);
     }
-    handleCloseModal();
   };
 
   const handleDelete = async (id) => {
@@ -263,10 +276,12 @@ const ItemsList = ({ items, onShare, currentUserId }) => {
         open={modalOpen}
         onClose={handleCloseModal}
         title={editingItem ? "Editar item" : "Criar novo item"}
-        size="medium"
-        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCloseModal}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSubmit}>Salvar</button></>}
+        description={editingItem ? "Atualize os dados do item." : "Cadastre um item para usar nas fichas e campanhas."}
+        size="large"
+        className="hb-item-editor-dialog"
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCloseModal} disabled={isSaving}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSubmit} disabled={isSaving}>{isSaving ? "Salvando..." : "Salvar item"}</button></>}
       >
-            <div className="nero-modal-body">
+            <div className="hb-item-editor-form">
               <div className="form-group">
                 <label>NOME</label>
                 <input 
