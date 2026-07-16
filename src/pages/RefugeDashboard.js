@@ -200,12 +200,7 @@ const RefugeDashboard = () => {
         const campaignData = campaignResponse.data;
         setCampaign(campaignData);
         setIsMaster(Boolean(user && campaignData?.master && (campaignData.master._id || campaignData.master) === user._id));
-        let list = await fetchRefugeList();
-
-        if (!list.length) {
-          const createdDefault = await fetchRefuge();
-          if (createdDefault?._id) list = await fetchRefugeList();
-        }
+        const list = await fetchRefugeList();
 
         const activeId = refugeId && list.some((item) => item._id === refugeId)
           ? refugeId

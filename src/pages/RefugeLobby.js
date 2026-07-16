@@ -51,15 +51,11 @@ const RefugeLobby = () => {
     try {
       setLoading(true);
       setLoadError(false);
-      let list = await fetchRefugeList();
-      const campaignResponse = await api.get(`/campaigns/${campaignId}`);
+      const [list, campaignResponse] = await Promise.all([
+        fetchRefugeList(),
+        api.get(`/campaigns/${campaignId}`),
+      ]);
       setCampaign(campaignResponse.data);
-
-      if (!list.length) {
-        await api.get(`/refuge/campaign/${campaignId}`);
-        list = await fetchRefugeList();
-      }
-
       setRefuges(list);
     } catch (error) {
       console.error(error);
