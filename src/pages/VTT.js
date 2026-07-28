@@ -494,6 +494,8 @@ const VTT = () => {
       ...(Array.isArray(payload.healthLevels) ? { healthLevels: payload.healthLevels } : {}),
       ...(payload.currentHealthLevel !== undefined ? { currentHealthLevel: payload.currentHealthLevel } : {}),
       ...(payload.instincts ? { instincts: payload.instincts } : {}),
+      ...(payload.knowledge ? { knowledge: payload.knowledge } : {}),
+      ...(payload.practices ? { practices: payload.practices } : {}),
     };
     setAvailableChars((prev) => prev.map((char) => (
       String(char._id) === String(payload.characterId) ? { ...char, ...characterPatch } : char
@@ -814,6 +816,7 @@ const VTT = () => {
         setRecentRolls((prev) => mergeChatItems(prev, roll, 'roll', 100));
       });
       newSocket.on('characterHealthUpdated', applyCharacterHealthPatch);
+      newSocket.on('characterStatsUpdated', applyCharacterHealthPatch);
 
       newSocket.on('activeSceneChanged', (incoming) => {
         const sceneId = typeof incoming === 'string' ? incoming : incoming?.sceneId;

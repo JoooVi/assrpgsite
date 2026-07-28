@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactDOM from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -27,6 +27,7 @@ import api from "../api";
 import { getItemImageUrl, normalizeItemImageFields } from "../utils/itemImages";
 import { applyRollSelectionFallback, rollAssimilationDice } from "../utils/assimilationDice";
 import { HEALTH_LEVEL_DETAILS, normalizeCharacterHealth } from "../utils/characterHealth";
+import { normalizeCharacterInstincts, normalizeCharacterSkills } from "../utils/characterStats";
 
 // Icons (Apenas ícones visuais para UI interna)
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
@@ -295,15 +296,15 @@ const SkillList = ({ title, id, addRollToHistory, character, onCharacterResource
   const [currentRoll, setCurrentRoll] = useState(null);
   const [pendingSkillRoll, setPendingSkillRoll] = useState(null);
   const [useDetermination, setUseDetermination] = useState(false);
+  const skillSaveTimerRef = useRef(null);
+  const pendingSkillsRef = useRef(null);
 
   useEffect(() => {
     if (id) {
       const fetchInitialData = async () => {
         try {
           const response = await api.get(`/characters/${id}`);
-          const { knowledge = {}, practices = {} } = response.data;
-          const combinedSkills = { ...knowledge, ...practices };
-          dispatch(updateSkills(combinedSkills));
+          dispatch(updateSkills(normalizeCharacterSkills(response.data)));
         } catch (error) {
           console.error("Error loading skills:", error);
         }
@@ -312,6 +313,38 @@ const SkillList = ({ title, id, addRollToHistory, character, onCharacterResource
       dispatch(fetchInstincts(id));
     }
   }, [id, dispatch]);
+
+  const persistSkills = useCallback(async (skills) => {
+    pendingSkillsRef.current = null;
+    try {
+      await dispatch(saveSkillsToBackend(id, skills));
+    } catch (error) {
+      dispatchToast({
+        message: error?.response?.data?.message || "Não foi possível salvar Conhecimentos e Práticas.",
+        type: "error",
+      });
+    }
+  }, [dispatch, id]);
+
+  const queueSkillsSave = useCallback((skills) => {
+    pendingSkillsRef.current = skills;
+    window.clearTimeout(skillSaveTimerRef.current);
+    skillSaveTimerRef.current = window.setTimeout(() => persistSkills(skills), 400);
+  }, [persistSkills]);
+
+  const flushSkillsSave = useCallback(() => {
+    if (!pendingSkillsRef.current) return;
+    const skills = pendingSkillsRef.current;
+    window.clearTimeout(skillSaveTimerRef.current);
+    persistSkills(skills);
+  }, [persistSkills]);
+
+  useEffect(() => () => {
+    window.clearTimeout(skillSaveTimerRef.current);
+    if (pendingSkillsRef.current) {
+      dispatch(saveSkillsToBackend(id, pendingSkillsRef.current));
+    }
+  }, [dispatch, id]);
 
   const handleRoll = async (key) => {
     const instinctKey = selectedInstinct[key];
@@ -374,7 +407,7 @@ const SkillList = ({ title, id, addRollToHistory, character, onCharacterResource
   const handleEditSkill = (key, val) => {
     const newSkills = { ...globalSkills, [key]: parseInt(val) || 0 };
     dispatch(updateSkills(newSkills));
-    dispatch(saveSkillsToBackend(id, newSkills));
+    queueSkillsSave(newSkills);
   };
 
   const openDesc = (key) => {
@@ -490,6 +523,7 @@ const SkillList = ({ title, id, addRollToHistory, character, onCharacterResource
             className={`${styles.inputField} ${styles.smallInput}`}
             value={val}
             onChange={(e) => handleEditSkill(key, e.target.value)}
+            onBlur={flushSkillsSave}
           />
 
           <div className={styles.selectInputWrapper}>
@@ -568,18 +602,45 @@ const InstinctList = ({
     desc: "",
   });
   const [useDetermination, setUseDetermination] = useState(false);
+  const instinctSaveTimerRef = useRef(null);
+  const pendingInstinctsRef = useRef(null);
 
-  const updateInstinctValue = async (key, val) => {
+  const persistInstincts = useCallback(async (nextInstincts) => {
+    pendingInstinctsRef.current = null;
+    try {
+      const response = await api.put(`/characters/${id}/instincts`, { instincts: nextInstincts });
+      const savedInstincts = normalizeCharacterInstincts(response.data, nextInstincts);
+      dispatch(updateInstincts(savedInstincts));
+      onHealthUpdated?.({ ...response.data, instincts: savedInstincts });
+    } catch (error) {
+      dispatchToast({
+        message: error?.response?.data?.message || "Não foi possível salvar os Instintos.",
+        type: "error",
+      });
+    }
+  }, [dispatch, id, onHealthUpdated]);
+
+  const flushInstinctsSave = useCallback(() => {
+    if (!pendingInstinctsRef.current) return;
+    const nextInstincts = pendingInstinctsRef.current;
+    window.clearTimeout(instinctSaveTimerRef.current);
+    persistInstincts(nextInstincts);
+  }, [persistInstincts]);
+
+  useEffect(() => () => {
+    window.clearTimeout(instinctSaveTimerRef.current);
+    if (pendingInstinctsRef.current) {
+      api.put(`/characters/${id}/instincts`, { instincts: pendingInstinctsRef.current }).catch(() => {});
+    }
+  }, [id]);
+
+  const updateInstinctValue = (key, val) => {
     const newValue = Number(val);
     const updated = { ...instincts, [key]: newValue };
     dispatch(updateInstincts(updated));
-
-    try {
-      const response = await api.put(`/characters/${id}/instincts`, { instincts: updated });
-      onHealthUpdated?.(response.data);
-    } catch (err) {
-      console.error("Error updating instincts", err);
-    }
+    pendingInstinctsRef.current = updated;
+    window.clearTimeout(instinctSaveTimerRef.current);
+    instinctSaveTimerRef.current = window.setTimeout(() => persistInstincts(updated), 400);
   };
 
   const showDesc = (key) => {
@@ -624,6 +685,7 @@ const InstinctList = ({
             className={`${styles.inputField} ${styles.smallInput}`}
             value={val}
             onChange={(e) => updateInstinctValue(key, e.target.value)}
+            onBlur={flushInstinctsSave}
           />
           <div className={styles.selectInputWrapper}>
             <select

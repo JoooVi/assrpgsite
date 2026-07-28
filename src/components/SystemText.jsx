@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { getSystemSymbol } from "../utils/systemSymbols";
 import "./SystemText.css";
 
-const TOKEN_REGEX = /(\[([a-zA-Z0-9_\-\s\u00c0-\u017f]+)\]|\(([a-zA-Z0-9_\-\s\u00c0-\u017f]+)\))/g;
+const TOKEN_REGEX = /(\[([a-zA-Z0-9_\-\s\u00c0-\u017f]+)\]|\(([a-zA-Z0-9_\-\s\u00c0-\u017f]+)\)|:([a-zA-Z0-9_\-\s\u00c0-\u017f]+):)/g;
 const INLINE_SYMBOL_REGEX = /(🐞|🦉|🫎|🛡️?|⬜️?|♦️?|🔷|❤️?|determina(?:ç|c)(?:ão|ao|ões|oes)|assimila(?:ç|c)(?:ão|ao|ões|oes))/giu;
 
 const GLYPH_TOKENS = {
@@ -92,10 +92,10 @@ const SystemText = ({ text, className = "" }) => {
 
     TOKEN_REGEX.lastIndex = 0;
     while ((match = TOKEN_REGEX.exec(rawText)) !== null) {
-      const [rawToken,, bracketToken, parenthesisToken] = match;
-      const token = bracketToken || parenthesisToken;
+      const [rawToken,, bracketToken, parenthesisToken, colonToken] = match;
+      const token = bracketToken || parenthesisToken || colonToken;
       const symbol = getSystemSymbol(token);
-      if (!symbol && parenthesisToken) continue;
+      if (!symbol && (parenthesisToken || colonToken)) continue;
 
       if (match.index > lastIndex) {
         parts.push(...renderInlineResources(rawText.slice(lastIndex, match.index), `text-${lastIndex}`));

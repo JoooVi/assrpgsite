@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { normalizeCharacterInstincts } from "../../utils/characterStats";
 
 const initialState = {
-  instincts: {},
+  instincts: normalizeCharacterInstincts(),
   selectedInstinct: {},
   loading: false,
   error: null,
@@ -12,7 +13,7 @@ const instinctsSlice = createSlice({
   initialState,
   reducers: {
     updateInstincts: (state, action) => {
-      state.instincts = action.payload; // Deve receber o objeto completo
+      state.instincts = normalizeCharacterInstincts(action.payload, state.instincts);
       state.error = null;
     },
     setSelectedInstinct: (state, action) => {

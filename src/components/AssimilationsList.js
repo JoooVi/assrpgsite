@@ -42,6 +42,7 @@ const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) =
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newAssimilation, setNewAssimilation] = useState(initialAssimilation);
   const [expandedId, setExpandedId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -76,34 +77,58 @@ const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) =
     setEditOpen(false);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!validateAssimilation(selectedAssimilation)) return;
+    if (isSaving) return;
 
-    dispatch(
-      updateAssimilation({
-        id: selectedAssimilation._id,
-        data: selectedAssimilation,
-        createdBy: user._id,
-      })
-    );
-    handleEditClose();
+    try {
+      setIsSaving(true);
+      await dispatch(
+        updateAssimilation({
+          id: selectedAssimilation._id,
+          data: selectedAssimilation,
+          createdBy: user._id,
+        })
+      ).unwrap();
+      dispatchToast({ type: "success", message: "Assimilação atualizada." });
+      handleEditClose();
+    } catch (error) {
+      dispatchToast({
+        type: "error",
+        message: error?.message || "Não foi possível atualizar a assimilação.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCreateOpen = () => setCreateDialogOpen(true);
   const handleCreateClose = () => setCreateDialogOpen(false);
 
-  const handleCreateAssimilation = () => {
+  const handleCreateAssimilation = async () => {
     if (!validateAssimilation(newAssimilation)) return;
+    if (isSaving) return;
 
-    dispatch(
-      createAssimilation({
-        ...newAssimilation,
-        createdBy: currentUserId,
-        userId: currentUserId,
-      })
-    );
-    setNewAssimilation(initialAssimilation);
-    handleCreateClose();
+    try {
+      setIsSaving(true);
+      await dispatch(
+        createAssimilation({
+          ...newAssimilation,
+          createdBy: currentUserId,
+          userId: currentUserId,
+        })
+      ).unwrap();
+      setNewAssimilation(initialAssimilation);
+      handleCreateClose();
+      dispatchToast({ type: "success", message: "Assimilação criada." });
+    } catch (error) {
+      dispatchToast({
+        type: "error",
+        message: error?.message || "Não foi possível criar a assimilação.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -247,7 +272,7 @@ const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) =
         onClose={handleCreateClose}
         title="Criar nova assimilação"
         size="medium"
-        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCreateClose}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleCreateAssimilation}>Criar</button></>}
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleCreateClose} disabled={isSaving}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleCreateAssimilation} disabled={isSaving}>{isSaving ? "Salvando..." : "Criar"}</button></>}
       >
             <div className="nero-modal-body">
               {renderAssimilationForm(newAssimilation, handleNewChange)}
@@ -337,7 +362,7 @@ const AssimilationsList = ({ assimilationItems = [], onShare, currentUserId }) =
         onClose={handleEditClose}
         title="Editar assimilação"
         size="medium"
-        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleEditClose}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSaveEdit}>Salvar</button></>}
+        actions={<><button type="button" className="btn-nero btn-secondary" onClick={handleEditClose} disabled={isSaving}>Cancelar</button><button type="button" className="btn-nero btn-primary" onClick={handleSaveEdit} disabled={isSaving}>{isSaving ? "Salvando..." : "Salvar"}</button></>}
       >
         {selectedAssimilation && (
             <div className="nero-modal-body">
