@@ -17,27 +17,51 @@ const matchesSearch = (entry, search, fields) => (
   !search || fields.some((field) => String(entry?.[field] || "").toLowerCase().includes(search))
 );
 
+const getOwnerId = (entry) => entry?.createdBy?._id || entry?.createdBy || entry?.userId?._id || entry?.userId;
+
+const mergeUniqueById = (...collections) => Array.from(
+  collections.flat().reduce((entries, entry) => {
+    const key = String(entry?._id || "");
+    if (key) entries.set(key, entry);
+    return entries;
+  }, new Map()).values()
+);
+
 const Homebrews = () => {
   const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.auth.user);
   const token = useSelector((state) => state.auth.token);
   const { items = [], loading: itemsLoading, error: itemsError } = useSelector((state) => state.items);
-  const { assimilations = [], loading: assimilationsLoading, error: assimilationsError } = useSelector((state) => state.assimilations);
+  const {
+    allAssimilations = [],
+    userAssimilations: ownedAssimilations = [],
+    loading: assimilationsLoading,
+    error: assimilationsError,
+  } = useSelector((state) => state.assimilations);
   const { characterTraits = [], loading: traitsLoading, error: traitsError } = useSelector((state) => state.characteristics);
 
   const [activeTab, setActiveTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const userItems = useMemo(() => (
-    items.filter((item) => item?.createdBy === currentUser?._id || item?.userId === currentUser?._id)
+    items.filter((item) => String(getOwnerId(item) || "") === String(currentUser?._id || ""))
   ), [currentUser?._id, items]);
 
+  const assimilationCatalog = useMemo(
+    () => mergeUniqueById(allAssimilations, ownedAssimilations),
+    [allAssimilations, ownedAssimilations]
+  );
+
   const userAssimilations = useMemo(() => (
-    assimilations.filter((assimilation) => assimilation.isCustom && assimilation.createdBy === currentUser?._id)
-  ), [assimilations, currentUser?._id]);
+    assimilationCatalog.filter((assimilation) => (
+      assimilation.isCustom !== false
+      && String(getOwnerId(assimilation) || "") === String(currentUser?._id || "")
+    ))
+  ), [assimilationCatalog, currentUser?._id]);
 
   const userTraits = useMemo(() => (
-    characterTraits.filter((trait) => trait.createdBy === currentUser?._id)
+    characterTraits.filter((trait) => String(getOwnerId(trait) || "") === String(currentUser?._id || ""))
   ), [characterTraits, currentUser?._id]);
 
   const search = searchTerm.trim().toLowerCase();
@@ -51,13 +75,17 @@ const Homebrews = () => {
     { label: "Características", count: userTraits.length },
   ];
 
-  const loadHomebrews = React.useCallback(() => {
+  const loadHomebrews = React.useCallback(async () => {
     if (!currentUser || !token) return Promise.resolve();
-    return Promise.all([
-      dispatch(fetchAllAssimilations()),
-      dispatch(fetchItems()),
-      dispatch(fetchCharacterTraits()),
-    ]);
+    try {
+      await Promise.all([
+        dispatch(fetchAllAssimilations()),
+        dispatch(fetchItems()),
+        dispatch(fetchCharacterTraits()),
+      ]);
+    } finally {
+      setHasLoaded(true);
+    }
   }, [currentUser, dispatch, token]);
 
   useEffect(() => {
@@ -67,11 +95,11 @@ const Homebrews = () => {
   const loading = itemsLoading || assimilationsLoading || traitsLoading;
   const loadError = itemsError || assimilationsError || traitsError;
 
-  if (loading && !items.length && !assimilations.length && !characterTraits.length) {
+  if (!hasLoaded && loading && !items.length && !assimilationCatalog.length && !characterTraits.length) {
     return <SkeletonState variant="cards" count={3} label="Carregando homebrews" />;
   }
 
-  if (loadError && !items.length && !assimilations.length && !characterTraits.length) {
+  if (hasLoaded && loadError && !items.length && !assimilationCatalog.length && !characterTraits.length) {
     return (
       <div className="homebrews-container">
         <ErrorState

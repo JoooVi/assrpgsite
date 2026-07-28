@@ -30,8 +30,10 @@ const Dialog = ({
 }) => {
   const dialogRef = useRef(null);
   const returnFocusRef = useRef(null);
+  const onCloseRef = useRef(onClose);
   const titleId = useId();
   const descriptionId = useId();
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -50,7 +52,7 @@ const Dialog = ({
     const handleKeyDown = (event) => {
       if (event.key === "Escape" && closeOnEscape) {
         event.preventDefault();
-        onClose?.();
+        onCloseRef.current?.();
         return;
       }
 
@@ -80,7 +82,7 @@ const Dialog = ({
       document.body.style.overflow = previousOverflow;
       returnFocusRef.current?.focus?.();
     };
-  }, [closeOnEscape, initialFocusRef, onClose, open]);
+  }, [closeOnEscape, initialFocusRef, open]);
 
   if (!open) return null;
 

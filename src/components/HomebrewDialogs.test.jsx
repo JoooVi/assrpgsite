@@ -36,4 +36,16 @@ describe("modais de Homebrew", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(trigger).toHaveFocus();
   });
+
+  test("digitar no formulario nao move o foco para o botao de fechar", async () => {
+    render(<CharacteristicsList traits={[]} />);
+    fireEvent.click(screen.getByRole("button", { name: /criar nova caracter/i }));
+
+    const nameInput = screen.getAllByRole("textbox")[0];
+    nameInput.focus();
+    fireEvent.change(nameInput, { target: { value: "Marca" } });
+
+    await waitFor(() => expect(nameInput).toHaveFocus());
+    expect(nameInput).toHaveValue("Marca");
+  });
 });
