@@ -1,7 +1,6 @@
 /* --- Footer.module.css --- */
 
 /* Import pode ser redundante se já estiver no index ou Navbar, mas garante funcionamento isolado */
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&display=swap');
 
 .footerContainer {
   background: linear-gradient(to top, #000000 0%, #0a0a0a 100%);

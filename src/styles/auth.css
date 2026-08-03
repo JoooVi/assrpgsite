@@ -1,13 +1,22 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;700&display=swap");
 
 .auth-container,
 .Register-page {
   align-items: center;
-  background:
+  background-color: #050505;
+  background-image:
     linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.44) 42%, rgba(0, 0, 0, 0.12) 100%),
     linear-gradient(0deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.28) 100%),
-    url("../assets/ass.png") center / cover no-repeat,
-    #050505;
+    url("../assets/optimized/home/hero-desktop.webp");
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.44) 42%, rgba(0, 0, 0, 0.12) 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.28) 100%),
+    image-set(
+      url("../assets/optimized/home/hero-desktop.avif") type("image/avif"),
+      url("../assets/optimized/home/hero-desktop.webp") type("image/webp")
+    );
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   display: flex;
   justify-content: center;
   height: 100dvh;
@@ -15,6 +24,23 @@
   overflow: hidden;
   padding: 36px 20px;
   position: relative;
+}
+
+@media (max-width: 900px) {
+  .auth-container,
+  .Register-page {
+    background-image:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.44) 42%, rgba(0, 0, 0, 0.12) 100%),
+      linear-gradient(0deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.28) 100%),
+      url("../assets/optimized/home/hero-mobile.webp");
+    background-image:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.44) 42%, rgba(0, 0, 0, 0.12) 100%),
+      linear-gradient(0deg, rgba(0, 0, 0, 0.66) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.28) 100%),
+      image-set(
+        url("../assets/optimized/home/hero-mobile.avif") type("image/avif"),
+        url("../assets/optimized/home/hero-mobile.webp") type("image/webp")
+      );
+  }
 }
 
 .auth-container::before,

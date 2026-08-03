@@ -1,0 +1,156 @@
+.btnAdd,
+.btnCancel,
+.btnCommand {
+  align-items: center;
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.98), rgba(10, 10, 10, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #e9e9e9;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  letter-spacing: 0.06em;
+  min-height: 38px;
+  text-transform: uppercase;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.btnAdd:hover,
+.btnCancel:hover,
+.btnCommand:hover {
+  background: linear-gradient(180deg, rgba(74, 24, 24, 0.96), rgba(18, 8, 8, 0.98));
+  border-color: rgba(255, 51, 51, 0.5);
+  transform: translateY(-1px);
+}
+
+.btnCommand {
+  background: linear-gradient(180deg, #8a1c18, #4b100e);
+  border-color: rgba(138, 28, 24, 0.72);
+  color: #fff;
+  padding: 8px 14px;
+}
+
+.btnAdd {
+  padding: 8px 12px;
+}
+
+.btnCancel {
+  color: #aaa;
+  padding: 8px 12px;
+}
+
+.shieldColumn {
+  background:
+    radial-gradient(circle at top right, rgba(138, 28, 24, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(6, 6, 6, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(138, 28, 24, 0.85);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+}
+
+.columnHeader {
+  align-items: center;
+  background: linear-gradient(90deg, rgba(138, 28, 24, 0.28), rgba(10, 10, 10, 0.98));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffb3b3;
+  display: flex;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 10px;
+  justify-content: space-between;
+  letter-spacing: 0.08em;
+  margin-bottom: 0;
+  padding: 18px 20px;
+  text-transform: uppercase;
+}
+
+.scrollableContent {
+  background: radial-gradient(circle at top right, rgba(138, 28, 24, 0.08), transparent 25%), #060606;
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+}
+
+.scrollableContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollableContent::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb:hover {
+  background: #8a1c18;
+}
+
+.btnTrash {
+  align-items: center;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-grid;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  height: 26px;
+  justify-content: center;
+  place-items: center;
+  width: 26px;
+}
+
+.btnTrash:hover {
+  background: rgba(138, 28, 24, 0.34);
+  border-color: rgba(255, 51, 51, 0.6);
+}
+
+.commandLabel {
+  color: #8b8b8b;
+  display: block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.diceInput,
+.neroSelect,
+.notesArea {
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #fff;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  outline: none;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.diceInput:focus,
+.neroSelect:focus,
+.notesArea:focus {
+  border-color: rgba(255, 51, 51, 0.58);
+  box-shadow: 0 0 0 1px rgba(138, 28, 24, 0.28);
+}
+
+.notesArea {
+  min-height: 92px;
+  resize: vertical;
+}
+

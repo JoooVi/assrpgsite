@@ -3,12 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-import styles from './VTT.module.css';
 import VTTMap from '../components/VTT/VTTMap';
 import VTTPerformancePanel from '../components/VTT/VTTPerformancePanel';
-import ConflictTracker from '../components/ConflictTracker';
+import MasterDiceRoller from '../components/MasterDiceRoller';
 import RollResultCard from '../components/RollResultCard';
 import RollKeepSelector from '../components/RollKeepSelector';
+import ConflictTracker from '../components/ConflictTracker';
 import {
   FaBullseye, FaHandPaper, FaThLarge, FaMapMarkedAlt, FaPlus, FaTrash,
   FaUpload, FaRuler, FaPencilAlt, FaUserShield, FaFolder, FaTimes,
@@ -17,9 +17,8 @@ import {
     FaQuestionCircle, FaEye, FaEyeSlash, FaDiceD20,
     FaUsers, FaImage, FaCircle, FaSquare, FaHeart, FaRegHeart, FaSlidersH, FaLock, FaUnlock, FaCopy, FaAlignLeft, FaAlignCenter, FaAlignRight, FaShapes, FaSlash, FaLowVision, FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown
 } from 'react-icons/fa';
-import MasterDiceRoller from '../components/MasterDiceRoller';
-import EventDeckModal from '../components/EventDeckModal';
 import NPCGenerator from '../components/NPCGenerator';
+import EventDeckModal from '../components/EventDeckModal';
 import { useConfirm } from '../components/notifications/ConfirmProvider';
 import { dispatchToast } from '../components/notifications/ToastProvider';
 import Dialog from '../components/ui/Dialog';
@@ -29,6 +28,8 @@ import { applyRollSelectionFallback, isValidRollFormula, normalizeRollFormula, r
 import determinationPointIcon from '../assets/icons/ICONES_PONTOS_NIVEIS_ASSIMILACAO_DETERMINACAO_pontos_determinacao_cima_NOVO.png';
 import assimilationPointIcon from '../assets/icons/ICONES_PONTOS_NIVEIS_ASSIMILACAO_DETERMINACAO_pontos_assimilacao_baixo_NOVA.png';
 import { HEALTH_LEVEL_DETAILS, getCharacterHealthSummary } from '../utils/characterHealth';
+import '@fontsource/share-tech-mono/latin-400.css';
+import styles from './VTT.module.css';
 
 const API_BASE = API_BASE_URL;
 const DEBUG_VTT_ROLLS = process.env.REACT_APP_DEBUG_VTT_ROLLS === 'true';

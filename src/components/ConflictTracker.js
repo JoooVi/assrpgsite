@@ -1,7 +1,7 @@
 /* ConflictTracker.js */
 import React, { useState } from 'react';
 import { FaPlus, FaTrash, FaTimes, FaSkull, FaBullseye } from 'react-icons/fa';
-import styles from '../pages/VTT.module.css'; 
+import styles from './ConflictTracker.module.css';
 
 // Templates
 const newObjectiveTemplate = { name: '', type: 'principal', cost: 10, progress: 0 };

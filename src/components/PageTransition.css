@@ -1,0 +1,25 @@
+.page-transition-shell {
+  max-width: 100%;
+  overflow: clip;
+  width: 100%;
+}
+
+.page-transition-shell.is-entering {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.page-transition-shell.is-visible {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-shell.is-entering,
+  .page-transition-shell.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -8,9 +8,19 @@ import App from "./App";
 import "./index.css";
 import "./styles/nero-theme.css";
 import { HelmetProvider } from 'react-helmet-async';
-import FireflyBackground from './components/FireflyBackground'; // <-- 1. IMPORTAR AQUI
 import { ToastProvider } from './components/notifications/ToastProvider';
 import { ConfirmProvider } from './components/notifications/ConfirmProvider';
+import '@fontsource/orbitron/latin-400.css';
+import '@fontsource/orbitron/latin-500.css';
+import '@fontsource/orbitron/latin-600.css';
+import '@fontsource/orbitron/latin-700.css';
+import '@fontsource/orbitron/latin-900.css';
+import '@fontsource/rajdhani/latin-400.css';
+import '@fontsource/rajdhani/latin-500.css';
+import '@fontsource/rajdhani/latin-600.css';
+import '@fontsource/rajdhani/latin-700.css';
+import '@fontsource/roboto-condensed/latin-400.css';
+import '@fontsource/roboto-condensed/latin-700.css';
 
 const container = document.getElementById("root");
 const root = createRoot(container);
@@ -21,7 +31,6 @@ root.render(
       <Provider store={store}>
         <ToastProvider>
           <ConfirmProvider>
-            <FireflyBackground /> {/* <-- 2. ADICIONAR AQUI */}
             <App />
           </ConfirmProvider>
         </ToastProvider>

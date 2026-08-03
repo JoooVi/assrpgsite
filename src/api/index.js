@@ -21,11 +21,15 @@ api.interceptors.request.use(
 // Adicionar interceptador para logging
 api.interceptors.response.use(
   (response) => {
-    console.log(`API Response [${response.config.url}]:`, response.data);
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`API Response [${response.config.url}]`);
+    }
     return response;
   },
   (error) => {
-    console.error('API Error:', error.response || error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Error:', error.response || error);
+    }
     return Promise.reject(error);
   }
 );

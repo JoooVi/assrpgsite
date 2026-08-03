@@ -13,44 +13,42 @@ import KofiButton from "./components/KofiButton";
 import PageTransition from "./components/PageTransition";
 import SessionExpiredModal from "./components/SessionExpiredModal";
 import PageLoader from "./components/ui/PageLoader";
-import { AnimatePresence } from 'framer-motion';
+import FireflyBackground from "./components/FireflyBackground";
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Analytics } from "@vercel/analytics/react";
+import { getPerformanceRoute } from "./utils/performanceRoute";
 
 // Páginas
 import HomePage from "./pages/HomePage";
-import AuthAccessPage from "./pages/AuthAccessPage";
-import SharedHomebrew from "./pages/SharedHomebrew";
-import ProfilePage from "./pages/ProfilePage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import CharacterPortraitPage from "./pages/CharacterPortraitPage";
-import AuthCallbackPage from "./pages/AuthCallbackPage";
-import EditProfilePage from "./pages/EditProfilePage";
-import NotFoundPage from "./pages/NotFoundPage";
 // Hooks customizados
 import useTokenRefresh from "./hooks/useTokenRefresh";
 
 import "./App.css";
-import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
-import '@fontsource/material-icons';
 
 
 // --- IMPORTAÇÕES DE CAMPANHA ---
 const CharacterForm = lazy(() => import('./pages/CharacterForm'));
+const AuthAccessPage = lazy(() => import('./pages/AuthAccessPage'));
+const SharedHomebrew = lazy(() => import('./pages/SharedHomebrew'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const CharacterPortraitPage = lazy(() => import('./pages/CharacterPortraitPage'));
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
+const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const CharacterList = lazy(() => import('./pages/CharacterList'));
 const CharacterSheet = lazy(() => import('./pages/CharacterSheet'));
 const Homebrews = lazy(() => import('./pages/Homebrews'));
 const CampaignList = lazy(() => import('./pages/CampaignList'));
 const CampaignForm = lazy(() => import('./pages/CampaignForm'));
 const CampaignLobby = lazy(() => import('./components/CampaignLobby'));
-const CampaignSheet = lazy(() => import(/* webpackChunkName: "campaign-runtime" */ './pages/CampaignSheet'));
+const CampaignSheet = lazy(() => import(/* webpackChunkName: "campaign-sheet" */ './pages/CampaignSheet'));
 const RefugeLobby = lazy(() => import('./pages/RefugeLobby'));
 const RefugeDashboard = lazy(() => import('./pages/RefugeDashboard'));
-const VTT = lazy(() => import(/* webpackChunkName: "campaign-runtime" */ './pages/VTT'));
+const VTT = lazy(() => import(/* webpackChunkName: "vtt-runtime" */ './pages/VTT'));
 
 
 const AppContent = () => {
@@ -69,6 +67,7 @@ const AppContent = () => {
   const routeTransitionKey = ['/login', '/register'].includes(location.pathname)
     ? 'auth-access'
     : location.pathname;
+  const performanceRoute = getPerformanceRoute(location.pathname);
   const requireAuth = (element) => isAuthenticated
     ? element
     : <Navigate to="/login" replace state={{ from: location }} />;
@@ -97,12 +96,12 @@ const AppContent = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <SessionExpiredModal />
+      {shouldShowLayout && <FireflyBackground />}
       {shouldShowLayout && <Navbar />}
       <main style={{ flexGrow: 1 }}>
-        <SpeedInsights/>
+        <SpeedInsights route={performanceRoute} />
         <Analytics />
-        <AnimatePresence mode="wait">
-          <Suspense fallback={<PageLoader title="Carregando módulo" subtitle="Preparando a interface..." fullScreen />}>
+        <Suspense fallback={<PageLoader title="Carregando módulo" subtitle="Preparando a interface..." fullScreen />}>
           <Routes location={location} key={routeTransitionKey}>
             {/* --- Rotas PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºblicas --- */}
             <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
@@ -157,8 +156,7 @@ const AppContent = () => {
             <Route path="*" element={<PageTransition><NotFoundPage /></PageTransition>} />
 
           </Routes>
-          </Suspense>
-        </AnimatePresence>
+        </Suspense>
       </main>
       {shouldShowLayout && <Footer />}
       {shouldShowLayout && <KofiButton />}

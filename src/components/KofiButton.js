@@ -13,6 +13,8 @@ const KofiButton = ({
 
 useEffect(() => {
   const kofiScriptUrl = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
+  let idleId;
+  let timeoutId;
 
   const drawWidget = () => {
     if (window.kofiWidgetOverlay) {
@@ -25,30 +27,39 @@ useEffect(() => {
     }
   };
 
-  const existingScript = document.querySelector(`script[src="${kofiScriptUrl}"]`);
+  const loadWidget = () => {
+    const existingScript = document.querySelector(`script[src="${kofiScriptUrl}"]`);
+    if (existingScript) {
+      drawWidget();
+      return;
+    }
 
-  if (existingScript) {
-    drawWidget();
-    return;
-  }
-  
-  try {
     const script = document.createElement('script');
     script.src = kofiScriptUrl;
     script.async = true;
     script.onload = drawWidget;
     script.onerror = () => console.error('Failed to load Ko-fi widget script');
     document.body.appendChild(script);
-  } catch (error) {
-    console.error('Error initializing Ko-fi widget:', error);
-  }
+  };
 
-  // --- CORRECTION IS HERE ---
-  // The cleanup function should NOT try to delete the global object.
-  // An empty return is the safest approach.
-  return () => {};
+  const scheduleWidget = () => {
+    if ('requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(loadWidget, { timeout: 5000 });
+    } else {
+      timeoutId = window.setTimeout(loadWidget, 2500);
+    }
+  };
 
-}, [username, buttonText, backgroundColor, textColor]); // Manter as dependências
+  if (document.readyState === 'complete') scheduleWidget();
+  else window.addEventListener('load', scheduleWidget, { once: true });
+
+  return () => {
+    window.removeEventListener('load', scheduleWidget);
+    if (idleId && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+    if (timeoutId) window.clearTimeout(timeoutId);
+  };
+
+}, [username, buttonText, backgroundColor, textColor]);
 
   return null; // O componente não renderiza nada visível por si só
 };

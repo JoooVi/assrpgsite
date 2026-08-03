@@ -1,13 +1,56 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "./HomePage.css";
-import heroArt from "../assets/ass.png";
-import characterArt from "../assets/homepage1.png";
-import campaignArt from "../assets/asssrpg.png";
-import homebrewArt from "../assets/homepage2.png";
-import vttArt from "../assets/05_A_igreja.jpg";
-import acessoArt from "../assets/homepage3.png";
-import assimilation from "../assets/assimilation.jpg";
+import heroDesktopAvif from "../assets/optimized/home/hero-desktop.avif";
+import heroDesktopWebp from "../assets/optimized/home/hero-desktop.webp";
+import heroMobileAvif from "../assets/optimized/home/hero-mobile.avif";
+import heroMobileWebp from "../assets/optimized/home/hero-mobile.webp";
+import charactersDesktopAvif from "../assets/optimized/home/characters-desktop.avif";
+import charactersDesktopWebp from "../assets/optimized/home/characters-desktop.webp";
+import charactersMobileAvif from "../assets/optimized/home/characters-mobile.avif";
+import charactersMobileWebp from "../assets/optimized/home/characters-mobile.webp";
+import campaignsDesktopAvif from "../assets/optimized/home/campaigns-desktop.avif";
+import campaignsDesktopWebp from "../assets/optimized/home/campaigns-desktop.webp";
+import campaignsMobileAvif from "../assets/optimized/home/campaigns-mobile.avif";
+import campaignsMobileWebp from "../assets/optimized/home/campaigns-mobile.webp";
+import homebrewsDesktopAvif from "../assets/optimized/home/homebrews-desktop.avif";
+import homebrewsDesktopWebp from "../assets/optimized/home/homebrews-desktop.webp";
+import homebrewsMobileAvif from "../assets/optimized/home/homebrews-mobile.avif";
+import homebrewsMobileWebp from "../assets/optimized/home/homebrews-mobile.webp";
+import vttDesktopAvif from "../assets/optimized/home/vtt-desktop.avif";
+import vttDesktopWebp from "../assets/optimized/home/vtt-desktop.webp";
+import vttMobileAvif from "../assets/optimized/home/vtt-mobile.avif";
+import vttMobileWebp from "../assets/optimized/home/vtt-mobile.webp";
+import accessDesktopAvif from "../assets/optimized/home/access-desktop.avif";
+import accessDesktopWebp from "../assets/optimized/home/access-desktop.webp";
+import accessMobileAvif from "../assets/optimized/home/access-mobile.avif";
+import accessMobileWebp from "../assets/optimized/home/access-mobile.webp";
+import finalDesktopAvif from "../assets/optimized/home/final-desktop.avif";
+import finalDesktopWebp from "../assets/optimized/home/final-desktop.webp";
+import finalMobileAvif from "../assets/optimized/home/final-mobile.avif";
+import finalMobileWebp from "../assets/optimized/home/final-mobile.webp";
+
+const createArt = (desktopAvif, desktopWebp, mobileAvif, mobileWebp) => ({
+  desktopAvif,
+  desktopWebp,
+  mobileAvif,
+  mobileWebp,
+});
+
+const heroArt = createArt(heroDesktopAvif, heroDesktopWebp, heroMobileAvif, heroMobileWebp);
+const characterArt = createArt(charactersDesktopAvif, charactersDesktopWebp, charactersMobileAvif, charactersMobileWebp);
+const campaignArt = createArt(campaignsDesktopAvif, campaignsDesktopWebp, campaignsMobileAvif, campaignsMobileWebp);
+const homebrewArt = createArt(homebrewsDesktopAvif, homebrewsDesktopWebp, homebrewsMobileAvif, homebrewsMobileWebp);
+const vttArt = createArt(vttDesktopAvif, vttDesktopWebp, vttMobileAvif, vttMobileWebp);
+const acessoArt = createArt(accessDesktopAvif, accessDesktopWebp, accessMobileAvif, accessMobileWebp);
+const assimilation = createArt(finalDesktopAvif, finalDesktopWebp, finalMobileAvif, finalMobileWebp);
+
+const getArtStyles = ({ desktopAvif, desktopWebp, mobileAvif, mobileWebp }) => ({
+  "--section-art-fallback": `url(${desktopWebp})`,
+  "--section-art": `image-set(url(${desktopAvif}) type("image/avif"), url(${desktopWebp}) type("image/webp"))`,
+  "--section-art-mobile-fallback": `url(${mobileWebp})`,
+  "--section-art-mobile": `image-set(url(${mobileAvif}) type("image/avif"), url(${mobileWebp}) type("image/webp"))`,
+});
 const scrollSections = [
   {
     eyebrow: "Personagens",
@@ -52,6 +95,44 @@ const availableItems = [
   "Características",
 ];
 
+const DeferredArtSection = ({ image, className, children, ...sectionProps }) => {
+  const sectionRef = useRef(null);
+  const [shouldLoadArt, setShouldLoadArt] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || shouldLoadArt) return undefined;
+
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadArt(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoadArt(true);
+        observer.disconnect();
+      },
+      { rootMargin: "500px 0px" }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [shouldLoadArt]);
+
+  return (
+    <section
+      {...sectionProps}
+      ref={sectionRef}
+      className={`${className} home-deferred-screen${shouldLoadArt ? " art-ready" : ""}`}
+      style={shouldLoadArt ? getArtStyles(image) : undefined}
+    >
+      {children}
+    </section>
+  );
+};
+
 const HomePage = () => {
   useEffect(() => {
     const revealNodes = document.querySelectorAll(".home-reveal");
@@ -81,7 +162,7 @@ const HomePage = () => {
       <section
         className="home-screen home-hero-screen content-right"
         data-section-index="0"
-        style={{ "--section-art": `url(${heroArt})` }}
+        style={getArtStyles(heroArt)}
       >
         <div className="home-screen-effects" aria-hidden="true" />
         <div className="home-scanline" aria-hidden="true" />
@@ -125,11 +206,11 @@ const HomePage = () => {
       </section>
 
       {scrollSections.map((section, index) => (
-        <section
+        <DeferredArtSection
           className={`home-screen home-story-screen ${section.align === "right" ? "content-right" : ""}`}
           key={section.title}
           data-section-index={index + 1}
-          style={{ "--section-art": `url(${section.image})` }}
+          image={section.image}
         >
           <div className="home-screen-effects" aria-hidden="true" />
 
@@ -138,13 +219,13 @@ const HomePage = () => {
             <h2>{section.title}</h2>
             <p>{section.text}</p>
           </article>
-        </section>
+        </DeferredArtSection>
       ))}
 
-      <section
+      <DeferredArtSection
         className="home-screen home-story-screen"
         data-section-index={scrollSections.length + 1}
-        style={{ "--section-art": `url(${acessoArt})` }}
+        image={acessoArt}
       >
         <div className="home-screen-effects" aria-hidden="true" />
 
@@ -162,12 +243,12 @@ const HomePage = () => {
             ))}
           </ul>
         </article>
-      </section>
+      </DeferredArtSection>
 
-      <section
+      <DeferredArtSection
         className="home-screen home-final-screen"
         data-section-index={scrollSections.length + 2}
-        style={{ "--section-art": `url(${assimilation})` }}
+        image={assimilation}
       >
         <div className="home-screen-effects" aria-hidden="true" />
 
@@ -187,7 +268,7 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </DeferredArtSection>
     </main>
   );
 };

@@ -62,7 +62,11 @@ body::before {
   z-index: 1; /* Fica atrás do conteúdo principal */
   
   /* Sua Imagem */
-  background-image: url('ass.png'); 
+  background-image: url('./assets/optimized/home/hero-desktop.webp');
+  background-image: image-set(
+    url('./assets/optimized/home/hero-desktop.avif') type('image/avif'),
+    url('./assets/optimized/home/hero-desktop.webp') type('image/webp')
+  );
   background-size: cover; /* Cobre tudo sem distorcer */
   background-position: center;
   background-repeat: no-repeat;
@@ -89,6 +93,16 @@ body::before {
   overflow-x: clip;
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 900px) {
+  body::before {
+    background-image: url('./assets/optimized/home/hero-mobile.webp');
+    background-image: image-set(
+      url('./assets/optimized/home/hero-mobile.avif') type('image/avif'),
+      url('./assets/optimized/home/hero-mobile.webp') type('image/webp')
+    );
+  }
 }
 
 code {

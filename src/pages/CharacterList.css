@@ -1,7 +1,6 @@
 /* --- START OF FILE CharacterList.css --- */
 
 /* Importando fontes do tema: Orbitron (Títulos) e Rajdhani (Texto técnico) */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap');
 
 /* Animação suave de entrada */
 @keyframes fadeInData {

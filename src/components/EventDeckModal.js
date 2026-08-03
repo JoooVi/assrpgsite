@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FaLayerGroup, FaCheck, FaSkull, FaChevronDown, FaExclamationTriangle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { drawCards } from '../utils/eventDeckData';
-import styles from '../pages/CampaignSheet.module.css';
+import styles from './EventDeckModal.module.css';
 
 // --- SUBCOMPONENTE: Carta Interativa (Diagramação Padrão do Site) ---
 const InteractiveCard = ({ card, isRevealed, onSelect, onReveal }) => {

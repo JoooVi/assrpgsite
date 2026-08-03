@@ -1,46 +1,23 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import "./PageTransition.css";
 
-const animationVariants = {
-  initial: {
-    opacity: 0,
-    filter: "blur(8px)",
-  },
-  animate: {
-    opacity: 1,
-    filter: "blur(0px)",
-  },
-  exit: {
-    opacity: 0,
-    filter: "blur(8px)",
-  },
-};
-
-const transitionShellStyle = {
-  width: "100%",
-  maxWidth: "100%",
-  overflowX: "hidden",
-  overflow: "clip",
-  contain: "paint",
-};
+let hasRenderedInitialPage = false;
 
 const PageTransition = ({ children }) => {
-  const shouldReduceMotion = useReducedMotion();
+  const skipInitialAnimation = !hasRenderedInitialPage;
+  const [isVisible, setIsVisible] = useState(skipInitialAnimation);
+  hasRenderedInitialPage = true;
 
-  if (shouldReduceMotion) {
-    return <div style={transitionShellStyle}>{children}</div>;
-  }
+  useEffect(() => {
+    if (skipInitialAnimation) return undefined;
+    const frameId = window.requestAnimationFrame(() => setIsVisible(true));
+    return () => window.cancelAnimationFrame(frameId);
+  }, [skipInitialAnimation]);
 
   return (
-    <motion.div
-      variants={animationVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-      style={transitionShellStyle}
-    >
+    <div className={`page-transition-shell${isVisible ? " is-visible" : " is-entering"}`}>
       {children}
-    </motion.div>
+    </div>
   );
 };
 

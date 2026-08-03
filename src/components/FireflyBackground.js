@@ -9,6 +9,9 @@ const FireflyBackground = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const c = canvas.getContext('2d');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reducedMotion) return undefined;
     
     let w = (canvas.width = window.innerWidth);
     let h = (canvas.height = window.innerHeight);
@@ -75,34 +78,59 @@ const FireflyBackground = () => {
     }
 
     let spores = [];
-    // Quantidade moderada para não poluir
-    for (let i = 0; i < 90; i++) {
+    const sporeCount = Math.max(36, Math.min(70, Math.round((w * h) / 24000)));
+    for (let i = 0; i < sporeCount; i++) {
       spores.push(new Spore());
     }
 
-    function loop() {
-      // Limpa o canvas totalmente sem aplicar nenhum fundo escuro
-      c.clearRect(0, 0, w, h); 
-      
-      spores.forEach(spore => {
-        spore.move();
-        spore.show();
-      });
-      
+    const frameInterval = 1000 / 30;
+    let previousFrame = 0;
+
+    function loop(timestamp) {
+      if (timestamp - previousFrame >= frameInterval) {
+        previousFrame = timestamp;
+        c.clearRect(0, 0, w, h);
+
+        spores.forEach(spore => {
+          spore.move();
+          spore.show();
+        });
+      }
+
       animationFrameId.current = requestAnimationFrame(loop);
     }
+
+    const startAnimation = () => {
+      if (!animationFrameId.current) {
+        animationFrameId.current = requestAnimationFrame(loop);
+      }
+    };
+
+    const stopAnimation = () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = null;
+      }
+    };
+
+    const visibilityHandler = () => {
+      if (document.hidden) stopAnimation();
+      else startAnimation();
+    };
 
     const resizeHandler = () => {
       w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
     };
     window.addEventListener('resize', resizeHandler);
+    document.addEventListener('visibilitychange', visibilityHandler);
 
-    loop();
+    startAnimation();
 
     return () => {
       window.removeEventListener('resize', resizeHandler);
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      stopAnimation();
     };
   }, []);
 

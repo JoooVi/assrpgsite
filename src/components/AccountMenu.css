@@ -1,0 +1,153 @@
+.account-menu-shell {
+  position: relative;
+}
+
+.account-trigger {
+  align-items: center;
+  background: rgba(17, 17, 17, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #dcdcdc;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  min-height: 42px;
+  padding: 4px 10px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.account-trigger:hover,
+.account-trigger:focus-visible,
+.account-trigger.is-open {
+  background: rgba(138, 28, 24, 0.2);
+  border-color: rgba(255, 51, 51, 0.55);
+  color: #fff;
+  outline: none;
+}
+
+.account-avatar,
+.account-menu-avatar {
+  align-items: center;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 51, 51, 0.5);
+  color: #ff7777;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  height: 32px;
+  justify-content: center;
+  overflow: hidden;
+  width: 32px;
+}
+
+.account-avatar img,
+.account-menu-avatar img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.account-name {
+  display: inline-flex;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-popover {
+  background: #111;
+  border: 1px solid rgba(255, 51, 51, 0.28);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.7);
+  min-width: 210px;
+  padding: 7px 0;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  z-index: 2200;
+}
+
+.account-popover::before {
+  background: #111;
+  border-left: 1px solid rgba(255, 51, 51, 0.28);
+  border-top: 1px solid rgba(255, 51, 51, 0.28);
+  content: "";
+  height: 10px;
+  position: absolute;
+  right: 14px;
+  top: -6px;
+  transform: rotate(45deg);
+  width: 10px;
+}
+
+.account-menu-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #dcdcdc;
+  cursor: pointer;
+  display: flex;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  gap: 12px;
+  letter-spacing: 0.7px;
+  min-height: 44px;
+  padding: 6px 16px;
+  text-align: left;
+  text-decoration: none;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus-visible {
+  background: rgba(138, 28, 24, 0.18);
+  color: #fff;
+  outline: none;
+}
+
+.account-menu-item svg {
+  color: #aaa;
+  flex: 0 0 auto;
+  width: 16px;
+}
+
+.account-menu-item.profile {
+  gap: 10px;
+}
+
+.account-menu-avatar {
+  height: 30px;
+  width: 30px;
+}
+
+.account-menu-divider {
+  background: rgba(255, 255, 255, 0.1);
+  display: block;
+  height: 1px;
+  margin: 4px 0;
+}
+
+.account-menu-item.danger,
+.account-menu-item.danger svg {
+  color: #ff6666;
+}
+
+.account-menu-item:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 1200px) {
+  .account-name {
+    display: none;
+  }
+}
+
